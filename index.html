@@ -194,16 +194,27 @@ async function vPlans(){
  const l=await allPdf();
  $("#pl").innerHTML=l.map(p=>`<div class="card row"><span>📄 ${esc(p.name)}</span><span><button class="sec" onclick="ver('${p.id}')">Ver</button> <button class="sec" onclick="delPdf('${p.id}')">🗑</button></span></div>`).join("")||'<div class="card mu">Aún no hay documentos.</div>';
 }
+const san=n=>n.replace(/[^\w.\-]/g,"_").toLowerCase();
 async function subir(fs){
- try{const d=await db();for(const f of fs){await new Promise(r=>{const t=d.transaction("pdfs","readwrite");t.objectStore("pdfs").put({id:Date.now()+Math.random()+"",name:f.name,blob:f});t.oncomplete=r;t.onerror=r})}}catch(e){alert("No se pudo guardar el PDF en este navegador.")}
- vPlans();
-}
-async function ver(id){
- const p=(await allPdf()).find(x=>x.id==id);if(!p)return;if(!p.data){const dl=await sb.storage.from("planos").download(p.id);if(dl.error){msg("No se pudo abrir");return}p.data=await dl.data.arrayBuffer();if(!p.type)p.type=dl.data.type||"application/pdf"}
- const u=URL.createObjectURL(p.blob);
- $("#pv").innerHTML=`<div class="card"><div class="row"><b>${esc(p.name)}</b><a href="${u}" target="_blank" style="color:var(--pr)">Abrir aparte</a></div><iframe src="${u}"></iframe></div>`;
- $("#pv").scrollIntoView();
-}
+ const ex=await allPdf();let n=0;const rep=[],par=[];
+ for(const f of fs){
+  if(ex.some(x=>san(x.name)==san(f.name))){rep.push(f.name);continue}
+  const sim=ex.find(x=>x.size&&x.size==f.size);
+  try{const buf=await f.arrayBuffer();const t=f.type||(/\.pdf$/i.test(f.name)?"application/pdf":"");const path=Date.now()+"_"+f.name.replace(/[^\w.\-]/g,"_");
+   const r=await sb.storage.from("planos").upload(path,new Blob([buf],{type:t}),{contentType:t||undefined});
+   if(r.error)msg("No se pudo subir "+f.name+": "+r.error.message);
+   else{n++;ex.push({name:f.name,size:f.size});if(sim)par.push(f.name+" ≈ "+sim.name)}
+  }catch(e){msg("No se pudo leer "+f.name)}
+ }
+ if(rep.length||par.length){
+  $("#sheetc").innerHTML=`<h3 style="margin:0">Aviso: archivos repetidos</h3>`+
+   (rep.length?`<label>Ya existían, no se han subido</label><div>${rep.map(esc).join("<br>")}</div>`:"")+
+   (par.length?`<label>Posible repetido (mismo tamaño), se ha subido igualmente</label><div>${par.map(esc).join("<br>")}</div>`:"")+
+   (n?`<div class="mu" style="margin-top:10px">Subidos correctamente: ${n}</div>`:"")+
+   `<button class="pri" style="margin-top:14px" onclick="closeSheet()">Entendido</button>`;
+  $("#sheet").style.display="flex";
+ }else if(n)msg(n+" documento(s) cargado(s)");
+ vPlans()}
 async function delPdf(id){if(!confirm("¿Eliminar documento?"))return;const d=await db();d.transaction("pdfs","readwrite").objectStore("pdfs").delete(id).onsuccess=vPlans;setTimeout(vPlans,200)}
 /* Planos v2 */
 let mem=[],pdfDoc=null,pg=1,zm=1,cur="",busy=false;
@@ -279,7 +290,7 @@ function pedirTec(){if(rol=="operador"){msg("Tu usuario no tiene permiso de Téc
 async function guardaPos(){const v=$("#n_p").value.trim();if(!v){msg("Introduce la posición");return}if(POS.some(p=>String(p)==v)){msg("Esa posición ya existe");return}
  const r=await sb.from("posiciones").insert({num:v}).select();if(r.error||!r.data.length){msg("Sin permiso para añadir posiciones");return}
  POS.push(v);POS.sort(ordPos);closeSheet();render();msg("Posición "+v+" añadida")}
-async function allPdf(){const r=await sb.storage.from("planos").list("",{limit:200,sortBy:{column:"name",order:"asc"}});if(r.error)return[];return r.data.filter(x=>x.name!==".emptyFolderPlaceholder").map(x=>({id:x.name,name:x.name.replace(/^\d+_/,""),type:(x.metadata&&x.metadata.mimetype)||"",data:null}))}
+async function allPdf(){const r=await sb.storage.from("planos").list("",{limit:200,sortBy:{column:"name",order:"asc"}});if(r.error)return[];return r.data.filter(x=>x.name!==".emptyFolderPlaceholder").map(x=>({id:x.name,name:x.name.replace(/^\d+_/,""),type:(x.metadata&&x.metadata.mimetype)||"",size:(x.metadata&&x.metadata.size)||0,data:null}))}
 async function subir(fs){let n=0;for(const f of fs){try{const buf=await f.arrayBuffer();const t=f.type||(/\.pdf$/i.test(f.name)?"application/pdf":"");const path=Date.now()+"_"+f.name.replace(/[^\w.\-]/g,"_");const r=await sb.storage.from("planos").upload(path,new Blob([buf],{type:t}),{contentType:t||undefined});if(r.error)msg("No se pudo subir "+f.name+": "+r.error.message);else n++}catch(e){msg("No se pudo leer "+f.name)}}
  if(n)msg(n+" documento(s) cargado(s)");vPlans()}
 async function delPdf(id){const r=await sb.storage.from("planos").remove([id]);if(r.error||!r.data||!r.data.length)msg("Sin permiso para eliminar");vPlans()}
