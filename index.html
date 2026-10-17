@@ -2,6 +2,11 @@
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PBB TKE Barajas</title>
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-title" content="PBB TKE">
 <style>
 :root{--bg:#f6f2fa;--card:#fff;--tx:#1d1526;--mu:#6d6478;--pr:#7a12b5;--ac:#f0700a;--g:linear-gradient(90deg,#7a12b5,#f0700a);--prt:#fff;--ok:#7a12b5;--wa:#7a12b5;--bd:#e3dbec;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#130d1c;--card:#1e1530;--tx:#f3edf9;--mu:#a597b8;--pr:#a14fe0;--ac:#ff8a2b;--prt:#fff;--ok:#a14fe0;--wa:#a14fe0;--bd:#35264c}}
@@ -302,7 +307,7 @@ async function delPdf(id){const r=await sb.storage.from("planos").remove([id]);i
 
 /* ===== Accesos: contraseña de admin, turno y código de técnico ===== */
 let turno="";
-function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v5"+(tecnico&&turno?" · Turno "+turno:"")}
+function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v6"+(tecnico&&turno?" · Turno "+turno:"")}
 function adminBtn(){if(admin){setO();return}if(rol!="admin"){msg("Tu usuario no tiene permiso de Administrador");return}
  $("#sheetc").innerHTML=`<h3 style="margin:0">Acceso Administrador</h3><label>Contraseña de administrador</label><input id="a_p" type="password" autocomplete="current-password"><button class="pri" style="margin-top:14px" onclick="loginAdm()">Entrar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
 async function loginAdm(){const r=await sb.auth.signInWithPassword({email:user.email,password:$("#a_p").value});if(r.error){msg("Contraseña incorrecta");return}admin=true;tecnico=false;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
