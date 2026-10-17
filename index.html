@@ -189,7 +189,7 @@ function vTrack(){
 /* PDFs en IndexedDB */
 function db(){return new Promise((r,j)=>{const q=indexedDB.open("pbb",1);q.onupgradeneeded=()=>q.result.createObjectStore("pdfs",{keyPath:"id"});q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)})}
 async function allPdf(){try{const d=await db();return await new Promise(r=>{const q=d.transaction("pdfs").objectStore("pdfs").getAll();q.onsuccess=()=>r(q.result);q.onerror=()=>r([])})}catch(e){return[]}}
-async function vPlans(){
+async function vPlans(){if(view!="plans")return;
  $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 8px">Planos y esquemas</h3><input id="pf" type="file" accept="application/pdf" multiple onchange="subir(this.files)"><div class="mu" style="margin-top:6px">Sube PDFs de planos y esquemas técnicos. Se guardan en este dispositivo.</div></div><div id="pl"></div><div id="pv"></div>`;
  const l=await allPdf();
  $("#pl").innerHTML=l.map(p=>`<div class="card row"><span>📄 ${esc(p.name)}</span><span><button class="sec" onclick="ver('${p.id}')">Ver</button> <button class="sec" onclick="delPdf('${p.id}')">🗑</button></span></div>`).join("")||'<div class="card mu">Aún no hay documentos.</div>';
@@ -200,11 +200,13 @@ async function subir(fs){
  for(const f of fs){
   if(ex.some(x=>san(x.name)==san(f.name))){rep.push(f.name);continue}
   const sim=ex.find(x=>x.size&&x.size==f.size);
-  try{const buf=await f.arrayBuffer();const t=f.type||(/\.pdf$/i.test(f.name)?"application/pdf":"");const path=Date.now()+"_"+f.name.replace(/[^\w.\-]/g,"_");
-   const r=await sb.storage.from("planos").upload(path,new Blob([buf],{type:t}),{contentType:t||undefined});
+  try{const t=f.type||(/\.pdf$/i.test(f.name)?"application/pdf":"");const path=Date.now()+"_"+f.name.replace(/[^\w.\-]/g,"_");
+   let r;
+   try{r=await sb.storage.from("planos").upload(path,f,{contentType:t||undefined})}
+   catch(e1){const buf=await new Promise((ok,ko)=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.onerror=()=>ko(fr.error);fr.readAsArrayBuffer(f)});r=await sb.storage.from("planos").upload(path,new Blob([buf],{type:t}),{contentType:t||undefined})}
    if(r.error)msg("No se pudo subir "+f.name+": "+r.error.message);
    else{n++;ex.push({name:f.name,size:f.size});if(sim)par.push(f.name+" ≈ "+sim.name)}
-  }catch(e){msg("No se pudo leer "+f.name)}
+  }catch(e){msg("No se pudo subir "+f.name+" ("+((e&&e.name)||"error")+": "+((e&&e.message)||e)+")")}
  }
  if(rep.length||par.length){
   $("#sheetc").innerHTML=`<h3 style="margin:0">Aviso: archivos repetidos</h3>`+
@@ -223,7 +225,7 @@ async function allPdf(){const d=await idb();if(!d)return mem;return new Promise(
 async function putDoc(o){const d=await idb();if(d){const ok=await new Promise(r=>{try{const t=d.transaction("docs","readwrite");t.objectStore("docs").put(o);t.oncomplete=()=>r(true);t.onerror=()=>r(false);t.onabort=()=>r(false)}catch(e){r(false)}});if(ok)return true}mem.push(o);return false}
 async function subir(fs){let off=false;for(const f of fs){try{const buf=await f.arrayBuffer();const ok=await putDoc({id:Date.now()+"_"+Math.random().toString(36).slice(2),name:f.name,type:f.type||(/\.pdf$/i.test(f.name)?"application/pdf":""),data:buf});if(!ok)off=true}catch(e){msg("No se pudo leer "+f.name)}}
  msg(off?"Guardado solo durante esta sesión (el navegador no permite almacenamiento)":"Documento cargado");vPlans()}
-async function vPlans(){
+async function vPlans(){if(view!="plans")return;
  $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 8px">Planos y esquemas</h3><label style="margin:0 0 6px">Selecciona uno o varios archivos (PDF o imagen)</label><input id="pf" type="file" accept=".pdf,application/pdf,image/*" multiple onchange="subir(this.files)"></div><div id="pl"></div><div id="pv"></div>`;
  const l=await allPdf();
  $("#pl").innerHTML=l.map(p=>`<div class="card row"><span style="overflow-wrap:anywhere">${esc(p.name)}</span><span style="white-space:nowrap"><button class="sec" onclick="ver('${p.id}')">Ver</button>${admin?` <button class="sec" onclick="delPdf('${p.id}')">Eliminar</button>`:""}</span></div>`).join("")||'<div class="card mu">Aún no hay documentos.</div>';
