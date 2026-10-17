@@ -196,23 +196,26 @@ async function vPlans(){if(view!="plans")return;
 }
 const san=n=>n.replace(/[^\w.\-]/g,"_").toLowerCase();
 async function subir(fs){
- const ex=await allPdf();let n=0;const rep=[],par=[];
- for(const f of fs){
+ const lista=Array.from(fs);const ex=await allPdf();let n=0;const rep=[],par=[],fail=[];
+ for(const f of lista){
   if(ex.some(x=>san(x.name)==san(f.name))){rep.push(f.name);continue}
   const sim=ex.find(x=>x.size&&x.size==f.size);
-  try{const t=f.type||(/\.pdf$/i.test(f.name)?"application/pdf":"");const path=Date.now()+"_"+f.name.replace(/[^\w.\-]/g,"_");
-   let r;
-   try{r=await sb.storage.from("planos").upload(path,f,{contentType:t||undefined})}
-   catch(e1){const buf=await new Promise((ok,ko)=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.onerror=()=>ko(fr.error);fr.readAsArrayBuffer(f)});r=await sb.storage.from("planos").upload(path,new Blob([buf],{type:t}),{contentType:t||undefined})}
-   if(r.error)msg("No se pudo subir "+f.name+": "+r.error.message);
-   else{n++;ex.push({name:f.name,size:f.size});if(sim)par.push(f.name+" ≈ "+sim.name)}
-  }catch(e){msg("No se pudo subir "+f.name+" ("+((e&&e.name)||"error")+": "+((e&&e.message)||e)+")")}
+  const t=f.type||(/\.pdf$/i.test(f.name)?"application/pdf":"");
+  const path=Date.now()+"_"+f.name.replace(/[^\w.\-]/g,"_");
+  const up=b=>sb.storage.from("planos").upload(path,b,{contentType:t||undefined});
+  const intentos=[()=>up(f),async()=>up(new Blob([await f.arrayBuffer()],{type:t})),async()=>up(await fetch(URL.createObjectURL(f)).then(r=>r.blob()))];
+  let r=null,err="";
+  for(const it of intentos){try{r=await it();if(!r.error)break;err=r.error.message;if(!/network|load failed|failed to fetch/i.test(err))break}catch(e){err=((e&&e.name)?e.name+": ":"")+((e&&e.message)||e);r=null}}
+  if(r&&!r.error){n++;ex.push({name:f.name,size:f.size});if(sim)par.push(f.name+" ≈ "+sim.name)}
+  else fail.push(f.name+" → "+(err||"error desconocido"));
  }
- if(rep.length||par.length){
-  $("#sheetc").innerHTML=`<h3 style="margin:0">Aviso: archivos repetidos</h3>`+
+ const inp=$("#pf");if(inp)inp.value="";
+ if(rep.length||par.length||fail.length){
+  $("#sheetc").innerHTML=`<h3 style="margin:0">Resultado de la subida</h3>`+
+   (n?`<div style="margin-top:8px">Subidos correctamente: <b>${n}</b></div>`:"")+
+   (fail.length?`<label>No se han podido subir</label><div>${fail.map(esc).join("<br>")}</div><div class="mu" style="margin-top:6px">Si indica NotReadableError o Load failed: el archivo no está descargado en el iPhone (iCloud) o pesa demasiado. Descárgalo en Archivos y vuelve a elegirlo.</div>`:"")+
    (rep.length?`<label>Ya existían, no se han subido</label><div>${rep.map(esc).join("<br>")}</div>`:"")+
    (par.length?`<label>Posible repetido (mismo tamaño), se ha subido igualmente</label><div>${par.map(esc).join("<br>")}</div>`:"")+
-   (n?`<div class="mu" style="margin-top:10px">Subidos correctamente: ${n}</div>`:"")+
    `<button class="pri" style="margin-top:14px" onclick="closeSheet()">Entendido</button>`;
   $("#sheet").style.display="flex";
  }else if(n)msg(n+" documento(s) cargado(s)");
@@ -267,7 +270,7 @@ async function iniciar(){
  const r=await sb.from("perfiles").select("rol").eq("id",user.id).maybeSingle();
  rol=(r.data&&r.data.rol)||"operador";
  const l=$("#login");if(l)l.remove();
- document.querySelector("header small").textContent=user.email+" · "+rol;
+ document.querySelector("header small").textContent=user.email+" · "+rol+" · v3";
  admin=false;tecnico=(rol=="tecnico"||rol=="admin");
  await cargaPos();await cargaInc();render();
  sb.channel("cambios").on("postgres_changes",{event:"*",schema:"public",table:"incidencias"},()=>cargaInc(true)).on("postgres_changes",{event:"*",schema:"public",table:"posiciones"},async()=>{await cargaPos();render()}).subscribe();
