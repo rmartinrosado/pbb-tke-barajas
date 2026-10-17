@@ -119,7 +119,7 @@ function addPos(){$("#sheetc").innerHTML=`<h3 style="margin:0">Añadir posición
 function guardaPos(){const v=$("#n_p").value.trim();if(!v){msg("Introduce la posición");return}if(POS.some(p=>String(p)==v)){msg("Esa posición ya existe");return}const ex=ld("pbb_pos",[]);ex.push(v);sv("pbb_pos",ex);POS.push(v);POS.sort(ordPos);closeSheet();render();msg("Posición "+v+" añadida")}
 let tFoto="";
 function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const i=ab.find(x=>x.id==sel)||ab[0];
- $("#sheetc").innerHTML=`<h3 style="margin:0">Resolución de avería</h3>`+(i?`<label>Avería abierta</label><select id="t_sel" onchange="resTec(this.value)">${ab.map(x=>`<option value="${x.id}" ${x.id==i.id?"selected":""}>PBB ${x.pos} · ${x.tipo} · ${x.orden}</option>`).join("")}</select>
+ $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Resolución de avería</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>`+(i?`<label>Avería abierta</label><select id="t_sel" onchange="resTec(this.value)">${ab.map(x=>`<option value="${x.id}" ${x.id==i.id?"selected":""}>PBB ${x.pos} · ${x.tipo} · ${x.orden}</option>`).join("")}</select>
  <label>1 · Foto del estado del PLC</label><input id="t_foto" type="file" accept="image/*" capture="environment" onchange="prevFoto(this)"><img id="t_prev" ${i.plc?`src="${i.plc}"`:""} style="display:${i.plc?"block":"none"};width:100%;margin-top:8px;border-radius:6px">
  <label>2 · Definición de la avería</label><textarea id="t_def" rows="3" placeholder="Describe la avería observada">${esc(i.def)}</textarea>
  <button class="pri" style="margin-top:12px" onclick="guardaTec()">Guardar</button>`:`<div class="mu" style="margin:10px 0">No hay averías abiertas.</div>`)+`<a class="pri" href="${GPT}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:8px">Asistente GPT: diagnóstico y comprobaciones en campo</a><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cerrar</button>`;$("#sheet").style.display="flex";if(i&&!sel&&!i.plc){const f=$("#t_foto");if(f)f.click()}}
@@ -127,7 +127,7 @@ function prevFoto(inp){const f=inp.files[0];if(!f)return;const r=new FileReader(
 function guardaTec(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;i.def=$("#t_def").value.trim();if(tFoto)i.plc=tFoto;sv("pbb_inc",inc);msg("Resolución guardada");closeSheet();render()}
 P.cam='M3 8h4l2-3h6l2 3h4v12H3zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z';
 function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const i=ab.find(x=>x.id==sel)||ab[0];
- let h=`<h3 style="margin:0">Resolución de avería</h3>`;
+ let h=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Resolución de avería</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>`;
  if(!i){h+=`<div class="mu" style="margin:10px 0">No hay averías abiertas.</div><button class="sec" style="width:100%" onclick="closeSheet()">Cerrar</button>`}
  else{h+=`<label>Avería abierta</label><select id="t_sel" onchange="resTec(this.value)">${ab.map(x=>`<option value="${x.id}" ${x.id==i.id?"selected":""}>PBB ${x.pos} · ${x.tipo} · ${x.orden}</option>`).join("")}</select>
  <div class="grid" style="margin-top:12px"><button class="btn" onclick="opcFoto()"><span>${IC('cam')}</span>Foto PLC</button><button class="btn" onclick="planosSheet()"><span>${IC('plans')}</span>Planos y documentación</button></div>
@@ -136,7 +136,7 @@ function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const 
  <div id="t_docs"></div><div id="pv"></div>
  <label>Definición de la avería</label><textarea id="t_def" rows="2">${esc(i.def)}</textarea>
  <label>Comentario</label><textarea id="t_com" rows="2">${esc(i.com)}</textarea>
- <button class="pri" style="margin-top:12px" onclick="guardaTec()">Validar y enviar al chat GPT</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cerrar</button>`}
+ <button class="pri" style="margin-top:12px" onclick="guardaTec()">VALIDAR</button>`}
  $("#sheetc").innerHTML=h;$("#sheet").style.display="flex"}
 async function planosSheet(){const l=await allPdf();$("#t_docs").innerHTML=`<div style="margin-top:10px">`+(l.map(p=>`<div class="row" style="margin:6px 0"><span style="overflow-wrap:anywhere">${esc(p.name)}</span><button class="sec" onclick="ver('${p.id}')">Ver</button></div>`).join("")||'<div class="mu">No hay documentos. Cárgalos en Planos.</div>')+`</div>`}
 function guardaTec(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;i.def=$("#t_def").value.trim();i.com=$("#t_com").value.trim();if(tFoto)i.plc=tFoto;
@@ -250,7 +250,7 @@ async function ver(id){
 }
 async function delPdf(id){mem=mem.filter(x=>x.id!=id);const d=await idb();if(d){await new Promise(r=>{try{const t=d.transaction("docs","readwrite");t.objectStore("docs").delete(id);t.oncomplete=r;t.onerror=r;t.onabort=r}catch(e){r()}})}vPlans()}
 function vTec(){
- $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 8px">Resolución de avería</h3><button class="pri" onclick="resTec()">Abrir resolución de avería</button><a class="pri" href="${GPT}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:8px">Chat GPT PBB · Diagnóstico</a></div>`;
+ $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 8px">Resolución de avería</h3><button class="pri" onclick="resTec()">Abrir resolución de avería</button></div>`;
 }
 
 /* ===== SUPABASE: usuarios, roles y datos compartidos ===== */
@@ -302,7 +302,7 @@ async function delPdf(id){const r=await sb.storage.from("planos").remove([id]);i
 
 /* ===== Accesos: contraseña de admin, turno y código de técnico ===== */
 let turno="";
-function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v4"+(tecnico&&turno?" · Turno "+turno:"")}
+function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v5"+(tecnico&&turno?" · Turno "+turno:"")}
 function adminBtn(){if(admin){setO();return}if(rol!="admin"){msg("Tu usuario no tiene permiso de Administrador");return}
  $("#sheetc").innerHTML=`<h3 style="margin:0">Acceso Administrador</h3><label>Contraseña de administrador</label><input id="a_p" type="password" autocomplete="current-password"><button class="pri" style="margin-top:14px" onclick="loginAdm()">Entrar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
 async function loginAdm(){const r=await sb.auth.signInWithPassword({email:user.email,password:$("#a_p").value});if(r.error){msg("Contraseña incorrecta");return}admin=true;tecnico=false;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
