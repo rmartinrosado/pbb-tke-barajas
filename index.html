@@ -82,7 +82,7 @@ function vDash(){
  <button class="btn" onclick="resTec()" ${tecnico||admin?"":"disabled"}><span>${IC('check')}</span>Resolución OT</button>
  <button class="btn" onclick="go('track','todas')"><span>${IC('list')}</span>Seguimiento de incidencias</button>
  <button class="btn" onclick="go('plans')" ${tecnico||admin?"":"disabled"}><span>${IC('plans')}</span>Planos y esquemas</button></div>
- <h3 style="margin:18px 2px 8px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)">Órdenes de Trabajo Abiertas</h3>${ab.map(card).join("")||'<div class="card mu">Sin averías abiertas.</div>'}${admin?`<div class="card"><b>Modo Administrador</b><div class="mu">Puedes editar y eliminar registros desde Seguimiento.</div><button class="sec" style="margin-top:8px" onclick="addPos()">Añadir posición PBB</button> <button class="sec" style="margin-top:8px" onclick="salir()">Cerrar sesión</button></div>`:""}`;
+ <h3 style="margin:18px 2px 8px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)">Órdenes de Trabajo Abiertas</h3>${ab.map(card).join("")||'<div class="card mu">Sin averías abiertas.</div>'}${admin?`<div class="card"><b>Modo Administrador</b><div class="mu">Puedes editar y eliminar registros desde Seguimiento.</div><button class="sec" style="margin-top:8px" onclick="addPos()">Añadir posición PBB</button> <button class="sec" style="margin-top:8px" onclick="salir()">Cerrar sesión</button> <button class="sec" style="margin-top:8px" onclick="pedirExport()">Exportar CSV</button></div>`:""}`;
 }
 function vNew(){
  $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 4px">Registrar incidencia</h3>
@@ -307,7 +307,7 @@ async function delPdf(id){const r=await sb.storage.from("planos").remove([id]);i
 
 /* ===== Accesos: contraseña de admin, turno y código de técnico ===== */
 let turno="";
-function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v6"+(tecnico&&turno?" · Turno "+turno:"")}
+function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v7"+(tecnico&&turno?" · Turno "+turno:"")}
 function adminBtn(){if(admin){setO();return}if(rol!="admin"){msg("Tu usuario no tiene permiso de Administrador");return}
  $("#sheetc").innerHTML=`<h3 style="margin:0">Acceso Administrador</h3><label>Contraseña de administrador</label><input id="a_p" type="password" autocomplete="current-password"><button class="pri" style="margin-top:14px" onclick="loginAdm()">Entrar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
 async function loginAdm(){const r=await sb.auth.signInWithPassword({email:user.email,password:$("#a_p").value});if(r.error){msg("Contraseña incorrecta");return}admin=true;tecnico=false;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
@@ -318,5 +318,20 @@ async function loginTec(){const r=await sb.from("perfiles").select("codigo").eq(
  if(!c){msg("No tienes código asignado. Pídeselo al administrador");return}
  if($("#t_c").value!==String(c)){msg("Código incorrecto");return}
  tecnico=true;admin=false;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
+
+/* ===== Exportar listado a CSV (administrador) ===== */
+function pedirExport(){const h=new Date().toISOString().slice(0,10);
+ $("#sheetc").innerHTML=`<h3 style="margin:0">Exportar listado (CSV)</h3><label>Desde</label><input id="x_d" type="date"><label>Hasta</label><input id="x_h" type="date" value="${h}"><label>Estado</label><select id="x_e"><option value="">Todas</option><option value="abierta">Abiertas</option><option value="cerrada">Cerradas</option></select><button class="pri" style="margin-top:14px" onclick="exportaCSV()">Descargar CSV</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
+function exportaCSV(){
+ const d=$("#x_d").value,h=$("#x_h").value,e=$("#x_e").value;
+ const l=inc.filter(i=>(!d||(i.fecha||"")>=d)&&(!h||(i.fecha||"")<=h)&&(!e||i.estado==e)).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));
+ if(!l.length){msg("No hay registros con ese filtro");return}
+ const cab=["Fecha","Posición","Tipo","Nº orden","Estado","Reportado por","Descripción","Hora inicio","Hora llegada","Hora cierre","Definición","Actuación","Observaciones","Comentario","Turno","Técnico","Foto PLC"];
+ const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""').replace(/\r?\n/g," ")+'"';
+ const f=l.map(i=>[i.fecha,i.pos,i.tipo,i.orden,i.estado,i.rep,i.desc,i.hIni,i.hLle,i.hCie,i.def,i.act,i.obs,i.com,i.turno,i.tecnico,i.plc?"Sí":"No"].map(q).join(";"));
+ const csv="\ufeff"+[cab.map(q).join(";"),...f].join("\r\n");
+ const u=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+ const a=document.createElement("a");a.href=u;a.download="OT_PBB_TKE_"+new Date().toISOString().slice(0,10)+".csv";document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(u),10000);closeSheet();msg(l.length+" registros exportados")}
 iniciar();
 </script></body></html>
