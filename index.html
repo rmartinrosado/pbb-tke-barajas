@@ -29,7 +29,7 @@ input,select,textarea{width:100%;padding:11px;border:1px solid var(--bd);border-
 .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
 .mu{color:var(--mu);font-size:13px}
 nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bd);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
-nav button{flex:1;background:none;border:0;color:var(--mu);padding:8px 2px;font-size:11px}nav button span{display:block;font-size:20px}nav button.on{color:var(--pr);font-weight:700}
+nav button{flex:1;line-height:1.15;background:none;border:0;color:var(--mu);padding:8px 2px;font-size:11px}nav button span{display:block;font-size:20px}nav button.on{color:var(--pr);font-weight:700}
 #sheet{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;z-index:9}
 #sheet>div{background:var(--card);width:100%;max-height:90%;overflow:auto;border-radius:16px 16px 0 0;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;background:#fff}
@@ -42,7 +42,7 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 let POS=[500,502,504,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,538,539,540,542,544,546,548,550];
-const TIPOS=["PAS","AAA","AAP","HZ"];
+const TIPOS=["PAS","AAA","AAP","HZ","Sigma"];
 const GPT="https://chatgpt.com/share/6ad2492e-3cd0-83eb-80fa-621dbbbe8502";
 const ordPos=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true});
 try{JSON.parse(localStorage.getItem("pbb_pos")||"[]").forEach(v=>{if(!POS.some(p=>String(p)==String(v)))POS.push(v)});POS.sort(ordPos)}catch(e){}
@@ -60,7 +60,7 @@ const P={home:'M3 11l9-8 9 8v10H3z',plus:'M12 5v14M5 12h14',list:'M8 6h13M8 12h1
 const IC=k=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${P[k]}"/></svg>`;
 function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||admin))||(view=="tec"&&!(tecnico||admin)))view="dash";
  $("#modo").classList.toggle("on",tecnico);$("#mo").classList.toggle("on",!tecnico&&!admin);$("#adm").classList.toggle("on",admin);
- const tabs=[["dash",IC('home'),"Inicio"],["new",IC('plus'),"Nueva"],["track",IC('list'),"Seguimiento"]];if(tecnico||admin)tabs.push(["plans",IC('plans'),"Planos"]);
+ const tabs=[["dash",IC('home'),"Inicio"],["new",IC('plus'),"Nueva"],["track",IC('list'),"Seguimiento OT"]];if(tecnico||admin)tabs.push(["plans",IC('plans'),"Planos"]);
  if(tecnico||admin)tabs.push(["tec",IC('tool'),"Técnico"]);
  $("#nav").innerHTML=tabs.map(t=>`<button class="${view==t[0]?"on":""}" onclick="go('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join("");
  ({dash:vDash,new:vNew,track:vTrack,plans:vPlans,tec:vTec})[view]();
@@ -80,18 +80,18 @@ function vDash(){
  $("#app").innerHTML=`<div class="grid"><div class="card kpi"><b>${ab.length}</b>OT abiertas</div><div class="card kpi"><b>${ce}</b>OT cerradas</div></div>
  <div class="grid" style="margin-bottom:10px"><button class="btn" onclick="go('new')"><span>${IC('plus')}</span>Registrar OT</button>
  <button class="btn" onclick="resTec()" ${tecnico||admin?"":"disabled"}><span>${IC('check')}</span>Resolución OT</button>
- <button class="btn" onclick="go('track','todas')"><span>${IC('list')}</span>Seguimiento de incidencias</button>
+ <button class="btn" onclick="go('track','todas')"><span>${IC('list')}</span>Seguimiento OT</button>
  <button class="btn" onclick="go('plans')" ${tecnico||admin?"":"disabled"}><span>${IC('plans')}</span>Planos y esquemas</button></div>
  <h3 style="margin:18px 2px 8px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)">Órdenes de Trabajo Abiertas</h3>${ab.map(card).join("")||'<div class="card mu">Sin averías abiertas.</div>'}${admin?`<div class="card"><b>Modo Administrador</b><div class="mu">Puedes editar y eliminar registros desde Seguimiento.</div><button class="sec" style="margin-top:8px" onclick="addPos()">Añadir posición PBB</button> <button class="sec" style="margin-top:8px" onclick="salir()">Cerrar sesión</button> <button class="sec" style="margin-top:8px" onclick="pedirExport()">Exportar CSV</button></div>`:""}`;
 }
 function vNew(){
  $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 4px">Registrar incidencia</h3>
  <label>Posición PBB</label><select id="f_pos">${POS.map(p=>`<option>${p}</option>`).join("")}</select>
- <label>Tipo de incidencia</label><select id="f_tipo">${TIPOS.map(p=>`<option>${p}</option>`).join("")}</select>
+ <label>Tipo</label><select id="f_tipo">${TIPOS.map(p=>`<option>${p}</option>`).join("")}</select>
  <label>Número de orden (CGA)</label><div style="display:flex;align-items:stretch"><span id="pf_v" style="display:flex;align-items:center;padding:0 12px;background:var(--pr);color:var(--prt);border-radius:6px 0 0 6px;font-weight:700;letter-spacing:1px">${pref}</span><div style="display:flex;flex-direction:column;width:38px"><button type="button" onclick="cambiaPref(1)" aria-label="Subir" style="flex:1;background:var(--pr);color:var(--prt);border:0;border-left:1px solid #fff5;border-bottom:1px solid #fff5;font-size:12px;padding:0">▲</button><button type="button" onclick="cambiaPref(-1)" aria-label="Bajar" style="flex:1;background:var(--pr);color:var(--prt);border:0;border-left:1px solid #fff5;font-size:12px;padding:0">▼</button></div><input id="f_ord" inputmode="numeric" maxlength="3" placeholder="000" oninput="this.value=this.value.replace(/[^0-9]/g,'')" style="border-radius:0 6px 6px 0;letter-spacing:3px;font-weight:600"></div><div class="mu" style="margin-top:4px">Introduce solo los 3 últimos dígitos</div>
  <label>Reportado por</label><select id="f_rep" onchange="$('#f_otro').classList.toggle('hide',this.value!='Otro')"><option>CGA</option><option>Responsable Turno</option><option>Otro</option></select>
  <input id="f_otro" class="hide" style="margin-top:6px" placeholder="¿Quién?">
- <label>Descripción de la avería</label><textarea id="f_desc" rows="3"></textarea>
+ <label>Descripción de los Trabajos / Actuación</label><textarea id="f_desc" rows="3"></textarea>
  <label>Hora de inicio</label><input id="f_hi" type="time" value="${ahora()}">
  <button class="pri" style="margin-top:14px" onclick="guardar()">Guardar incidencia</button></div>`;
 }
@@ -186,7 +186,7 @@ function borrar(id){$("#sheetc").innerHTML=`<h3 style="margin:0">¿Eliminar inci
 function delInc(id){inc=inc.filter(x=>x.id!=id);sv("pbb_inc",inc);closeSheet();render()}
 function vTrack(){
  const l=inc.filter(i=>(filtro=="todas"||i.estado==filtro)&&(!ptxt||i.pos==ptxt));
- $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 4px">Seguimiento de incidencias</h3>
+ $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 4px">Seguimiento OT</h3>
  <div class="grid"><div><label>Estado</label><select onchange="filtro=this.value;render()">${[["todas","Todas"],["abierta","Abiertas"],["cerrada","Cerradas"]].map(o=>`<option value="${o[0]}" ${filtro==o[0]?"selected":""}>${o[1]}</option>`).join("")}</select></div>
  <div><label>Posición</label><select onchange="ptxt=this.value;render()"><option value="">Todas</option>${POS.map(p=>`<option ${ptxt==p?"selected":""}>${p}</option>`).join("")}</select></div></div></div>
  ${l.map(card).join("")||'<div class="card mu">Sin resultados.</div>'}`;
@@ -307,7 +307,7 @@ async function delPdf(id){const r=await sb.storage.from("planos").remove([id]);i
 
 /* ===== Accesos: contraseña de admin, turno y código de técnico ===== */
 let turno="";
-function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v7"+(tecnico&&turno?" · Turno "+turno:"")}
+function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v9"+(tecnico&&turno?" · Turno "+turno:"")}
 function adminBtn(){if(admin){setO();return}if(rol!="admin"){msg("Tu usuario no tiene permiso de Administrador");return}
  $("#sheetc").innerHTML=`<h3 style="margin:0">Acceso Administrador</h3><label>Contraseña de administrador</label><input id="a_p" type="password" autocomplete="current-password"><button class="pri" style="margin-top:14px" onclick="loginAdm()">Entrar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
 async function loginAdm(){const r=await sb.auth.signInWithPassword({email:user.email,password:$("#a_p").value});if(r.error){msg("Contraseña incorrecta");return}admin=true;tecnico=false;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
