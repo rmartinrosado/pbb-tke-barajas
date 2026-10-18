@@ -73,7 +73,7 @@ function card(i){
  ${i.desc?`<p style="margin:6px 0">${esc(i.desc)}</p>`:""}
  <div class="mu">Inicio ${i.hIni||"–"} · Llegada ${i.hLle||"–"} · Cierre ${i.hCie||"–"}</div>
  ${i.def?`<div class="mu"><b>Definición:</b> ${esc(i.def)}</div>`:""}${i.com?`<div class="mu"><b>Comentario:</b> ${esc(i.com)}</div>`:""}${i.turno?`<div class="mu"><b>Turno:</b> ${esc(i.turno)} · ${esc(i.tecnico||"")}</div>`:""}${i.plc?`<img src="${i.plc}" alt="PLC" style="width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:6px">`:""}${i.act?`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`:""}${i.obs?`<div class="mu"><b>Obs.:</b> ${esc(i.obs)}</div>`:""}
- <div class="row" style="margin-top:8px">${ab&&(tecnico||admin)?`<button class="pri" style="padding:9px" onclick="resolver('${i.id}')">Resolver avería</button>`:""}${admin||tecnico?`<button class="sec" onclick="editar('${i.id}')">Editar</button><button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`:""}</div></div>`;
+ <div class="row" style="margin-top:8px">${ab&&(tecnico||admin)?`<button class="pri" style="padding:9px" onclick="resolver('${i.id}')">Cerrar / Resolver</button>`:""}${admin||tecnico?`<button class="sec" onclick="editar('${i.id}')">Editar</button>`:""}${admin?`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`:""}</div></div>`;
 }
 function vDash(){
  const ab=inc.filter(i=>i.estado=="abierta"),ce=inc.length-ab.length;
@@ -307,7 +307,7 @@ async function delPdf(id){const r=await sb.storage.from("planos").remove([id]);i
 
 /* ===== Accesos: contraseña de admin, turno y código de técnico ===== */
 let turno="";
-function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v9"+(tecnico&&turno?" · Turno "+turno:"")}
+function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v10"+(tecnico&&turno?" · Turno "+turno:"")}
 function adminBtn(){if(admin){setO();return}if(rol!="admin"){msg("Tu usuario no tiene permiso de Administrador");return}
  $("#sheetc").innerHTML=`<h3 style="margin:0">Acceso Administrador</h3><label>Contraseña de administrador</label><input id="a_p" type="password" autocomplete="current-password"><button class="pri" style="margin-top:14px" onclick="loginAdm()">Entrar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
 async function loginAdm(){const r=await sb.auth.signInWithPassword({email:user.email,password:$("#a_p").value});if(r.error){msg("Contraseña incorrecta");return}admin=true;tecnico=false;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
@@ -333,5 +333,48 @@ function exportaCSV(){
  const u=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
  const a=document.createElement("a");a.href=u;a.download="OT_PBB_TKE_"+new Date().toISOString().slice(0,10)+".csv";document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(u),10000);closeSheet();msg(l.length+" registros exportados")}
+
+/* ===== Planos con miniatura, visor a pantalla completa y borrado solo admin ===== */
+function borrar(id){if(!admin){msg("Solo el administrador puede eliminar");return}
+ $("#sheetc").innerHTML=`<h3 style="margin:0">¿Eliminar incidencia?</h3><div class="mu">Esta acción no se puede deshacer.</div><button class="pri" style="margin-top:14px" onclick="delInc('${id}')">Eliminar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
+function delInc(id){if(!admin)return;inc=inc.filter(x=>x.id!=id);sv("pbb_inc",inc);closeSheet();render()}
+async function delPdf(id){if(!admin){msg("Solo el administrador puede eliminar");return}
+ try{localStorage.removeItem("th_"+id)}catch(e){}
+ const r=await sb.storage.from("planos").remove([id]);if(r.error||!r.data||!r.data.length)msg("Sin permiso para eliminar");vPlans()}
+async function vPlans(){if(view!="plans")return;
+ $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 8px">Planos y esquemas</h3><label style="margin:0 0 6px">Selecciona uno o varios archivos (PDF o imagen)</label><input id="pf" type="file" accept=".pdf,application/pdf,image/*" multiple onchange="subir(this.files)"></div><div id="pl"></div>`;
+ const l=await allPdf();if(view!="plans")return;
+ $("#pl").innerHTML=l.map((p,k)=>`<div class="card" style="padding:10px"><div style="overflow-wrap:anywhere;font-weight:600;margin-bottom:8px">${esc(p.name)}</div><div style="position:relative;height:170px;border-radius:6px;overflow:hidden;background:var(--bd)"><div id="ph${k}" class="mu" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">Cargando vista previa…</div><img id="th${k}" alt="" style="display:none;width:100%;height:100%;object-fit:cover;object-position:top;opacity:.45"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><button class="pri" style="width:auto;padding:10px 34px" onclick="ver('${p.id}')">Ver</button></div></div>${admin?`<button class="sec" style="margin-top:8px" onclick="delPdf('${p.id}')">Eliminar</button>`:""}</div>`).join("")||'<div class="card mu">Aún no hay documentos.</div>';
+ miniaturas(l);
+}
+async function miniaturas(l){
+ for(let k=0;k<l.length;k++){
+  const p=l[k];if(!document.getElementById("th"+k))return;
+  let t=null;try{t=localStorage.getItem("th_"+p.id)}catch(e){}
+  if(!t){try{t=await hazMiniatura(p);try{localStorage.setItem("th_"+p.id,t)}catch(e){}}catch(e){t=null}}
+  const im=document.getElementById("th"+k),ph=document.getElementById("ph"+k);if(!im)return;
+  if(t){im.src=t;im.style.display="block";if(ph)ph.remove()}else if(ph)ph.textContent="Sin vista previa"
+ }}
+const esImg=p=>(p.type||"").startsWith("image/")||/\.(png|jpe?g|webp|gif)$/i.test(p.name);
+async function hazMiniatura(p){
+ const dl=await sb.storage.from("planos").download(p.id);if(dl.error)throw dl.error;const blob=dl.data;
+ if(esImg(p)){const im=new Image();im.src=URL.createObjectURL(blob);await im.decode();const s=Math.min(1,300/im.width);const c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);return c.toDataURL("image/jpeg",.55)}
+ await cargaLib();const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;
+ const pa=await pdf.getPage(1);const b=pa.getViewport({scale:1});const v=pa.getViewport({scale:300/b.width});
+ const c=document.createElement("canvas");c.width=v.width;c.height=v.height;await pa.render({canvasContext:c.getContext("2d"),viewport:v}).promise;return c.toDataURL("image/jpeg",.55)}
+async function ver(id){
+ const p=(await allPdf()).find(x=>x.id==id);if(!p)return;
+ let o=$("#visor");if(o)o.remove();
+ o=document.createElement("div");o.id="visor";
+ o.style.cssText="position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)";
+ o.innerHTML=`<div class="row" style="flex-wrap:nowrap;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--bd)"><b style="overflow-wrap:anywhere">${esc(p.name)}</b><button class="sec" onclick="cierraVisor()" style="padding:6px 14px;white-space:nowrap">✕ Cerrar</button></div><div class="row" id="vc" style="padding:8px 12px;flex-wrap:nowrap"></div><div id="vw" style="flex:1;overflow:auto;background:#777;text-align:center;-webkit-overflow-scrolling:touch"><div style="padding:16px;color:#fff">Abriendo…</div></div>`;
+ document.body.appendChild(o);zm=1;pg=1;
+ try{
+  const dl=await sb.storage.from("planos").download(p.id);if(dl.error)throw dl.error;const blob=dl.data;
+  if(esImg({type:p.type||blob.type,name:p.name})){cur="img";const r=new FileReader();r.onload=()=>{$("#vw").innerHTML=`<img src="${r.result}" style="width:100%">`;ctr()};r.readAsDataURL(blob)}
+  else{cur="pdf";await cargaLib();pdfDoc=await pdfjsLib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;pg=1;await drawPg()}
+ }catch(e){$("#vw").innerHTML=`<div style="padding:16px;background:var(--card)" class="mu">No se pudo abrir el documento (${esc((e&&e.message)||e)})</div>`;$("#vc").innerHTML=""}
+}
+function cierraVisor(){const o=$("#visor");if(o)o.remove()}
 iniciar();
 </script></body></html>
