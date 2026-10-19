@@ -141,16 +141,17 @@ function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const 
  <div id="t_docs"></div><div id="pv"></div>
  <label>Definición de la avería</label><textarea id="t_def" rows="2">${esc(i.def)}</textarea>
  <label>Comentario</label><textarea id="t_com" rows="2">${esc(i.com)}</textarea>
- <button class="pri" style="margin-top:12px" onclick="guardaTec()">VALIDAR</button>`}
+ <button class="pri" style="margin-top:12px" onclick="guardaTec()">Instrucciones en Campo</button>`}
  $("#sheetc").innerHTML=h;$("#sheet").style.display="flex"}
 async function planosSheet(){const l=await allPdf();$("#t_docs").innerHTML=`<div style="margin-top:10px">`+(l.map(p=>`<div class="row" style="margin:6px 0"><span style="overflow-wrap:anywhere">${esc(p.name)}</span><button class="sec" onclick="ver('${p.id}')">Ver</button></div>`).join("")||'<div class="mu">No hay documentos. Cárgalos en Planos.</div>')+`</div>`}
 function guardaTec(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;i.def=$("#t_def").value.trim();i.com=$("#t_com").value.trim();if(tFoto)i.plc=tFoto;
  sv("pbb_inc",inc);
  const pr=`Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden}.\nDefinición de la avería: ${i.def||"(sin definir)"}\nComentario: ${i.com||"(sin comentario)"}\nChat de referencia del proyecto PBB: ${GPT}\nNecesito diagnóstico y pasos a seguir de comprobaciones en campo.`;
  try{navigator.clipboard.writeText(pr).catch(()=>{})}catch(e){}
+ try{localStorage.setItem("pbb_ret",JSON.stringify({t:turno,id:i.id,def:i.def,com:i.com,ts:Date.now()}))}catch(e){}
  const U="https://chatgpt.com/?q="+encodeURIComponent(pr);
  const w=window.open(U,"_blank");if(!w){const a=document.createElement("a");a.href=U;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}
- closeSheet();render();msg("Validado")}
+ render();msg("Guardado")}
 function pedirTec(){$("#sheetc").innerHTML=`<h3 style="margin:0">Acceso Técnico</h3><label>Código de técnico</label><input id="t_c" type="password" autocomplete="off"><button class="pri" style="margin-top:14px" onclick="loginTec()">Entrar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
 function loginTec(){if($("#t_c").value===ld("pbb_ctec","5678")){tecnico=true;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}else msg("Código incorrecto")}
 function cambiarCodT(){$("#sheetc").innerHTML=`<h3 style="margin:0">Cambiar código de técnico</h3><label>Nuevo código (mín. 4 caracteres)</label><input id="n_ct" type="password"><button class="pri" style="margin-top:14px" onclick="guardaCodT()">Guardar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
@@ -255,7 +256,7 @@ async function ver(id){
 }
 async function delPdf(id){mem=mem.filter(x=>x.id!=id);const d=await idb();if(d){await new Promise(r=>{try{const t=d.transaction("docs","readwrite");t.objectStore("docs").delete(id);t.oncomplete=r;t.onerror=r;t.onabort=r}catch(e){r()}})}vPlans()}
 function vTec(){
- $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 8px">Resolución de avería</h3><button class="pri" onclick="resTec()">Abrir resolución de avería</button></div>`;
+ $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 8px">Resolución de avería</h3><button class="pri" onclick="resTec()">Instrucciones</button></div>`;
 }
 
 /* ===== SUPABASE: usuarios, roles y datos compartidos ===== */
@@ -277,7 +278,9 @@ async function iniciar(){
  const l=$("#login");if(l)l.remove();
  document.querySelector("header small").textContent=user.email+" · "+rol+" · v3";
  admin=false;tecnico=false;
+ try{const rt=JSON.parse(localStorage.getItem("pbb_ret")||"null");localStorage.removeItem("pbb_ret");if(rt&&Date.now()-rt.ts<600000&&rol!="operador"){tecnico=true;turno=rt.t||"";retEst=rt}}catch(e){}
  await cargaPos();await cargaInc();render();
+ if(retEst){resTec(retEst.id);const d=$("#t_def"),c=$("#t_com");if(d&&retEst.def!=null)d.value=retEst.def;if(c&&retEst.com!=null)c.value=retEst.com;retEst=null}
  sb.channel("cambios").on("postgres_changes",{event:"*",schema:"public",table:"incidencias"},()=>cargaInc(true)).on("postgres_changes",{event:"*",schema:"public",table:"posiciones"},async()=>{await cargaPos();render()}).subscribe();
 }
 async function cargaInc(re){const r=await sb.from("incidencias").select("id,datos").order("updated_at",{ascending:false});
@@ -307,7 +310,7 @@ async function delPdf(id){const r=await sb.storage.from("planos").remove([id]);i
 
 /* ===== Accesos: contraseña de admin, turno y código de técnico ===== */
 let turno="";
-function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v10"+(tecnico&&turno?" · Turno "+turno:"")}
+function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v11"+(tecnico&&turno?" · Turno "+turno:"")}
 function adminBtn(){if(admin){setO();return}if(rol!="admin"){msg("Tu usuario no tiene permiso de Administrador");return}
  $("#sheetc").innerHTML=`<h3 style="margin:0">Acceso Administrador</h3><label>Contraseña de administrador</label><input id="a_p" type="password" autocomplete="current-password"><button class="pri" style="margin-top:14px" onclick="loginAdm()">Entrar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
 async function loginAdm(){const r=await sb.auth.signInWithPassword({email:user.email,password:$("#a_p").value});if(r.error){msg("Contraseña incorrecta");return}admin=true;tecnico=false;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
@@ -376,5 +379,8 @@ async function ver(id){
  }catch(e){$("#vw").innerHTML=`<div style="padding:16px;background:var(--card)" class="mu">No se pudo abrir el documento (${esc((e&&e.message)||e)})</div>`;$("#vc").innerHTML=""}
 }
 function cierraVisor(){const o=$("#visor");if(o)o.remove()}
+
+let retEst=null;
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){try{localStorage.removeItem("pbb_ret")}catch(e){}}});
 iniciar();
 </script></body></html>
