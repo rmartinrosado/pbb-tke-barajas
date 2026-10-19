@@ -72,7 +72,7 @@ function card(i){
  <div class="mu">${i.fecha} · Reportado por: ${esc(i.rep)}</div>
  ${i.desc?`<p style="margin:6px 0">${esc(i.desc)}</p>`:""}
  <div class="mu">Inicio ${i.hIni||"–"} · Llegada ${i.hLle||"–"} · Cierre ${i.hCie||"–"}</div>
- ${i.def?`<div class="mu"><b>Definición:</b> ${esc(i.def)}</div>`:""}${i.com?`<div class="mu"><b>Comentario:</b> ${esc(i.com)}</div>`:""}${i.turno?`<div class="mu"><b>Turno:</b> ${esc(i.turno)} · ${esc(i.tecnico||"")}</div>`:""}${i.plc?`<img src="${i.plc}" alt="PLC" style="width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:6px">`:""}${i.act?`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`:""}${i.obs?`<div class="mu"><b>Obs.:</b> ${esc(i.obs)}</div>`:""}
+ ${i.def?`<div class="mu"><b>Definición:</b> ${esc(i.def)}</div>`:""}${i.com?`<div class="mu"><b>Comentario:</b> ${esc(i.com)}</div>`:""}${i.guiada?`<div class="mu" style="white-space:pre-wrap"><b>Actuación guiada:</b> ${esc(i.guiada)}</div>`:""}${i.turno?`<div class="mu"><b>Turno:</b> ${esc(i.turno)} · ${esc(i.tecnico||"")}</div>`:""}${i.plc?`<img src="${i.plc}" alt="PLC" style="width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:6px">`:""}${i.act?`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`:""}${i.obs?`<div class="mu"><b>Obs.:</b> ${esc(i.obs)}</div>`:""}
  <div class="row" style="margin-top:8px">${ab&&(tecnico||admin)?`<button class="pri" style="padding:9px" onclick="resolver('${i.id}')">Cerrar / Resolver</button>`:""}${admin||tecnico?`<button class="sec" onclick="editar('${i.id}')">Editar</button>`:""}${admin?`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`:""}</div></div>`;
 }
 function vDash(){
@@ -141,14 +141,15 @@ function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const 
  <div id="t_docs"></div><div id="pv"></div>
  <label>Definición de la avería</label><textarea id="t_def" rows="2">${esc(i.def)}</textarea>
  <label>Comentario</label><textarea id="t_com" rows="2">${esc(i.com)}</textarea>
+ <label>Actuación GUIADA</label><textarea id="t_gui" rows="5" onchange="autoGui()" placeholder="Pega aquí la «Primera actuación en campo» que te muestra ChatGPT">${esc(i.guiada)}</textarea><button class="sec" style="margin-top:6px;width:100%" onclick="pegaGui()">Pegar desde el portapapeles</button>
  <button class="pri" style="margin-top:12px" onclick="guardaTec()">Instrucciones en Campo</button>`}
  $("#sheetc").innerHTML=h;$("#sheet").style.display="flex"}
 async function planosSheet(){const l=await allPdf();$("#t_docs").innerHTML=`<div style="margin-top:10px">`+(l.map(p=>`<div class="row" style="margin:6px 0"><span style="overflow-wrap:anywhere">${esc(p.name)}</span><button class="sec" onclick="ver('${p.id}')">Ver</button></div>`).join("")||'<div class="mu">No hay documentos. Cárgalos en Planos.</div>')+`</div>`}
-function guardaTec(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;i.def=$("#t_def").value.trim();i.com=$("#t_com").value.trim();if(tFoto)i.plc=tFoto;
+function guardaTec(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;i.def=$("#t_def").value.trim();i.com=$("#t_com").value.trim();i.guiada=$("#t_gui").value.trim();if(tFoto)i.plc=tFoto;
  sv("pbb_inc",inc);
- const pr=`Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden}.\nDefinición de la avería: ${i.def||"(sin definir)"}\nComentario: ${i.com||"(sin comentario)"}\nChat de referencia del proyecto PBB: ${GPT}\nNecesito diagnóstico y pasos a seguir de comprobaciones en campo.`;
+ const pr=`Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden}.\nDefinición de la avería: ${i.def||"(sin definir)"}\nComentario: ${i.com||"(sin comentario)"}\nChat de referencia del proyecto PBB: ${GPT}\nNecesito diagnóstico y pasos a seguir de comprobaciones en campo. Empieza la respuesta con un apartado titulado "Primera actuación en campo" con pasos numerados, breves y claros.`;
  try{navigator.clipboard.writeText(pr).catch(()=>{})}catch(e){}
- try{localStorage.setItem("pbb_ret",JSON.stringify({t:turno,id:i.id,def:i.def,com:i.com,ts:Date.now()}))}catch(e){}
+ try{localStorage.setItem("pbb_ret",JSON.stringify({t:turno,id:i.id,def:i.def,com:i.com,gui:i.guiada,ts:Date.now()}))}catch(e){}
  const U="https://chatgpt.com/?q="+encodeURIComponent(pr);
  const w=window.open(U,"_blank");if(!w){const a=document.createElement("a");a.href=U;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}
  render();msg("Guardado")}
@@ -280,7 +281,7 @@ async function iniciar(){
  admin=false;tecnico=false;
  try{const rt=JSON.parse(localStorage.getItem("pbb_ret")||"null");localStorage.removeItem("pbb_ret");if(rt&&Date.now()-rt.ts<600000&&rol!="operador"){tecnico=true;turno=rt.t||"";retEst=rt}}catch(e){}
  await cargaPos();await cargaInc();render();
- if(retEst){resTec(retEst.id);const d=$("#t_def"),c=$("#t_com");if(d&&retEst.def!=null)d.value=retEst.def;if(c&&retEst.com!=null)c.value=retEst.com;retEst=null}
+ if(retEst){resTec(retEst.id);const d=$("#t_def"),c=$("#t_com");if(d&&retEst.def!=null)d.value=retEst.def;if(c&&retEst.com!=null)c.value=retEst.com;const g=$("#t_gui");if(g&&retEst.gui!=null)g.value=retEst.gui;retEst=null}
  sb.channel("cambios").on("postgres_changes",{event:"*",schema:"public",table:"incidencias"},()=>cargaInc(true)).on("postgres_changes",{event:"*",schema:"public",table:"posiciones"},async()=>{await cargaPos();render()}).subscribe();
 }
 async function cargaInc(re){const r=await sb.from("incidencias").select("id,datos").order("updated_at",{ascending:false});
@@ -310,7 +311,7 @@ async function delPdf(id){const r=await sb.storage.from("planos").remove([id]);i
 
 /* ===== Accesos: contraseña de admin, turno y código de técnico ===== */
 let turno="";
-function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v11"+(tecnico&&turno?" · Turno "+turno:"")}
+function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v12"+(tecnico&&turno?" · Turno "+turno:"")}
 function adminBtn(){if(admin){setO();return}if(rol!="admin"){msg("Tu usuario no tiene permiso de Administrador");return}
  $("#sheetc").innerHTML=`<h3 style="margin:0">Acceso Administrador</h3><label>Contraseña de administrador</label><input id="a_p" type="password" autocomplete="current-password"><button class="pri" style="margin-top:14px" onclick="loginAdm()">Entrar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
 async function loginAdm(){const r=await sb.auth.signInWithPassword({email:user.email,password:$("#a_p").value});if(r.error){msg("Contraseña incorrecta");return}admin=true;tecnico=false;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
@@ -329,9 +330,9 @@ function exportaCSV(){
  const d=$("#x_d").value,h=$("#x_h").value,e=$("#x_e").value;
  const l=inc.filter(i=>(!d||(i.fecha||"")>=d)&&(!h||(i.fecha||"")<=h)&&(!e||i.estado==e)).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));
  if(!l.length){msg("No hay registros con ese filtro");return}
- const cab=["Fecha","Posición","Tipo","Nº orden","Estado","Reportado por","Descripción","Hora inicio","Hora llegada","Hora cierre","Definición","Actuación","Observaciones","Comentario","Turno","Técnico","Foto PLC"];
+ const cab=["Fecha","Posición","Tipo","Nº orden","Estado","Reportado por","Descripción","Hora inicio","Hora llegada","Hora cierre","Definición","Actuación","Observaciones","Comentario","Actuación guiada","Turno","Técnico","Foto PLC"];
  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""').replace(/\r?\n/g," ")+'"';
- const f=l.map(i=>[i.fecha,i.pos,i.tipo,i.orden,i.estado,i.rep,i.desc,i.hIni,i.hLle,i.hCie,i.def,i.act,i.obs,i.com,i.turno,i.tecnico,i.plc?"Sí":"No"].map(q).join(";"));
+ const f=l.map(i=>[i.fecha,i.pos,i.tipo,i.orden,i.estado,i.rep,i.desc,i.hIni,i.hLle,i.hCie,i.def,i.act,i.obs,i.com,i.guiada,i.turno,i.tecnico,i.plc?"Sí":"No"].map(q).join(";"));
  const csv="\ufeff"+[cab.map(q).join(";"),...f].join("\r\n");
  const u=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
  const a=document.createElement("a");a.href=u;a.download="OT_PBB_TKE_"+new Date().toISOString().slice(0,10)+".csv";document.body.appendChild(a);a.click();a.remove();
@@ -382,5 +383,8 @@ function cierraVisor(){const o=$("#visor");if(o)o.remove()}
 
 let retEst=null;
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){try{localStorage.removeItem("pbb_ret")}catch(e){}}});
+
+async function pegaGui(){try{const t=await navigator.clipboard.readText();if(!t||!t.trim()){msg("El portapapeles está vacío");return}$("#t_gui").value=t.trim();autoGui()}catch(e){msg("No se pudo pegar. Mantén pulsado en el campo y elige Pegar")}}
+function autoGui(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;const v=$("#t_gui").value.trim();if(v===(i.guiada||""))return;i.guiada=v;sv("pbb_inc",inc);msg("Actuación guiada guardada")}
 iniciar();
 </script></body></html>
