@@ -510,26 +510,28 @@ function pintaLT(){const r=window._tecAll||{data:[]},b=$("#ltb"),box=$("#ltbox")
   return `<div class="lti"><button class="ltn" data-k="${esc(o.k)}" onclick="ltPick(this.dataset.k)"><span style="overflow-wrap:anywhere">${esc(o.n)}</span><span class="mu">${ab?"▴":"▾"}</span></button>`+(ab?`<div class="ltd">`+o.l.map(x=>`<div class="row" style="flex-wrap:nowrap;margin:6px 0"><span class="mu">Turno ${esc(x.turno)}</span><span style="white-space:nowrap"><button class="sec" style="padding:6px 10px" onclick="codTec('${x.id}')">Código</button> <button class="sec" style="padding:6px 10px" onclick="bajaTec('${x.id}')">Eliminar</button></span></div>`).join("")+`</div>`:"")+`</div>`}).join("")||`<div class="mu" style="padding:12px">Sin técnicos dados de alta</div>`)+`</div>`}
 /* ===== v18: Guía de campo integrada en modo Técnico (planos PBB 504/508, RCS T4S, PLC RCS, AAA, PDS 400) ===== */
 const GUIA={
- fuente:"Esquemas PBB 504 (T87911031260, Stand 504 & 508), RCS T4/T4S, PLC RCS, AAA 504 y PDS 400. Otras posiciones pueden variar: confirma con el esquema de esa pasarela.",
+ fuente:"Plano de cotejo por defecto: RCS PLANOS (T87911031210, T4/T4S, todas las posiciones) y PLC RCS para el estado de los LED. Para 504/507/508 hay datos propios del esquema PBB 504.",
  seg:["Coordinar con CGA / Responsable de Turno y anotar Nº de orden.","Pasarela parada, sin avión o con la operación asegurada. Balizar rotonda y ruedas.","Selector en MANTENIMIENTO / MANUAL antes de mover nada.","Potencia: abrir E-S0 (armario E) y/o CBTH-Z0 (40 A), bloquear, etiquetar y comprobar ausencia de tensión.","OJO: el 24 VDC sigue vivo con E-S0 abierto (SAI por CBTH-X12 → E-S0.1). Para cortar mando, abrir E-S0.1.","Nunca dejar puenteadas setas, finales de carrera, bordes ni zapata. El bypass CP-S33 solo para maniobra controlada.","Esta guía no sustituye el procedimiento de TK Airport Solutions ni el de Aena."],
  alim:[["Potencia 400 V","CBTH-Z0 (40 A) → CBTH-X11 → E-X11 → E-S0 → E-K0 → distriblock E-X72 →\n• E-Q1 (22 A) → E-K1 → variadores E-U1 izq / E-U2 dcha (ATV28 5,5 kW) → T-M1 / T-M2\n• E-Q3 (11,4 A) → E-K3 → bomba H-M1 5,5 kW\n• E-Q40 (16 A) → P-Q6 giro cabina C-M1 · P-Q5 brazo autonivelador C-M2\n• E-Q15 (13-18 A) → trafo P-T1 + protectores E-F19/F20/F21"],["Monofásico 230 V","E-Q150 (16 A) → E-K0.1 →\n• E-Q10 ilum. túnel interior · E-Q10.1 cabina/túnel ext./medio\n• E-Q12 gálibos y caldeos · E-Q13 diferencial 30 mA enchufes\n• E-Q15.1 focos · E-Q14 cámara · E-Q17.1 lunetas\n• E-Q4/E-Q4.1 capota · E-Q8 portón · P-Q7 suelo basculante"],["Mando 24 VDC","SAI → E-S0.1 → E-Q22 (3 A) → fuente E-V3 (24 V 10 A) → E-Q30 (10 A) →\n• Armario E: E-Q30.0 (alarma), E-Q30.1…E-Q30.4\n• Pupitre: P-Q30.0 (alarma), P-Q30.1…P-Q30.3\n• E-Q24 frenos traslación · E-Q25 megafonía · E-Q26 retorno autónomo/switch"]],
  leds:[["E-A0","Línea seguridades (E-K0), disyuntores variadores, bomba, capota, portón, protector sobretensiones","—"],["E-A2","Fallo variador U1 y U2 (encendido = OK), límite inferior inclinación","Límite sup. inclinación, bloqueos A/A, carro A/A, convertidor, 90 % conector, freno perdido U1"],["E-A3","Protecciones 24 VDC, freno manual izq/dcha, límite giro traslación izq/dcha","Seta AO, setas traslación, freno perdido U2, estado E-K1/E-K3/E-K24, freno eléctrico"],["E-A6","Bobina E-K1, E-K0, E-K0.1","E-K24, sirena cabina, E-K3"],["E-A8","Sensor portón, bandas ruedas, seta pupitre, FC traslación, extensión, rotonda, inclinación","Bypass seguridad"],["E-A9","Antiatrapamiento túnel interior izq/dcha (y medio en 3 túneles)","Autorización rotonda, sirena"],["E-A10","Bumpers brazo y cabina, barrera rotonda, puerta servicio, modo manual, zapata","Modo auto, local/remoto"],["P-A4","Inversores cabina, disyuntor brazo, cabina, suelo, estado P-Q30","Mandos pupitre"],["P-A5","Brazo autonivelador arriba 1 y 2","Contacto avión, cable 400 Hz, brazo abajo/neutral"],["P-A6","Límites cabina, frenos cabina, FC límite suelo","Pulsadores handling"]],
- dk:{PAS:/PBB/i,AAA:/AAA|PCA/i,HZ:/PDS|400/i,AAP:/AAP/i},
+ dk:{PAS:[/RCS.?PLANOS/i,/PBB/i],AAA:[/AAA|PCA/i],HZ:[/PDS|400/i],AAP:[/AAP/i]},
  tipos:{
   PAS:{n:"Pasarela (PBB)",s:[
    {t:"PBB sin tensión (pupitre y luces apagados)",g:[9, 9, 9, 29, 29, 36],p:["CBTH: ¿CBTH-Z0 cerrado? Medir 400 V entre fases en CBTH-X11 (1-2-3). Si no hay → aguas arriba, avisar.","Armario E: ¿E-S0 cerrado? Medir 400 V en E-X11.","¿220 V SAI en CBTH-X12 (1-2)? ¿E-S0.1 cerrado?","Revisar E-Q22 (3 A) y E-Q30 (10 A). Medir 24 VDC a la salida de E-V3.","E-V3 sin 24 V con 230 V en entrada → sustituir fuente.","LED alarma de E-Q30.0 / P-Q30.0: localizar la salida disparada (E-Q30.1…30.4 / P-Q30.1…30.3) y buscar el cortocircuito antes de rearmar."],r:"pág. 9, 13, 29, 36-40"},
    {t:"Pupitre encendido pero no rearma / no activa",g:[68, 43, 42, 41, 68, 70, 98, 37],p:["E-A8: el LED apagado que debería estar encendido indica qué abre la cadena.","Setas CP-S5 (pupitre), H-S3 / H-S4 (elevación), seta AO: desenclavar y comprobar contactos 21-22.","Finales de carrera: traslación H-S1, extensión ET-S1, rotonda CO-S1, inclinación IT-S2/IT-S3.","Bordes ruedas T-B5/T-B6 → relé Gelbau E-U5: ver LEDs, cable T1-W1/W2 y conector T-CON10.","Sensor portón C-S9 (portón bajado).","E-A10: bumpers C-B27…C-B30, barrera rotonda R-B1…R-B4 (limpiar/alinear), puerta servicio SS-B15, zapata.","E-A9: antiatrapamiento túneles (SICK L41): limpiar ópticas y alinear.","Entradas OK pero E-A6 no da salida a E-K0/E-K0.1/E-K1 → alimentación safety (E-Q30.3/E-Q30.4, borna E-X68:6) e Interbus E-A11 ↔ P-A0 (cable EP-W3)."],r:"pág. 41-45, 63-70, 89, 92, 98-99"},
-   {t:"Antiatrapamiento túnel activado (seguridad entre túneles)",g:[98, 69, 98, 98, 49, 70, 98, 69, 69, 69],a:"Puentear una entrada de seguridad anula una protección de personas. Solo como medida temporal, con autorización del Responsable de Turno, anotándolo en la OT y retirando el puente en cuanto se repare la causa.",p:[
-"QUÉ HAY: en casi todas las posiciones son FINALES DE CARRERA MECÁNICOS; en 504, 507 y 508 son BARRERAS ÓPTICAS SICK L41 (emisor/receptor). Según planos 504/508 (pág. 98-99): túnel interior (A): izq IT-B1/IT-B1.1, dcha IT-B2/IT-B2.1, bornas E-X74. Túnel medio (B, solo PBB de 3 túneles, stand 504): izq MT-B1/MT-B1.1, dcha MT-B2/MT-B2.1, bornas E-X74.1.",
-"ENTRADAS EN E-A9 (armario E, entradas safety): túnel interior izq = módulo 3, borna 5.1 (IN05S) / 5.2 (UT1); túnel interior dcha = módulo 3, borna 6.1 (IN06S) / 6.2 (UT2); túnel medio izq = módulo 1, borna 2.1 / 2.2; túnel medio dcha = módulo 4, borna 8.1 / 8.2. En reposo los LED de los sensores en servicio están ENCENDIDOS.",
+   {t:"Antiatrapamiento túnel activado (seguridad entre túneles)",g:[41,69,98,41,41,49,70,41,69,41,69,69],a:"Puentear una entrada de seguridad anula una protección de personas. Solo como medida temporal, con autorización del Responsable de Turno, anotándolo en la OT y retirando el puente en cuanto se repare la causa.",p:[
+"QUÉ HAY (RCS PLANOS pág. 41, casi todas las posiciones): FINALES DE CARRERA MECÁNICOS. Túnel A-B (interior): IT-S3' e IT-S3'' (un final por lado) → relés E-K247 / E-K248. Túnel B-C (medio, PBB de 3 túneles): MT-S3' y MT-S3'' → relés E-K247A / E-K248A. Con el final libre el relé está excitado; al pulsarlo cae el relé y se abre su contacto 11-14.",
+"ENTRADAS EN E-A9 (RCS PLANOS pág. 69): túnel A-B = MÓDULO 3, borna 5.1 (IN05S) / 5.2 (UT1), con los contactos de E-K247 y E-K248 en serie (izquierdo y derecho entran juntos). Túnel B-C = módulo 1, borna 2.1 / 2.2 (E-K247A y E-K248A). En reposo el LED está ENCENDIDO.",
+"POSICIONES 504, 507 y 508 (planos PBB 504 pág. 98-99): BARRERAS ÓPTICAS SICK L41 con entrada propia por lado: túnel interior izq IT-B1 → E-A9 módulo 3, 5.1–5.2; dcha IT-B2 → módulo 3, 6.1–6.2; túnel medio izq MT-B1 → módulo 1, 2.1–2.2; dcha MT-B2 → módulo 4, 8.1–8.2.",
 "PRIORIDAD 1 · Inspeccionar los antiatrapamientos DERECHO e IZQUIERDO: comprobar que no hay objetos pulsando el final de carrera o interrumpiendo la barrera (objetos atrapados, suciedad, cables, golpes en el soporte).",
-"PRIORIDAD 1 · Si está activado, liberarlo. Final de carrera mecánico: retirar el objeto y comprobar que la palanca o el rodillo vuelve libre a su posición. Barrera óptica (504, 507, 508): limpiar la óptica y realinear emisor y receptor. Comprobar que vuelve a encenderse su LED en E-A9.",
+"PRIORIDAD 1 · Si está activado, liberarlo. Final de carrera: retirar el objeto y comprobar que la palanca o el rodillo vuelve libre y que el relé E-K247/E-K248 vuelve a entrar. Barrera óptica (504, 507, 508): limpiar la óptica y realinear. Comprobar que se enciende el LED en E-A9.",
 "PRIORIDAD 1 · Resetear o inicializar la PBB desde el pupitre.",
 "PRIORIDAD 1 · Selector CP-S16: pasar de REMOTO a LOCAL y después otra vez a REMOTO para dejar la PBB en estado de reposo (E-A10 módulo 4, borna 7.1: modo local/remoto).",
-"PRIORIDAD 2 · Si sigue activado el antiatrapamiento del túnel B por golpeo en la caja del aire acondicionado de cabina: identificar el lado contactado (izquierdo o derecho).",
-"PRIORIDAD 2 · Anular el contacto de ese lado con un puente directo en el PLC, en el módulo 3 de E-A9: lado IZQUIERDO = puente 5.1–5.2; lado DERECHO = puente 6.1–6.2. En PBB de 3 túneles (504) el túnel medio va además en módulo 1 (izq 2.1–2.2) y módulo 4 (dcha 8.1–8.2).",
+"PRIORIDAD 2 · Si sigue activado el antiatrapamiento del túnel B por golpeo en la caja del aire acondicionado de cabina: identificar el lado contactado (izquierdo o derecho) mirando qué relé, E-K247 o E-K248, está caído.",
+"PRIORIDAD 2 · Anular el contacto con un puente directo en el PLC, en el MÓDULO 3 de E-A9. Finales mecánicos: puente 5.1–5.2 (anula los dos lados a la vez, porque entran por la misma entrada). Barreras ópticas 504/507/508: lado IZQUIERDO = 5.1–5.2; lado DERECHO = 6.1–6.2.",
+"PRIORIDAD 2 · Alternativa más selectiva en finales mecánicos: puentear solo el contacto 11-14 del relé caído (E-K247 o E-K248). Así el otro lado sigue protegido.",
 "PRIORIDAD 2 · Puentear siempre la entrada con su propia salida de test del mismo módulo (IN–UT). Un puente a +24 V directo lo detecta el módulo safety como fallo.",
-"PRIORIDAD 2 · Rearmar la PBB, comprobar movimientos, señalizar el puente en el armario y anotarlo en la OT (lado, bornas y motivo) para su retirada al reparar la caja de A/A o el sensor."],r:"pág. 69, 70, 98-99"},
+"PRIORIDAD 2 · Rearmar la PBB, comprobar movimientos, señalizar el puente en el armario y anotarlo en la OT (lado, bornas y motivo) para su retirada al reparar la caja de A/A o el final de carrera."],r:"RCS pág. 41, 69, 70 · PBB 504 pág. 98-99"},
    {t:"No traslada / fallo variador",g:[49, 31, 58, 64, 30, 61, 59, 32, 61],p:["Anotar el código de alarma del display.","E-A0 disyuntor variadores apagado → E-Q1 disparado (22 A). Medir aislamiento de T-M1/T-M2 y cables ETR-W1/W2 antes de rearmar.","E-A2 DIN02/DIN03 apagado = fallo variador U1/U2. Leer código en E-U1/E-U2 y hacer reset quitando mando.","¿Entra E-K1 al pedir marcha? (bobina desde E-A6 DOS01). Si no → ver «no rearma».","Freno: E-K24 (E-A6 DOS02) alimenta T-Y1/T-Y2 por E-Q24 (6 A). Medir tensión en el freno con orden de marcha.","Freno manual T-S6/T-S8: E-A3 DIN10/12 deben estar encendidos; comprobar palanca de desfrenado.","«Freno perdido» encendido con PBB parada → freno no actúa: revisar frenos y relé R2 del variador.","Fallo sobretensión bus → medir resistencias de frenado E-R1/E-R2 (82 Ω 150 W).","Inductivos M12 límite giro H-B3/H-B4 y contaje H-B1/H-B2: LED del sensor y distancia al target."],r:"pág. 31-33, 54, 58-61"},
    {t:"No sube / no baja (elevación)",g:[34, 65, 44, 44, 58],p:["E-A0 disyuntor bomba apagado → E-Q3 disparado (11,4 A). Revisar motor H-M1 y cable H-W13.","¿Entra E-K3 al pedir subir? (bobina desde E-A6 DOS08).","Válvulas H-Y1 subir / H-Y2 bajar (24 V) por relés E-K61 / E-K62. Medir 24 V en la válvula con la orden; si llega y no actúa → bobina.","Bajada rápida: H-Y3 (24 V) y H-Y4/H-Y5 (12 V) desde E-A7.","Límites inclinación IT-S2/IT-S3 (E-A2 DIN04/05) y medidor de altura C-B14 (E-A4, 4-20 mA)."],r:"pág. 34, 44, 62"},
    {t:"Cabina / brazo autonivelador / suelo basculante",g:[35, 87, 35, 27],p:["Giro cabina: P-Q6 (1,3 A) → P-K61/2 → C-M1. En P-A4 disyuntor e inversores cabina encendidos.","Límites cabina C-B1/C-B2 y freno cabina C-B24 (P-A6). Potenciómetro giro C-R10 → E-R10 → E-A4.","Brazo autonivelador: P-Q5 (0,2 A) → P-K51/2 → C-M2. Sensores C-B8…C-B13 (P-A5); en reposo arriba 1 y 2 encendidos.","Suelo basculante: P-Q7 (1,6 A) → P-K71/2 → C-M5 (condensador P-C1). FC suelo C-S1/C-S2 (P-A6)."],r:"pág. 27, 35, 62, 84-88"},
@@ -565,6 +567,7 @@ function vTec(){
  <label>Tipo de incidencia</label><div class="gchips">${Object.keys(GUIA.tipos).map(k=>`<button class="${k==gTipo?"pri":"sec"}" onclick="gTipo='${k}';vTec()">${k}</button>`).join("")}</div>
  <div class="mu" style="margin-top:6px">${esc(T.n)}</div><label>Plano de esta guía</label><select id="g_doc" onchange="gSetDoc(this.value)"><option>Cargando…</option></select></div>`;
  h+=det("⚠️ Seguridad antes de intervenir",lista(GUIA.seg),"open");
+ if(gTipo=="PAS")h+=det("🔍 Cotejo PLC con foto (estado de reposo)",`<div id="g_cot">${gCotHTML()}</div>`,gAbierto.has("COT")?"open":"","COT");
  if(T.v)h+=`<div class="card mu">${esc(T.v)}</div>`;
  T.s.forEach((s,si)=>{const k=gTipo+si;const c=gChk[k]||[];const hechos=c.filter(Boolean).length;
   h+=det(`${esc(s.t)} <span class="mu" style="font-weight:400">(${hechos}/${s.p.length})</span>`,
@@ -572,7 +575,6 @@ function vTec(){
   <div class="mu" style="font-size:12px;margin:6px 0">Planos: ${esc(s.r)}</div>
   <button class="sec" style="width:100%" onclick="gCopia('${gTipo}',${si})">Pasar a «Actuación guiada» de la OT</button>`,gAbierto.has(k)?"open":"",k)});
  if(gTipo=="PAS"){
-  h+=det("LEDs del PLC en reposo",`<div class="mu" style="font-size:12px;margin:6px 0">Pasarela parada y sin alarma. El LED que no coincide es el punto de partida.</div>`+GUIA.leds.map(l=>`<div class="gled"><b>${l[0]}</b><div><span class="gon">ENCENDIDO</span> ${esc(l[1])}</div><div><span class="goff">APAGADO</span> ${esc(l[2])}</div></div>`).join(""));
   h+=det("Mapa de alimentaciones",GUIA.alim.map(a=>`<div style="margin-top:8px"><b>${a[0]}</b><div class="mu" style="white-space:pre-wrap;margin-top:4px">${esc(a[1])}</div></div>`).join(""))}
  h+=det("Cierre de la actuación",lista(GUIA.cierre));
  $("#app").innerHTML=h;gFillDoc();
@@ -581,14 +583,170 @@ function vTec(){
 const gAbierto=new Set();
 let gCache={},gPagIni=0,gDocs=null;
 async function gLista(){if(!gDocs)gDocs=(await allPdf()).filter(x=>!esImg(x));return gDocs}
-function gDocId(t,l){let id=null;try{id=localStorage.getItem("g_doc_"+t)}catch(e){}if(id&&l.some(x=>x.id==id))return id;const re=GUIA.dk[t];const c=l.filter(x=>re&&re.test(x.name));const pr=c.find(x=>!/CBTH|RCS PLANOS/i.test(x.name))||c[0];return pr?pr.id:""}
+function gDocId(t,l){let id=null;try{id=localStorage.getItem("g_doc2_"+t)}catch(e){}if(id&&l.some(x=>x.id==id))return id;for(const re of (GUIA.dk[t]||[])){const d=l.find(x=>re.test(x.name)&&!/CBTH/i.test(x.name));if(d)return d.id}return ""}
 async function gFillDoc(){const s=$("#g_doc");if(!s)return;const l=await gLista();const id=gDocId(gTipo,l);
  s.innerHTML=(l.length?`<option value="">— Elegir plano —</option>`:`<option value="">No hay planos cargados (pestaña Planos)</option>`)+l.map(x=>`<option value="${x.id}" ${x.id==id?"selected":""}>${esc(x.name)}</option>`).join("")}
-function gSetDoc(v){try{localStorage.setItem("g_doc_"+gTipo,v)}catch(e){}}
-function gPagina(name,folio){return /50[48]/.test(name)&&!/AAA|CBTH|PDS/i.test(name)&&folio>=9?folio-1:folio}
+function gSetDoc(v){try{localStorage.setItem("g_doc2_"+gTipo,v)}catch(e){}}
+function gPagina(name,folio){if(/RCS.?PLANOS/i.test(name)&&folio>96)folio={97:62,98:41,99:41,100:93}[folio]||folio;return (/RCS.?PLANOS/i.test(name)||/50[48]/.test(name)&&!/AAA|CBTH|PDS/i.test(name))&&folio>=9?folio-1:folio}
 async function gPlano(t,folio){const l=await gLista();const id=gDocId(t,l);const d=l.find(x=>x.id==id);
  if(!d){msg("Elige el plano de esta guía (o súbelo en la pestaña Planos)");const s=$("#g_doc");if(s){s.scrollIntoView({block:"center"});s.focus()}return}
  gPagIni=gPagina(d.name,folio);await ver(d.id)}
+/* ===== v19: cotejo PLC con estado de reposo (PLC RCS) ===== */
+/* e: 1 encendido, 0 apagado, 2 variable. Orden de LEDs según el plano PLC RCS. */
+const PLC=[
+ {id:"E-A0",n:"Cabecera PLC + E/S armario E",t:"DI",f:[52,53,52,52],p:"E-Q30.1 y E-Q30.2",m:[
+  [["Alimentación y bus del PLC (módulo negro)",1]],
+  [["Sirena movimiento (PBB on = encendido)",2],["Sistema de vídeo (PBB on = encendido)",2],["Iluminación interior",2],["Iluminación exterior",2]],
+  [["Línea de seguridades (estado E-K0)",1],["Disyuntor variadores E-Q1",1],["Disyuntor bomba elevación E-Q3",1],["Disyuntor capota E-Q4/E-Q4.1",1]],
+  [["Disyuntor portón E-Q8",1],["Protector sobretensiones E-F19/20/21",1],["Inductivo 1 giro rotonda",2],["Inductivo 2 giro rotonda",2]]]},
+ {id:"E-A1",n:"Salidas digitales armario E",t:"DO",f:[54,55,56,57],p:"E-Q30.2",m:[
+  [["Variador U1 adelante",0],["Variador U1 atrás",0],["Variador U2 adelante",0],["Variador U2 atrás",0],["Variador U1 velocidad 1",0],["Variador U1 velocidad 2",0],["Variador U2 velocidad 1",0],["Variador U2 velocidad 2",0]],
+  [["Válvula subir elevación",0],["Válvula bajar elevación",0],["Reserva",0],["Capota izq desplegar",0],["Capota izq recoger",0],["Capota dcha desplegar",0],["Capota dcha recoger",0],["Test barrera seguridad rotonda",1]],
+  [["Señal pasarela activada",1],["Señal pasarela en servicio",0],["Señal pasarela mantenimiento",0],["Reserva",0],["Señal pasarela alarma",0],["Reserva",0],["Luces flash",1],["Reserva",0]],
+  [["Resistencia caldeo armario y pupitre",0],["Reserva",0],["Lunetas térmicas",0],["Autorización columna",0],["Autorización rotonda",0],["Iluminación escalera servicio",0],["Subir portón",0],["Bajar portón",0]]]},
+ {id:"E-A2",n:"Entradas digitales armario E",t:"DI",f:[58,58,59,59],p:"E-Q30.2",m:[
+  [["Termostato caldeo armario E",0],["Fallo variador U1 (encendido = OK)",1],["Fallo variador U2 (encendido = OK)",1],["Límite inferior inclinación",1]],
+  [["Límite superior inclinación",0],["Detector 1 extensión/retracción",2],["Detector 2 extensión/retracción",2],["Bloqueo PBB máquina A/A",0]],
+  [["Bloqueo PBB carro A/A",0],["Bloqueo PBB convertidor 400 Hz en servicio",0],["Bloqueo PBB 90 % conector 400 Hz",0],["FC capota izquierda (echada = encendido)",2]],
+  [["FC capota derecha (echada = encendido)",2],["Variador U1 freno perdido",0],["Pulsador iluminación escalera servicio",0],["Pulsador iluminación interior",0]]]},
+ {id:"E-A3",n:"Entradas digitales armario E",t:"DI",f:[60,60,61,61],p:"E-Q30.2",m:[
+  [["Bloqueo PBB seta AO",0],["Desbloqueo AO",0],["Setas traslación",0],["Variador U2 freno perdido",0]],
+  [["Estado E-K1",0],["Estado E-K3",0],["Estado E-K24",0],["Estado protecciones 24 VDC (E-Q30.0)",1]],
+  [["Freno eléctrico motor izquierdo",0],["Freno manual motor izquierdo",1],["Freno eléctrico motor derecho",0],["Freno manual motor derecho",1]],
+  [["Límite giro traslación izquierda",1],["Límite giro traslación derecha",1],["Contaje traslación 1",2],["Contaje traslación 2",2]]]},
+ {id:"E-A6",n:"Salidas de seguridad",t:"SDO",f:[64,64,65,65],p:"E-Q30.3",m:[
+  [["Bobina E-K1 (variadores)",1],["Bobina E-K24 (frenos traslación)",0]],
+  [["Bobina E-K0 (contactor seguridad 1)",1],["Bobina E-K0.1 (contactor seguridad 2)",1]],
+  [["Reserva",1],["Reserva",1]],
+  [["Sirena seguridad cabina",0],["Bobina E-K3 (bomba hidráulica)",0]]]},
+ {id:"E-A7",n:"Salidas de seguridad",t:"SDO",f:[66,66,67,67],p:"E-Q30.3",m:[
+  [["Bajada rápida válvula H-Y3",0],["Bajada rápida válvulas H-Y4 y H-Y5",0]],
+  [["Bobina E-K90 (seta guía de atraque)",0],["Bobina E-K26 (retorno autónomo)",0]],
+  [["Reserva",0],["Reserva",0]],[["Reserva",0],["Reserva",0]]]},
+ {id:"E-A8",n:"Entradas de seguridad",t:"SDI",f:[68,68,68,68],p:"E-Q30.4",m:[
+  [["Sensor portón enrollable C-S9",1],["Bandas carro ruedas T-B5/T-B6",1]],
+  [["Bypass seguridades CP-S33",0],["Setas de emergencia",1]],
+  [["FC traslación H-S1",1],["FC extensión ET-S1",1]],
+  [["FC rotonda CO-S1",1],["FC inclinación IT-S2/IT-S3",1]]]},
+ {id:"E-A9",n:"Entradas de seguridad (antiatrapamientos)",t:"SDI",f:[69,69,69,69],p:"E-Q30.4",m:[
+  [["Autorización columna",0],["Antiatrapamiento túnel medio B-C (PBB 3 túneles = encendido)",2]],
+  [["Autorización rotonda",0],["Sirena seguridad cabina",0]],
+  [["Antiatrapamiento túnel A-B (en 504/507/508: lado izquierdo)",1],["504/507/508: antiatrapamiento lado derecho · resto: reserva",2]],
+  [["Reserva",0],["504: antiatrapamiento túnel medio derecho",2]]]},
+ {id:"E-A10",n:"Entradas de seguridad",t:"SDI",f:[70,70,70,70],p:"E-Q30.4",m:[
+  [["Bumper brazo autonivelador",1],["Bumper lateral izquierdo cabina",1]],
+  [["Barrera seguridad rotonda",1],["Inductivo puerta de servicio SS-B15",1]],
+  [["Modo AUTO",0],["Modo MANUAL",1]],
+  [["Modo LOCAL/REMOTO",2],["Zapata",1]]]},
+ {id:"P-A0",n:"Cabecera PLC pupitre",t:"PWR",f:[72,72,72,72],p:"P-Q30.1",m:[
+  [["Comunicación con armario E",1]],[["Reserva",0]],[["Alimentación desde P-Q30.1",1]],[["Alimentación 24 VDC desde pupitre P-X92:1 (los dos)",1]]]},
+ {id:"P-A1",n:"Salidas digitales pupitre",t:"DO",f:[73,74,75,76],p:"P-Q30.2",m:[
+  [["Luz alarma pupitre (encendido = alarma)",0],["Luz estado pupitre (PBB on = intermitente)",2],["Buzzer pupitre",0],["Brazo autonivelador adelante",0]],
+  [["Brazo autonivelador atrás",1],["Cabina izquierda",0],["Cabina derecha",0],["Sirena alarma",0]],
+  [["Suelo subir",0],["Suelo bajar",0],["Reserva",0],["Reserva",0]],
+  [["Foco azafata ON",0],["Foco azafata rojo",0],["Foco azafata verde",0],["Foco azafata azul",0]]]},
+ {id:"P-A2",n:"Salidas digitales pupitre",t:"DO",f:[77,78,79,80],p:"P-Q30.2",m:[
+  [["Señal «Abandono operador»",0],["Señal «Presencia desconexión»",0],["Señal «Presencia conexión»",0],["Señal pulsador «OK Handling»",0]],
+  [["Señal «OK retirada PBB»",0],["Zapata activada",0],["Luz azul bajo cabina fija",0],["Luz azul bajo cabina intermitente",0]],
+  [["Señal luminosa rotonda roja",0],["Señal luminosa rotonda verde",0],["Reserva",0],["Reserva",0]],
+  [["Reserva",0],["Reserva",0],["Reserva",0],["Reserva",0]]]},
+ {id:"P-A3",n:"Entradas digitales pupitre (mandos)",t:"DI",f:[81,81,82,82],p:"P-Q30.2",m:[
+  [["Seta pupitre",0],["Hombre muerto",0],["Joystick adelante",0],["Joystick atrás",0]],
+  [["Joystick izquierda",0],["Joystick derecha",0],["Joystick X1",0],["Joystick X2",0]],
+  [["Joystick Y1",0],["Joystick Y2",0],["Subir suelo",0],["Bajar suelo",0]],
+  [["PBB subir",0],["PBB bajar",0],["Cabina izquierda",0],["Cabina derecha",0]]]},
+ {id:"P-A4",n:"Entradas digitales pupitre",t:"DI",f:[83,83,84,84],p:"P-Q30.2",m:[
+  [["Reserva",0],["Prioridad de retorno",0],["Retorno autónomo",0],["Iluminación interior",0]],
+  [["Iluminación exterior",0],["Lunetas térmicas",0],["Desplegar capota",0],["Recoger capota",0]],
+  [["Subir portón",0],["Inversor cabina derecha",1],["Disyuntor brazo P-Q5",1],["Disyuntor cabina P-Q6",1]],
+  [["Inversor cabina izquierda",1],["Disyuntor suelo P-Q7",1],["Estado P-Q30",1],["Bajar portón",0]]]},
+ {id:"P-A5",n:"Entradas digitales pupitre (cabina)",t:"DI",f:[85,85,86,86],p:"P-Q30.2",m:[
+  [["Inductivo contacto avión derecha",0],["Cable 400 Hz extendido",0],["Suelo sube derecha",0],["Suelo sube izquierda",0]],
+  [["Sensores presencia de avión",0],["Estado E-K0.1",0],["Estado E-K26",0],["Inductivo contacto avión izquierda",0]],
+  [["Brazo autonivelador contacto",0],["Brazo autonivelador arriba 2",1],["Brazo autonivelador arriba 1",1],["Brazo autonivelador abajo 2",0]],
+  [["Brazo autonivelador abajo 1",0],["Brazo autonivelador neutral 1",0],["Brazo autonivelador neutral 2",0],["Reserva",0]]]},
+ {id:"P-A6",n:"Entradas digitales pupitre (cabina)",t:"DI",f:[87,87,88,88],p:"P-Q30.3",m:[
+  [["Límite cabina izquierda",1],["Límite cabina derecha",1],["Freno túnel B (PBB 3 túneles = encendido)",2],["Freno cabina izquierda",1]],
+  [["Freno cabina derecha",1],["FC límite suelo derecha",1],["FC límite suelo izquierda",1],["Reserva",0]],
+  [["Pulsador «Abandono operador»",0],["Pulsador «Presencia desconexión»",0],["Pulsador «Presencia conexión»",0],["Pulsador luminoso «OK Handling»",0]],
+  [["Pulsador luminoso «OK retirada PBB»",0],["Reserva",0],["Reserva",0],["Reserva",0]]]}];
+/* Bornas por tipo de módulo. DI16: LED l del módulo k → IN en (2k-1).1, (2k).1, (2k-1).4, (2k).4 ; +24 V en la borna siguiente. SDI: LED l del módulo k → (2k-2+l).1 IN / .2 UT */
+function pBorna(M,k,l){if(M.t=="DI"&&M.id!="E-A0"){const s=[2*k-1,2*k,2*k-1,2*k][l-1],c=l<=2?1:4;return{in:`${s}.${c}`,v:`${s}.${c+1}`}}
+ if(M.t=="SDI"){const s=2*k-2+l;return{in:`${s}.1`,v:`${s}.2`}}return null}
+/* Puentes provisionales permitidos (solo si el elemento de campo está comprobado). Clave: módulo|submódulo|LED */
+const PUENTE={
+ "E-A9|3|1":"Antiatrapamiento túnel A-B: liberar primero (guía «Antiatrapamiento»). Si sigue caído por golpe en la caja de A/A: puente 5.1–5.2, o solo el contacto 11-14 del relé caído (E-K247/E-K248) para dejar protegido el otro lado.",
+ "E-A9|3|2":"Solo 504/507/508 (barrera óptica derecha): puente 6.1–6.2 tras comprobar que no hay nada en el túnel.",
+ "E-A9|1|2":"Antiatrapamiento túnel B-C (PBB de 3 túneles): puente 2.1–2.2 tras comprobar que no hay nada atrapado.",
+ "E-A9|4|2":"Solo 504 (túnel medio derecho): puente 8.1–8.2 tras comprobar que no hay nada atrapado.",
+ "E-A8|1|1":"Sensor portón C-S9: solo con el portón COMPROBADO abajo y cerrado: puente 1.1–1.2.",
+ "E-A10|2|2":"Inductivo puerta de servicio SS-B15: solo con la puerta COMPROBADA cerrada y nadie en la escalera: puente 4.1–4.2.",
+ "E-A3|3|2":"Sensor freno manual izquierdo: solo con la palanca de desfrenado COMPROBADA en posición de servicio: puente 6.1–6.2.",
+ "E-A3|3|4":"Sensor freno manual derecho: solo con la palanca de desfrenado COMPROBADA en posición de servicio: puente 6.4–6.5.",
+ "E-A2|2|4":"Bloqueo A/A activo sin equipo conectado: con la PCA COMPROBADA parada y la manguera recogida, soltar el hilo de la borna IN 4.4 (no puentear).",
+ "E-A2|3|1":"Bloqueo carro A/A activo sin carro: con el carro COMPROBADO recogido, soltar el hilo de la borna IN 5.1 (no puentear).",
+ "E-A2|3|2":"Bloqueo convertidor activo sin servicio: con el 400 Hz COMPROBADO parado y el cable recogido, soltar el hilo de la borna IN 6.1 (no puentear).",
+ "E-A2|3|3":"Bloqueo 90 % conector: con el conector COMPROBADO desconectado y recogido, soltar el hilo de la borna IN 5.4 (no puentear)."};
+const PISTA={
+ "E-A2|1|2":"Leer el código de fallo en el variador E-U1, corregir y resetear quitando mando (guía «No traslada»).",
+ "E-A2|1|3":"Leer el código de fallo en el variador E-U2, corregir y resetear quitando mando (guía «No traslada»).",
+ "E-A3|2|4":"Ha disparado una salida del distribuidor Weidmüller: mirar el LED de alarma de E-Q30.0 y qué salida E-Q30.1…E-Q30.4 está caída; buscar el cortocircuito antes de rearmar.",
+ "E-A0|3|1":"Cadena de seguridad abierta: ver E-A8, E-A9 y E-A10 y la guía «No rearma».",
+ "E-A0|3|2":"E-Q1 disparado: medir aislamiento de motores de traslación antes de rearmar.",
+ "E-A0|3|3":"E-Q3 disparado: revisar motor bomba H-M1 antes de rearmar.",
+ "E-A0|3|4":"E-Q4 / E-Q4.1 disparado: revisar motores de capota.",
+ "E-A0|4|1":"E-Q8 disparado: revisar motor del portón.",
+ "E-A0|4|2":"Protector de sobretensiones E-F19/20/21 actuado: sustituir el cartucho.",
+ "E-A8|2|2":"Seta de emergencia pulsada o contacto abierto: desenclavar setas CP-S5, H-S3, H-S4 y AO.",
+ "E-A10|4|2":"Zapata activada: ver LEDs de P-U5 y la zapata C-B4.",
+ "P-A4|4|3":"Ha disparado una salida del distribuidor del pupitre: mirar LED de alarma de P-Q30.0 y P-Q30.1…P-Q30.3."};
+const NOPUENTE=/seta|bandas|borde|bumper|zapata|barrera|FC |inclinación|rotonda CO|bypass|hombre muerto|límite|fallo variador|freno perdido|estado|disyuntor|protector|alimentación|bobina/i;
+let gFoto="",gMis=new Set(),gSinAl=new Set(),gPMod="E-A9";
+function gCotHTML(){
+ const ot=gOTs().find(x=>x.id==gOT);const foto=gFoto||(ot&&ot.plc)||"";
+ const n=gMis.size+gSinAl.size;
+ let h=`<div class="mu" style="font-size:12px;margin:6px 0">Referencia: PLC RCS en reposo (pasarela parada, sin alarma). Compara tu foto con cada módulo y toca los LED que NO coincidan.</div>
+ <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px"><label class="btn" style="margin:0;justify-content:center">${IC('cam')} Foto PLC<input type="file" accept="image/*" capture="environment" hidden onchange="gFotoSel(this)"></label><button class="btn" style="justify-content:center" onclick="gVerRef()">${IC('plans')} PLC RCS</button></div>
+ ${foto?`<img src="${foto}" alt="Foto del PLC" onclick="gZoom(this.src)" style="width:100%;margin-top:8px;border-radius:6px;border:1px solid var(--bd)"><div class="mu" style="font-size:11px">Toca la foto para ampliarla.</div>`:`<div class="mu" style="margin-top:8px">Sin foto: haz una o usa la de la OT.</div>`}
+ <div id="g_res">${gResumen()}</div>
+ <label>Módulo</label><div class="gmods">${PLC.map(M=>{const c=[...gMis].filter(k=>k.startsWith(M.id+"|")).length+(gSinAl.has(M.id)?1:0);return `<button class="${M.id==gPMod?"on":""} ${c?"bad":""}" onclick="gPMod='${M.id}';gPintaMod()">${M.id}${c?` <b>${c}</b>`:""}</button>`}).join("")}</div>
+ <div id="g_mod">${gModHTML()}</div>
+ <div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="gMis.clear();gSinAl.clear();gPintaCot()">Limpiar</button><button class="sec" style="flex:2" ${n?"":"disabled"} onclick="gCotOT()">Pasar resultado a la OT</button></div>`;
+ return h}
+function gModHTML(){const M=PLC.find(x=>x.id==gPMod);
+ const sa=gSinAl.has(M.id);
+ return `<div class="gmod ${sa?"bad":""}"><div class="row" style="flex-wrap:nowrap"><b>${M.id} · ${esc(M.n)}</b><button class="gpl" onclick="gPlanoRCS(${M.f[0]})">${IC('plans')}<small>${M.f[0]}</small></button></div>
+ <label class="gpaso" style="border:0"><input type="checkbox" ${sa?"checked":""} onchange="gSA('${M.id}',this.checked)"><span>Todo el módulo apagado (sin alimentación o sin bus)</span></label>`+
+ M.m.map((sub,k)=>`<div class="gsub"><div class="mu" style="font-size:12px;font-weight:700">MÓDULO ${k+1}</div>`+sub.map((L,l)=>{const key=`${M.id}|${k+1}|${l+1}`,bad=gMis.has(key),b=pBorna(M,k+1,l+1);
+  return `<button class="gled2 ${bad?"bad":""}" onclick="gTog('${key}')"><span class="gdot e${L[1]}"></span><span style="flex:1;text-align:left">${l+1}. ${esc(L[0])}${b?` <span class="mu" style="font-size:11px">· IN ${b.in}</span>`:""}</span><span class="gst2">${bad?"≠ DISTINTO":L[1]==1?"ENC.":L[1]==0?"APAG.":"VARÍA"}</span></button>`}).join("")+`</div>`).join("")+`</div>`}
+function gTog(k){gMis.has(k)?gMis.delete(k):gMis.add(k);gPintaCot()}
+function gSA(id,v){v?gSinAl.add(id):gSinAl.delete(id);gPintaCot()}
+function gPintaMod(){gPintaCot()}
+function gPintaCot(){const c=$("#g_cot");if(c){const y=scrollY;c.innerHTML=gCotHTML();scrollTo(0,y)}}
+function gResumen(){
+ if(!gMis.size&&!gSinAl.size)return `<div class="gok">Sin discrepancias marcadas.</div>`;
+ let h=`<div class="gresh">MÓDULOS CON AVERÍA O LED QUE NO CORRESPONDE</div>`;
+ gSinAl.forEach(id=>{const M=PLC.find(x=>x.id==id);h+=`<div class="gres"><b>${id} · todo apagado</b><div>Módulo sin alimentación o sin bus. Revisar ${esc(M.p)} (LED de alarma de la cabecera Weidmüller), la tensión de 24 V en el módulo y que esté bien encajado en el carril. Si son varios módulos seguidos, revisar el anterior a ellos y el bus Interbus.</div><div class="gnp">NO puentear: no es un fallo de señal.</div></div>`});
+ [...gMis].sort().forEach(key=>{const[id,k,l]=key.split("|");const M=PLC.find(x=>x.id==id);const L=M.m[k-1][l-1];const b=pBorna(M,+k,+l);
+  const esp=L[1]==1?"ENCENDIDO":L[1]==0?"APAGADO":"variable";const vis=L[1]==1?"apagado":L[1]==0?"encendido":"distinto";
+  let q;if(M.t=="DO"||M.t=="SDO")q="Es una SALIDA: el PLC la está mandando (o no) según sus entradas. Busca la causa en las entradas marcadas; si está encendida y el receptor no actúa, revisa relé/bobina y cableado.";
+  else if(M.t=="PWR")q="Revisar alimentación y comunicación del pupitre.";
+  else q=L[1]==1?`No llega la señal: elemento accionado o averiado, cable cortado o borna floja.${b?` Medir 24 V entre IN ${b.in} y 0 V.`:""}`:`Señal activa: elemento accionado o derivación/cable cruzado.${b?` Soltar el hilo de IN ${b.in}: si se apaga, el problema está en campo.`:""}`;
+  if(PISTA[key])q=PISTA[key]+" "+q;
+  const pu=PUENTE[key];
+  h+=`<div class="gres"><div class="row" style="flex-wrap:nowrap"><b>${id} · módulo ${k} · LED ${l}</b><button class="gpl" onclick="gPlanoRCS(${M.f[k-1]})">${IC('plans')}<small>${M.f[k-1]}</small></button></div>
+  <div>${esc(L[0])}: debería estar <b>${esp}</b> y está <b>${vis}</b>.</div><div class="mu">${q}</div>
+  ${pu?`<div class="gpu">⚡ SOLUCIÓN PROVISIONAL EN CAMPO: ${esc(pu)} Señalizar en el armario y anotarlo en la OT.</div>`:NOPUENTE.test(L[0])||M.t!="DI"&&M.t!="SDI"?`<div class="gnp">NO puentear: ${M.t=="DO"||M.t=="SDO"?"es una salida, hay que corregir la causa.":"elemento de seguridad o de protección; reparar o sustituir."}</div>`:""}</div>`});
+ return h}
+async function gFotoSel(inp){const f=inp.files&&inp.files[0];if(!f)return;const im=new Image();im.src=URL.createObjectURL(f);await im.decode();const s=Math.min(1,1600/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);gFoto=c.toDataURL("image/jpeg",.7);gPintaCot()}
+function gZoom(src){let o=document.createElement("div");o.style.cssText="position:fixed;inset:0;z-index:45;background:#000;overflow:auto;-webkit-overflow-scrolling:touch";o.innerHTML=`<button class="sec" style="position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:10px;background:#fff;color:#000;z-index:2">✕ Cerrar</button><img src="${src}" style="width:200%;max-width:none">`;o.onclick=e=>{if(e.target.tagName=="BUTTON")o.remove()};document.body.appendChild(o)}
+async function gVerRef(){const l=await gLista();const d=l.find(x=>/PLC.?RCS/i.test(x.name));if(!d){msg("Sube el PDF «PLC RCS» en la pestaña Planos");return}gPagIni=gPMod.startsWith("P")?2:1;await ver(d.id)}
+async function gPlanoRCS(folio){const l=await gLista();const d=l.find(x=>/RCS.?PLANOS/i.test(x.name))||l.find(x=>/PBB/i.test(x.name));if(!d){msg("Sube «RCS PLANOS» en la pestaña Planos");return}gPagIni=gPagina(d.name,folio);await ver(d.id)}
+function gCotOT(){const i=inc.find(x=>x.id==gOT);if(!i){msg("Selecciona una OT abierta arriba");return}
+ const cl=$("#g_res").cloneNode(true);cl.querySelectorAll(".gpl").forEach(x=>x.remove());document.body.appendChild(cl);cl.style.cssText="position:absolute;left:-9999px";const t=cl.innerText.replace(/\n{2,}/g,"\n").trim();cl.remove();
+ i.guiada=(i.guiada?i.guiada+"\n\n":"")+"[Cotejo PLC con reposo]\n"+t;if(gFoto)i.plc=gFoto;sv("pbb_inc",inc);msg(`Cotejo añadido a la OT ${i.orden}`)}
+(function(){const st=document.createElement("style");st.textContent=`.gmods{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.gmods button{width:auto;padding:7px 9px;border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:6px;font-size:13px;font-weight:600}.gmods button.on{border-color:var(--pr);background:var(--pr);color:#fff}.gmods button.bad{border-color:#d93025}.gmods button.bad b{background:#d93025;color:#fff;border-radius:8px;padding:0 5px;font-size:11px}.gmod{margin-top:10px;border:1px solid var(--bd);border-radius:6px;padding:10px}.gmod.bad{border-color:#d93025}.gsub{margin-top:10px}.gled2{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:0;border-bottom:1px solid var(--bd);padding:9px 2px;color:var(--tx);font-size:14px;line-height:1.35}.gled2.bad{background:color-mix(in srgb,#d93025 14%,transparent)}.gdot{width:14px;height:14px;border-radius:50%;flex:none;border:2px solid var(--mu)}.gdot.e1{background:#1f9d55;border-color:#1f9d55;box-shadow:0 0 6px #1f9d55}.gdot.e2{background:linear-gradient(90deg,#1f9d55 50%,transparent 50%);border-color:#1f9d55}.gst2{font-size:10px;font-weight:700;color:var(--mu);white-space:nowrap}.gled2.bad .gst2{color:#d93025}.gok{margin-top:10px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;color:var(--mu);font-size:13px}.gresh{margin-top:12px;font-size:12px;font-weight:700;color:#d93025;letter-spacing:.4px}.gres{margin-top:8px;padding:10px;border:1px solid #d93025;border-radius:6px;font-size:13px;line-height:1.4}.gres>div{margin-top:4px}.gpu{padding:8px;border-radius:6px;background:color-mix(in srgb,var(--ac) 18%,transparent);border-left:3px solid var(--ac);font-weight:600}.gnp{padding:6px 8px;border-radius:6px;background:var(--bd);font-size:12px}`;document.head.appendChild(st)})();
+
 function gMarca(k,i,v){(gChk[k]=gChk[k]||[])[i]=v;const d=document.querySelector(`details.gd[data-k="${k}"] summary span`);if(d){const n=(gChk[k]||[]).filter(Boolean).length;d.textContent=`(${n}/${d.textContent.split("/")[1]}`}}
 function gCopia(t,si){const i=inc.find(x=>x.id==gOT);if(!i){msg("No hay OT abierta seleccionada");return}
  const s=GUIA.tipos[t].s[si];const c=gChk[t+si]||[];
