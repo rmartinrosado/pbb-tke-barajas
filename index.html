@@ -145,7 +145,7 @@ function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const 
  <div id="t_docs"></div><div id="pv"></div>
  <label>Definición de la avería</label><textarea id="t_def" rows="2">${esc(i.def)}</textarea>
  <label>Comentario</label><textarea id="t_com" rows="2">${esc(i.com)}</textarea>
- <label>Actuación GUIADA</label><textarea id="t_gui" rows="5" onchange="autoGui()" placeholder="Pega aquí la «Primera actuación en campo» que te muestra ChatGPT">${esc(i.guiada)}</textarea><button class="sec" style="margin-top:6px;width:100%" onclick="pegaGui()">Pegar desde el portapapeles</button>
+ <label>Actuación GUIADA</label><textarea id="t_gui" rows="5" onchange="autoGui()">${esc(i.guiada)}</textarea><button class="sec" style="margin-top:6px;width:100%" onclick="pegaGui()">Pegar desde el portapapeles</button>
  <button class="pri" style="margin-top:12px" onclick="guardaTec()">Instrucciones en Campo</button>`}
  $("#sheetc").innerHTML=h;$("#sheet").style.display="flex"}
 async function planosSheet(){const l=await allPdf();$("#t_docs").innerHTML=`<div style="margin-top:10px">`+(l.map(p=>`<div class="row" style="margin:6px 0"><span style="overflow-wrap:anywhere">${esc(p.name)}</span><button class="sec" onclick="ver('${p.id}')">Ver</button></div>`).join("")||'<div class="mu">No hay documentos. Cárgalos en Planos.</div>')+`</div>`}
