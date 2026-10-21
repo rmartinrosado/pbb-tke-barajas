@@ -75,7 +75,7 @@ function card(i){
  <div class="mu">${i.fecha} · Reportado por: ${esc(i.rep)}</div>${i.equipos&&i.equipos.length?`<div class="mu"><b>Equipos:</b> ${esc(i.equipos.join(", "))}</div>`:""}${i.turno?`<div class="mu"><b>Turno:</b> ${esc(i.turno)} · ${esc(i.tecnico||"")}</div>`:""}
  ${i.desc?`<p style="margin:6px 0">${esc(i.desc)}</p>`:""}
  <div class="mu">Inicio ${i.hIni||"–"} · Llegada ${i.hLle||"–"} · Cierre ${i.hCie||"–"}</div>
- ${i.aap?`<div class="mu"><b>Equipo AAP:</b> ${esc(i.aap)}${i.alarmas&&i.alarmas.length?` · <b>Alarma:</b> ${esc(i.alarmas.join(", "))}`:""}</div>`:""}${i.def?`<div class="mu"><b>Definición:</b> ${esc(i.def)}</div>`:""}${i.com?`<div class="mu"><b>Comentario:</b> ${esc(i.com)}</div>`:""}<div class="gfrow">${i.guiada?`<details style="margin-top:6px" ${guiAb.has(i.id)?"open":""} ontoggle="togGui('${i.id}',this.open)"><summary class="sec" style="display:inline-block;padding:8px 14px;cursor:pointer;font-weight:600">Actuación guiada</summary><div class="mu" style="white-space:pre-wrap;margin-top:8px">${esc(i.guiada)}</div></details>`:""}${(tecnico||admin)&&i.tipo=="PAS"?`<button class="sec gfb" onclick="gFotoOT('${i.id}')">${IC('cam')}FOTO PLC</button>${i.plc?`<button class="sec gdel" title="Borrar foto PLC" aria-label="Borrar foto PLC" onclick="delOT('${i.id}')">${IC('trash')}</button>`:""}`:""}</div>${i.plc?`<img src="${i.plc}" alt="PLC" style="width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:6px">`:""}${i.act?`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`:""}${i.obs?`<div class="mu"><b>Obs.:</b> ${esc(i.obs)}</div>`:""}
+ ${i.aap?`<div class="mu"><b>Equipo AAP:</b> ${esc(i.aap)}${i.alarmas&&i.alarmas.length?` · <b>Alarma:</b> ${esc(i.alarmas.join(", "))}`:""}</div>`:""}${i.def?`<div class="mu"><b>Definición:</b> ${esc(i.def)}</div>`:""}${i.com?`<div class="mu"><b>Comentario:</b> ${esc(i.com)}</div>`:""}<div class="gfrow">${i.guiada?`<details style="margin-top:6px" ${guiAb.has(i.id)?"open":""} ontoggle="togGui('${i.id}',this.open)"><summary class="sec" style="display:inline-block;padding:8px 14px;cursor:pointer;font-weight:600">Actuación guiada</summary><div style="margin-top:8px">${guiBloques(i)}</div></details>`:""}${(tecnico||admin)&&i.tipo=="PAS"?`<button class="sec gfb" onclick="gFotoOT('${i.id}')">${IC('cam')}FOTO PLC</button>${i.plc?`<button class="sec gdel" title="Borrar foto PLC" aria-label="Borrar foto PLC" onclick="delOT('${i.id}')">${IC('trash')}</button>`:""}`:""}</div>${i.plc?`<img src="${i.plc}" alt="PLC" style="width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:6px">`:""}${i.act?`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`:""}${i.obs?`<div class="mu"><b>Obs.:</b> ${esc(i.obs)}</div>`:""}
  <div class="row" style="margin-top:8px">${ab&&(tecnico||admin)?`<button class="pri" style="padding:9px" onclick="resolver('${i.id}')">Cerrar / Resolver</button>`:""}${admin||tecnico?`<button class="sec" onclick="editar('${i.id}')">Editar</button>`:""}${admin?`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`:""}</div></div>`;
 }
 function vDash(){
@@ -790,7 +790,7 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v37"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v38"}})();
 iniciar();
 /* ===== v37: inspección cable a cable (rutas de medida desde RCS_PLANOS) =====
  Cada paso: p = punto de medida, e = valor esperado, x = qué falla si no se cumple, f = folio RCS_PLANOS. */
@@ -870,4 +870,16 @@ function gICopia(){const i=inc.find(x=>x.id==gOT);if(!i){msg("No hay OT abierta 
  const txt=`[Inspección cable a cable · ${gIMod} ${S.id} · LED ${S.led} · ${S.t}]\n`+S.p.map((q,j)=>{const r=res[j]||{};return `${r.ok===true?"✔":r.ok===false?"✘":"☐"} ${j+1}. ${q.p}${r.v?` = ${r.v}`:""} (esperado ${q.e})`}).join("\n")+(nok>=0?`\nFallo: ${S.p[nok].x}`:"");
  i.guiada=(i.guiada?i.guiada+"\n\n":"")+txt;sv("pbb_inc",inc);msg(`Medidas añadidas a la OT ${i.orden}`)}
 (function(){const st=document.createElement("style");st.textContent=`.gins{align-items:flex-start}.gins.ok{background:color-mix(in srgb,#2e7d32 10%,transparent)}.gins.nok{background:color-mix(in srgb,#c62828 12%,transparent)}.gib{display:flex;gap:6px;margin-top:6px;align-items:center}.gib button{width:auto;padding:6px 12px;font-weight:700}.gib input{flex:1;min-width:0;padding:6px 8px}`;document.head.appendChild(st)})();
+
+/* ===== v38: papelera por apartado en «Actuación guiada» (Seguimiento OT) ===== */
+function guiPartes(t){return (t||"").split(/\n\n(?=\[)/).filter(x=>x.trim())}
+function guiBloques(i){const ps=guiPartes(i.guiada);const pued=tecnico||admin;
+ return ps.map((b,k)=>`<div class="gblq"><div class="mu" style="white-space:pre-wrap">${esc(b)}</div>${pued?`<div class="gblqf"><button class="sec gbdel" title="Borrar este apartado" aria-label="Borrar este apartado" onclick="delGuiBloque('${i.id}',${k})">${IC('trash')}</button></div>`:""}</div>`).join("")}
+function delGuiBloque(id,k){const i=inc.find(x=>x.id==id);if(!i)return;const ps=guiPartes(i.guiada);if(!ps[k])return;
+ const tit=(ps[k].match(/^\[([^\]]*)\]/)||[,"texto"])[1];
+ if(!confirm(`¿Borrar el apartado «${tit}» de la OT ${i.orden||""}?`))return;
+ ps.splice(k,1);i.guiada=ps.join("\n\n");if(!i.guiada)guiAb.delete(i.id);sv("pbb_inc",inc);render();
+ const g=document.querySelector("#t_gui");const sl=document.querySelector("#t_sel");if(g&&sl&&sl.value==i.id)g.value=i.guiada;
+ msg("Apartado borrado de la OT "+(i.orden||""))}
+(function(){const st=document.createElement("style");st.textContent=`.gblq{padding:8px 0;border-bottom:1px dashed color-mix(in srgb,currentColor 25%,transparent)}.gblq:last-child{border-bottom:0}.gblqf{display:flex;justify-content:flex-end;margin-top:6px}.gbdel{width:44px;height:40px;display:flex;align-items:center;justify-content:center;padding:0;color:#ff6b6b;border-color:#ff6b6b}.gbdel svg{width:20px;height:20px}`;document.head.appendChild(st)})();
 </script></body></html>
