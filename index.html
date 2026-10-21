@@ -283,7 +283,7 @@ async function iniciar(){
  rol=(r.data&&r.data.rol)||"operador";
  const l=$("#login");if(l)l.remove();
  document.querySelector("header small").textContent=user.email+" · "+rol+" · v3";
- admin=false;tecnico=false;
+ admin=false;tecnico=rol!="operador";
  try{const rt=JSON.parse(localStorage.getItem("pbb_ret")||"null");localStorage.removeItem("pbb_ret");if(rt&&Date.now()-rt.ts<600000&&rol!="operador"){tecnico=true;turno=rt.t||"";tecNombre=rt.n||"";retEst=rt}}catch(e){}
  await cargaPos();await cargaInc();render();
  if(retEst){resTec(retEst.id);const d=$("#t_def"),c=$("#t_com");if(d&&retEst.def!=null)d.value=retEst.def;if(c&&retEst.com!=null)c.value=retEst.com;const g=$("#t_gui");if(g&&retEst.gui!=null)g.value=retEst.gui;retEst=null}
@@ -474,8 +474,8 @@ let _lk=false;
 function lockUI(){let d=document.getElementById("lock");const on=!!user&&!admin&&!identificado();
  if(!d){d=document.createElement("div");d.id="lock";d.setAttribute("role","dialog");document.body.appendChild(d)}
  d.style.display=on?"flex":"none";
- if(on){d.innerHTML=`<div class="lkc"><h3 style="margin:0">Identificación obligatoria</h3><div class="mu" style="margin:8px 0 14px">Para usar el modo ${tecnico?"Técnico":"Operador"} introduce el turno y el nombre del técnico. Hasta entonces la app está desactivada.</div><button class="pri" onclick="pedirTurnoO()">Introducir turno y nombre</button><div class="mu" style="margin-top:10px;font-size:12px">Para el modo Técnico pulsa T arriba.</div></div>`;
-  if(!_lk)setTimeout(()=>{if($("#sheet").style.display!="flex")pedirTurnoO()},60)}
+ if(on){d.innerHTML=`<div class="lkc"><h3 style="margin:0">Identificación obligatoria</h3><div class="mu" style="margin:8px 0 14px">Para usar el modo ${tecnico?"Técnico":"Operador"} introduce el turno y el nombre del técnico. Hasta entonces la app está desactivada.</div><button class="pri" onclick="${tecnico?"pedirTec()":"pedirTurnoO()"}">Introducir turno y nombre</button><div class="mu" style="margin-top:10px;font-size:12px">${tecnico?"Para el modo Operador pulsa O arriba.":"Para el modo Técnico pulsa T arriba."}</div></div>`;
+  if(!_lk)setTimeout(()=>{if($("#sheet").style.display!="flex"){if(tecnico)pedirTec();else pedirTurnoO()}},60)}
  _lk=on}
 function pedirTurnoO(){
  $("#sheetc").innerHTML=`<h3 style="margin:0">Identificación · Operador</h3><div class="mu" style="margin-top:4px">Obligatorio: turno y nombre del técnico.</div><label>Selecciona el turno</label><div class="grid" style="grid-template-columns:1fr 1fr 1fr">${["Mañana","Tarde","Noche"].map(t=>`<button class="btn" style="justify-content:center;padding:14px 4px${t==turno?";border-color:var(--pr)":""}" onclick="selTurnoO('${t}')">${t}</button>`).join("")}</div><button class="sec" style="width:100%;margin-top:12px" onclick="closeSheet()">${identificado()?"Cancelar":"Cerrar"}</button>`;$("#sheet").style.display="flex"}
@@ -776,6 +776,6 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v21"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v22"}})();
 iniciar();
 </script></body></html>
