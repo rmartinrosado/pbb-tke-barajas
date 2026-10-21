@@ -75,7 +75,7 @@ function card(i){
  <div class="mu">${i.fecha} · Reportado por: ${esc(i.rep)}</div>${i.equipos&&i.equipos.length?`<div class="mu"><b>Equipos:</b> ${esc(i.equipos.join(", "))}</div>`:""}${i.turno?`<div class="mu"><b>Turno:</b> ${esc(i.turno)} · ${esc(i.tecnico||"")}</div>`:""}
  ${i.desc?`<p style="margin:6px 0">${esc(i.desc)}</p>`:""}
  <div class="mu">Inicio ${i.hIni||"–"} · Llegada ${i.hLle||"–"} · Cierre ${i.hCie||"–"}</div>
- ${i.def?`<div class="mu"><b>Definición:</b> ${esc(i.def)}</div>`:""}${i.com?`<div class="mu"><b>Comentario:</b> ${esc(i.com)}</div>`:""}<div class="gfrow">${i.guiada?`<details style="margin-top:6px" ${guiAb.has(i.id)?"open":""} ontoggle="togGui('${i.id}',this.open)"><summary class="sec" style="display:inline-block;padding:8px 14px;cursor:pointer;font-weight:600">Actuación guiada</summary><div class="mu" style="white-space:pre-wrap;margin-top:8px">${esc(i.guiada)}</div></details>`:""}${(tecnico||admin)?`<button class="sec gfb" onclick="gFotoOT('${i.id}')">${IC('cam')}FOTO PLC</button>${i.plc?`<button class="sec gdel" title="Borrar foto PLC" aria-label="Borrar foto PLC" onclick="delOT('${i.id}')">${IC('trash')}</button>`:""}`:""}</div>${i.plc?`<img src="${i.plc}" alt="PLC" style="width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:6px">`:""}${i.act?`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`:""}${i.obs?`<div class="mu"><b>Obs.:</b> ${esc(i.obs)}</div>`:""}
+ ${i.def?`<div class="mu"><b>Definición:</b> ${esc(i.def)}</div>`:""}${i.com?`<div class="mu"><b>Comentario:</b> ${esc(i.com)}</div>`:""}<div class="gfrow">${i.guiada?`<details style="margin-top:6px" ${guiAb.has(i.id)?"open":""} ontoggle="togGui('${i.id}',this.open)"><summary class="sec" style="display:inline-block;padding:8px 14px;cursor:pointer;font-weight:600">Actuación guiada</summary><div class="mu" style="white-space:pre-wrap;margin-top:8px">${esc(i.guiada)}</div></details>`:""}${(tecnico||admin)?`<button class="sec gfb" onclick="gFotoOT('${i.id}')">${IC('cam')}FOTO PLC</button>${i.plc&&(ab||admin)?`<button class="sec gdel" title="Borrar foto PLC" aria-label="Borrar foto PLC" onclick="delOT('${i.id}')">${IC('trash')}</button>`:""}`:""}</div>${i.plc?`<img src="${i.plc}" alt="PLC" style="width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:6px">`:""}${i.act?`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`:""}${i.obs?`<div class="mu"><b>Obs.:</b> ${esc(i.obs)}</div>`:""}
  <div class="row" style="margin-top:8px">${ab&&(tecnico||admin)?`<button class="pri" style="padding:9px" onclick="resolver('${i.id}')">Cerrar / Resolver</button>`:""}${admin||tecnico?`<button class="sec" onclick="editar('${i.id}')">Editar</button>`:""}${admin?`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`:""}</div></div>`;
 }
 function vDash(){
@@ -134,7 +134,7 @@ function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const 
  <button class="pri" style="margin-top:12px" onclick="guardaTec()">Guardar</button>`:`<div class="mu" style="margin:10px 0">No hay averías abiertas.</div>`)+`<a class="pri" href="${GPT}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:8px">Asistente GPT: diagnóstico y comprobaciones en campo</a><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cerrar</button>`;$("#sheet").style.display="flex";if(i&&!sel&&!i.plc){const f=$("#t_foto");if(f)f.click()}}
 function prevFoto(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,900/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);tFoto=c.toDataURL("image/jpeg",.6);const p=$("#t_prev");p.src=tFoto;p.style.display="block"};im.src=r.result};r.readAsDataURL(f)}
 function guardaTec(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;i.def=$("#t_def").value.trim();if(tFoto)i.plc=tFoto;sv("pbb_inc",inc);msg("Resolución guardada");closeSheet();render()}
-P.trash='M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6';function delOT(id){const i=inc.find(x=>x.id==id);if(!i||!i.plc)return;if(!confirm(`¿Borrar la foto PLC de la OT ${i.orden}?`))return;delete i.plc;sv("pbb_inc",inc);render();msg("Foto PLC borrada de la OT "+(i.orden||""))}
+P.trash='M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6';function delOT(id){const i=inc.find(x=>x.id==id);if(!i||!i.plc)return;if(!confirm(`¿Borrar la foto PLC de la OT ${i.orden}?`))return;delete i.plc;plcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Foto PLC borrada de la OT "+(i.orden||""))}
 P.cam='M3 8h4l2-3h6l2 3h4v12H3zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z';
 function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const i=ab.find(x=>x.id==sel)||ab[0];
  let h=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Resolución de avería</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>`;
@@ -269,7 +269,7 @@ function vTec(){
 const SUPABASE_URL="https://cychbpunjexeeazjqyqk.supabase.co";
 const SUPABASE_KEY="sb_publishable_t7Fl_CYF7InlJdFx6r6y1w_PtexzEj0";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let rol="operador",user=null,remoto={};
+let rol="operador",user=null,remoto={};const plcBorrar=new Set();
 function sv(k,v){if(k=="pbb_inc"){empuja(v);return}try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function pantallaLogin(m){let d=$("#login");if(!d){d=document.createElement("div");d.id="login";d.style.cssText="position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px";document.body.appendChild(d)}
  d.innerHTML=`<div class="card" style="width:100%;max-width:380px"><img class="logo" style="width:90px;margin:0 0 8px" src="${document.querySelector("header .logo").src}"><h3 style="margin:0 0 6px">PBB TKE Barajas</h3><label>Correo</label><input id="l_e" type="email" autocomplete="username"><label>Contraseña</label><input id="l_p" type="password" autocomplete="current-password"><button class="pri" style="margin-top:14px" onclick="entrar()">Entrar</button><div class="mu" style="margin-top:8px">${m||""}</div></div>`}
@@ -296,7 +296,7 @@ async function cargaInc(re){const r=await sb.from("incidencias").select("id,dato
 async function cargaPos(){const r=await sb.from("posiciones").select("num");(r.data||[]).forEach(x=>{if(!POS.some(p=>String(p)==String(x.num)))POS.push(x.num)});POS.sort(ordPos)}
 async function empuja(v){
  const ids=new Set(v.map(i=>i.id));
- for(const i of v){const d={...i};delete d.id;let j=JSON.stringify(d);if(remoto[i.id]===j)continue;if(!admin&&turno){d.turno=turno;d.tecnico=tecNombre||user.email;j=JSON.stringify(d)}
+ for(const i of v){if(!i.plc&&!plcBorrar.has(i.id)&&remoto[i.id]){try{const o=JSON.parse(remoto[i.id]);if(o.plc)i.plc=o.plc}catch(e){}}plcBorrar.delete(i.id);const d={...i};delete d.id;let j=JSON.stringify(d);if(remoto[i.id]===j)continue;if(!admin&&turno){d.turno=turno;d.tecnico=tecNombre||user.email;j=JSON.stringify(d)}
   const nuevo=!(i.id in remoto);
   const q=nuevo?sb.from("incidencias").insert({id:i.id,datos:d,estado:i.estado}).select():sb.from("incidencias").update({datos:d,estado:i.estado,updated_at:new Date().toISOString()}).eq("id",i.id).select();
   const r=await q;if(r.error||!r.data||!r.data.length){msg("Sin permiso o error al guardar");await cargaInc(true);return}remoto[i.id]=j}
@@ -776,6 +776,6 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v23"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v24"}})();
 iniciar();
 </script></body></html>
