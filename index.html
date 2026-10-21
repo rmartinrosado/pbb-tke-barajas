@@ -569,6 +569,7 @@ function vTec(){
  <div class="mu" style="margin-top:6px">${esc(T.n)}</div><label>Plano de esta guía</label><select id="g_doc" onchange="gSetDoc(this.value)"><option>Cargando…</option></select></div>`;
  h+=det("⚠️ Seguridad antes de intervenir",lista(GUIA.seg),gAbierto.has("SEG")?"open":"","SEG");
  if(gTipo=="PAS")h+=det("🔍 Cotejo PLC con foto (estado de reposo)",`<div id="g_cot">${gCotHTML()}</div>`,gAbierto.has("COT")?"open":"","COT");
+ if(gTipo=="PAS")h+=det("📏 Inspección cable a cable",`<div id="g_ins">${gInsHTML()}</div>`,gAbierto.has("INS")?"open":"","INS");
  if(T.v)h+=`<div class="card mu">${esc(T.v)}</div>`;
  T.s.forEach((s,si)=>{const k=gTipo+si;const c=gChk[k]||[];const hechos=c.filter(Boolean).length;
   h+=det(`${esc(s.t)} <span class="mu" style="font-weight:400">(${hechos}/${s.p.length})</span>`,
@@ -789,6 +790,84 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v36"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v37"}})();
 iniciar();
+/* ===== v37: inspección cable a cable (rutas de medida desde RCS_PLANOS) =====
+ Cada paso: p = punto de medida, e = valor esperado, x = qué falla si no se cumple, f = folio RCS_PLANOS. */
+const RUTAS={"E-A9":{n:"Entradas safety (IB IL 24 PSDI 8-PAC)",
+ ref:"Polímetro en V DC. Punta negra en la GND del módulo (borna x.3 de la misma entrada) o en +E-X68:2 (0 V). Las salidas UT son pulsos de test: el polímetro puede marcar algo menos de 24 V.",
+ s:[
+ {id:"DIS01",led:"1.1",t:"Autorización columna (+CO-S2)",r:"LED 1.1 apagado en reposo; se enciende al pulsar CO-S2 (pulsador NA).",p:[
+  {p:"E-A9 borna 1.2 (UT1)",e:"≈24 V",x:"Sin tensión de test: módulo E-A9 o su alimentación (+E-Q30.4).",f:69},
+  {p:"+E-X70:11 · cable 681",e:"≈24 V",x:"Cable 681 cortado o flojo entre E-A9 1.2 y E-X70:11.",f:69},
+  {p:"+IT-X50:11 · manguera EIT-W10 hilo BK",e:"≈24 V",x:"Hilo BK de EIT-W10 entre E-X70:11 e IT-X50:11.",f:69},
+  {p:"+CO-S2 borna 13 · manguera ITCO-W3 hilo BK",e:"≈24 V",x:"Hilo BK de ITCO-W3 entre IT-X50:11 y CO-S2:13.",f:69},
+  {p:"+CO-S2 borna 14, con el pulsador PULSADO",e:"≈24 V (0 V sin pulsar)",x:"Contacto 13-14 del pulsador CO-S2.",f:69},
+  {p:"+IT-X50:10 · ITCO-W3 hilo GY (pulsado)",e:"≈24 V",x:"Hilo GY de ITCO-W3 entre CO-S2:14 e IT-X50:10.",f:69},
+  {p:"+E-X70:10 · EIT-W10 hilo RD (pulsado)",e:"≈24 V",x:"Hilo RD de EIT-W10 entre IT-X50:10 y E-X70:10.",f:69},
+  {p:"E-A9 borna 1.1 (IN01S) · cable 680 (pulsado)",e:"≈24 V y LED 1.1 encendido",x:"Cable 680. Si hay 24 V y el LED no enciende: entrada del módulo E-A9.",f:69}]},
+ {id:"DIS02",led:"2.1",t:"Antiatrapamiento túnel medio B-C (PBB 3 túneles)",r:"LED 2.1 encendido en reposo. Los relés E-K247A y E-K248A deben estar excitados; los finales de carrera MT-S3'' y MT-S3' (NC) los alimentan.",p:[
+  {p:"+E-X68:6 · cable 613",e:"≈24 V",x:"+24 V de seguridad: módulo +E-Q30.4 (fusible 8 A).",f:37},
+  {p:"+MT-S3'' borna 11",e:"≈24 V",x:"Cable 613 entre E-X68:6 y el túnel (tramo no detallado en RCS_PLANOS).",f:41},
+  {p:"+MT-S3'' borna 12",e:"≈24 V",x:"Final de carrera MT-S3'' abierto: antiatrapamiento actuado, desajustado o roto.",f:41},
+  {p:"+MT-S3' borna 12",e:"≈24 V",x:"Final de carrera MT-S3' abierto (o el puente entre MT-S3'':12 y MT-S3':11).",f:41},
+  {p:"+E-K247A A1–A2 y +E-K248A A1–A2",e:"≈24 V y ambos relés excitados",x:"Retorno 0 V por cable 205 a E-X68:2, o bobina del relé que no entra.",f:41},
+  {p:"E-A9 borna 2.2 (UT2)",e:"≈24 V",x:"Sin tensión de test: módulo E-A9.",f:69},
+  {p:"+E-K247A borna 14 · cable 633",e:"≈24 V",x:"Cable 633 entre E-A9 2.2 y E-K247A:14.",f:69},
+  {p:"+E-K247A borna 11",e:"≈24 V",x:"Contacto 11-14 de E-K247A no cierra (relé caído o contacto quemado).",f:69},
+  {p:"+E-K248A borna 14 · cable 3278",e:"≈24 V",x:"Cable 3278 entre E-K247A:11 y E-K248A:14.",f:69},
+  {p:"+E-K248A borna 11",e:"≈24 V",x:"Contacto 11-14 de E-K248A no cierra.",f:69},
+  {p:"E-A9 borna 2.1 (IN02S) · cable 3277",e:"≈24 V y LED 2.1 encendido",x:"Cable 3277. Si hay 24 V y el LED no enciende: entrada del módulo.",f:69}]},
+ {id:"DIS03",led:"3.1",t:"Autorización rotonda (+R-S2)",r:"LED 3.1 apagado en reposo; se enciende al pulsar R-S2 (pulsador NA).",p:[
+  {p:"E-A9 borna 3.2 (UT1)",e:"≈24 V",x:"Sin tensión de test: módulo E-A9.",f:69},
+  {p:"+E-X70:13 · cable 683",e:"≈24 V",x:"Cable 683 entre E-A9 3.2 y E-X70:13.",f:69},
+  {p:"+IT-X50:13 · manguera EIT-W10 hilo GYPK",e:"≈24 V",x:"Hilo GYPK de EIT-W10.",f:69},
+  {p:"+R-S2 borna 13 · manguera ITR-W5 hilo BK",e:"≈24 V",x:"Hilo BK de ITR-W5 entre IT-X50:13 y R-S2:13.",f:69},
+  {p:"+R-S2 borna 14, con el pulsador PULSADO",e:"≈24 V (0 V sin pulsar)",x:"Contacto 13-14 del pulsador R-S2.",f:69},
+  {p:"+IT-X50:12 · ITR-W5 hilo GY (pulsado)",e:"≈24 V",x:"Hilo GY de ITR-W5.",f:69},
+  {p:"+E-X70:12 · EIT-W10 hilo VT (pulsado)",e:"≈24 V",x:"Hilo VT de EIT-W10.",f:69},
+  {p:"E-A9 borna 3.1 (IN03S) · cable 682 (pulsado)",e:"≈24 V y LED 3.1 encendido",x:"Cable 682. Si hay 24 V y el LED no enciende: entrada del módulo.",f:69}]},
+ {id:"DIS04",led:"4.1",t:"Sirena seguridad cabina (+C-H41)",r:"LED 4.1 apagado en reposo. La señal pasa por la sirena: entra por X3:5 (IN) y vuelve por X3:7 (OUT).",p:[
+  {p:"+E-X70:1 (cable 613) respecto a +E-X70:2 (cable 205)",e:"≈24 V",x:"Alimentación de la sirena desde E-X68:6 / E-X68:2.",f:91},
+  {p:"+C-H41 X3:1 respecto a X3:3 · EC-W20 hilos 3 y 4",e:"≈24 V",x:"Hilos 3 (+24 V) o 4 (0 V) de la manguera EC-W20.",f:91},
+  {p:"E-A9 borna 4.2 (UT2)",e:"≈24 V",x:"Sin tensión de test: módulo E-A9.",f:69},
+  {p:"+E-X70:24 · cable 667",e:"≈24 V",x:"Cable 667 entre E-A9 4.2 y E-X70:24.",f:91},
+  {p:"+C-H41 X3:5 (IN) · EC-W20 hilo 5",e:"≈24 V",x:"Hilo 5 de la manguera EC-W20.",f:91},
+  {p:"+C-H41 X3:7 (OUT) → E-X70:25 (hilo 6) → E-A9 4.1 (cable 666)",e:"Igual en los tres puntos (0 V en reposo)",x:"Si X3:7 tiene tensión y 4.1 no: hilo 6 de EC-W20 o cable 666.",f:91}]},
+ {id:"DIS05",led:"5.1",t:"Antiatrapamiento túnel interior A-B",r:"LED 5.1 encendido en reposo. Los relés E-K247 y E-K248 deben estar excitados; los finales de carrera IT-S3'' e IT-S3' (NC) los alimentan.",p:[
+  {p:"+E-X68:6 · cable 613",e:"≈24 V",x:"+24 V de seguridad: módulo +E-Q30.4 (fusible 8 A).",f:37},
+  {p:"+IT-S3'' borna 11",e:"≈24 V",x:"Cable 613 entre E-X68:6 y el túnel (tramo no detallado en RCS_PLANOS).",f:41},
+  {p:"+IT-S3'' borna 12",e:"≈24 V",x:"Final de carrera IT-S3'' abierto: antiatrapamiento actuado, desajustado o roto.",f:41},
+  {p:"+IT-S3' borna 12",e:"≈24 V",x:"Final de carrera IT-S3' abierto (o el puente entre IT-S3'':12 e IT-S3':11).",f:41},
+  {p:"+E-K247 A1–A2 y +E-K248 A1–A2",e:"≈24 V y ambos relés excitados",x:"Retorno 0 V por cable 205 a E-X68:2, o bobina del relé que no entra.",f:41},
+  {p:"E-A9 borna 5.2 (UT1)",e:"≈24 V",x:"Sin tensión de test: módulo E-A9.",f:69},
+  {p:"+E-K247 borna 14 · cable 634",e:"≈24 V",x:"Cable 634 entre E-A9 5.2 y E-K247:14.",f:69},
+  {p:"+E-K247 borna 11",e:"≈24 V",x:"Contacto 11-14 de E-K247 no cierra (relé caído o contacto quemado).",f:69},
+  {p:"+E-K248 borna 14 · cable 3276",e:"≈24 V",x:"Cable 3276 entre E-K247:11 y E-K248:14.",f:69},
+  {p:"+E-K248 borna 11",e:"≈24 V",x:"Contacto 11-14 de E-K248 no cierra.",f:69},
+  {p:"E-A9 borna 5.1 (IN05S) · cable 3275",e:"≈24 V y LED 5.1 encendido",x:"Cable 3275. Si hay 24 V y el LED no enciende: entrada del módulo.",f:69}]}
+]}};
+let gIMod="E-A9",gISig="DIS05",gIRes={};
+function gIKey(){return (gOT||"-")+"|"+gIMod+"|"+gISig}
+function gInsHTML(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig)||R.s[0];gISig=S.id;const res=gIRes[gIKey()]||[];
+ const nok=S.p.findIndex((_,i)=>res[i]&&res[i].ok===false);
+ let h=`<div class="mu" style="font-size:12px;margin:6px 0">Ruta de medida desde el plano RCS_PLANOS. Compruébala siempre con el folio indicado.</div>
+ <label>Módulo</label><div class="gmods">${Object.keys(RUTAS).map(k=>`<button class="${k==gIMod?"on":""}" onclick="gIMod='${k}';gPintaIns()">${k}</button>`).join("")}</div>
+ <label>Señal</label><select onchange="gISig=this.value;gPintaIns()">${R.s.map(x=>`<option value="${x.id}" ${x.id==S.id?"selected":""}>${x.id} · LED ${x.led} · ${esc(x.t)}</option>`).join("")}</select>
+ <div class="gav">${esc(S.r)}</div><div class="mu" style="font-size:12px">${esc(R.ref)}</div>
+ ${nok>=0?`<div class="gav" style="border-left-color:#c62828;background:color-mix(in srgb,#c62828 12%,transparent)"><b>Fallo localizado en el paso ${nok+1}:</b> ${esc(S.p[nok].x)}${nok>0?` (el paso ${nok} estaba bien).`:""}</div>`:""}
+ <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br><small class="mu">Esperado: ${esc(q.e)}</small>
+  <span class="gib"><button class="${r.ok===true?"pri":"sec"}" onclick="gIMarca(${i},true)">OK</button><button class="${r.ok===false?"pri":"sec"}" onclick="gIMarca(${i},false)">NOK</button><input placeholder="Valor" value="${esc(r.v||"")}" onchange="gIValor(${i},this.value)"></span></span>
+  <button class="gpl" aria-label="Ver plano folio ${q.f}" onclick="gPlano('PAS',${q.f})">${IC('plans')}<small>${q.f}</small></button></div>`}).join("")}</div>
+ <div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="delete gIRes[gIKey()];gPintaIns()">Limpiar</button><button class="sec" style="flex:2" onclick="gICopia()">Pasar medidas a la OT</button></div>`;
+ return h}
+function gPintaIns(){const c=$("#g_ins");if(c){const y=scrollY;c.innerHTML=gInsHTML();scrollTo(0,y)}}
+function gIMarca(i,ok){const k=gIKey();const a=gIRes[k]=gIRes[k]||[];a[i]=Object.assign(a[i]||{},{ok:a[i]&&a[i].ok===ok?undefined:ok});gPintaIns()}
+function gIValor(i,v){const k=gIKey();const a=gIRes[k]=gIRes[k]||[];a[i]=Object.assign(a[i]||{},{v:v.trim()})}
+function gICopia(){const i=inc.find(x=>x.id==gOT);if(!i){msg("No hay OT abierta seleccionada");return}
+ const S=RUTAS[gIMod].s.find(x=>x.id==gISig);const res=gIRes[gIKey()]||[];if(!res.some(r=>r&&(r.ok!==undefined||r.v))){msg("No hay medidas anotadas");return}
+ const nok=S.p.findIndex((_,j)=>res[j]&&res[j].ok===false);
+ const txt=`[Inspección cable a cable · ${gIMod} ${S.id} · LED ${S.led} · ${S.t}]\n`+S.p.map((q,j)=>{const r=res[j]||{};return `${r.ok===true?"✔":r.ok===false?"✘":"☐"} ${j+1}. ${q.p}${r.v?` = ${r.v}`:""} (esperado ${q.e})`}).join("\n")+(nok>=0?`\nFallo: ${S.p[nok].x}`:"");
+ i.guiada=(i.guiada?i.guiada+"\n\n":"")+txt;sv("pbb_inc",inc);msg(`Medidas añadidas a la OT ${i.orden}`)}
+(function(){const st=document.createElement("style");st.textContent=`.gins{align-items:flex-start}.gins.ok{background:color-mix(in srgb,#2e7d32 10%,transparent)}.gins.nok{background:color-mix(in srgb,#c62828 12%,transparent)}.gib{display:flex;gap:6px;margin-top:6px;align-items:center}.gib button{width:auto;padding:6px 12px;font-weight:700}.gib input{flex:1;min-width:0;padding:6px 8px}`;document.head.appendChild(st)})();
 </script></body></html>
