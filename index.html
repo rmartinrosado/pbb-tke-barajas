@@ -718,12 +718,11 @@ const PISTA={
 const NOPUENTE=/seta|bandas|borde|bumper|zapata|barrera|FC |inclinación|rotonda CO|bypass|hombre muerto|límite|fallo variador|freno perdido|estado|disyuntor|protector|alimentación|bobina/i;
 let gFoto="",gMis=new Set(),gSinAl=new Set(),gPMod="E-A9";
 function gCotHTML(){
- const ot0=gOTs().find(x=>x.id==gOT);const ult=!ot0&&!gFoto?inc.find(x=>x.plc):null;const ot=ot0||ult;const foto=(ot&&ot.plc)||(!ot&&gFoto)||"";
- const otras=gOTs().filter(x=>x.plc&&x.id!=gOT);
+ const ot=gOTs().find(x=>x.id==gOT);const foto=(ot&&ot.plc)||(!ot&&gFoto)||"";
  const n=gMis.size+gSinAl.size;
  let h=`<div class="mu" style="font-size:12px;margin:6px 0">Referencia: PLC RCS en reposo (pasarela parada, sin alarma). Compara tu foto con cada módulo y toca los LED que NO coincidan.</div>
  <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px"><label class="btn" style="margin:0;justify-content:center">${IC('cam')} Foto PLC<input type="file" accept="image/*" capture="environment" hidden onchange="gFotoSel(this)"></label><button class="btn" style="justify-content:center" onclick="gVerRef()">${IC('plans')} PLC RCS</button></div>
- ${foto?`<div class="gfix"><img src="${foto}" alt="Foto del PLC" onclick="gZoom(this.src)"><div class="gfixt">${ot?`Foto de la OT ${esc(ot.orden)} · PBB ${esc(ot.pos)}${ot.estado!="abierta"?" (cerrada)":""}`:"Foto PLC"} · toca para ampliar</div></div>`:`<div class="mu" style="margin-top:8px">${ot?`La OT ${esc(ot.orden)} no tiene foto PLC: haz una con «Foto PLC» o cárgala en Seguimiento OT.`:"Sin OT abierta: haz una foto con «Foto PLC»."}</div>${otras.length?`<div class="gotras">${otras.map(x=>`<button class="sec" onclick="gOT='${x.id}';gSyncOT=gOT;gTipo='PAS';vTec()">Usar foto de OT ${esc(x.orden)} · PBB ${esc(x.pos)}</button>`).join("")}</div>`:""}`}
+ ${foto?`<div class="gfix"><img src="${foto}" alt="Foto del PLC" onclick="gZoom(this.src)"><div class="gfixt">${ot?`Foto de la OT ${esc(ot.orden)} · PBB ${esc(ot.pos)}${ot.estado!="abierta"?" (cerrada)":""}`:"Foto PLC"} · toca para ampliar</div></div>`:`<div class="mu" style="margin-top:8px">${ot?`La OT ${esc(ot.orden)} no tiene foto PLC: haz una con «Foto PLC» o cárgala en Seguimiento OT.`:"Sin OT abierta: haz una foto con «Foto PLC»."}</div>`}
  <div id="g_res">${gResumen()}</div>
  <label>Módulo</label><div class="gmods">${PLC.map(M=>{const c=[...gMis].filter(k=>k.startsWith(M.id+"|")).length+(gSinAl.has(M.id)?1:0);return `<button class="${M.id==gPMod?"on":""} ${c?"bad":""}" onclick="gPMod='${M.id}';gPintaMod()">${M.id}${c?` <b>${c}</b>`:""}</button>`}).join("")}</div>
  <div id="g_mod">${gModHTML()}</div>
@@ -790,6 +789,6 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v33"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v34"}})();
 iniciar();
 </script></body></html>
