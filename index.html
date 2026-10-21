@@ -859,7 +859,8 @@ function gInsHTML(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig)||R.s[0
  <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br><small class="mu">Esperado: ${esc(q.e)}</small>
   <span class="gib"><button class="${r.ok===true?"pri":"sec"}" onclick="gIMarca(${i},true)">OK</button><button class="${r.ok===false?"pri":"sec"}" onclick="gIMarca(${i},false)">NOK</button><input placeholder="Valor" value="${esc(r.v||"")}" onchange="gIValor(${i},this.value)"></span></span>
   <button class="gpl" aria-label="Ver plano folio ${q.f}" onclick="gPlano('PAS',${q.f})">${IC('plans')}<small>${q.f}</small></button></div>`}).join("")}</div>
- <div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="delete gIRes[gIKey()];gPintaIns()">Limpiar</button><button class="sec" style="flex:2" onclick="gICopia()">Pasar medidas a la OT</button></div>`;
+ <div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="delete gIRes[gIKey()];gPintaIns()">Limpiar</button><button class="sec" style="flex:2" onclick="gICopia()">Pasar medidas a la OT</button></div>
+ <button class="pri" style="width:100%;margin-top:8px" onclick="gIPdf()">📄 Generar PDF A4 · Inspección cable a cable</button>`;
  return h}
 function gPintaIns(){const c=$("#g_ins");if(c){const y=scrollY;c.innerHTML=gInsHTML();scrollTo(0,y)}}
 function gIMarca(i,ok){const k=gIKey();const a=gIRes[k]=gIRes[k]||[];a[i]=Object.assign(a[i]||{},{ok:a[i]&&a[i].ok===ok?undefined:ok});gPintaIns()}
@@ -882,4 +883,124 @@ function delGuiBloque(id,k){const i=inc.find(x=>x.id==id);if(!i)return;const ps=
  const g=document.querySelector("#t_gui");const sl=document.querySelector("#t_sel");if(g&&sl&&sl.value==i.id)g.value=i.guiada;
  msg("Apartado borrado de la OT "+(i.orden||""))}
 (function(){const st=document.createElement("style");st.textContent=`.gblq{padding:8px 0;border-bottom:1px dashed color-mix(in srgb,currentColor 25%,transparent)}.gblq:last-child{border-bottom:0}.gblqf{display:flex;justify-content:flex-end;margin-top:6px}.gbdel{width:44px;height:40px;display:flex;align-items:center;justify-content:center;padding:0;color:#ff6b6b;border-color:#ff6b6b}.gbdel svg{width:20px;height:20px}`;document.head.appendChild(st)})();
+
+/* ===== v39: PDF A4 «Inspección cable a cable» (esquema dibujado + folios RCS_PLANOS marcados) ===== */
+function cargaJsPDF(){return new Promise((res,rej)=>{if(window.jspdf){res();return}const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";s.onload=()=>res();s.onerror=rej;document.head.appendChild(s)})}
+function pT(s){return String(s==null?"":s).replace(/≈/g,"~").replace(/→/g,"->").replace(/↔/g,"<->").replace(/[–—]/g,"-").replace(/…/g,"...").replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/✔/g,"OK").replace(/✘/g,"NOK").replace(/[^\x00-\xFF]/g,"")}
+/* Descompone un punto de medida: etiqueta del elemento, borna/detalle y cable/hilo de llegada */
+function pParse(p){let a=p,cab="";const k=a.indexOf(" · ");if(k>=0){cab=a.slice(k+3);a=a.slice(0,k)}
+ const m=a.match(/^\+?([A-Z]{1,3}-[A-Z]{1,3}[\d.]*[A-Z]?'*)/);let tag=m?m[1]:a.split(" ")[0];let det=m?a.slice(m[0].length):a.slice(tag.length);
+ det=det.replace(/^:(\S+)/,"borna $1").trim();return {tag,det,cab}}
+function pTipo(tag){const t=tag.replace(/^[A-Z]+-/,"");return /^A/.test(t)?"A":/^K/.test(t)?"K":/^S/.test(t)?"S":/^X/.test(t)?"X":/^H/.test(t)?"H":"?"}
+/* Símbolos sencillos tipo esquema eléctrico */
+function pSimb(d,t,x,y){d.setDrawColor(40);d.setLineWidth(.35);
+ if(t=="A"){d.setFillColor(237,228,250);d.rect(x-4,y-3.2,8,6.4,"FD");for(let i=-2;i<=2;i+=2){d.line(x-5.2,y+i*.9,x-4,y+i*.9);d.line(x+4,y+i*.9,x+5.2,y+i*.9)}d.setFontSize(5);d.setTextColor(60);d.text("PLC",x,y+1,{align:"center"})}
+ else if(t=="K"){d.setFillColor(255);d.rect(x-3.6,y-2.4,7.2,4.8,"FD");d.line(x-3.6,y+2.4,x+3.6,y-2.4)}
+ else if(t=="S"){d.line(x-4.5,y+2,x-1.8,y+2);d.line(x-1.8,y+2,x+2.6,y-1.2);d.line(x+1.8,y+2,x+4.5,y+2);d.line(x+1.8,y+2,x+1.8,y+.6);d.circle(x-1.8,y+2,.5,"F")}
+ else if(t=="X"){d.setFillColor(255);d.circle(x,y,2.6,"FD");d.line(x-1.8,y+1.8,x+1.8,y-1.8)}
+ else if(t=="H"){d.setFillColor(255);d.circle(x,y,3,"FD");d.line(x-2.1,y-2.1,x+2.1,y+2.1);d.line(x-2.1,y+2.1,x+2.1,y-2.1)}
+ else{d.setFillColor(255);d.rect(x-3,y-2.4,6,4.8,"FD")}}
+function pCabecera(d,ot,R,S,pag){const W=210;d.setFillColor(108,29,170);d.rect(0,0,W,16,"F");d.setFillColor(240,120,30);d.rect(0,16,W,1.4,"F");
+ d.setTextColor(255);d.setFont("helvetica","bold");d.setFontSize(16);d.text("Inspección cable a cable",12,10.6);
+ d.setFont("helvetica","normal");d.setFontSize(8);d.text(pT("PBB TKE Barajas · "+pag),W-12,10.6,{align:"right"});d.setTextColor(20)}
+function pPie(d){const n=d.getNumberOfPages();for(let k=1;k<=n;k++){d.setPage(k);const W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight();d.setFont("helvetica","normal");d.setFontSize(7);d.setTextColor(120);
+ d.text(pT("Ruta de medida obtenida de RCS_PLANOS. Comprobar siempre con el folio indicado antes de intervenir."),12,H-6);d.text(`Pág. ${k}/${n}`,W-12,H-6,{align:"right"})}}
+async function gIPdf(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig);if(!S)return;const ot=inc.find(x=>x.id==gOT);const res=gIRes[gIKey()]||[];
+ msg("Generando PDF…");try{await cargaJsPDF()}catch(e){msg("No se pudo cargar el generador de PDF (sin conexión)");return}
+ const {jsPDF}=window.jspdf;const d=new jsPDF({unit:"mm",format:"a4",orientation:"portrait"});const W=210,M=12;
+ const ahora=new Date();const fh=ahora.toLocaleDateString("es-ES")+" "+ahora.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+ /* ---- Página 1: esquema ---- */
+ pCabecera(d,ot,R,S,"Esquema de medida");
+ const info=[["OT",ot?(ot.orden||"-"):"Sin OT"],["Posición",ot?("PBB "+(ot.pos||"-")):"-"],["Módulo",gIMod+" · "+R.n],["Señal",S.id+" · LED "+S.led],["Técnico",(tecNombre||"-")+(turno?" · Turno "+turno:"")],["Fecha",fh]];
+ d.setFontSize(8);let y=23;info.forEach((v,k)=>{const x=M+(k%2)*95,yy=y+Math.floor(k/2)*5;d.setFont("helvetica","bold");d.text(pT(v[0]+":"),x,yy);d.setFont("helvetica","normal");d.text(pT(d.splitTextToSize(pT(v[1]),72)[0]),x+17,yy)});
+ y+=15;d.setFont("helvetica","bold");d.setFontSize(10.5);d.text(pT(S.t),M,y);y+=4.5;
+ d.setFont("helvetica","normal");d.setFontSize(7.5);d.setTextColor(60);let l=d.splitTextToSize(pT("Reposo: "+S.r),W-2*M);d.text(l,M,y);y+=l.length*3.2;
+ l=d.splitTextToSize(pT("Medida: "+R.ref),W-2*M);d.text(l,M,y);y+=l.length*3.2+3;d.setTextColor(20);
+ /* leyenda */
+ d.setFontSize(6.5);[["A","Módulo PLC"],["K","Relé"],["S","Contacto / final carrera"],["X","Borna / regletero"],["H","Sirena"]].forEach((v,k)=>{const x=M+4+k*38;pSimb(d,v[0],x,y);d.setTextColor(60);d.text(pT(v[1]),x+6,y+1)});
+ y+=6;d.setDrawColor(200);d.line(M,y,W-M,y);y+=4;
+ const n=S.p.length,h=Math.min(22,(297-16-y)/n),bx=30,bw=62,cx=bx+bw+8;
+ /* hilo principal */
+ d.setDrawColor(30,90,200);d.setLineWidth(.8);d.line(bx+6,y-2,bx+6,y+(n-.5)*h);
+ S.p.forEach((q,i)=>{const P=pParse(q.p),r=res[i]||{},yc=y+i*h+h/2;
+  /* cable de llegada sobre el tramo */
+  if(P.cab){d.setFont("helvetica","italic");d.setFontSize(6.5);d.setTextColor(30,90,200);d.text(d.splitTextToSize(pT(P.cab),bw-12).slice(0,2),bx+9,yc-h/2+2.2)}
+  /* caja del elemento */
+  const bh=Math.min(h-5,11);d.setLineWidth(.35);d.setDrawColor(70);d.setFillColor(r.ok===false?255:r.ok===true?236:250,r.ok===false?232:r.ok===true?247:250,r.ok===false?232:r.ok===true?238:252);
+  d.roundedRect(bx,yc-bh/2+1.5,bw,bh,1.2,1.2,"FD");pSimb(d,pTipo(P.tag),bx+6,yc+1.5);
+  d.setTextColor(20);d.setFont("helvetica","bold");d.setFontSize(8.5);d.text("+"+pT(P.tag),bx+12.5,yc+.4);
+  d.setFont("helvetica","normal");d.setFontSize(6.5);d.text(d.splitTextToSize(pT(P.det||" "),bw-14).slice(0,2),bx+12.5,yc+3.6);
+  /* punto de medida numerado */
+  d.setFillColor(198,40,40);d.circle(bx-7,yc+1.5,3.2,"F");d.setTextColor(255);d.setFont("helvetica","bold");d.setFontSize(8);d.text(String(i+1),bx-7,yc+2.6,{align:"center"});
+  d.setDrawColor(198,40,40);d.setLineWidth(.4);d.setLineDashPattern([.8,.8],0);d.line(bx-3.8,yc+1.5,bx,yc+1.5);d.line(bx+bw,yc+1.5,cx-1,yc+1.5);d.setLineDashPattern([],0);
+  /* datos del punto */
+  d.setFont("helvetica","bold");d.setFontSize(8);d.setTextColor(27,110,45);d.text(pT("Esperado: "+q.e),cx,yc-1.6);
+  d.setFont("helvetica","normal");d.setFontSize(6.3);d.setTextColor(95);d.text(d.splitTextToSize(pT("Si no: "+q.x),W-M-cx).slice(0,2),cx,yc+1.4);
+  d.setFontSize(7);const est=r.ok===true?"OK":r.ok===false?"NOK":"";d.setTextColor(r.ok===false?198:30,r.ok===false?40:30,r.ok===false?40:30);
+  d.text(pT(`Medido: ${r.v||"__________"}   ${est?"["+est+"]":"[ OK / NOK ]"}   ·   Folio ${q.f}`),cx,yc+(h>16?6.6:5.4))});
+ /* ---- Página 2: hoja de medidas ---- */
+ d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24;
+ d.setFont("helvetica","bold");d.setFontSize(10);d.setTextColor(20);d.text(pT(`${gIMod} · ${S.id} · LED ${S.led} · ${S.t}`),M,y);y+=4;
+ if(ot){d.setFont("helvetica","normal");d.setFontSize(8);d.text(pT(`OT ${ot.orden||"-"} · PBB ${ot.pos||"-"} · ${ot.tipo||""}${ot.desc?" · "+ot.desc:""}`).slice(0,140),M,y);y+=3}
+ y+=3;const cols=[["Nº",8],["Punto de medida",60],["Esperado",28],["Si no se cumple",46],["Medido",22],["Estado",12],["Folio",10]];
+ const fila=(vals,b,fill)=>{d.setFont("helvetica",b?"bold":"normal");d.setFontSize(b?7.5:7);const ls=vals.map((v,k)=>d.splitTextToSize(pT(v),cols[k][1]-2));const hh=Math.max(...ls.map(x=>x.length))*3+2.4;
+  if(y+hh>285){d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24}
+  let x=M;cols.forEach((c,k)=>{if(fill)d.setFillColor(...fill);d.setDrawColor(170);d.setLineWidth(.2);d.rect(x,y,c[1],hh,fill?"FD":"S");d.setTextColor(20);d.text(ls[k],x+1,y+3.3);x+=c[1]});y+=hh};
+ fila(cols.map(c=>c[0]),true,[237,228,250]);
+ S.p.forEach((q,i)=>{const r=res[i]||{};fila([String(i+1),q.p,q.e,q.x,r.v||"",r.ok===true?"OK":r.ok===false?"NOK":"",String(q.f)],false,r.ok===false?[255,232,232]:r.ok===true?[236,247,238]:null)});
+ y+=6;const nok=S.p.findIndex((_,j)=>res[j]&&res[j].ok===false);d.setFont("helvetica","bold");d.setFontSize(9);
+ if(nok>=0){d.setTextColor(198,40,40);d.text(d.splitTextToSize(pT(`Fallo localizado en el paso ${nok+1}: ${S.p[nok].x}`),W-2*M),M,y)}else{d.setTextColor(60);d.text(pT(res.some(r=>r&&r.ok!==undefined)?"Sin fallo registrado en los puntos medidos.":"Pendiente de medir: anotar valores en campo."),M,y)}
+ y+=14;d.setTextColor(20);d.setFont("helvetica","normal");d.setFontSize(8);d.text("Observaciones:",M,y);d.setDrawColor(170);for(let k=1;k<=4;k++)d.line(M,y+k*7,W-M,y+k*7);y+=38;
+ d.text("Firma técnico: ______________________________",M,y);d.text(pT("Fecha / hora: ____________________"),W/2+8,y);
+ /* ---- Folios RCS_PLANOS con puntos marcados ---- */
+ const folios=[...new Set(S.p.map(q=>q.f))];let sinPlano=false;
+ try{const l=await gLista();const doc=l.find(x=>/RCS.?PLANOS/i.test(x.name));
+  if(!doc)sinPlano=true;else{let blob=gCache[doc.id];if(!blob){const dl=await sb.storage.from("planos").download(doc.id);if(dl.error)throw dl.error;blob=dl.data;gCache[doc.id]=blob}
+   await cargaLib();const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;
+   for(const f of folios){const np=gPagina(doc.name,f);if(np<1||np>pdf.numPages)continue;await pFolio(d,pdf,np,f,S,ot,R)}}
+ }catch(e){sinPlano=true}
+ if(sinPlano){d.setPage(1);d.setFont("helvetica","italic");d.setFontSize(7);d.setTextColor(198,40,40);d.text(pT("Folios no adjuntos: sube «RCS PLANOS» en la pestaña Planos para incluirlos marcados."),M,289)}
+ pPie(d);
+ const nom=pT(`Inspeccion_cable_a_cable_${ot&&ot.orden?ot.orden+"_":""}${gIMod}_${S.id}.pdf`).replace(/\s+/g,"_");
+ pMuestra(d.output("blob"),nom)}
+/* Renderiza un folio y marca los elementos/cables de la ruta buscando su texto en el plano */
+async function pFolio(d,pdf,np,f,S,ot,R){const pg=await pdf.getPage(np);const v1=pg.getViewport({scale:1});const sc=Math.min(2200/Math.max(v1.width,v1.height),3);const vp=pg.getViewport({scale:sc});
+ const c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;const cx=c.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:cx,viewport:vp}).promise;
+ const tc=await pg.getTextContent();const items=tc.items.filter(t=>t.str&&t.str.trim());
+ const pasos=S.p.map((q,i)=>({q,i})).filter(o=>o.q.f==f);const marcas=new Map();
+ const bbox=t=>{const[a,b,cc,dd,e,ff]=t.transform;const nu=Math.hypot(a,b)||1,nv=Math.hypot(cc,dd)||1,w=t.width||nu*t.str.length*.5,h=t.height||nv;
+  const pts=[[e,ff],[e+a/nu*w,ff+b/nu*w],[e+cc/nv*h,ff+dd/nv*h],[e+a/nu*w+cc/nv*h,ff+b/nu*w+dd/nv*h]].map(p=>vp.convertToViewportPoint(p[0],p[1]));
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);return [Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]};
+ const busca=(term,exacto)=>{const out=[];const T=term.replace(/\s/g,"").toUpperCase();if(!T)return out;
+  for(const t of items){const s=t.str.replace(/\s/g,"").toUpperCase();let ok=false;
+   if(exacto)ok=s===T;else{const k=s.indexOf(T);ok=k>=0&&!/[A-Z0-9'’]/.test(s.charAt(k+T.length)||"")&&(k==0||!/[A-Z0-9]/.test(s.charAt(k-1)))}
+   if(ok)out.push(bbox(t));if(out.length>=4)break}return out};
+ pasos.forEach(({q,i})=>{const P=pParse(q.p);const terms=[];const tags=(q.p.match(/[A-Z]{1,3}-[A-Z]{1,3}[\d.]*[A-Z]?'*/g)||[P.tag]);
+  tags.forEach(tg=>{let r=busca(tg,false);if(!r.length)r=busca(tg.replace(/^[A-Z]+(?=-)/,""),false);if(!r.length)r=busca(tg.replace(/^[A-Z]+-/,"").replace(/'+$/,""),false);terms.push(...r)});
+  (q.p.match(/cable (\d{2,5})/g)||[]).forEach(x=>terms.push(...busca(x.split(" ")[1],true)));
+  (q.p.match(/\(([A-Z]{2,3}\d{1,2}S?)\)/g)||[]).forEach(x=>terms.push(...busca(x.replace(/[()]/g,""),true)));
+  terms.forEach(b=>{const k=b.map(z=>Math.round(z/4)).join(",");const m=marcas.get(k)||{b,n:[]};if(!m.n.includes(i+1))m.n.push(i+1);marcas.set(k,m)})});
+ /* dibuja marcas sobre el canvas (posición exacta en la imagen) */
+ const u=Math.max(c.width,c.height)/600;cx.lineWidth=2.2*u;cx.strokeStyle="#d32f2f";cx.font=`bold ${7*u}px Helvetica,Arial`;cx.textAlign="center";cx.textBaseline="middle";
+ marcas.forEach(m=>{const[x0,y0,x1,y1]=m.b,p=3*u;cx.strokeRect(x0-p,y0-p,x1-x0+2*p,y1-y0+2*p);const lab=m.n.join(","),r=Math.max(5.5*u,cx.measureText(lab).width/2+2.5*u);const lx=x1+p+r*.4,ly=y0-p-r*.4;
+  cx.fillStyle="#d32f2f";cx.beginPath();cx.arc(lx,ly,r,0,7);cx.fill();cx.fillStyle="#fff";cx.fillText(lab,lx,ly+.3*u)});
+ const land=c.width>c.height;d.addPage("a4",land?"landscape":"portrait");const W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight();
+ d.setFillColor(108,29,170);d.rect(0,0,W,11,"F");d.setFillColor(240,120,30);d.rect(0,11,W,1,"F");d.setTextColor(255);d.setFont("helvetica","bold");d.setFontSize(11);d.text("Inspección cable a cable",10,7.4);
+ d.setFont("helvetica","normal");d.setFontSize(8);d.text(pT(`RCS_PLANOS · folio ${f} · puntos ${pasos.map(o=>o.i+1).join(", ")}${ot&&ot.orden?" · OT "+ot.orden:""}`),W-10,7.4,{align:"right"});
+ const top=14,leg=pasos.length>6?20:14,aw=W-16,ah=H-top-leg-10,s=Math.min(aw/c.width,ah/c.height),iw=c.width*s,ih=c.height*s,ix=(W-iw)/2;
+ d.addImage(c.toDataURL("image/jpeg",.82),"JPEG",ix,top,iw,ih);d.setDrawColor(150);d.setLineWidth(.2);d.rect(ix,top,iw,ih);
+ d.setTextColor(20);d.setFontSize(6.6);let ly=top+ih+4;const colw=(W-16)/2;
+ pasos.forEach(({q,i},k)=>{const x=8+(k%2)*colw,yy=ly+Math.floor(k/2)*3.3;d.setFont("helvetica","bold");d.setTextColor(198,40,40);d.text(String(i+1)+".",x,yy);d.setFont("helvetica","normal");d.setTextColor(20);
+  d.text(d.splitTextToSize(pT(`${q.p}  ->  ${q.e}`),colw-6)[0],x+4,yy)});
+ if(!marcas.size){d.setFont("helvetica","italic");d.setTextColor(198,40,40);d.text(pT("No se encontró texto buscable en este folio: localizar los puntos manualmente con la lista."),8,H-9)}}
+/* Vista final: compartir / abrir (gesto nuevo del usuario para iOS) */
+function pMuestra(blob,nom){const url=URL.createObjectURL(blob);const file=new File([blob],nom,{type:"application/pdf"});let o=document.createElement("div");
+ o.style.cssText="position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px";
+ const puede=navigator.canShare&&navigator.canShare({files:[file]});
+ o.innerHTML=`<div class="card" style="max-width:420px;width:100%;background:var(--card)"><h3 style="margin:0 0 6px">PDF generado</h3><div class="mu" style="font-size:13px;overflow-wrap:anywhere;margin-bottom:12px">${esc(nom)}</div>
+ ${puede?`<button class="pri" id="p_sh" style="width:100%;margin-bottom:8px">Enviar / Compartir</button>`:""}<a class="sec" href="${url}" download="${esc(nom)}" target="_blank" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;padding:10px">Abrir / Descargar</a>
+ <button class="sec" id="p_x" style="width:100%">Cerrar</button></div>`;document.body.appendChild(o);
+ const sh=o.querySelector("#p_sh");if(sh)sh.onclick=async()=>{try{await navigator.share({files:[file],title:"Inspección cable a cable"})}catch(e){}};
+ o.querySelector("#p_x").onclick=()=>{o.remove();setTimeout(()=>URL.revokeObjectURL(url),6e4)}}
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v39"}})();
 </script></body></html>
