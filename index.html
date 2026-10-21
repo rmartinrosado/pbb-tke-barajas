@@ -343,9 +343,9 @@ function exportaCSV(){
  const d=$("#x_d").value,h=$("#x_h").value,e=$("#x_e").value;
  const l=inc.filter(i=>(!d||(i.fecha||"")>=d)&&(!h||(i.fecha||"")<=h)&&(!e||i.estado==e)).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));
  if(!l.length){msg("No hay registros con ese filtro");return}
- const cab=["Fecha","Posición","Tipo","Nº orden","Estado","Reportado por","Descripción","Hora inicio","Hora llegada","Hora cierre","Definición","Actuación","Observaciones","Comentario","Actuación guiada","Equipos","Turno","Técnico","Foto PLC"];
+ const cab=["Fecha","Posición","Tipo","Nº orden","Estado","Reportado por","Descripción","Hora inicio","Hora llegada","Hora cierre","Definición","Actuación","Observaciones","Comentario","Actuación guiada","Equipos","Turno","Técnico","Foto PLC","Equipo AAP","Alarmas"];
  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""').replace(/\r?\n/g," ")+'"';
- const f=l.map(i=>[i.fecha,i.pos,i.tipo,i.orden,i.estado,i.rep,i.desc,i.hIni,i.hLle,i.hCie,i.def,i.act,i.obs,i.com,i.guiada,(i.equipos||[]).join(", "),i.turno,i.tecnico,i.plc?"Sí":"No"].map(q).join(";"));
+ const f=l.map(i=>[i.fecha,i.pos,i.tipo,i.orden,i.estado,i.rep,i.desc,i.hIni,i.hLle,i.hCie,i.def,i.act,i.obs,i.com,i.guiada,(i.equipos||[]).join(", "),i.turno,i.tecnico,i.plc?"Sí":"No",i.aap||"",(i.alarmas||[]).join(", ")].map(q).join(";"));
  const csv="\ufeff"+[cab.map(q).join(";"),...f].join("\r\n");
  const u=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
  const a=document.createElement("a");a.href=u;a.download="OT_PBB_TKE_"+new Date().toISOString().slice(0,10)+".csv";document.body.appendChild(a);a.click();a.remove();
@@ -577,11 +577,19 @@ function vTec(){
   <button class="sec" style="width:100%" onclick="gCopia('${gTipo}',${si})">Pasar a «Actuación guiada» de la OT</button>`,gAbierto.has(k)?"open":"",k)});
  if(gTipo=="PAS"){
   h+=det("Mapa de alimentaciones",GUIA.alim.map(a=>`<div style="margin-top:8px"><b>${a[0]}</b><div class="mu" style="white-space:pre-wrap;margin-top:4px">${esc(a[1])}</div></div>`).join(""))}
- h+=det("Cierre de la actuación",lista(GUIA.cierre));
+ let cie=lista(GUIA.cierre);
+ if(gTipo=="AAP"){const a=ot&&ot.aap||"",al=ot&&ot.alarmas||[];
+  cie=`<label>Equipo AAP</label><div class="gchips">${AAP_EQ.map(k=>`<button class="${k==a?"pri":"sec"}" onclick="gAap('${k}')">${k}</button>`).join("")}</div>`+
+  (a?`<label>Alarma del equipo actual (${a})</label><div class="gst">${AAP_AL.map((x,xi)=>`<label class="gpaso"><input type="checkbox" ${al.includes(x)?"checked":""} onchange="gAlarma(${xi},this.checked)"><span><b>${xi+1}.</b> ${esc(x)}</span></label>`).join("")}</div>`:`<div class="mu" style="margin-top:6px">Elige AAC o AAR para ver las alarmas.</div>`)+cie}
+ h+=det("Cierre de la actuación",cie,gAbierto.has("CIE")?"open":"","CIE");
  $("#app").innerHTML=h;gFillDoc();
  document.querySelectorAll("details.gd[data-k]").forEach(d=>d.addEventListener("toggle",()=>{d.open?gAbierto.add(d.dataset.k):gAbierto.delete(d.dataset.k)}));
 }
 const gAbierto=new Set();
+const AAP_EQ=["AAC","AAR"],AAP_AL=["Equipo apagado. Reiniciar","U0","00:05","00:25"];
+function gOtSel(){const i=inc.find(x=>x.id==gOT);if(!i)msg("No hay OT abierta seleccionada");return i}
+function gAap(k){const i=gOtSel();if(!i)return;if(i.aap!==k){i.aap=k;i.alarmas=[]}gAbierto.add("CIE");sv("pbb_inc",inc);vTec()}
+function gAlarma(xi,v){const i=gOtSel();if(!i)return;const x=AAP_AL[xi];const a=(i.alarmas||[]).filter(y=>y!==x);if(v)a.push(x);i.alarmas=AAP_AL.filter(y=>a.includes(y));sv("pbb_inc",inc)}
 let gCache={},gPagIni=0,gDocs=null;
 async function gLista(){if(!gDocs)gDocs=(await allPdf()).filter(x=>!esImg(x));return gDocs}
 function gDocId(t,l){let id=null;try{id=localStorage.getItem("g_doc2_"+t)}catch(e){}if(id&&l.some(x=>x.id==id))return id;for(const re of (GUIA.dk[t]||[])){const d=l.find(x=>re.test(x.name)&&!/CBTH/i.test(x.name));if(d)return d.id}return ""}
@@ -776,6 +784,6 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v27"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v28"}})();
 iniciar();
 </script></body></html>
