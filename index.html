@@ -1134,7 +1134,9 @@ function insCierra(){const o=document.querySelector(".insov");if(o)o.remove();do
 
 /* ===== v47: la barra de modo y opciones solo se ve con la cuenta rmartinrosado@gmail.com o el técnico RAUL MARTIN ===== */
 function verBarra(){return !!user&&((user.email||"").toLowerCase()=="rmartinrosado@gmail.com"||/^RA[UÚ]L\b/i.test(tecNombre||""))}
-(function(){const ob=barra;barra=function(){ob();const b=document.getElementById("mbar");if(b&&user&&!verBarra())b.style.display="none"}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v47"}})();
+(function(){const ob=barra;barra=function(){ob();const b=document.getElementById("mbar");if(!b||!user||verBarra())return;
+ /* v48: resto de técnicos: solo turno y nombre */
+ if(turno||tecNombre){b.style.display="flex";b.innerHTML=`<div class="mrow1">${turno?`<span class="mopt">Turno ${esc(turno)}</span>`:""}${tecNombre?`<span class="mopt">${esc(tecNombre)}</span>`:""}</div>`}else b.style.display="none"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v48"}})();
 try{barra()}catch(e){}
 </script></body></html>
