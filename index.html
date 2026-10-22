@@ -53,7 +53,7 @@ addEventListener("load",function(){setTimeout(__diag,4000)});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>')</script>
-<script src="cableado.js?v=52"></script>
+<script src="cableado.js?v=53"></script>
 <script>
 let POS=[500,502,504,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,538,539,540,542,544,546,548,550];
 const TIPOS=["PAS","AAA","AAP","HZ","Sigma"];
@@ -1427,4 +1427,113 @@ function cConexT(S){const out=[];for(let i=0;i<S.p.length-1;i++){const a=S.p[i],
   out.push({n:i+1,de:a.nodo||cEnd(a),a:b.nodo||cEnd(b),ubiA:UBI[za].c,ubiB:UBI[zb].c,tipo,ref,zona:zona+(vv.some(z=>z.man)&&za!=zb?" (interconexión por manguera)":""),kind,f:b.f})}
  return out}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v52"}})();
+
+/* ===== v53: botón polímetro de la OT → inspección cable a cable directa según los planos del equipo =====
+ PAS: si la OT identifica la señal, se abre directamente su ruta (sin la rejilla de módulos PLC; «Cambiar señal» la muestra).
+ HZ: rutas cable a cable del mando del conector 400 Hz según el plano PDS 400 (botones, pilotos, interruptor 90 %, sondas PTC).
+ Otros equipos sin rutas en planos: aviso y acceso a la guía de campo. */
+const HZUBI={
+ MANDO:{c:"Mando",n:"Frontal del mando del conector PDS 400",k:"#2e7d32"},
+ REG:{c:"Regleta 24",n:"Regleta de la manguera de 24 hilos (caja del mando)",k:"#6c1daa"},
+ MAN:{c:"Manguera 24",n:"Manguera de 24 conductores (recogedor / cesta)",k:"#ef6c00"},
+ CONV:{c:"Convertidor",n:"Convertidor 400 Hz · bornas de mando",k:"#455a64"},
+ CON:{c:"Conector",n:"Conector de avión PDS 400 (pines de potencia y control)",k:"#00838f"},
+ PBB:{c:"AE PBB",n:"Armario eléctrico E de la pasarela",k:"#8d6e63"}};
+const HZCOM={p:"Común: hilo 9 ↔ hilo 24 en la regleta (unidos en el plano)",e:"≈0 Ω",x:"Común 9/24 cortado o pin flojo: falla también el resto de botones, pilotos e interruptor 90 %.",u:["REG"]};
+function hzBoton(id,n,col,h,hu){return {id,t:`Botón ${n} (${col}) del mando`,r:`Botón ${n}: hilo ${h} (unido al ${hu}) ↔ común hilo 9 (unido al 24). Cables del botón en azul (BL).`,
+ ref:"Convertidor en paro y sin tensión de mando. Polímetro en continuidad (Ω / zumbador).",p:[
+ {p:`Botón ${n} (${col}) en el frontal: entre sus dos pines`,e:"Pulsado ≈0 Ω · suelto abierto (OL)",x:`Pulsador ${n} averiado o sucio: sustituirlo.`,u:["MANDO"]},
+ {p:`Cable azul (BL) del botón ${n}: pin del botón → hilo ${h} de la regleta de 24`,e:"≈0 Ω",x:`Cable azul entre el botón y el hilo ${h} cortado, o terminal / soldadura suelta.`,u:["MANDO","REG"]},
+ {p:`Cable azul (BL) del botón ${n}: otro pin → común hilo 9`,e:"≈0 Ω",x:"Retorno del botón al común 9 abierto (cable azul o terminal).",u:["MANDO","REG"]},
+ {p:`Regleta de 24: hilo ${h} ↔ hilo 9 accionando el botón`,e:"Pulsado ≈0 Ω · suelto abierto",x:`Con los pasos 1-3 bien y aquí no cierra: pin ${h} o pin 9 flojo en la regleta.`,u:["REG"]},
+ {p:`Puente hilo ${h} ↔ hilo ${hu} (unidos en el plano)`,e:"≈0 Ω",x:`Puente ${h}-${hu} abierto o pin ${hu} flojo / quemado.`,u:["REG"]},
+ HZCOM,
+ {p:`Manguera de 24 en el lado del convertidor: conductor ${h} (o ${hu}) ↔ 9 accionando el botón`,e:"Pulsado ≈0 Ω · suelto abierto",x:`Conductor ${h}/${hu} o 9/24 cortado en la manguera (revisar aplastamientos y recogedor). Si aquí cierra y el convertidor no responde: entrada de mando del convertidor.`,u:["MAN","CONV"]}]}}
+function hzPiloto(id,n,col,h){return {id,t:`Piloto ${n} (${col}) del mando`,r:`Piloto ${n}: hilo ${h} (azul) ↔ retorno rojo al común hilo 9.`,
+ ref:"Polímetro en V DC entre el hilo del piloto y el común 9, con la condición del piloto activa. Continuidad solo sin tensión.",p:[
+ {p:`Regleta de 24: tensión entre hilo ${h} y común 9 con la condición activa`,e:"Tensión de mando (≈24-28 Vdc)",x:`Sin tensión: el convertidor no da la señal o el conductor ${h} de la manguera está cortado.`,u:["REG"]},
+ {p:`Piloto ${n}: tensión en sus bornas (azul hilo ${h} / retorno rojo)`,e:"La misma que en la regleta",x:"En la regleta hay tensión y en el piloto no: cable azul o retorno rojo cortado.",u:["MANDO"]},
+ {p:`Piloto ${n} luce con tensión en sus bornas`,e:"Encendido",x:"Con tensión y apagado: piloto fundido, sustituirlo.",u:["MANDO"]},
+ {p:"Sin tensión: retorno rojo del piloto ↔ común hilo 9",e:"≈0 Ω",x:"Retorno del piloto al común 9 abierto.",u:["MANDO","REG"]},
+ HZCOM]}}
+const HZRUT=[
+ hzBoton("ON","ON","verde",4,17),hzBoton("OFF","OFF","rojo",5,18),hzBoton("IN","IN","negro",2,16),hzBoton("OUT","OUT","negro",3,23),
+ hzPiloto("LON","LED ON","rojo",6),hzPiloto("L28","LED 28 Vdc","verde",7),hzPiloto("L90","«security» / 90 %","amarillo",8),
+ {id:"I90",t:"Interruptor INTERLOCK 90 % (conector)",r:"Interruptor 90 % (2 hilos GR) entre el común hilo 9 y el hilo 13 (unido al 22): conector a fondo = continuidad 9-13.",
+  ref:"Convertidor en paro. Polímetro en continuidad. Probar con el conector fuera y metido a fondo.",p:[
+  {p:"Conector introducido a fondo (avión o toma de prueba)",e:"Inserción completa",x:"Conector mal insertado: el interruptor 90 % no llega a cerrar.",u:["CON"]},
+  {p:"Interruptor INTERLOCK 90 %: entre sus dos terminales",e:"A fondo ≈0 Ω · fuera abierto",x:"Interruptor 90 % averiado o desajustado.",u:["CON"]},
+  {p:"Hilos GR del interruptor → hilo 13 y → común 9 de la regleta",e:"≈0 Ω cada uno",x:"Hilo GR cortado o terminal suelto.",u:["CON","REG"]},
+  {p:"Regleta de 24: hilo 9 ↔ hilo 13 con el conector a fondo",e:"≈0 Ω",x:"Con los pasos 2-3 bien y aquí abierto: pin 9 o 13 flojo.",u:["REG"]},
+  {p:"Puente hilo 13 ↔ hilo 22 (unidos en el plano)",e:"≈0 Ω",x:"Puente 13-22 abierto o pin 22 flojo.",u:["REG"]},
+  HZCOM,
+  {p:"Manguera de 24 en el lado del convertidor: conductor 13 (o 22) ↔ 9 con el conector a fondo",e:"≈0 Ω",x:"Conductor cortado en la manguera. Si cierra: entrada del convertidor.",u:["MAN","CONV"]},
+  {p:"PBB: E-A2 DIN11 (90 % conector) y DIN10 (convertidor en servicio)",e:"Según estado del equipo (apagados en reposo)",x:"El convertidor da la señal y la PBB no la recibe: manguera CBTH-X61 ↔ E-X61 o su contacto.",u:["PBB"],f:58,pas:1}]},
+ {id:"PTC",t:"Disparo por temperatura (sondas PTC del conector)",r:"Sondas PTC 100 en fases A, B, C y N, en serie entre el hilo 1 (unido al 20) y el hilo 14 (unido al 19).",
+  ref:"Conector frío y sin tensión. Polímetro en resistencia (Ω).",p:[
+  {p:"Regleta de 24: resistencia entre hilo 1 y hilo 14",e:"Baja con el conector frío (4 sondas en serie)",x:"Abierta o muy alta: alguna sonda disparada o cortada, o pin quemado.",u:["REG"]},
+  {p:"Cada sonda por separado (fases A, B, C y N)",e:"Baja en frío",x:"Sonda abierta: sustituirla y revisar el pin de esa fase.",u:["CON"]},
+  {p:"Pines de fase A, B, C, N del conector",e:"Sin quemaduras, firmes",x:"Pin quemado o flojo: origen del calentamiento.",u:["CON"]},
+  {p:"Puentes hilo 1 ↔ 20 y hilo 14 ↔ 19",e:"≈0 Ω",x:"Puente abierto o pin 19/20 flojo.",u:["REG"]},
+  {p:"Manguera de 24 en el lado del convertidor: conductor 1 ↔ 14",e:"Mismo valor que en la regleta",x:"Conductor 1/14 (o 19/20) cortado en la manguera.",u:["MAN","CONV"]}]}];
+function hzAuto(t){const n=gNorm(t);const bt=/boton|pulsad|mando/.test(n),pi=/piloto|\bled\b|\bluz\b|luce|lampara/.test(n);
+ if(/temperat|ptc|sonda|calent|quemad/.test(n))return "PTC";
+ if(pi){if(/28/.test(n))return "L28";if(/90|secur|segur/.test(n))return "L90";if(/\bon\b|encend/.test(n))return "LON"}
+ if(/interlock|enclav|90 ?%|90%|no inserta|bloqueo/.test(n))return "I90";
+ if(/\boff\b|apagad|\bparo\b/.test(n))return "OFF";
+ if(/\bon\b|encend|arranc|marcha/.test(n))return "ON";
+ if(bt&&/\bout\b|recog/.test(n))return "OUT";
+ if(bt&&/\bin\b|extend|despleg/.test(n))return "IN";
+ return ""}
+let insOv=false,insTipo="PAS",insVerMods=false,hzSig="",hzAutoTxt="";
+function hzS(){return HZRUT.find(x=>x.id==hzSig)}
+function hzUbiHTML(q){const zs=q.u||["REG"];return `<span class="gubi">${zs.map(k=>`<span class="gubc" style="--uk:${HZUBI[k].k}">📍 ${esc(HZUBI[k].c)}</span>`).join("")}<span class="gubn">${esc(zs.map(k=>HZUBI[k].n).join(" · "))}</span></span>`}
+function hzInsHTML(){const S=hzS();
+ let h=`<div class="mu" style="font-size:12px;margin:6px 0">Ruta de medida desde el plano PDS 400 (mando del conector 400 Hz). Compruébala siempre con el plano.</div>`;
+ if(hzAutoTxt&&S)h+=`<div class="gav" style="border-left-color:var(--pr)">${esc(hzAutoTxt)}</div>`;
+ if(!S||insVerMods)h+=`<label>Elemento del mando</label><div class="gst">${HZRUT.map(x=>`<button class="${S&&x.id==S.id?"pri":"sec"}" style="width:100%;text-align:left;margin:3px 0" onclick="hzSig='${x.id}';gIMod='HZ';gISig='${x.id}';hzAutoTxt='';insVerMods=false;gPintaIns()">${esc(x.t)}</button>`).join("")}</div>`;
+ if(!S)return h;
+ const res=gIRes[gIKey()]||[];const nok=S.p.findIndex((_,i)=>res[i]&&res[i].ok===false);
+ const seq=[];S.p.forEach(q=>(q.u||[]).forEach(k=>{if(seq[seq.length-1]!=k)seq.push(k)}));
+ h+=`<div class="insdirh"><div><b>${esc(S.t)}</b><div class="mu" style="font-size:12px">HZ · plano PDS 400</div></div>${insVerMods?"":`<button class="sec" onclick="insVerMods=true;gPintaIns()">Cambiar</button>`}</div>
+ <div class="gav">${esc(S.r)}</div><div class="grec"><b>Recorrido:</b> ${seq.map(k=>`<span class="gubc" style="--uk:${HZUBI[k].k}">${esc(HZUBI[k].c)}</span>`).join(" → ")}</div><div class="mu" style="font-size:12px">${esc(S.ref)}</div>
+ ${nok>=0?`<div class="gav" style="border-left-color:#c62828;background:color-mix(in srgb,#c62828 12%,transparent)"><b>Fallo localizado en el paso ${nok+1}:</b> ${esc(S.p[nok].x)}${nok>0?` (el paso ${nok} estaba bien).`:""}</div>`:""}
+ <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br>${hzUbiHTML(q)}<small class="mu">Esperado: ${esc(q.e)}</small>
+  <span class="gib"><button class="${r.ok===true?"pri":"sec"}" onclick="gIMarca(${i},true)">OK</button><button class="${r.ok===false?"pri":"sec"}" onclick="gIMarca(${i},false)">NOK</button><input placeholder="Valor" value="${esc(r.v||"")}" onchange="gIValor(${i},this.value)"></span></span>
+  <button class="gpl" aria-label="Ver plano" onclick="gPlano('${q.pas?"PAS":"HZ"}',${q.f||1})">${IC('plans')}<small>${q.f||1}</small></button></div>`}).join("")}</div>
+ <div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="delete gIRes[gIKey()];gPintaIns()">Limpiar</button><button class="sec" style="flex:2" onclick="gICopia()">Pasar medidas a la OT</button></div>`;
+ return h}
+/* PAS: vista directa de la señal identificada en la OT */
+const _gInsHTML53=gInsHTML;
+gInsHTML=function(){let h=_gInsHTML53();
+ const dir=insOv&&insTipo=="PAS"&&!insVerMods&&/señal/i.test(gIAutoTxt||"");if(!dir)return h;
+ const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);if(!S)return h;
+ h=h.replace(/<label>Módulo · armario E<\/label>[\s\S]*?(?=<div class="mu" style="font-size:12px;margin-top:6px"><b>)/,"")
+  .replace(/<label>Señal<\/label><select[\s\S]*?<\/select>\s*<div class="mu" style="font-size:11px;margin-top:2px">[^<]*<\/div>/,
+   `<div class="insdirh"><div><b>${esc(S.t)}</b><div class="mu" style="font-size:12px">${esc(gIMod)} · Mód. ${S.k} · LED ${S.l}${S.led?" · IN "+esc(S.led):""}</div></div><button class="sec" onclick="insVerMods=true;gPintaIns()">Cambiar señal</button></div>`);
+ return h};
+const _gPintaIns53=gPintaIns;
+gPintaIns=function(){if(insOv&&insTipo=="HZ"){const c=$("#g_ins");if(!c)return;const o=c.closest(".insov");const y=o.scrollTop;c.innerHTML=hzInsHTML();o.scrollTop=y;return}
+ if(insOv&&insTipo!="PAS"){const c=$("#g_ins");if(c)c.innerHTML=insSinHTML();return}
+ _gPintaIns53()};
+const _gICopia53=gICopia;
+gICopia=function(){if(!(insOv&&insTipo=="HZ"))return _gICopia53();
+ const i=inc.find(x=>x.id==gOT);const S=hzS();if(!i||!S){msg("No hay OT abierta seleccionada");return}
+ const res=gIRes[gIKey()]||[];if(!res.some(r=>r&&(r.ok!==undefined||r.v))){msg("No hay medidas anotadas");return}
+ const nok=S.p.findIndex((_,j)=>res[j]&&res[j].ok===false);
+ const txt=`[Inspección cable a cable · HZ · ${S.t}]\n`+S.p.map((q,j)=>{const r=res[j]||{};return `${r.ok===true?"✔":r.ok===false?"✘":"☐"} ${j+1}. [${(q.u||[]).map(k=>HZUBI[k].c).join(" → ")}] ${q.p}${r.v?` = ${r.v}`:""} (esperado ${q.e})`}).join("\n")+(nok>=0?`\nFallo: ${S.p[nok].x}`:"");
+ i.guiada=(i.guiada?i.guiada+"\n\n":"")+txt;sv("pbb_inc",inc);msg(`Medidas añadidas a la OT ${i.orden}`)};
+function insSinHTML(){const T=GUIA.tipos[insTipo];return `<div class="gav">${esc(insTipo)}${T?" · "+esc(T.n):""}: no hay rutas cable a cable en los planos de este equipo. Usa la guía de campo de la pestaña Técnico.</div>`}
+insOT=function(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;gIAutoOT=null;insVerMods=false;insOv=true;
+ const tipos=[i.tipo,...(i.equipos||[])];insTipo=tipos.includes("PAS")?"PAS":tipos.includes("HZ")?"HZ":(tipos.find(t=>GUIA.tipos[t])||"PAS");
+ if(insTipo=="HZ"){const t=[i.desc,i.def,i.com,i.obs,i.act].filter(Boolean).join(" ");hzSig=hzAuto(t);gIMod="HZ";gISig=hzSig;const S=hzS();
+  hzAutoTxt=S?`Ruta propuesta por el texto de la OT ${i.orden||""}: ${S.t}. Compruébala o pulsa «Cambiar».`:""}
+ let o=document.querySelector(".insov");if(o)o.remove();o=document.createElement("div");o.className="insov";
+ const body=insTipo=="HZ"?hzInsHTML():insTipo=="PAS"?gInsHTML():insSinHTML();
+ o.innerHTML=`<div class="insh"><div><b>Inspección cable a cable</b><div class="mu" style="font-size:12px">PBB ${esc(i.pos)} · ${esc(i.tipo)} · OT ${esc(i.orden)}${i.desc?" · "+esc(i.desc):""}</div></div><button class="sec" onclick="insCierra()">✕ Cerrar</button></div>
+ <div class="card" style="margin:12px"><div id="g_ins">${body}</div></div>`;
+ document.body.appendChild(o);document.body.style.overflow="hidden"};
+const _insCierra53=insCierra;insCierra=function(){_insCierra53();insOv=false;insTipo="PAS";insVerMods=false;gIMod=RUTAS[gIMod]?gIMod:"E-A9";if(!RUTAS[gIMod].s.some(x=>x.id==gISig)&&RUTAS[gIMod].s.length)gISig=RUTAS[gIMod].s[0].id;if(view=="tec")try{vTec()}catch(e){}};
+(function(){const st=document.createElement("style");st.textContent=`.insdirh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 4px;padding:8px 10px;border:1px solid var(--pr);border-radius:10px}.insdirh button{width:auto;padding:6px 12px;white-space:nowrap}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v53"}})();
 </script></body></html>
