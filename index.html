@@ -879,7 +879,7 @@ function gIValor(i,v){const k=gIKey();const a=gIRes[k]=gIRes[k]||[];a[i]=Object.
 function gICopia(){const i=inc.find(x=>x.id==gOT);if(!i){msg("No hay OT abierta seleccionada");return}
  const S=RUTAS[gIMod].s.find(x=>x.id==gISig);const res=gIRes[gIKey()]||[];if(!res.some(r=>r&&(r.ok!==undefined||r.v))){msg("No hay medidas anotadas");return}
  const nok=S.p.findIndex((_,j)=>res[j]&&res[j].ok===false);
- const txt=`[Inspección cable a cable · ${gIMod} ${S.id} · LED ${S.led} · ${S.t}]\n`+S.p.map((q,j)=>{const r=res[j]||{};return `${r.ok===true?"✔":r.ok===false?"✘":"☐"} ${j+1}. ${q.p}${r.v?` = ${r.v}`:""} (esperado ${q.e})`}).join("\n")+(nok>=0?`\nFallo: ${S.p[nok].x}`:"");
+ const txt=`[Inspección cable a cable · ${gIMod} ${S.id} · LED ${S.led} · ${S.t}]\n`+S.p.map((q,j)=>{const r=res[j]||{};return `${r.ok===true?"✔":r.ok===false?"✘":"☐"} ${j+1}. [${gUbiTxt(q)}] ${q.p}${r.v?` = ${r.v}`:""} (esperado ${q.e})`}).join("\n")+(nok>=0?`\nFallo: ${S.p[nok].x}`:"");
  i.guiada=(i.guiada?i.guiada+"\n\n":"")+txt;sv("pbb_inc",inc);msg(`Medidas añadidas a la OT ${i.orden}`)}
 (function(){const st=document.createElement("style");st.textContent=`.gins{align-items:flex-start}.gins.ok{background:color-mix(in srgb,#2e7d32 10%,transparent)}.gins.nok{background:color-mix(in srgb,#c62828 12%,transparent)}.gib{display:flex;gap:6px;margin-top:6px;align-items:center}.gib button{width:auto;padding:6px 12px;font-weight:700}.gib input{flex:1;min-width:0;padding:6px 8px}`;document.head.appendChild(st)})();
 
@@ -940,7 +940,7 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig);if(
   const bh=Math.min(h-5,11);d.setLineWidth(.35);d.setDrawColor(70);d.setFillColor(r.ok===false?255:r.ok===true?236:250,r.ok===false?232:r.ok===true?247:250,r.ok===false?232:r.ok===true?238:252);
   d.roundedRect(bx,yc-bh/2+1.5,bw,bh,1.2,1.2,"FD");pSimb(d,pTipo(P.tag),bx+6,yc+1.5);
   d.setTextColor(20);d.setFont("helvetica","bold");d.setFontSize(8.5);d.text(d.splitTextToSize((P.plus?"+":"")+pT(P.tag),bw-14)[0],bx+12.5,yc+.4);
-  d.setFont("helvetica","normal");d.setFontSize(6.5);d.text(d.splitTextToSize(pT(P.det||" "),bw-14).slice(0,2),bx+12.5,yc+3.6);
+  d.setFont("helvetica","normal");d.setFontSize(6.5);d.text(d.splitTextToSize(pT(P.det||" "),bw-14).slice(0,1),bx+12.5,yc+3.6);d.setFont("helvetica","bold");d.setFontSize(6.2);d.setTextColor(240,120,30);d.text(pT("Ubic.: "+gUbiTxt(q)).slice(0,48),bx+12.5,yc+6.4);
   /* punto de medida numerado */
   d.setFillColor(198,40,40);d.circle(bx-7,yc+1.5,3.2,"F");d.setTextColor(255);d.setFont("helvetica","bold");d.setFontSize(8);d.text(String(i+1),bx-7,yc+2.6,{align:"center"});
   d.setDrawColor(198,40,40);d.setLineWidth(.4);d.setLineDashPattern([.8,.8],0);d.line(bx-3.8,yc+1.5,bx,yc+1.5);d.line(bx+bw,yc+1.5,cx-1,yc+1.5);d.setLineDashPattern([],0);
@@ -1087,9 +1087,9 @@ function gInsHTML(){gIAuto();const R=RUTAS[gIMod]||RUTAS["E-A9"];
  h+=`<div class="mu" style="font-size:12px;margin-top:6px"><b>${esc(gIMod)}</b> · ${esc(R.n)}</div>
  <label>Señal</label><select onchange="gISig=this.value;gPintaIns()">${R.s.map(x=>`<option value="${x.id}" ${x.id==S.id?"selected":""}>${x.det?"★ ":""}Mód. ${x.k} · LED ${x.l} · ${x.led&&x.led!=`${x.k}.${x.l}`?"IN "+x.led+" · ":""}${esc(x.t)}</option>`).join("")}</select>
  <div class="mu" style="font-size:11px;margin-top:2px">★ = ruta detallada cable a cable · resto = ruta básica por bornas del módulo</div>
- <div class="gav">${esc(S.r)}</div><div class="mu" style="font-size:12px">${esc(R.ref)}</div>
+ <div class="gav">${esc(S.r)}</div>${gRecorridoHTML(S)}<div class="mu" style="font-size:12px">${esc(R.ref)}</div>
  ${nok>=0?`<div class="gav" style="border-left-color:#c62828;background:color-mix(in srgb,#c62828 12%,transparent)"><b>Fallo localizado en el paso ${nok+1}:</b> ${esc(S.p[nok].x)}${nok>0?` (el paso ${nok} estaba bien).`:""}</div>`:""}
- <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br><small class="mu">Esperado: ${esc(q.e)}</small>
+ <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br>${gUbiHTML(q)}<small class="mu">Esperado: ${esc(q.e)}</small>
   <span class="gib"><button class="${r.ok===true?"pri":"sec"}" onclick="gIMarca(${i},true)">OK</button><button class="${r.ok===false?"pri":"sec"}" onclick="gIMarca(${i},false)">NOK</button><input placeholder="Valor" value="${esc(r.v||"")}" onchange="gIValor(${i},this.value)"></span></span>
   <button class="gpl" aria-label="Ver plano folio ${q.f}" onclick="gPlano('PAS',${q.f})">${IC('plans')}<small>${q.f}</small></button></div>`}).join("")}</div>
  <div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="delete gIRes[gIKey()];gPintaIns()">Limpiar</button><button class="sec" style="flex:2" onclick="gICopia()">Pasar medidas a la OT</button></div>
@@ -1139,4 +1139,34 @@ function verBarra(){return !!user&&((user.email||"").toLowerCase()=="rmartinrosa
  if(turno||tecNombre){b.style.display="flex";b.innerHTML=`<div class="mrow1">${turno?`<span class="mopt">Turno ${esc(turno)}</span>`:""}${tecNombre?`<span class="mopt">${esc(tecNombre)}</span>`:""}</div>`}else b.style.display="none"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v48"}})();
 try{barra()}catch(e){}
+
+/* ===== v49: ubicación física de cada punto de la inspección cable a cable =====
+ Según la denominación de lugar (+) de RCS_PLANOS / Armario CBTH: +E = armario eléctrico E (AE), +P = pupitre,
+ +C = cabina, +IT/+MT/+ET = túneles A/B/C, +CO = columna, +R = rotonda, CBTH = armario CBTH de la posición. */
+const UBI={
+ CBTH:{c:"CBTH",n:"Armario CBTH de la posición (alimentación BT / SAI)",k:"#455a64"},
+ E:{c:"AE",n:"Armario eléctrico E de la PBB",k:"#6c1daa"},
+ P:{c:"Pupitre",n:"Pupitre de mando (cabina)",k:"#1565c0"},
+ C:{c:"Cabina",n:"Cabina de la PBB (techo / frontal)",k:"#00838f"},
+ IT:{c:"Túnel A",n:"PBB exterior · túnel interior A (unión A-B)",k:"#ef6c00"},
+ MT:{c:"Túnel B",n:"PBB exterior · túnel medio B (unión B-C)",k:"#e65100"},
+ ET:{c:"Túnel C",n:"PBB exterior · túnel exterior C",k:"#bf360c"},
+ CO:{c:"Columna",n:"PBB exterior · columna de elevación",k:"#2e7d32"},
+ H:{c:"Elevación",n:"PBB exterior · columna / grupo de elevación",k:"#2e7d32"},
+ T:{c:"Bogie",n:"PBB exterior · tren de rodaje (bogie)",k:"#558b2f"},
+ R:{c:"Rotonda",n:"Rotonda (unión con el edificio)",k:"#6d4c41"},
+ SS:{c:"Escalera",n:"Escalera de servicio",k:"#5d4037"},
+ F:{c:"Campo",n:"Elemento de campo: ubicación en el folio indicado",k:"#757575"}};
+const CABLE_UBI={"EIT":"AE ↔ túnel A","ITCO":"túnel A ↔ columna","ITR":"túnel A ↔ rotonda","EC":"AE ↔ cabina","EP":"AE ↔ pupitre","EMT":"AE ↔ túnel B"};
+function gUbiZ(q){const t=String(q.p||"");const out=[];const re=/(?:^|[\s(→+·])\+?(CBTH|[A-Z]{1,4})-([A-Z]+)(\d*)/g;let m;
+ while((m=re.exec(t))){if(m[2]=="W")continue;const z=UBI[m[1]];if(z&&!out.includes(m[1]))out.push(m[1])}
+ if(q.u)return [].concat(q.u);return out.length?out:/^Elemento/.test(t)?["F"]:["E"]}
+function gUbiCab(q){const m=String(q.p||"").match(/\b([A-Z]{2,4})-W\d+/);return m&&CABLE_UBI[m[1]]?`manguera ${m[0]} (${CABLE_UBI[m[1]]})`:""}
+function gUbiTxt(q){return gUbiZ(q).map(k=>UBI[k].c).join(" → ")}
+function gUbiHTML(q){const zs=gUbiZ(q);const cab=gUbiCab(q);
+ return `<span class="gubi">${zs.map(k=>`<span class="gubc" style="--uk:${UBI[k].k}">📍 ${esc(UBI[k].c)}</span>`).join("")}<span class="gubn">${esc(zs.map(k=>UBI[k].n).join(" · "))}${cab?" · "+esc(cab):""}</span></span>`}
+function gRecorridoHTML(S){const seq=[];S.p.forEach(q=>gUbiZ(q).forEach(k=>{if(seq[seq.length-1]!=k)seq.push(k)}));
+ return `<div class="grec"><b>Recorrido:</b> ${seq.map(k=>`<span class="gubc" style="--uk:${UBI[k].k}">${esc(UBI[k].c)}</span>`).join(" → ")}</div>`}
+(function(){const st=document.createElement("style");st.textContent=`.gubi{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:3px 0 2px}.gubc{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;color:var(--uk);border:1px solid var(--uk);background:color-mix(in srgb,var(--uk) 10%,transparent);white-space:nowrap}.gubn{font-size:11px;opacity:.75;flex-basis:100%}.grec{font-size:12px;margin:6px 0;display:flex;flex-wrap:wrap;gap:4px;align-items:center}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v49"}})();
 </script></body></html>
