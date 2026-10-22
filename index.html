@@ -1169,4 +1169,142 @@ function gRecorridoHTML(S){const seq=[];S.p.forEach(q=>gUbiZ(q).forEach(k=>{if(s
  return `<div class="grec"><b>Recorrido:</b> ${seq.map(k=>`<span class="gubc" style="--uk:${UBI[k].k}">${esc(UBI[k].c)}</span>`).join(" → ")}</div>`}
 (function(){const st=document.createElement("style");st.textContent=`.gubi{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:3px 0 2px}.gubc{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;color:var(--uk);border:1px solid var(--uk);background:color-mix(in srgb,var(--uk) 10%,transparent);white-space:nowrap}.gubn{font-size:11px;opacity:.75;flex-basis:100%}.grec{font-size:12px;margin:6px 0;display:flex;flex-wrap:wrap;gap:4px;align-items:center}`;document.head.appendChild(st)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v49"}})();
+
+/* ===== v50: conexiones intermedias en el PDF (elemento → bornas / regleteros → cable, hilo, manguera → ubicación) =====
+ Rutas detalladas (★): se toman de los propios puntos de medida. Rutas básicas: lectura automática del folio RCS_PLANOS
+ alrededor de la borna del módulo (a verificar) + casillas para anotar en campo lo que falte. */
+const COLR=/^(BK|BN|BU|GY|RD|VT|WH|OG|YE|GN|PK|GNYE|GYPK|BKWH|BUWH)$/;
+function cEnd(q){const P=pParse(q.p);return ((P.plus?"+":"")+P.tag+(P.det?" "+P.det.replace(/\(cable según folio \d+\)/,""):"")).replace(/\s+/g," ").trim()}
+function cDmin(u,a){return Math.min(...a.map(t=>Math.hypot(t.x-u.x,t.y-u.y)))}
+/* Busca en el texto del folio lo que hay cableado junto a la borna del módulo (regleteros, cables, mangueras, hilos, elementos) */
+async function cFolioAuto(pdf,np,S,f){const pg=await pdf.getPage(np);const vp=pg.getViewport({scale:1});const tc=await pg.getTextContent();
+ const it=tc.items.filter(t=>t.str&&t.str.trim()).map(t=>({s:t.str.trim(),x:t.transform[4]+(t.width||0)/2,y:t.transform[5]+(t.height||0)/2}));
+ const W=vp.width,H=vp.height,mg=Math.min(W,H)*.03,out={};
+ S.p.forEach((q,i)=>{if(q.f!=f)return;const m=q.p.match(/^([EP])-A(\d+) borna (\d+\.\d+)/);if(!m)return;
+  const tagRe=new RegExp("(^|[^A-Z0-9])A"+m[2]+"$");const tg=it.filter(t=>tagRe.test(t.s.replace(/\s/g,"").toUpperCase()));
+  const bs=it.filter(t=>t.s==m[3]);if(!bs.length)return;if(bs.length>1){if(!tg.length)return;bs.sort((u,v)=>cDmin(u,tg)-cDmin(v,tg))}
+  const b0=bs[0];const seg=(i+1<S.p.length&&/^(Elemento|Origen)/.test(S.p[i+1].p))?i:i-1;if(seg<0)return;
+  const near=it.filter(t=>t!==b0&&t.x>mg&&t.x<W-mg&&t.y>mg&&t.y<H-mg&&((Math.abs(t.x-b0.x)<=9&&Math.abs(t.y-b0.y)<=220)||(Math.abs(t.y-b0.y)<=6&&Math.abs(t.x-b0.x)<=220)))
+   .map(t=>Object.assign({d:Math.hypot(t.x-b0.x,t.y-b0.y)},t)).sort((u,v)=>u.d-v.d);
+  const r=[],usados=new Set();
+  near.forEach(t=>{const s=t.s.replace(/\s/g,"").toUpperCase();
+   if(/^[+-]?([A-Z]{1,3}-)?X\d+[A-Z]?:\d+$/.test(s))r.push({k:"b",v:"Regletero "+s.replace(/^-/,"")});
+   else if(/^[+-]?([A-Z]{1,3}-)?X\d+[A-Z]?$/.test(s)){const n=it.filter(u=>/^\d{1,3}$/.test(u.s)&&!usados.has(u.s+u.x+u.y)&&Math.hypot(u.x-t.x,u.y-t.y)<=18).sort((u,v)=>Math.hypot(u.x-t.x,u.y-t.y)-Math.hypot(v.x-t.x,v.y-t.y))[0];
+    if(n)usados.add(n.s+n.x+n.y);r.push({k:"b",v:"Regletero "+s.replace(/^-/,"")+(n?":"+n.s:"")})}
+   else if(/^[+-]?([A-Z]{1,4}-)?W\d+$/.test(s))r.push({k:"c",v:"Manguera "+s.replace(/^-/,"")});
+   else if(COLR.test(s))r.push({k:"c",v:"Hilo "+s});
+   else if(/^\d{3,5}$/.test(s)&&!usados.has(t.s+t.x+t.y))r.push({k:"c",v:"Cable "+s});
+   else if(/^[+-]?([A-Z]{1,3}-)?[SKBHYQF]\d+[A-Z']*$/.test(s))r.push({k:"b",v:"Elemento "+s.replace(/^-/,"")})});
+  const vis=new Set(),u=r.filter(x=>!vis.has(x.v)&&vis.add(x.v)).slice(0,7);if(u.length)out[seg]=(out[seg]||[]).concat(u)});
+ return out}
+/* Tramos entre puntos consecutivos */
+function cConex(S,auto){const out=[];
+ for(let i=0;i<S.p.length-1;i++){const a=S.p[i],b=S.p[i+1],A=pParse(a.p),B=pParse(b.p);
+  const za=gUbiZ(a),zb=gUbiZ(b),zl=[...new Set(za.concat(zb))];
+  const man=gUbiCab(b)||"";
+  const cabs=[];if(B.cab)cabs.push(B.cab);(b.p.match(/\(cable \d+\)/g)||[]).forEach(x=>cabs.push(x.slice(1,-1)));
+  if(!cabs.length){const mx=String(b.x||"").match(/\b[Cc]able (\d{2,5}) entre/);if(mx)cabs.push("cable "+mx[1]+" (según plano)");else if(A.cab&&i==0)cabs.push(A.cab)}
+  const inter=/→/.test(b.p)?b.p.split("→").slice(1,-1).map(x=>x.trim()):[];
+  const pu=String(b.x||"").match(/puente entre ([^)]+)\)/);if(pu)inter.push("puente "+pu[1]+" (si existe)");
+  let tipo="cable";
+  if(/salida de la protecci/.test(a.p))tipo="prot";
+  else if(A.tag==B.tag&&!B.cab)tipo="int";
+  else if(/\b(UT\d?|\+24 V del grupo)\b[^)]*\)/.test(b.p)&&!/^\+?[EP]-A\d+/.test(a.p))tipo="nuevo";
+  const ax=(auto&&auto[i])||[];
+  out.push({n:i+1,de:cEnd(a),a:cEnd(b),ubiA:gUbiTxt(a),ubiB:gUbiTxt(b),cab:cabs.join(" · "),man,inter,tipo,
+   zona:zl.length==1?UBI[zl[0]].n:zl.map(k=>UBI[k].c).join(" -> "),
+   autoC:ax.filter(x=>x.k=="c").map(x=>x.v),autoB:ax.filter(x=>x.k=="b").map(x=>x.v),f:b.f})}
+ return out}
+function cCorto(c){if(c.tipo=="int")return "puente interno del elemento (sin cable)";if(c.tipo=="nuevo")return "nuevo circuito de medida";
+ if(c.tipo=="prot")return "cableado interno del armario";
+ const t=[c.cab||c.autoC.join(" · "),c.inter.length?"via "+c.inter.join(" -> "):c.autoB.join(" · ")].filter(Boolean).join(" · ");
+ return (t||"cable / regletero: ver folio "+c.f)+(c.cab?"":c.autoC.length||c.autoB.length?" (auto)":"")}
+async function gIPdf(){const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);if(!S)return;const ot=inc.find(x=>x.id==gOT);const res=gIRes[gIKey()]||[];
+ msg("Generando PDF…");try{await cargaJsPDF()}catch(e){msg("No se pudo cargar el generador de PDF (sin conexión)");return}
+ /* plano RCS_PLANOS (si está subido): se usa para la lectura de conexiones y para los folios marcados */
+ let plan=null,planDoc=null;
+ try{const l=await gLista();planDoc=l.find(x=>/RCS.?PLANOS/i.test(x.name));
+  if(planDoc){let blob=gCache[planDoc.id];if(!blob){const dl=await sb.storage.from("planos").download(planDoc.id);if(dl.error)throw dl.error;blob=dl.data;gCache[planDoc.id]=blob}
+   await cargaLib();plan=await pdfjsLib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise}}catch(e){plan=null}
+ const folios=[...new Set(S.p.map(q=>q.f))];const auto={};
+ if(plan&&!S.det)for(const f of folios){const np=gPagina(planDoc.name,f);if(np<1||np>plan.numPages)continue;
+  try{const a=await cFolioAuto(plan,np,S,f);Object.keys(a).forEach(k=>auto[k]=(auto[k]||[]).concat(a[k]))}catch(e){}}
+ const C=cConex(S,auto);
+ const {jsPDF}=window.jspdf;const d=new jsPDF({unit:"mm",format:"a4",orientation:"portrait"});const W=210,M=12;
+ const ahora=new Date();const fh=ahora.toLocaleDateString("es-ES")+" "+ahora.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+ /* ---- Página 1: esquema ---- */
+ pCabecera(d,ot,R,S,"Esquema de medida");
+ const info=[["OT",ot?(ot.orden||"-"):"Sin OT"],["Posición",ot?("PBB "+(ot.pos||"-")):"-"],["Módulo",gIMod+" · "+R.n],["Señal",S.id+" · LED "+S.led],["Técnico",(tecNombre||"-")+(turno?" · Turno "+turno:"")],["Fecha",fh]];
+ d.setFontSize(8);let y=23;info.forEach((v,k)=>{const x=M+(k%2)*95,yy=y+Math.floor(k/2)*5;d.setFont("helvetica","bold");d.text(pT(v[0]+":"),x,yy);d.setFont("helvetica","normal");d.text(pT(d.splitTextToSize(pT(v[1]),72)[0]),x+17,yy)});
+ y+=15;d.setFont("helvetica","bold");d.setFontSize(10.5);d.text(pT(S.t),M,y);y+=4.5;
+ d.setFont("helvetica","normal");d.setFontSize(7.5);d.setTextColor(60);let l=d.splitTextToSize(pT("Reposo: "+S.r),W-2*M);d.text(l,M,y);y+=l.length*3.2;
+ l=d.splitTextToSize(pT("Medida: "+R.ref),W-2*M);d.text(l,M,y);y+=l.length*3.2+3;d.setTextColor(20);
+ d.setFontSize(6.5);[["A","Módulo PLC"],["K","Relé"],["S","Contacto / final carrera"],["X","Borna / regletero"],["H","Sirena"]].forEach((v,k)=>{const x=M+4+k*38;pSimb(d,v[0],x,y);d.setTextColor(60);d.text(pT(v[1]),x+6,y+1)});
+ y+=6;d.setDrawColor(200);d.line(M,y,W-M,y);y+=4;
+ const n=S.p.length,h=Math.min(22,(297-16-y)/n),bx=30,bw=62,cx=bx+bw+8;
+ d.setDrawColor(30,90,200);d.setLineWidth(.8);d.line(bx+6,y-2,bx+6,y+(n-.5)*h);
+ S.p.forEach((q,i)=>{const P=pParse(q.p),r=res[i]||{},yc=y+i*h+h/2;
+  /* conexión de llegada (tramo anterior → este punto) sobre el hilo */
+  if(i>0){const c=C[i-1];d.setFont("helvetica","italic");d.setFontSize(6.3);d.setTextColor(c.tipo=="int"||c.tipo=="nuevo"?120:30,c.tipo=="int"||c.tipo=="nuevo"?120:90,c.tipo=="int"||c.tipo=="nuevo"?120:200);
+   const zz=c.ubiA!=c.ubiB?" · "+c.ubiA+" -> "+c.ubiB:"";d.text(d.splitTextToSize(pT("T"+c.n+": "+cCorto(c)+zz),bw-10).slice(0,2),bx+9,yc-h/2+2.2)}
+  const bh=Math.min(h-5,11);d.setLineWidth(.35);d.setDrawColor(70);d.setFillColor(r.ok===false?255:r.ok===true?236:250,r.ok===false?232:r.ok===true?247:250,r.ok===false?232:r.ok===true?238:252);
+  d.roundedRect(bx,yc-bh/2+1.5,bw,bh,1.2,1.2,"FD");pSimb(d,pTipo(P.tag),bx+6,yc+1.5);
+  d.setTextColor(20);d.setFont("helvetica","bold");d.setFontSize(8.5);d.text(d.splitTextToSize((P.plus?"+":"")+pT(P.tag),bw-14)[0],bx+12.5,yc+.4);
+  d.setFont("helvetica","normal");d.setFontSize(6.5);d.text(d.splitTextToSize(pT(P.det||" "),bw-14).slice(0,1),bx+12.5,yc+3.6);d.setFont("helvetica","bold");d.setFontSize(6.2);d.setTextColor(240,120,30);d.text(pT("Ubic.: "+gUbiTxt(q)).slice(0,48),bx+12.5,yc+6.4);
+  d.setFillColor(198,40,40);d.circle(bx-7,yc+1.5,3.2,"F");d.setTextColor(255);d.setFont("helvetica","bold");d.setFontSize(8);d.text(String(i+1),bx-7,yc+2.6,{align:"center"});
+  d.setDrawColor(198,40,40);d.setLineWidth(.4);d.setLineDashPattern([.8,.8],0);d.line(bx-3.8,yc+1.5,bx,yc+1.5);d.line(bx+bw,yc+1.5,cx-1,yc+1.5);d.setLineDashPattern([],0);
+  d.setFont("helvetica","bold");d.setFontSize(8);d.setTextColor(27,110,45);d.text(pT("Esperado: "+q.e),cx,yc-1.6);
+  d.setFont("helvetica","normal");d.setFontSize(6.3);d.setTextColor(95);d.text(d.splitTextToSize(pT("Si no: "+q.x),W-M-cx).slice(0,2),cx,yc+1.4);
+  d.setFontSize(7);const est=r.ok===true?"OK":r.ok===false?"NOK":"";d.setTextColor(r.ok===false?198:30,r.ok===false?40:30,r.ok===false?40:30);
+  d.text(pT(`Medido: ${r.v||"__________"}   ${est?"["+est+"]":"[ OK / NOK ]"}   ·   Folio ${q.f}`),cx,yc+(h>18?7.8:h>16?6.6:5.4))});
+ /* ---- Página 2: conexiones intermedias ---- */
+ d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Conexiones intermedias");y=24;
+ d.setFont("helvetica","bold");d.setFontSize(10);d.setTextColor(20);d.text(pT(`${gIMod} · ${S.id} · LED ${S.led} · ${S.t}`),M,y);y+=4.5;
+ d.setFont("helvetica","normal");d.setFontSize(7.3);d.setTextColor(70);
+ l=d.splitTextToSize(pT(S.det?"Ruta detallada: conexiones tomadas de RCS_PLANOS (folio indicado en cada tramo).":
+  plan?"Ruta básica: cables y regleteros marcados (auto) leídos del folio RCS_PLANOS junto a la borna del módulo; verificar en el plano. Completar las casillas en blanco en campo.":
+  "Ruta básica sin RCS_PLANOS cargado: completar cable, regletero y manguera de cada tramo con el folio indicado (súbelo en Planos para la lectura automática)."),W-2*M);d.text(l,M,y);y+=l.length*3.2+1;
+ /* recorrido de zonas */
+ const seq=[];S.p.forEach(q=>gUbiZ(q).forEach(k=>{if(seq[seq.length-1]!=k)seq.push(k)}));
+ d.setFont("helvetica","bold");d.setTextColor(240,120,30);d.text(pT("Recorrido: "+seq.map(k=>UBI[k].c).join(" -> ")),M,y);y+=4;
+ const cc=[["Tramo",12],["Desde (elemento / borna)",38],["Hasta (elemento / borna)",38],["Cable / hilo / manguera",36],["Bornas intermedias / regletero",36],["Ubicación del tramo",26]];
+ const fila2=(vals,b,fill)=>{d.setFont("helvetica",b?"bold":"normal");d.setFontSize(b?7:6.8);const ls=vals.map((v,k)=>d.splitTextToSize(pT(v),cc[k][1]-2));const hh=Math.max(...ls.map(x=>x.length))*2.9+2.6;
+  if(y+hh>283){d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Conexiones intermedias");y=24;if(!b)fila2(cc.map(c=>c[0]),true,[237,228,250])}
+  let x=M;cc.forEach((c,k)=>{if(fill)d.setFillColor(...fill);d.setDrawColor(170);d.setLineWidth(.2);d.rect(x,y,c[1],hh,fill?"FD":"S");d.setTextColor(k==0&&!b?198:20,k==0&&!b?40:20,k==0&&!b?40:20);d.text(ls[k],x+1,y+3.2);x+=c[1]});y+=hh};
+ fila2(cc.map(c=>c[0]),true,[237,228,250]);
+ const blank="________________";
+ C.forEach(c=>{let cab,bor;
+  if(c.tipo=="int"){cab="Sin cable: puente interno del elemento (contacto / bobina)";bor="-"}
+  else if(c.tipo=="nuevo"){cab="Sin conexión directa: empieza otro circuito de la medida";bor="-"}
+  else if(c.tipo=="prot"){cab="Cableado interno del armario (protección -> alimentación del módulo). Cable: "+blank;bor="Folio "+c.f+": "+blank}
+  else{cab=c.cab||(c.autoC.length?c.autoC.join(" · ")+" (auto, verificar)":"Cable: "+blank+"\nHilo / color: "+blank);if(c.man&&!cab.includes(c.man.split(" ")[1]))cab+=" · "+c.man;
+   bor=c.inter.length?c.inter.join(" -> "):c.autoB.length?c.autoB.join(" · ")+" (auto, verificar)":S.det?(/^\+?[A-Z]{1,3}-X\d+/.test(c.a)?"Regletero de paso: "+c.a.replace(/ borna /,":"):/^\+?[A-Z]{1,3}-X\d+/.test(c.de)?"Sale del regletero "+c.de.replace(/ borna /,":"):"Directo (sin regletero intermedio en el plano)"):"Regletero: "+blank+"\nManguera: "+blank}
+  fila2([`${c.n} -> ${c.n+1}\nF.${c.f}`,c.de+"\nUbic.: "+c.ubiA,c.a+"\nUbic.: "+c.ubiB,cab,bor,c.zona+(c.man&&c.tipo=="cable"?"\n"+c.man:"")],false,c.tipo=="int"||c.tipo=="nuevo"?[246,246,246]:null)});
+ y+=5;if(y<270){d.setFont("helvetica","italic");d.setFontSize(6.8);d.setTextColor(95);
+  d.text(d.splitTextToSize(pT("Ubicaciones: AE = armario eléctrico E · Pupitre = pupitre de mando · Túnel A/B/C · Columna · Rotonda · CBTH · Campo = elemento de campo (ver folio). Mangueras EIT = AE <-> túnel A, ITCO = túnel A <-> columna, ITR = túnel A <-> rotonda, EC = AE <-> cabina, EP = AE <-> pupitre, EMT = AE <-> túnel B."),W-2*M),M,y)}
+ /* ---- Página 3: hoja de medidas ---- */
+ d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24;
+ d.setFont("helvetica","bold");d.setFontSize(10);d.setTextColor(20);d.text(pT(`${gIMod} · ${S.id} · LED ${S.led} · ${S.t}`),M,y);y+=4;
+ if(ot){d.setFont("helvetica","normal");d.setFontSize(8);d.text(pT(`OT ${ot.orden||"-"} · PBB ${ot.pos||"-"} · ${ot.tipo||""}${ot.desc?" · "+ot.desc:""}`).slice(0,140),M,y);y+=3}
+ y+=3;const cols=[["Nº",8],["Punto de medida",60],["Esperado",28],["Si no se cumple",46],["Medido",22],["Estado",12],["Folio",10]];
+ const fila=(vals,b,fill)=>{d.setFont("helvetica",b?"bold":"normal");d.setFontSize(b?7.5:7);const ls=vals.map((v,k)=>d.splitTextToSize(pT(v),cols[k][1]-2));const hh=Math.max(...ls.map(x=>x.length))*3+2.4;
+  if(y+hh>285){d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24}
+  let x=M;cols.forEach((c,k)=>{if(fill)d.setFillColor(...fill);d.setDrawColor(170);d.setLineWidth(.2);d.rect(x,y,c[1],hh,fill?"FD":"S");d.setTextColor(20);d.text(ls[k],x+1,y+3.3);x+=c[1]});y+=hh};
+ fila(cols.map(c=>c[0]),true,[237,228,250]);
+ S.p.forEach((q,i)=>{const r=res[i]||{};fila([String(i+1),q.p+" ["+gUbiTxt(q)+"]",q.e,q.x,r.v||"",r.ok===true?"OK":r.ok===false?"NOK":"",String(q.f)],false,r.ok===false?[255,232,232]:r.ok===true?[236,247,238]:null)});
+ y+=6;if(y>250){d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24}
+ const nok=S.p.findIndex((_,j)=>res[j]&&res[j].ok===false);d.setFont("helvetica","bold");d.setFontSize(9);
+ if(nok>=0){d.setTextColor(198,40,40);const tr=nok>0?C[nok-1]:null;
+  d.text(d.splitTextToSize(pT(`Fallo localizado en el paso ${nok+1}: ${S.p[nok].x}`+(tr&&tr.tipo=="cable"?` Tramo ${tr.n}->${tr.n+1}: ${tr.de} -> ${tr.a} (${cCorto(tr)}; ${tr.zona}).`:"")),W-2*M),M,y)}
+ else{d.setTextColor(60);d.text(pT(res.some(r=>r&&r.ok!==undefined)?"Sin fallo registrado en los puntos medidos.":"Pendiente de medir: anotar valores en campo."),M,y)}
+ y+=14;d.setTextColor(20);d.setFont("helvetica","normal");d.setFontSize(8);d.text("Observaciones:",M,y);d.setDrawColor(170);for(let k=1;k<=4;k++)d.line(M,y+k*7,W-M,y+k*7);y+=38;
+ d.text("Firma técnico: ______________________________",M,y);d.text(pT("Fecha / hora: ____________________"),W/2+8,y);
+ /* ---- Folios RCS_PLANOS con puntos marcados ---- */
+ let sinPlano=!plan;
+ if(plan){try{for(const f of folios){const np=gPagina(planDoc.name,f);if(np<1||np>plan.numPages)continue;await pFolio(d,plan,np,f,S,ot,R)}}catch(e){sinPlano=true}}
+ if(sinPlano){d.setPage(1);d.setFont("helvetica","italic");d.setFontSize(7);d.setTextColor(198,40,40);d.text(pT("Folios no adjuntos: sube «RCS PLANOS» en la pestaña Planos para incluirlos marcados."),M,286)}
+ pPie(d);
+ const nom=pT(`Inspeccion_cable_a_cable_${ot&&ot.orden?ot.orden+"_":""}${gIMod}_${S.id}.pdf`).replace(/\s+/g,"_");
+ pMuestra(d.output("blob"),nom)}
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
 </script></body></html>
