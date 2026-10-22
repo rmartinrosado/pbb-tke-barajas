@@ -1353,6 +1353,7 @@ function cZona(t){const m=String(t||"").match(/^\+([A-Z]+)\d*-/);if(!m)return "E
 function cVia1(v){
  if(v.h!==undefined){const col=v.c?`${cColor(v.c)} (${v.c})`:"";
   return {tipo:`Hilo de armario${v.s?" "+v.s.replace(".",",")+" mm²":""}${col?" "+col:""}`,ref:v.h?`Hilo nº ${v.h}`:"Hilo sin nº",txt:`hilo ${v.h||"s/n"}${v.c?" "+v.c:""}${v.s?" "+v.s+" mm²":""}`,man:""}}
+ v=Object.assign({},v,{t:String(v.t||"").replace(/^[A-F] /,"").replace(/ [A-F] /g," ")});
  const t=String(v.t||"").replace(/FABRICANTE/,"cable del fabricante").replace(/\b(\d+)x$/,"$1 hilos");
  return {tipo:`Manguera ${v.m}${t?" · "+t:""}`,ref:`${v.m} · conductor ${v.d||"-"}`,txt:`manguera ${v.m}${v.t?" ("+v.t+")":""}${v.d?" cond. "+v.d:""}`,man:v.m}}
 let CABIDX=null;
