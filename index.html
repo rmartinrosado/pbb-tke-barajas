@@ -70,7 +70,7 @@ function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||
 }
 function card(i){
  const ab=i.estado=="abierta";
- return `<div class="card"><div class="row"><b>PBB ${i.pos}${view=="dash"?"":` <span class="tag">${i.tipo}</span>`}</b><span class="${ab?"ab":"ce"}">${ab?"ABIERTA":"CERRADA"}</span></div>
+ return `<div class="card"><div class="row"><b>PBB ${i.pos}${view=="dash"?"":` <span class="tag">${i.tipo}</span>`}</b>${ab&&view=="dash"?`<span class="cbad"><span class="ab">ABIERTA</span><button class="sec gwr" title="Inspección cable a cable" aria-label="Inspección cable a cable de esta OT" onclick="insOT('${i.id}')">${IC('tool')}</button></span>`:`<span class="${ab?"ab":"ce"}">${ab?"ABIERTA":"CERRADA"}</span>`}</div>
  <div class="mu">Nº Orden CGA: <b>${esc(i.orden)}</b></div>
  <div class="mu">${i.fecha} · Reportado por: ${esc(i.rep)}</div>${i.equipos&&i.equipos.length?`<div class="mu"><b>Equipos:</b> ${esc(i.equipos.join(", "))}</div>`:""}${i.turno?`<div class="mu"><b>Turno:</b> ${esc(i.turno)} · ${esc(i.tecnico||"")}</div>`:""}
  ${i.desc?`<p style="margin:6px 0">${esc(i.desc)}</p>`:""}
@@ -1086,4 +1086,34 @@ function gInsHTML(){gIAuto();const R=RUTAS[gIMod]||RUTAS["E-A9"];
  return h}
 (function(){const st=document.createElement("style");st.textContent=`.gmods button.vac{opacity:.45}`;document.head.appendChild(st)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v40"}})();
+
+/* ===== v41: llave en las OT abiertas de Inicio → solo la inspección cable a cable de esa OT ===== */
+const gNorm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+function gIAuto(){if(gIAutoOT===gOT)return;gIAutoOT=gOT;gIAutoTxt="";const i=inc.find(x=>x.id==gOT);if(!i)return;
+ const t=[i.desc,i.def,i.com,i.obs,i.act,(i.alarmas||[]).join(" ")].filter(Boolean).join(" ");
+ const m=t.match(/\b([EP])\s*-?\s*A\s*(\d{1,2})\b/i);let id=m?m[1].toUpperCase()+"-A"+(+m[2]):"";let S=null,porTexto=false;
+ if(id&&RUTAS[id]){const R=RUTAS[id];
+  const ml=t.match(/m[oó]d(?:ulo)?\.?\s*(\d)\D{0,12}?LED\s*(\d)/i);if(ml)S=R.s.find(x=>x.k==+ml[1]&&x.l==+ml[2]);
+  if(!S){const mi=t.match(/\b(?:IN|LED)\s*(\d{1,2}\.\d)\b/i);if(mi)S=R.s.find(x=>x.led==mi[1])}
+  if(!S){const md=t.match(/\bDIS\d{2}\b/i);if(md)S=R.s.find(x=>x.id==md[0].toUpperCase())}}
+ else{/* sin módulo escrito: buscar la señal cuya descripción coincide con el texto de la OT */
+  const pal=[...new Set(gNorm(t).split(/[^a-z0-9]+/).filter(w=>w.length>=4&&!/^(para|con|sin|esta|desde|hasta|lado|pasarela|alarma|falla|fallo|averia)$/.test(w)).map(w=>w.slice(0,5)))];
+  let best=null,bs=0,emp=false;
+  Object.keys(RUTAS).forEach(k=>RUTAS[k].s.forEach(x=>{const ws=new Set(gNorm(x.t).split(/[^a-z0-9]+/).filter(w=>w.length>=4).map(w=>w.slice(0,5)));const sc=pal.filter(w=>ws.has(w)).length;
+   if(sc>bs){bs=sc;best={k,x};emp=false}else if(sc==bs&&sc>0)emp=true}));
+  if(best&&bs>=1){id=best.k;S=best.x;porTexto=true}}
+ if(!id||!RUTAS[id])return;gIMod=id;const R=RUTAS[id];
+ if(S)gISig=S.id;else if(R.s.length&&!R.s.some(x=>x.id==gISig))gISig=R.s[0].id;
+ gIAutoTxt=porTexto?`Señal propuesta por el texto de la OT ${i.orden||""}: ${id} · ${S.t}. Compruébala o elige otra.`:`Módulo ${id}${S?` y señal ${S.id}`:""} seleccionado${S?"s":""} desde la OT ${i.orden||""}.`}
+function gPintaIns(){const c=$("#g_ins");if(!c)return;const o=c.closest(".insov");const y=o?o.scrollTop:scrollY;c.innerHTML=gInsHTML();if(o)o.scrollTop=y;else scrollTo(0,y)}
+function insOT(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;gIAutoOT=null;
+ let o=document.querySelector(".insov");if(o)o.remove();o=document.createElement("div");o.className="insov";
+ o.innerHTML=`<div class="insh"><div><b>Inspección cable a cable</b><div class="mu" style="font-size:12px">PBB ${esc(i.pos)} · OT ${esc(i.orden)}${i.desc?" · "+esc(i.desc):""}</div></div><button class="sec" onclick="insCierra()">✕ Cerrar</button></div>
+ <div class="card" style="margin:12px"><div id="g_ins">${gInsHTML()}</div></div>`;
+ document.body.appendChild(o);document.body.style.overflow="hidden"}
+function insCierra(){const o=document.querySelector(".insov");if(o)o.remove();document.body.style.overflow=""}
+(function(){const st=document.createElement("style");st.textContent=`.cbad{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.gwr{width:46px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;border-color:var(--pr);color:var(--pr)}.gwr svg{width:22px;height:22px}
+.insov{position:fixed;inset:0;z-index:35;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.insh{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;background:var(--card);border-bottom:2px solid var(--pr)}.insh button{width:auto;padding:8px 14px;white-space:nowrap}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v41"}})();
 </script></body></html>
