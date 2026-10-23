@@ -2052,4 +2052,15 @@ const camBadge=id=>{const m=camMarca(id);return m?`<span title="${esc(m.t)}" sty
  if(camSel=="BR")h=h.replace("E-V1 (MikroTik CRS112) · puerto — PoE","E-V1 (MikroTik CRS112) · puerto sin documentar").replace("— (Cat.5e)","sin documentar en RCS PLANOS").replace("revisar PoE en E-V1 (—), cable — y","revisar PoE en E-V1, su cable y");if(m)h=h.replace('<span class="mu">Referencia</span>',`<span class="mu">Hoja TKE</span><span style="color:${m.c};font-weight:700">● ${esc(m.t.replace(" en la hoja TKE",""))}${m.n?`<br><span style="font-weight:400;color:var(--tx)">${esc(m.n)}</span>`:""}</span><span class="mu">Referencia</span>`);return h}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v67"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v68"}})();
+/* ===== v69: OT de cámara/vídeo → el polímetro abre directamente Cámaras RCS; sin botón FOTO PLC ===== */
+const esVideo=i=>!!i&&/c[aá]mara|v[ií]deo|camara/i.test([i.desc,i.def,i.com].filter(Boolean).join(" "));
+function camAdivina(t){t=(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+ const R=[["BR",/bajo (la )?r(o)?nda|bajo rotonda/],["SS-P1",/escalera|motor/],["ET-P2",/rueda|carro|traslac/],["ET-P3",/interior (de la )?r(o)?nda|rotonda|ronda/],["IT-P2",/tunel/],["C-P5",/zapata|inferior|izq/],["C-P1",/brazo|autonivel|derecha/],["C-P3",/suelo|basculante|superior/],["C-P4",/frontal|operador|luneta|pupitre/]];
+ for(const r of R)if(r[1].test(t))return r[0];return ""}
+function camAbreOT(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;camPos=String(i.pos);camIPpos=null;
+ camSel=camAdivina([i.desc,i.def,i.com].filter(Boolean).join(" "));gAbierto.add("CAM");go("tec");
+ setTimeout(()=>{const d=document.querySelector('details[data-k="CAM"]');if(!d)return;d.open=true;const t=camSel&&$("#cam_det")||d;t.scrollIntoView({block:camSel?"center":"start",behavior:"smooth"})},150)}
+(function(){const o=insOT;insOT=function(id){const i=inc.find(x=>x.id==id);if(esVideo(i)){camAbreOT(id);return}o(id)}})();
+(function(){const o=card;card=function(i){let h=o(i);if(esVideo(i))h=h.replace(/<button class="sec gdl2"[^>]*>[\s\S]*?<\/button>/,"").replace(/<button class="sec gfb2"[^>]*>[\s\S]*?FOTO PLC<\/button>/,"").replace('title="Inspección cable a cable"','title="Cámaras RCS"').replace('aria-label="Inspección cable a cable de esta OT"','aria-label="Cámaras RCS de esta OT"');return h}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v69"}})();
 </script></body></html>
