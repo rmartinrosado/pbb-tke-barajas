@@ -2164,4 +2164,130 @@ togEq=function(k){const c=document.querySelector(`.eqc[value="${k}"]`);if(!c)ret
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v78"}})();
 /* ===== v79: etiquetas del dibujo: PAS<->Sigma, AAA<->AAP ===== */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v79"}})();
+/* ===== v80: análisis de la «Descripción de los Trabajos / Actuación» de la OT =====
+ Prioridad: el texto de la descripción (peso 3); definición, comentario y observaciones apoyan (peso 1).
+ Se corrigen erratas (p. ej. «sera» → «seta»), se amplían sinónimos y se puntúan TODAS las señales PLC
+ (módulos E-A / P-A), sus elementos de campo (+CP-S5, E-K247…) y las averías de la guía de campo.
+ Al abrir el polímetro o «Módulos PLC» desde Seguimiento OT, y en la guía de campo de Técnico,
+ se preseleccionan y resaltan (🎯) para acotar la avería y elegir la intervención más rápida. */
+const ANA_STOP=new Set("de la el los las en y o u con sin por para del al se no un una unos unas que esta este esto estan esta es son ha hay muy mas ya le lo su sus pbb pasarela ot cga orden posicion puesto lado parte tras sobre cuando como desde hasta entre".split(" "));
+const ANA_CTX=new Set(["pupitr","consol","armari","cabina","derech","dcha","drcha","izquie","izq","izda","izqda","tunel","lado"]);
+const ANA_BAJA=new Set(["activa","activo","encend","apagad","apaga","funcio","respon","fallo","falla","averia","alarma","senal","error","estado","proble","revisa","compro","sale","queda","dejado","nada","muestr","indica","aviso","no"]);
+/* grupos de sinónimos: cualquier palabra del grupo activa todas */
+const ANA_SIN=[["seta","emergencia","paro","parada","setas"],["antiatrapamiento","atrapamiento","antiatrap","atrapa","atrapado"],["capota","fuelle","toldo","cortina"],
+ ["traslacion","translacion","rueda","ruedas","bogie","avance","desplaza","desplazamiento","carro"],["elevacion","subir","bajar","altura","hidraulica","hidraulico","bomba","cilindro"],
+ ["autonivelador","nivelador","autonivel","nivelacion","brazo"],["zapata"],["bumper","parachoques","golpe","choque"],["barrera","fotocelula","optica"],
+ ["porton","persiana","enrollable"],["iluminacion","luz","luces","alumbrado","foco","focos"],["joystick","mando","palanca"],["hombre","muerto"],["variador","variadores","atv"],
+ ["freno","frenos","frenado"],["inclinacion","inclina","pendiente"],["extension","retraccion","extender","retraer","telescopico","tunel"],["rotonda","columna","giro"],
+ ["400","hz","convertidor","conector","pds","gpu"],["aire","climatizacion","aa","pca","aaa","aap"],["video","camara","camaras"],["sirena","buzzer","bocina","pitido"],
+ ["suelo","piso"],["avion","aeronave","contacto","presencia"],["retorno","autonomo"],["portezuela","puerta","servicio","escalera"],["termostato","caldeo","calefaccion","resistencia"],
+ ["luneta","lunetas","termica","termicas"],["disyuntor","magnetotermico","proteccion","salta","saltado","disparado","disparo"],["pupitre","consola","panel"],["cabina"],["desplegar","despliega","despliegue","desplegada","abre","abrir"],["recoger","recoge","recogida","cierra","cerrar"],["derecha","dcha","drcha"],["izquierda","izq","izda","izqda"],
+ ["bypass","puente","puenteo"],["bloqueo","bloqueada","bloqueado","enclavamiento"],["inductivo","detector","sensor"],["final","carrera","fc"],["auto","automatico"],["manual"],["local","remoto"]];
+const anaStem=w=>{w=w.replace(/(es|s)$/,"");return w.length>6?w.slice(0,6):w};
+function anaPal(t){return gNorm(t).replace(/[«»"“”().,;:!?¿¡/\\]/g," ").split(/\s+/).filter(w=>w&&!ANA_STOP.has(w))}
+function anaLev(a,b){if(Math.abs(a.length-b.length)>2)return 9;const d=[...Array(b.length+1).keys()];
+ for(let i=1;i<=a.length;i++){let p=d[0];d[0]=i;for(let j=1;j<=b.length;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]==b[j-1]?0:1));p=t}}return d[b.length]}
+let ANA_VOC=null;
+function anaVoc(){if(ANA_VOC)return ANA_VOC;const s=new Set();const add=t=>anaPal(t).forEach(w=>{if(w.length>=4&&!/\d/.test(w))s.add(w)});
+ ANA_SIN.forEach(g=>g.forEach(w=>s.add(w)));PLC.forEach(M=>M.m.forEach(a=>a.forEach(L=>add(L[0]))));
+ Object.values(GUIA.tipos).forEach(T=>(T.s||[]).forEach(x=>add(x.t)));return ANA_VOC=s}
+/* Corrige erratas contra el vocabulario de los planos y la guía */
+function anaCorr(w){if(w.length<4||/\d/.test(w))return w;const V=anaVoc();if(V.has(w))return w;
+ let best=w,bd=(w.length>=7?2:1)+1;for(const v of V){if(v[0]!=w[0]&&w.length<7)continue;const d=anaLev(w,v);if(d<bd||(d==bd&&v.length==w.length&&best.length!=w.length)){bd=d;best=v}}return best}
+const ANA_TAG=/\b([A-Z]{1,4}\d*-[A-Z]{1,3}\d+(?:\.\d+)?[A-Z]?'{0,2})/g;
+function anaTxtOT(i){return {d:i.desc||"",o:[i.def,i.com,i.obs].filter(Boolean).join(" ")}}
+/* Términos con peso a partir del texto de la OT */
+function anaTerminos(i){const T=anaTxtOT(i);const term=new Map(),pal=[];
+ const grp=st=>ANA_SIN.findIndex(g=>g.some(x=>anaStem(x)==st));
+ const put=(st,w)=>{const e=term.get(st);if(!e||e.w<w)term.set(st,{w,g:grp(st)})};
+ [[T.d,3],[T.o,1]].forEach(([txt,peso])=>anaPal(txt).forEach(w0=>{const w=anaCorr(w0);const st=anaStem(w);const p=ANA_BAJA.has(st)?.25:ANA_CTX.has(st)?peso/3:peso;
+  if(peso==3&&!pal.some(x=>x.w==w))pal.push({w0,w});put(st,p);
+  ANA_SIN.forEach(g=>{if(g.includes(w)||g.some(x=>anaStem(x)==st))g.forEach(x=>{const sx=anaStem(x);if(sx!=st)put(sx,p*.6)})})}));
+ const tags=new Set([...(T.d+" "+T.o).toUpperCase().matchAll(ANA_TAG)].map(m=>m[1]));
+ return {term,pal,tags}}
+/* un mismo grupo de sinónimos solo puntúa una vez por texto (la coincidencia de más peso) */
+function anaPunt(texto,A){const ws=new Set(anaPal(texto).map(w=>anaStem(w)));const gm=new Map();let s=0;
+ A.term.forEach((e,st)=>{if(!ws.has(st))return;if(e.g<0){s+=e.w;return}gm.set(e.g,Math.max(gm.get(e.g)||0,e.w))});gm.forEach(v=>s+=v);return s}
+let ANA_C={k:"",r:null};
+/* Análisis completo de la OT: señales PLC, módulos, elementos de campo y averías de la guía */
+function anaOT(i){if(!i)return null;const key=[i.id,i.desc,i.def,i.com,i.obs,typeof PPACT!="undefined"?PPACT:""].join("¦");if(ANA_C.k==key)return ANA_C.r;
+ const A=anaTerminos(i);const sig=[];
+ Object.keys(RUTAS).forEach(mod=>(RUTAS[mod].s||[]).forEach(S=>{if(/^reserva/i.test(S.t))return;
+  let sc=anaPunt(S.t,A)*1.5;const pts=(S.p||[]).map(q=>q.p).join(" ");
+  const tg=new Set([...(S.t+" "+pts).toUpperCase().matchAll(ANA_TAG)].map(m=>m[1].replace(/^\+/,"")));
+  A.tags.forEach(t=>{if(tg.has(t)||[...tg].some(x=>x.startsWith(t)))sc+=4});
+  if(A.tags.has(mod))sc+=1;
+  if(sc>=1)sig.push({mod,S,sc,tg})}));
+ /* contexto pupitre / armario */
+ const pup=A.term.has("pupitr")&&A.term.get("pupitr").w>=.5,arm=A.term.has("armari")&&A.term.get("armari").w>=.5;
+ sig.forEach(x=>{if(pup&&x.mod[0]=="P")x.sc+=.5;if(arm&&x.mod[0]=="E")x.sc+=.5});
+ sig.sort((a,b)=>b.sc-a.sc);const top=sig.length?sig[0].sc:0;
+ const rel=sig.filter(x=>x.sc>=Math.max(1.4,top*.45)).slice(0,10);
+ const mods=[...new Set(rel.map(x=>x.mod))];
+ /* elementos: los escritos en la OT + los de las rutas de las señales relacionadas */
+ const el=new Map();A.tags.forEach(t=>{if(!/^[EP]-A\d+$/.test(t))el.set(t,9)});
+ rel.forEach((x,ix)=>x.tg.forEach(t=>{if(/^[EP]-A\d+$/.test(t)||/^[EP]-X\d/.test(t)||/^[EP]-Q30/.test(t))return;el.set(t,Math.max(el.get(t)||0,x.sc-ix*.01))}));
+ GUIA.leds&&GUIA.leds.forEach(L=>{if(mods.includes(L[0]))(L.slice(1).join(" ").toUpperCase().match(ANA_TAG)||[]).forEach(t=>{if(!el.has(t)&&anaPunt(L.slice(1).join(" "),A)>=1)el.set(t,.5)})});
+ const elem=[...el.entries()].sort((a,b)=>b[1]-a[1]).map(e=>e[0]).slice(0,14);
+ /* averías de la guía de campo (tipo de la OT) */
+ const tipos=[i.tipo,...(i.equipos||[])].filter(t=>GUIA.tipos[t]);const tipo=tipos[0]||"PAS";const G=GUIA.tipos[tipo];
+ const guia=(G&&G.s||[]).map((s,si)=>{const pt=s.p.join(" ");let sc=anaPunt(s.t,A)*2+Math.min(anaPunt(pt,A),6)*.5;
+   const tt=new Set((pt+" "+s.t).toUpperCase().match(ANA_TAG)||[]);elem.forEach(t=>{if(tt.has(t))sc+=.4});mods.forEach(m=>{if(tt.has(m))sc+=.3});return {si,t:s.t,sc}})
+  .filter(x=>x.sc>=1.5).sort((a,b)=>b.sc-a.sc);const gtop=guia.length?guia[0].sc:0;
+ const r={pal:A.pal,rel,mods,elem,tipo,guia:guia.filter(x=>x.sc>=gtop*.4).slice(0,4),
+  explicit:/\b([EP])\s*-?\s*A\s*(\d{1,2})\b/i.test(anaTxtOT(i).d+" "+anaTxtOT(i).o)};
+ ANA_C={k:key,r};return r}
+/* Panel «Análisis de la OT» */
+function anaHTML(i,R,dentro){if(!R||(!R.rel.length&&!R.guia.length&&!R.elem.length))return i&&i.desc?`<div class="gav anap"><b>🎯 Análisis de la descripción:</b> no se ha relacionado ninguna señal con «${esc(i.desc)}». Elige el módulo a mano o detalla la descripción (elemento, módulo, síntoma).</div>`:"";
+ const pc=R.pal.map(p=>`<span class="anac${p.w!=p.w0?" anafix":""}">${esc(p.w!=p.w0?p.w0+" → "+p.w:p.w)}</span>`).join("");
+ const sg=R.rel.map((x,ix)=>{const on=dentro&&x.mod==gIMod&&x.S.id==gISig;
+  return `<button class="anas${on?" on":""}" onclick="anaVa('${x.mod}','${String(x.S.id).replace(/'/g,"\\'")}')"><b>${ix+1}</b><span><b>${esc(x.mod)}</b> · Mód. ${x.S.k||"-"} · LED ${x.S.l||"-"}${x.S.led?" · IN "+esc(x.S.led):""}<br>${esc(x.S.t)}</span></button>`}).join("");
+ const gd=R.guia.map(g=>`<button class="anag" onclick="anaGuia(${g.si})">📋 ${esc(g.t)}</button>`).join("");
+ return `<details class="anap" open><summary><b>🎯 Análisis de la OT</b> <span class="mu" style="font-weight:400">· ${R.rel.length} señal(es) · ${R.mods.length} módulo(s) · ${R.elem.length} elemento(s)</span></summary>
+ ${pc?`<div class="anal">Palabras clave de la descripción</div><div class="anaw">${pc}</div>`:""}
+ ${R.mods.length?`<div class="anal">Módulos PLC implicados</div><div class="anaw">${R.mods.map(m=>`<button class="anam${dentro&&m==gIMod?" on":""}" onclick="anaVa('${m}')">${m}</button>`).join("")}</div>`:""}
+ ${sg?`<div class="anal">Señales relacionadas (de más a menos probable)</div><div class="anass">${sg}</div>`:""}
+ ${R.elem.length?`<div class="anal">Elementos de campo a revisar</div><div class="anaw">${R.elem.map(t=>`<span class="anae">${esc(t)}</span>`).join("")}</div>`:""}
+ ${gd?`<div class="anal">Guía de campo · actuación más eficaz</div><div class="anass">${gd}</div>`:""}
+ <div class="mu" style="font-size:11px;margin-top:6px">Orden propuesto: empezar por la señal 1 y sus elementos; si el LED es coherente, pasar a la siguiente.</div></details>`}
+function anaVa(mod,sid){if(!RUTAS[mod])return;gIMod=mod;const R=RUTAS[mod];const S=sid?R.s.find(x=>x.id==sid):null;
+ if(S){gISig=S.id;gIAutoTxt=`Señal ${S.id} seleccionada desde el análisis de la OT.`;insVerMods=false}
+ else{const a=anaOT(inc.find(x=>x.id==gOT));const r=a&&a.rel.find(x=>x.mod==mod);gISig=r?r.S.id:(R.s[0]&&R.s[0].id);gIAutoTxt="";insVerMods=true}
+ gPintaIns()}
+function anaGuia(si){const i=inc.find(x=>x.id==gOT);const R=anaOT(i);if(typeof insCierra=="function"&&document.querySelector(".insov"))insCierra();
+ if(i){gOT=i.id;gTipo=R?R.tipo:"PAS";gSyncOT=i.id}gAbierto.add(gTipo+si);go("tec");
+ setTimeout(()=>{const d=document.querySelector(`details.gd[data-k="${gTipo+si}"]`);if(d){d.open=true;d.scrollIntoView({block:"start",behavior:"smooth"})}},80)}
+/* Autoselección: si la OT no escribe el módulo, manda la señal mejor puntuada por la descripción */
+(function(){const o=gIAuto;gIAuto=function(){const nueva=gIAutoOT!==gOT;o();if(!nueva)return;const i=inc.find(x=>x.id==gOT);const R=anaOT(i);
+ if(!R||R.explicit||!R.rel.length)return;const b=R.rel[0];if(!RUTAS[b.mod])return;gIMod=b.mod;gISig=b.S.id;
+ gIAutoTxt=`Señal propuesta por la descripción de la OT ${i.orden||""}: ${b.mod} · ${b.S.t}${R.rel.length>1?` (+${R.rel.length-1} relacionada${R.rel.length>2?"s":""} en el análisis)`:""}. Compruébala o elige otra.`}})();
+/* Inspección cable a cable / Módulos PLC: panel de análisis + módulos y señales resaltados */
+(function(){const o=gInsHTML;gInsHTML=function(){let h=o();const i=inc.find(x=>x.id==gOT);if(!i||!(typeof insOv!="undefined"&&insOv)||insTipo!="PAS")return h;
+ const R=anaOT(i);if(!R)return h;
+ R.mods.forEach(m=>{h=h.replace(new RegExp(`class="([^"]*)"( onclick="gISel\\('${m}'\\)")`),`class="$1 rel"$2`)});
+ R.rel.filter(x=>x.mod==gIMod).forEach(x=>{const id=String(x.S.id).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");h=h.replace(new RegExp(`(<option value="${id}"(?: selected)?>)`),"$1🎯 ")});
+ return anaHTML(i,R,true)+h}})();
+/* Guía de campo (Técnico): abre y marca las averías relacionadas con la descripción de la OT */
+let anaGOT=null;
+(function(){const o=vTec;vTec=function(){const i0=inc.find(x=>x.id==gOT&&x.estado=="abierta")||gOTs()[0];
+ if(i0&&anaGOT!==i0.id){anaGOT=i0.id;const R=anaOT(i0);if(R&&R.guia.length){const k=[i0.tipo,...(i0.equipos||[])].find(t=>GUIA.tipos[t])||"PAS";R.guia.forEach(g=>gAbierto.add(k+g.si))}}
+ o();const i=inc.find(x=>x.id==gOT);if(!i)return;const R=anaOT(i);if(!R)return;
+ R.guia.forEach(g=>{const s=document.querySelector(`details.gd[data-k="${gTipo+g.si}"] > summary b`);if(s&&!s.dataset.ana){s.dataset.ana=1;s.insertAdjacentHTML("afterbegin",`<span class="anat">🎯</span> `)}});
+ const c=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));if(!c||document.getElementById("anag"))return;
+ const d=document.createElement("div");d.id="anag";d.className="card";
+ d.innerHTML=anaHTML(i,R,false).replace(/onclick="anaVa\('([^']+)','([^']*)'\)"/g,`onclick="insOT('${i.id}');anaVa('$1','$2')"`).replace(/onclick="anaVa\('([^']+)'\)"/g,`onclick="insMods('${i.id}');anaVa('$1')"`);
+ c.insertAdjacentElement("afterend",d)}})();
+(function(){const st=document.createElement("style");st.textContent=`
+details.anap{margin:6px 0 10px;padding:8px 10px;border:1.5px solid var(--pr);border-radius:10px;background:color-mix(in srgb,var(--pr) 6%,transparent)}
+details.anap>summary{cursor:pointer;list-style:none}details.anap>summary::-webkit-details-marker{display:none}
+.anal{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--pr);font-weight:700;margin:9px 0 4px}
+.anaw{display:flex;flex-wrap:wrap;gap:6px}.anac,.anae{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--card);border:1px solid color-mix(in srgb,var(--pr) 35%,transparent)}
+.anafix{border-color:#ef6c00;color:#ef6c00}.anae{font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.anam{width:auto;margin:0;padding:6px 12px;border:1.5px solid #ef6c00;color:#ef6c00;background:var(--card);font-weight:700}.anam.on{background:#ef6c00;color:#fff}
+.anass{display:flex;flex-direction:column;gap:6px}.anas,.anag{display:flex;gap:10px;align-items:flex-start;width:100%;margin:0;text-align:left;padding:8px 10px;background:var(--card);border:1px solid color-mix(in srgb,var(--pr) 30%,transparent);color:var(--tx);font-weight:400;font-size:13px;line-height:1.3}
+.anas>b{flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--pr);color:#fff;font-size:12px}
+.anas.on{border:2px solid #ef6c00;background:color-mix(in srgb,#ef6c00 8%,var(--card))}
+.gmods button.rel{box-shadow:0 0 0 2px #ef6c00 inset;color:#ef6c00;font-weight:800}.gmods button.rel.on{color:#fff}
+.anat{color:#ef6c00}#anag details.anap{margin:0;border:0;padding:0;background:none}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v80"}})();
 </script></body></html>
