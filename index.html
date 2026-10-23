@@ -1761,4 +1761,135 @@ async function iaGPdfIA(){
  const nom=`Instrucciones_IA_PBB${i.pos||""}_${i.tipo||""}_${i.orden||""}.pdf`.replace(/[^\w.\-]/g,"");
  pMuestra(d.output("blob"),nom)}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v60"}})();
+/* ===== v61: planos PROPIOS por posición (504, 507, 508) =====
+ Para estas posiciones no se usa el plano genérico RCS PLANOS: se usan solo los planos cuyo nombre lleva el número de la posición
+ (o, si no hay ninguno, el plano PBB cuyo cajetín declara ese stand, p. ej. «Stand_504&508»).
+ El polímetro (inspección cable a cable) lee ese plano en el móvil y verifica cada punto de medida contra él. */
+const PPROP=["504","507","508"];
+const ppRe=p=>new RegExp("(^|\\D)"+p+"(\\D|$)");
+const PPOTROS=/AAA|PCA|CBTH|PDS|AAP/i;
+const PPTIPO={PAS:/PBB|RCS|ESQUEM|PLANO/i,AAA:/AAA|PCA/i,HZ:/PDS|400/i,AAP:/AAP/i,CBTH:/CBTH/i};
+const PPCACHE={},PPDOC={},PPTXT={};let PPACT=null,PPBASE=null;
+function ppPos(pos){pos=String(pos||"").trim();return PPROP.includes(pos)?pos:null}
+function ppCtx(){let id=null;const sh=$("#sheet"),s=$("#t_sel");
+ if(s&&sh&&sh.style.display!="none")id=s.value;else if(typeof gOT!="undefined"&&gOT)id=gOT;
+ const i=inc.find(x=>x.id==id);return i?ppPos(i.pos):null}
+function ppGenerico(x){return !/(^|\D)5\d\d(\D|$)/.test(x.name)&&!/RCS/i.test(x.name)}
+function ppDoc(l,pos,t){const ds=l.filter(x=>ppRe(pos).test(x.name));
+ if(t=="PAS")return ds.find(x=>/PBB/i.test(x.name)&&!PPOTROS.test(x.name))||ds.find(x=>!PPOTROS.test(x.name))||(PPDOC[pos]&&l.find(x=>x.id==PPDOC[pos].id))||null;
+ return ds.find(x=>PPTIPO[t]&&PPTIPO[t].test(x.name))||null}
+function ppNom(){const p=PPACT||ppCtx();if(!p)return "RCS_PLANOS";const d=PPDOC[p];return d?`plano ${d.name.replace(/\.pdf$/i,"")}`:`plano PBB ${p}`}
+
+/* --- qué plano abre cada botón --- */
+(function(){const o=gDocId;gDocId=function(t,l){const pos=ppCtx();if(!pos)return o(t,l);
+ const d=ppDoc(l,pos,t);if(d)return d.id;
+ if(t=="HZ"){const g=l.find(x=>ppGenerico(x)&&PPTIPO.HZ.test(x.name));return g?g.id:""}
+ return ""}})();
+(function(){const o=gPagina;gPagina=function(name,folio){if(ppRe("507").test(name)&&!PPOTROS.test(name)&&!/RCS.?PLANOS/i.test(name))return folio>=9?folio-1:folio;return o(name,folio)}})();
+(function(){const o=gPlano;gPlano=async function(t,folio){const pos=ppCtx();if(pos){const l=await gLista();if(!ppDoc(l,pos,t)&&!(t=="HZ"&&l.some(x=>ppGenerico(x)&&PPTIPO.HZ.test(x.name)))){
+  if(t=="PAS"&&!PPDOC[pos]){try{await ppPlanDoc(pos)}catch(e){}if(PPDOC[pos])return o(t,folio)}
+  msg(`No hay plano propio de la PBB ${pos}${t!="PAS"?" ("+t+")":""}. Súbelo en Planos con «${pos}» en el nombre.`);return}}
+ return o(t,folio)}})();
+(function(){const o=gPlanoRCS;gPlanoRCS=async function(folio){const pos=ppCtx();if(!pos)return o(folio);
+ const l=await gLista();let d=ppDoc(l,pos,"PAS");if(!d){try{const r=await ppPlanDoc(pos);d=r&&r.d}catch(e){}}
+ if(!d){msg(`No hay plano propio de la PBB ${pos}. Súbelo en Planos con «${pos}» en el nombre.`);return}
+ gPagIni=gPagina(d.name,folio);await ver(d.id)}})();
+
+/* --- Planos y documentación de la OT: solo los de su posición + genéricos sin posición --- */
+(function(){const o=planosSheet;planosSheet=async function(){const s=$("#t_sel");const i=s&&inc.find(x=>x.id==s.value);const pos=i&&ppPos(i.pos);if(!pos)return o();
+ const l=await allPdf();if(!PPDOC[pos]&&!l.some(x=>ppRe(pos).test(x.name)&&!PPOTROS.test(x.name))){try{await ppPlanDoc(pos)}catch(e){}}
+ const propios=l.filter(x=>ppRe(pos).test(x.name)||(PPDOC[pos]&&x.id==PPDOC[pos].id));
+ const gen=l.filter(x=>ppGenerico(x)&&!propios.includes(x));
+ const fila=p=>`<div class="row" style="margin:6px 0"><span style="overflow-wrap:anywhere">${esc(p.name)}${PPDOC[pos]&&p.id==PPDOC[pos].id&&!ppRe(pos).test(p.name)?` <small class="mu">(válido para ${pos} según cajetín)</small>`:""}</span><button class="sec" onclick="ver('${p.id}')">Ver</button></div>`;
+ $("#t_docs").innerHTML=`<div style="margin-top:10px"><div class="mu" style="font-size:12px">Planos propios de la PBB ${pos} (no se usa el plano genérico RCS)</div>`+
+  (propios.map(fila).join("")||`<div class="mu" style="color:#c62828">No hay planos de la PBB ${pos}. Súbelos en Planos con «${pos}» en el nombre.</div>`)+
+  (gen.length?`<div class="mu" style="font-size:12px;margin-top:8px">Documentación general</div>`+gen.map(fila).join(""):"")+`</div>`}})();
+
+/* --- lectura del plano de la posición (pdf.js en el móvil) --- */
+async function ppTexto(doc){if(PPTXT[doc.id])return PPTXT[doc.id];
+ let blob=gCache[doc.id];if(!blob){const dl=await sb.storage.from("planos").download(doc.id);if(dl.error)throw dl.error;blob=dl.data;gCache[doc.id]=blob}
+ await cargaLib();const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;const F={};
+ for(let np=1;np<=pdf.numPages;np++){const pg=await pdf.getPage(np);const tc=await pg.getTextContent();const it=tc.items.map(t=>String(t.str||"").trim()).filter(Boolean);
+  const k=it.indexOf("LOCALIZACIÓN");const f=(k>=0&&/^\d{1,3}$/.test(it[k+1]||""))?+it[k+1]:(np<=7?np:np+1);
+  F[f]={it,tags:ppTags(it)}}
+ PPTXT[doc.id]=F;return F}
+const PPTAG=/\+?([A-Z]{1,4}\d?-[A-Z]{1,3}\d+[A-Z]?(?:\.\d+)?'{0,2})(?![A-Za-z0-9])/g;
+function ppTags(items){const S=new Set();items.forEach(s=>{for(const m of String(s).toUpperCase().matchAll(new RegExp(PPTAG.source,"g")))S.add(m[1])});return S}
+async function ppPlanDoc(pos){const l=await gLista();let d=l.find(x=>ppRe(pos).test(x.name)&&/PBB/i.test(x.name)&&!PPOTROS.test(x.name))||l.find(x=>ppRe(pos).test(x.name)&&!PPOTROS.test(x.name));
+ if(d){PPDOC[pos]={id:d.id,name:d.name,via:"nombre"};return {d,via:"nombre"}}
+ /* sin plano con ese número: plano PBB de otra posición cuyo cajetín declare este stand */
+ for(const x of l.filter(x=>/PBB/i.test(x.name)&&/(^|\D)5\d\d(\D|$)/.test(x.name)&&!PPOTROS.test(x.name))){
+  try{const F=await ppTexto(x);const t=[1,2,3].map(f=>F[f]?F[f].it.join(" "):"").join(" ");
+   if(new RegExp("Stand[_ ]?[\\d&_ ]*(^|\\D)"+pos+"(\\D|$)","i").test(t)||new RegExp("Stand[_ ]?[\\d&_ ]*"+pos,"i").test(t)){PPDOC[pos]={id:x.id,name:x.name,via:"cajetín"};return {d:x,via:"cajetín"}}}catch(e){}}
+ return null}
+
+/* --- transformación de las rutas del plano genérico al plano de la posición --- */
+function ppBase(){if(!PPBASE)PPBASE={r:JSON.stringify(RUTAS),l:PLC.map(M=>JSON.stringify(M.m))};return PPBASE}
+function ppPal(s){return new Set(String(s||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\([^)]*\)/g," ").split(/[^A-Z0-9]+/).filter(w=>w.length>=4&&!/^\d+$/.test(w)))}
+/* etiqueta de una entrada en el folio del módulo: texto entre el código DIS/DIN y la borna «x.y» seguida de INnn */
+function ppEtiq(items,led){for(let j=0;j<items.length-1;j++){if(items[j]!==led||!/^IN\d{2}S?$/.test(items[j+1]))continue;
+  let k=j-1;while(k>=0&&j-k<9&&!/^(DIS|DIN)\d\d$/.test(items[k]))k--;if(k<0||j-k>=9)return "";
+  return items.slice(k+1,j).map(x=>x.replace(/"/g,"")).join(" ").replace(/\s+/g," ").trim()}return ""}
+function ppIgual(a,b){const A=ppPal(a),B=ppPal(b);if(!A.size)return true;let n=0;A.forEach(w=>{if(B.has(w))n++});return n/A.size>=.5}
+function ppTransforma(pos,F){const R=JSON.parse(ppBase().r),plc={},st={cor:0,nv:0,dif:[],cambios:new Set()};const esc2=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+ /* etiquetas de los módulos de seguridad (DIS01…DIS08) según el plano de la posición */
+ PLC.forEach((M,i)=>{if(M.t!="SDI")return;const m=JSON.parse(ppBase().l[i]);let cambio=false;
+  m.forEach((sub,k)=>sub.forEach((L,l)=>{const n=k*sub.length+l+1;const f=M.f[k]||M.f[0];const it=F[f]&&F[f].it;if(!it)return;
+   const lab=ppEtiq(it,n+".1");if(lab&&!ppIgual(lab,L[0])){L[0]=`${lab} (plano ${pos})`;cambio=true}}));
+  if(cambio)plc[M.id]=JSON.stringify(m)});
+ Object.keys(R).forEach(id=>{const M=PLC.find(x=>x.id==id);(R[id].s||[]).forEach(S=>{
+  const f0=M?(M.f[(S.k||1)-1]||M.f[0]):(S.p&&S.p[0]&&S.p[0].f);const it=F[f0]&&F[f0].it;
+  const lab=it&&S.led?ppEtiq(it,S.led):"";
+  if(lab&&!ppIgual(lab,S.t)){/* la entrada es otra en esta posición: no se usa la ruta del plano genérico */
+   st.dif.push(`${id} ${S.id}: ${lab}`);const led=S.led||"";const ut=M&&M.t=="SDI"&&/\.1$/.test(led)?led.replace(/\.1$/,".2"):"";
+   S.t=`${lab} · PBB ${pos}`;S.traz=false;S.det=false;S.fol=String(f0);
+   S.r=`⚠ En el plano de la PBB ${pos} esta entrada es «${lab}» (distinta del plano genérico). Sigue el folio ${f0} del plano propio; las conexiones (auto) del PDF se leen de ese plano.`;
+   S.p=[ut?{p:`${id} borna ${ut} (UT)`,e:"≈24 V (pulsos de test)",x:`Sin tensión: módulo ${id} o su alimentación (${M.p}).`,f:f0}:{p:`${id} alimentación (+)`,e:"≈24 V",x:`Sin tensión: módulo ${id} o su alimentación${M?" ("+M.p+")":""}.`,f:f0},
+    {p:`Elemento «${lab}» (ver folio ${f0} del plano PBB ${pos})`,e:"Según plano",x:"Seguir el cableado en el folio indicado del plano propio.",f:f0},
+    {p:`${id} borna ${led} (IN)`,e:"≈24 V y LED coherente",x:`Si hay tensión y el LED no cambia: entrada de ${id}.`,f:f0}];return}
+  (S.p||[]).forEach(q=>{const T=F[q.f];if(!T)return;const txt=String(q.p||"").toUpperCase();
+   const tags=[...new Set([...txt.matchAll(new RegExp(PPTAG.source,"g"))].map(m=>m[1]))];const nv=[];
+   tags.forEach(tg=>{if(T.tags.has(tg)||/^[EP]-A\d+$/.test(tg))return;const base=tg.replace(/\.\d+$/,"");
+    const cand=[...T.tags].filter(x=>x!==tg&&x.replace(/\.\d+$/,"")===base);
+    if(cand.length==1){const rr=new RegExp(esc2(tg)+"(?![\\d.])","g");["p","x","nodo"].forEach(k=>{if(typeof q[k]=="string")q[k]=q[k].replace(rr,cand[0])});
+     (q.cab||[]).forEach(c=>{["txt","ref","tipo"].forEach(k=>{if(typeof c[k]=="string")c[k]=c[k].replace(rr,cand[0])})});st.cor++;st.cambios.add(tg+" → "+cand[0])}
+    else nv.push(tg)});
+   if(nv.length){q.p+=` ⚠ ${nv.join(", ")}: no aparece en el folio ${q.f} del plano PBB ${pos}`;q.nv=true;st.nv++}});
+  const nnv=(S.p||[]).filter(q=>q.nv).length;if(nnv)S.r=`⚠ ${nnv} punto(s) de esta ruta no aparecen en el plano de la PBB ${pos}: sigue el folio indicado en cada punto del plano propio. `+String(S.r||"");
+  if(S.traz)S.r=String(S.r||"").replace(/RCS_PLANOS/g,`plano PBB ${pos} (verificada)`)})});
+ return {rutas:JSON.stringify(R),plc,st:{cor:st.cor,nv:st.nv,dif:st.dif,cambios:[...st.cambios]}}}
+async function ppPrep(pos){if(PPCACHE[pos]&&(PPCACHE[pos].ok||PPCACHE[pos].cargando))return PPCACHE[pos];
+ PPCACHE[pos]={cargando:true};
+ try{const r=await ppPlanDoc(pos);if(!r){PPCACHE[pos]={err:"sinplano"};return PPCACHE[pos]}
+  const F=await ppTexto(r.d);const T=ppTransforma(pos,F);PPCACHE[pos]=Object.assign({ok:true,doc:r.d,via:r.via},T)}
+ catch(e){PPCACHE[pos]={err:"lectura",e:String(e&&e.message||e)}}
+ return PPCACHE[pos]}
+function ppAplica(pos){const B=ppBase();const C=pos&&PPCACHE[pos]&&PPCACHE[pos].ok?PPCACHE[pos]:null;
+ const src=JSON.parse(C?C.rutas:B.r);Object.keys(RUTAS).forEach(k=>delete RUTAS[k]);Object.assign(RUTAS,src);
+ PLC.forEach((M,i)=>{M.m=JSON.parse(C&&C.plc[M.id]?C.plc[M.id]:B.l[i])});PPACT=C?pos:null;
+ if(RUTAS[gIMod]&&!RUTAS[gIMod].s.some(x=>x.id==gISig)&&RUTAS[gIMod].s.length)gISig=RUTAS[gIMod].s[0].id}
+function ppBanner(pos){const o=document.querySelector(".insov .card");if(!o)return;let b=o.querySelector("#ppban");if(!b){b=document.createElement("div");b.id="ppban";o.prepend(b)}
+ const C=PPCACHE[pos]||{};let h;
+ if(C.cargando)h=`<div class="ppb ppl">Leyendo el plano propio de la PBB ${pos}…</div>`;
+ else if(C.err=="sinplano")h=`<div class="ppb ppe"><b>No hay plano propio de la PBB ${pos}.</b><br>Para esta posición no se usa el plano genérico RCS. Sube su esquema en Planos con «${pos}» en el nombre.</div>`;
+ else if(C.err)h=`<div class="ppb ppe"><b>No se pudo leer el plano de la PBB ${pos}</b> (${esc(C.e||"")}). Revisa la conexión y vuelve a abrir el polímetro.</div>`;
+ else if(C.ok)h=`<div class="ppb ppk"><b>Plano propio: ${esc(C.doc.name)}</b>${C.via=="cajetín"?` · válido para la ${pos} según su cajetín`:""}<br><small>Rutas verificadas contra este plano: ${C.st.cor} borna(s) corregida(s)${C.st.cambios.length?" ("+esc(C.st.cambios.slice(0,4).join(", "))+(C.st.cambios.length>4?"…":"")+")":""} · ${C.st.nv} punto(s) ⚠ sin localizar${C.st.dif.length?" · "+C.st.dif.length+" entrada(s) distinta(s) del plano genérico":""}.</small></div>`;
+ b.innerHTML=h||"";
+ if(C.cargando||C.err){const g=$("#g_ins");if(g)g.innerHTML=C.cargando?`<div class="mu" style="margin:10px 0">Preparando la inspección con el plano de la PBB ${pos}…</div>`:""}}
+(function(){const st=document.createElement("style");st.textContent=`.ppb{margin:0 0 10px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.35}.ppl{background:#f3eefb;color:var(--pr)}.ppk{background:#eaf6ee;color:#1e6b3a}.ppe{background:#fdecea;color:#c62828}`;document.head.appendChild(st)})();
+(function(){const o=insOT;insOT=function(id){const i=inc.find(x=>x.id==id);const pos=i&&ppPos(i.pos);
+ ppAplica(pos);o(id);if(!pos)return;ppBanner(pos);
+ const C=PPCACHE[pos];if(C&&(C.ok||C.err=="sinplano"))return;
+ ppPrep(pos).then(()=>{if(gOT!=id||!document.querySelector(".insov"))return;const vm=insVerMods;ppAplica(pos);o(id);if(vm&&typeof insMods=="function"){insVerMods=true;gPintaIns()}ppBanner(pos)})}})();
+(function(){const o=insCierra;insCierra=function(){o();ppAplica(null)}})();
+/* PDF de la inspección: usa el plano de la posición para la lectura automática y los folios marcados */
+(function(){try{let s=gIPdf.toString();const a='planDoc=l.find(x=>/RCS.?PLANOS/i.test(x.name))';if(!s.includes(a))return;
+ s=s.replace(a,'planDoc=PPACT&&PPCACHE[PPACT]&&PPCACHE[PPACT].ok?PPCACHE[PPACT].doc:l.find(x=>/RCS.?PLANOS/i.test(x.name))')
+  .replace(/`Ruta trazada en RCS_PLANOS/g,"`Ruta trazada en ${ppNom()}")
+  .replace(/conexiones tomadas de RCS_PLANOS/g,'conexiones tomadas de "+ppNom()+"')
+  .replace(/leídos del folio RCS_PLANOS/g,'leídos del folio del "+ppNom()+"')
+  .replace(/`RCS_PLANOS · folio/g,"`${ppNom()} · folio");
+ gIPdf=(0,eval)("("+s.replace(/^async function gIPdf/,"async function")+")")}catch(e){console.warn("v61 gIPdf",e)}})();
+ppBase();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v61"}})();
 </script></body></html>
