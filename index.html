@@ -2122,4 +2122,15 @@ try{barra()}catch(e){}
 (function(){const ob=barra;barra=function(){ob();const b=document.getElementById("mbar");if(!b||admin)return;const r=b.querySelector("#mrow2");if(r)r.remove()}})();
 try{barra()}catch(e){}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v71"}})();
+/* ===== v72: Cerrar/Resolver rellena «Actuación» con los pasos marcados (✔) de la actuación guiada ===== */
+function guiHechos(i){const out=[];let sec="";
+ for(const l of String(i&&i.guiada||"").split("\n")){const t=l.trim();const h=t.match(/^\[(?:Gu[ií]a de campo · )?([^\]]+)\]$/);if(h){sec=h[1];continue}
+  const m=t.match(/^[✔✓☑]️?\s*(?:\d+\.\s*)?(.+)$/);if(m)out.push({sec,t:m[1].trim()})}
+ return out}
+(function(){const o=resolver;resolver=function(id){o(id);const i=inc.find(x=>x.id==id),a=$("#r_a");if(!i||!a)return;
+ const hs=guiHechos(i);if(!hs.length)return;let cur=a.value||"";const add=[];let last=null;
+ for(const x of hs){const lin="✔ "+x.t;if(cur.includes(x.t))continue;if(x.sec&&x.sec!==last&&!cur.includes(x.sec)){add.push(x.sec+":");last=x.sec}add.push(lin)}
+ if(!add.length)return;a.value=(cur.trim()?cur.trim()+"\n":"")+add.join("\n");a.rows=Math.min(12,Math.max(3,a.value.split("\n").length+1));
+ const n=document.createElement("div");n.className="mu";n.style.cssText="font-size:12px;margin-top:4px";n.textContent=`Añadidos ${hs.length} paso(s) marcados en la actuación guiada. Puedes editarlos antes de cerrar.`;a.after(n)}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v72"}})();
 </script></body></html>
