@@ -2290,4 +2290,14 @@ details.anap>summary{cursor:pointer;list-style:none}details.anap>summary::-webki
 .gmods button.rel{box-shadow:0 0 0 2px #ef6c00 inset;color:#ef6c00;font-weight:800}.gmods button.rel.on{color:#fff}
 .anat{color:#ef6c00}#anag details.anap{margin:0;border:0;padding:0;background:none}`;document.head.appendChild(st)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v80"}})();
+/* ===== v81: el botón «Módulos PLC» de la tarjeta OT vuelve a funcionar como en v79
+ (sin panel de análisis, sin señal propuesta por la descripción y sin resaltados 🎯).
+ El polímetro y la guía de campo de Técnico mantienen el análisis de v80. ===== */
+let anaPLC=false,anaEnt=false;
+(function(){const o=insMods;insMods=function(id){anaEnt=true;try{o(id)}finally{anaEnt=false}}})();
+(function(){const o=insOT;insOT=function(id){anaPLC=anaEnt;return o(id)}})();
+(function(){const o=insCierra;insCierra=function(){anaPLC=false;return o()}})();
+(function(){const o=gIAuto;gIAuto=function(){if(!anaPLC)return o();const oa=anaOT;anaOT=()=>null;try{return o()}finally{anaOT=oa}}})();
+(function(){const o=gInsHTML;gInsHTML=function(){if(!anaPLC)return o();const oa=anaOT;anaOT=()=>null;try{return o()}finally{anaOT=oa}}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v81"}})();
 </script></body></html>
