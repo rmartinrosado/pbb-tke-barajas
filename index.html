@@ -83,7 +83,7 @@ function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||
 }
 function card(i){
  const ab=i.estado=="abierta";
- return `<div class="card"><div class="row"><b>PBB ${i.pos}${view=="dash"?"":` <span class="tag">${i.tipo}</span>`}</b><span class="${ab?"ab":"ce"}">${ab?"ABIERTA":"CERRADA"}</span></div>
+ return `<div class="card"><div class="row"><b>PBB ${i.pos} <span class="tag">${i.tipo}</span></b><span class="${ab?"ab":"ce"}">${ab?"ABIERTA":"CERRADA"}</span></div>
  <div class="mu">Nº Orden CGA: <b>${esc(i.orden)}</b></div>
  <div class="mu">${i.fecha} · Reportado por: ${esc(i.rep)}</div>${i.equipos&&i.equipos.length?`<div class="mu"><b>Equipos:</b> ${esc(i.equipos.join(", "))}</div>`:""}${i.turno?`<div class="mu"><b>Turno:</b> ${esc(i.turno)} · ${esc(i.tecnico||"")}</div>`:""}
  ${i.desc?`<p style="margin:6px 0">${esc(i.desc)}</p>`:""}
@@ -1760,5 +1760,5 @@ async function iaGPdfIA(){
  pie();
  const nom=`Instrucciones_IA_PBB${i.pos||""}_${i.tipo||""}_${i.orden||""}.pdf`.replace(/[^\w.\-]/g,"");
  pMuestra(d.output("blob"),nom)}
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v59"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v60"}})();
 </script></body></html>
