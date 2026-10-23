@@ -1545,4 +1545,220 @@ function insMods(id){insOT(id);const o0=inc.find(x=>x.id==id);if(!o0||o0.tipo!="
  const c=$("#g_ins");if(c)c.innerHTML=gInsHTML();const t=document.querySelector(".insh b");if(t)t.textContent="Módulos PLC · inspección cable a cable"}
 (function(){const st=document.createElement("style");st.textContent=`.cacr .gplc svg{width:26px;height:26px}.cacts{flex-wrap:wrap}.cacr{flex-wrap:wrap;justify-content:flex-end}`;document.head.appendChild(st)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v58"}})();
+/* ===== v59: botón impresora bajo «Instrucciones IA» → PDF A4 con la actuación guiada reordenada paso a paso y croquis con referencias ===== */
+P.print='M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z';
+(function(){const st=document.createElement("style");st.textContent=`.gprint{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:8px;padding:12px;font-weight:600}.gprint svg{width:26px;height:26px}.gprint.off{opacity:.45}@keyframes gpl{0%,100%{box-shadow:0 0 0 0 #f0730080}50%{box-shadow:0 0 0 8px #f0730000}}.gprint.flash{animation:gpl 1s 3}`;document.head.appendChild(st)})();
+function iaGPrintBtn(){const g=$("#t_gui");if(!g)return;let b=document.querySelector(".gprint");
+ if(!b){const ia=[...document.querySelectorAll("#sheetc button.pri")].find(x=>/Instrucciones IA/i.test(x.textContent));if(!ia)return;
+  b=document.createElement("button");b.type="button";b.className="sec gprint";b.innerHTML=IC('print')+"<span>Imprimir instrucciones · PDF A4</span>";b.onclick=iaGPdfIA;ia.insertAdjacentElement("afterend",b);
+  g.addEventListener("input",()=>b.classList.toggle("off",!g.value.trim()))}
+ b.classList.toggle("off",!g.value.trim())}
+(function(){const o=resTec;resTec=function(sel){o(sel);iaGPrintBtn()}})();
+(function(){const o=pegaGui;pegaGui=async function(){await o();iaGPrintBtn();const b=document.querySelector(".gprint");if(b&&$("#t_gui").value.trim()){b.classList.remove("flash");void b.offsetWidth;b.classList.add("flash");msg("Actuación pegada. Pulsa la impresora para generar el PDF A4")}}})();
+
+/* --- texto: limpieza para fuentes PDF estándar --- */
+function iaGTxt(s){return String(s||"").replace(/\*\*|__|`/g,"").replace(/[→⟶➜]/g,"->").replace(/[←]/g,"<-").replace(/[↔]/g,"<->").replace(/[●◉]/g,"(on)").replace(/[○]/g,"(off)").replace(/[◐]/g,"(var)").replace(/[⚠️]/g,"").replace(/[✕✖×]/g,"x").replace(/[≈]/g,"~").replace(/[≥]/g,">=").replace(/[≤]/g,"<=").replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[^\x00-\xFF·–—…€]/g,"").replace(/\s+/g," ").trim()}
+function iaGNorm(s){return iaGTxt(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+
+/* --- análisis y reordenación de la actuación guiada --- */
+const IAG_FASES=[
+ {k:"prep",t:"Preparación y seguridad",re:/\b(cga|n[ºo°]? ?de orden|baliz|sin avion|coordina|responsable de turno|bloquea y etiqueta|selector)\b/},
+ {k:"rep",t:"Reparación",re:/\b(sustituye|sustituir|repara|reparar|reaprieta|aprieta|cambia|cambiar|reemplaza|limpia|limpiar|alinea|ajusta)\b/},
+ {k:"cierre",t:"Prueba funcional y cierre",re:/(prueba funcional|prueba en manual|prueba los movimientos|prueba todos|presiona cada|al soltar|hora de cierre|cierra la ot|cierre de la actuacion|anota en la ot)/},
+ {k:"med",t:"Medidas y localización del fallo",re:/(\bmide\b|\bmedir\b|medida|continuidad|polimetro|tramo|corta el mando|[a-z]-x\d+(\.\d+)?:\d)/},
+ {k:"plc",t:"Comprobación en armario / PLC",re:/(\bled\b|\bleds\b|e-a\d|\bplc\b|alimentacion|24 ?v|modulo|disyuntor|magnetotermico|rearma)/},
+ {k:"vis",t:"Inspección visual",re:/(inspecciona|visual|a simple vista|\bmira que\b|aplast|deform|golpe|enganch|prensaestopa)/}];
+const IAG_ORDEN=["prep","vis","plc","med","rep","cierre"];
+function iaGParse(txt){
+ const L=String(txt||"").replace(/\r/g,"").split("\n");
+ const R={avisos:[],diag:[],notas:[],notasSec:[],pasos:[],tablas:[]};let sec="",sub="",last=null,tab=null;
+ const esDiag=()=>/diagn|causa|explica|por que|funcionamiento/.test(iaGNorm(sec));
+ let lvl=0;const esNota=()=>!sec||lvl==1;const esPasoSec=()=>/primera|actuacion|secuencia|medida|prueba|procedimiento|pasos|comprobac|en campo|localiza|reparac|cierre/.test(iaGNorm(sec)+" "+iaGNorm(sub));
+ let loc=null;const addPaso=(t,ctx)=>{const p={t:t,sub:[],sec:sec+"|"+sub,ctx:ctx||sub,loc:loc};loc=null;R.pasos.push(p);last=p};
+ const addAviso=t=>{t=iaGTxt(t);if(t&&!R.avisos.some(a=>iaGNorm(a)==iaGNorm(t)))R.avisos.push(t)};
+ for(let raw of L){const line=raw.replace(/\t/g,"    ");const s=line.trim();
+  if(!s){tab=null;continue}
+  if(/^\|/.test(s)){const cells=s.replace(/^\||\|$/g,"").split("|").map(c=>iaGTxt(c));if(cells.every(c=>/^:?-{2,}:?$/.test(c)||c===""))continue;
+   if(!tab){tab={titulo:iaGTxt(sec)||"Referencias",filas:[]};R.tablas.push(tab)}tab.filas.push(cells);continue}
+  tab=null;
+  let m;
+  if(m=s.match(/^(#{1,6})\s+(.*)/)){lvl=m[1].length;sec=m[2];sub="";last=null;continue}
+  if(m=s.match(/^\*\*([^*]{2,60})\*\*:?$/)){sub=iaGTxt(m[1]);last=null;continue}
+  if(/^(---|\*\*\*)$/.test(s))continue;
+  const ind=(line.match(/^\s*/)[0]||"").length;
+  if(m=s.match(/^(\d+)[.)]\s+(.*)/)){const t=m[2];
+   if(ind>=2&&last){last.sub.push(iaGTxt(t));continue}
+   if(esDiag()){iaGSplitPaso(t,x=>R.diag.push(x),addAviso);continue}
+   if(esNota()){R.notas.push(iaGTxt(t));continue}
+   loc=+m[1];iaGSplitPaso(t,addPaso,addAviso);continue}
+  if(m=s.match(/^[-*•]\s+(.*)/)){const t=m[1];
+   if(last&&(ind>=2||/:\s*$/.test(last.t))){last.sub.push(iaGTxt(t));continue}
+   if(esDiag()){iaGSplitPaso(t,x=>R.diag.push(x),addAviso);continue}
+   if(esPasoSec()){iaGSplitPaso(t,addPaso,addAviso);continue}
+   R.notas.push(iaGTxt(t));if(!esNota())R.notasSec.push(iaGTxt(t));continue}
+  /* párrafo */
+  if(esDiag()){iaGSplitPaso(s,x=>R.diag.push(x),addAviso);continue}
+  if(esPasoSec()){iaGSplitPaso(s,addPaso,addAviso);continue}
+  iaGSplitPaso(s,x=>{R.notas.push(x);if(!esNota())R.notasSec.push(x)},addAviso)}
+ /* texto libre sin pasos: cada línea es un paso */
+ if(!R.pasos.length&&R.notas.length){R.notas.forEach(t=>R.pasos.push({t:t,sub:[],sec:"",ctx:"",loc:null}));R.notasSec=R.notas.slice();R.notas=[]}
+ /* sin duplicados */
+ const vis=new Set();R.pasos=R.pasos.filter(p=>{const k=iaGNorm(p.t).slice(0,70);if(!k||vis.has(k))return false;vis.add(k);return true});
+ /* clasificar y reordenar */
+ R.pasos.forEach((p,ix)=>{p.ix=ix;const n=iaGNorm(p.t+" "+p.sub.join(" "));const v=iaGNorm(p.t).split(/[\s,.:;]/)[0];const V={mide:"med",medir:"med",corta:"med",repite:"med",sustituye:"rep",repara:"rep",cambia:"rep",reaprieta:"rep",inspecciona:"vis",coordina:"prep",baliza:"prep",presiona:"cierre",prueba:"cierre"};const f=V[v]?IAG_FASES.find(f=>f.k==V[v]):IAG_FASES.find(f=>f.re.test(n));p.fase=f?f.k:"plc"});
+ R.fases=IAG_ORDEN.map(k=>({k:k,t:IAG_FASES.find(f=>f.k==k).t,pasos:R.pasos.filter(p=>p.fase==k).sort((a,b)=>a.ix-b.ix)})).filter(f=>f.pasos.length);
+ let n=0;R.fases.forEach(f=>f.pasos.forEach(p=>p.n=++n));
+ /* «sigue con el paso 2» -> número nuevo dentro del mismo apartado */
+ R.pasos.forEach(p=>{const mapa=k=>{const q=R.pasos.find(x=>x.sec==p.sec&&x.loc==+k);return q?q.n:k};const fx=s=>s.replace(/\b(paso|pasos)\s+(\d+)/gi,(a,w,k)=>w+" "+mapa(k));p.t=fx(p.t);p.sub=p.sub.map(fx)});
+ return R}
+function iaGSplitPaso(t,addPaso,addAviso){
+ /* frases de advertencia («No puentees…», «Nunca…», ⚠) van al recuadro ATENCIÓN; la frase explicativa que las sigue va con ellas; el resto queda donde estaba */
+ const raw=String(t||"");const fr=iaGTxt(raw).split(/(?<=[.!])\s+(?=[A-ZÁÉÍÓÚÑ¿])/);const resto=[];let av=null;
+ const esAv=f=>/^(no [a-záéíóúñ]+(es|as)\b|nunca\b|ojo[:,]|atenci[oó]n\b|prohibido\b|peligro\b)/i.test(f)||/^\s*⚠/.test(raw)&&!resto.length&&av===null;
+ fr.forEach(f=>{if(esAv(f)){if(av)addAviso(av);av=f}else if(av&&/^(la|el|lo|los|las|es|son|est[aá]|esto|ya que|porque)\b/i.test(f)){av+=" "+f}else{if(av){addAviso(av);av=null}resto.push(f)}});
+ if(av)addAviso(av);
+ if(resto.length)addPaso(resto.join(" "))}
+
+/* --- referencias de esquema (para el croquis) --- */
+const IAG_REF=/\b((?:CBTH|EIT|EET|ESS|EP|EH|EC|ITR|ITCO\d|CP|IT|ET|MT|SS|CO\d?|[EPCHTR])-[A-Z]{1,3}\d+(?:\.\d+)?'{0,2})(?![A-Za-z0-9])(?::(\d+)(?:\s*[–\-]\s*(\d+))?)?/g;
+function iaGRefs(txt,R){
+ const refs={};let m;
+ /* solo cuenta lo que se usa en la actuación: pasos, avisos, diagnóstico y tablas (no las notas de alcance) */
+ const t=[...(R.pasos||[]).map(p=>p.t+"\n"+p.sub.join("\n")),...(R.avisos||[]),...(R.diag||[]),...(R.notasSec||[]),...(R.tablas||[]).map(tb=>tb.filas.map(f=>f.join(" | ")).join("\n"))].join("\n").replace(/\*\*/g,"");
+ while(m=IAG_REF.exec(t)){const id=m[1];const r=refs[id]||(refs[id]={id:id,bornas:new Set(),puntos:new Set(),pasos:new Set()});if(m[2])r.bornas.add(+m[2]);if(m[3])r.bornas.add(+m[3])}
+ /* puntos de módulo PLC: «E-A10 mód.1 1.1», «E-A10, módulo 1» */
+ const rm=/(E-A\d+)[^\n|]{0,12}?m[oó]d(?:ulo)?\.?\s*(\d)(?:[^\n|]{0,8}?(\d\.\d))?/g;
+ while(m=rm.exec(t)){const r=refs[m[1]]||(refs[m[1]]={id:m[1],bornas:new Set(),puntos:new Set(),pasos:new Set()});r.puntos.add("mód."+m[2]+(m[3]?" "+m[3]:""))}
+ Object.values(refs).forEach(r=>{const p=[...r.puntos];p.filter(x=>!/\d\.\d$/.test(x)&&p.some(y=>y!=x&&y.startsWith(x+" "))).forEach(x=>r.puntos.delete(x))});
+ /* pasos donde aparece cada referencia */
+ (R.pasos||[]).forEach(p=>{const s=p.t+" "+p.sub.join(" ");Object.values(refs).forEach(r=>{const re=new RegExp("\\b"+r.id.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(?![\\d.])");if(re.test(s))r.pasos.add(p.n)})});
+ return Object.values(refs)}
+function iaGZona(id){const pre=id.split("-")[0],ty=(id.split("-")[1]||"")[0];
+ if(pre=="CBTH")return"arm";
+ if(pre=="E")return ty=="X"?"armX":ty=="A"?"armA":"arm";
+ if(pre=="P")return ty=="X"?"pupX":"pup";
+ if(/^(EP|EH|EC|EIT|EET|ESS|ITR|ITCO\d)$/.test(pre)&&ty=="W")return"mang";
+ if(ty=="W")return"cab";
+ return"campo"}
+
+/* --- croquis --- */
+function iaGCroquisAlto(refs){const z={};refs.forEach(r=>{const k=iaGZona(r.id);(z[k]=z[k]||[]).push(r)});const n=k=>(z[k]||[]).length;
+ const arm=Math.min(n("armA"),4)*11+Math.min(n("arm"),5)*9+Math.min(n("armX"),3)*14+(n("armX")?14:0);
+ const pup=Math.min(n("pup"),4)*9+Math.min(n("pupX"),3)*14+(n("pupX")?14:0);
+ const cam=Math.min(n("campo"),9)*9+(n("cab")?10:0);
+ return Math.max(55,Math.min(150,Math.max(arm,pup,cam)+22))}
+function iaGCroquis(d,x0,y0,W,H,refs){
+ const PR=[110,30,140],AC=[230,110,20],GR=[110,110,120],LN=[200,200,210];
+ d.setDrawColor(...LN);d.setLineWidth(.3);d.roundedRect(x0,y0,W,H,2,2);
+ const z={arm:[],armX:[],armA:[],mang:[],pup:[],pupX:[],campo:[],cab:[]};refs.forEach(r=>z[iaGZona(r.id)].push(r));
+ const haySalidaPup=z.pup.length||z.pupX.length;
+ const cols=[{k:"arm",t:"ARMARIO E",w:.30},{k:"mang",t:"MANGUERA",w:.14},{k:"pup",t:"PUPITRE",w:.24},{k:"campo",t:"CABINA / CAMPO",w:.32}];
+ let cx=x0+3;const top=y0+9,bot=y0+H-3;const box={};
+ cols.forEach(c=>{const w=(W-6)*c.w;box[c.k]={x:cx,w:w};
+  if(c.k!="mang"){d.setDrawColor(...PR);d.setLineWidth(.4);d.setLineDashPattern([],0);d.roundedRect(cx+1,top,w-2,bot-top,1.5,1.5)}
+  d.setFont("helvetica","bold");d.setFontSize(7.5);d.setTextColor(...PR);d.text(c.t,cx+w/2,y0+6,{align:"center"});cx+=w});
+ d.setFont("helvetica","normal");
+ const badge=(r,x,y)=>{if(!r.pasos.size)return;const s="P"+[...r.pasos].sort((a,b)=>a-b).slice(0,4).join(",");d.setFontSize(6);const tw=d.getTextWidth(s)+2.4;d.setFillColor(...AC);d.roundedRect(x,y-2.6,tw,3.4,1,1,"F");d.setTextColor(255,255,255);d.text(s,x+1.2,y);d.setTextColor(30,30,30)};
+ const anc={};/* anclajes: id -> {x,y,bornas:{n:[x,y]}} */
+ /* regleta dibujada como fila de bornas numeradas */
+ const regleta=(r,x,y,w,lado)=>{const bs=[...r.bornas].sort((a,b)=>a-b);d.setFontSize(7);d.setFont("helvetica","bold");d.setTextColor(20,20,20);d.text(r.id,x,y);badge(r,x+d.getTextWidth(r.id)+1.5,y);d.setFont("helvetica","normal");
+  const a={x:x,y:y,b:{}};if(!bs.length){anc[r.id]=a;return y+5}
+  const bw=Math.min(6.2,(w-2)/Math.min(bs.length,8));let bx=x,by=y+2;
+  bs.forEach((n,i)=>{if(i&&i%8==0){bx=x;by+=6}d.setDrawColor(...GR);d.setFillColor(245,242,250);d.rect(bx,by,bw-.6,4.4,"FD");d.setFontSize(6.2);d.setTextColor(20,20,20);d.text(String(n),bx+(bw-.6)/2,by+3.1,{align:"center"});a.b[n]=[bx,by+2.2,bx+(bw-.6)/2,by+4.4,bx+bw-.6];bx+=bw});
+  anc[r.id]=a;return by+8};
+ const pieza=(r,x,y,w,fill)=>{d.setDrawColor(...PR);d.setFillColor(...(fill||[250,248,253]));d.roundedRect(x,y,w,6.5,1,1,"FD");d.setFontSize(7);d.setFont("helvetica","bold");d.setTextColor(20,20,20);d.text(r.id,x+1.5,y+4.3);d.setFont("helvetica","normal");
+  if(r.puntos.size){d.setFontSize(5.8);d.setTextColor(...GR);d.text([...r.puntos].slice(0,3).join(" · "),x+1.5+d.getTextWidth(r.id)*7/5.8*0+0,y+8.6)}
+  badge(r,x+w-2-(r.pasos.size?d.getTextWidth("P"+[...r.pasos].slice(0,4).join(","))*6/7+2:0),y+4.3);anc[r.id]={x:x,y:y+3.25,w:w};return y+(r.puntos.size?11:9)};
+ /* armario */
+ let ya=top+5;const A=box.arm;
+ z.armA.slice(0,4).forEach(r=>ya=pieza(r,A.x+3,ya,A.w-8,[238,232,248]));
+ z.arm.slice(0,5).forEach(r=>ya=pieza(r,A.x+3,ya,A.w-8));
+ const yRegA=Math.max(ya+2,top+(bot-top)*.45);let yr=yRegA;z.armX.slice(0,3).forEach(r=>yr=regleta(r,A.x+3,yr,A.w-8,"R"));
+ /* pupitre */
+ const Pp=box.pup;let yp=top+5;
+ z.pup.slice(0,4).forEach(r=>yp=pieza(r,Pp.x+3,yp,Pp.w-8));
+ let yrp=Math.max(yp+2,yRegA);z.pupX.slice(0,3).forEach(r=>yrp=regleta(r,Pp.x+3,yrp,Pp.w-8,"L"));
+ /* campo: elementos y cables de fábrica */
+ const Cc=box.campo;let yc=top+5;const camp=z.campo.slice(0,9);
+ camp.forEach(r=>yc=pieza(r,Cc.x+3,yc,Cc.w-8,[255,246,236]));
+ if(z.cab.length){d.setFontSize(6.5);d.setTextColor(...GR);d.text("Cables: "+z.cab.slice(0,8).map(r=>r.id+(r.pasos.size?" (P"+[...r.pasos].join(",")+")":"")).join(", "),Cc.x+3,Math.min(yc+3,bot-3),{maxWidth:Cc.w-8})}
+ /* cableado: regleta armario <-> regleta pupitre por manguera, misma borna */
+ d.setLineWidth(.35);
+ const rA=z.armX.map(r=>anc[r.id]).filter(Boolean),rP=z.pupX.map(r=>anc[r.id]).filter(Boolean);
+ let cables=0,wy=[];
+ rA.forEach(a=>rP.forEach(p=>Object.keys(a.b).forEach(n=>{if(p.b[n]){d.setDrawColor(...PR);const ax=a.b[n][2],ay=a.b[n][3],px=p.b[n][2],py=p.b[n][3];const yy=Math.max(ay,py)+3+cables*1.2;wy.push(yy);d.line(ax,ay,ax,yy);d.line(ax,yy,px,yy);d.line(px,yy,px,py);cables++}})));
+ /* manguera: etiqueta sobre la zona */
+ const M=box.mang;
+ if(wy.length){/* los hilos son la manguera: se rotulan sobre el haz */
+  const y1=Math.min(...wy),y2=Math.max(...wy);d.setDrawColor(...AC);d.setLineWidth(.5);d.roundedRect(M.x+2,y1-1.4,M.w-4,y2-y1+2.8,1.2,1.2);
+  z.mang.slice(0,2).forEach((r,i)=>{d.setFontSize(6.8);d.setFont("helvetica","bold");d.setTextColor(...AC);d.text(r.id,M.x+M.w/2,y1-3-i*7.5,{align:"center"});d.setFont("helvetica","normal");badge(r,M.x+M.w/2-4,y2+6+i*5)});
+  if(!z.mang.length){d.setFontSize(6.3);d.setTextColor(...GR);d.text("manguera",M.x+M.w/2,y1-3,{align:"center"})}}
+ else{let ym=top+(bot-top)/2;z.mang.slice(0,3).forEach((r,i)=>{d.setDrawColor(...AC);d.setLineDashPattern([1.5,1],0);d.line(M.x+1,ym+i*7,M.x+M.w-1,ym+i*7);d.setLineDashPattern([],0);d.setFontSize(6.8);d.setFont("helvetica","bold");d.setTextColor(...AC);d.text(r.id,M.x+M.w/2,ym+i*7-1.2,{align:"center"});d.setFont("helvetica","normal");badge(r,M.x+M.w/2-4,ym+i*7+4)})}
+ /* PLC -> regleta armario */
+ const plc=z.armA.map(r=>anc[r.id]).filter(Boolean)[0],ra=rA[0];
+ if(plc&&ra){const gx=A.x+1.9,b0=Object.values(ra.b)[0];d.setDrawColor(...PR);d.setLineWidth(.35);d.line(plc.x,plc.y,gx,plc.y);d.line(gx,plc.y,gx,b0?b0[1]:ra.y);if(b0)d.line(gx,b0[1],b0[0],b0[1])}
+ /* regleta pupitre (o armario) -> elementos de campo */
+ const orig=rP[0]||ra;
+ if(orig&&camp.length){const bs=Object.values(orig.b);const ox=bs.length?Math.max(...bs.map(b=>b[4])):orig.x+20,oy=bs.length?bs[bs.length-1][1]:orig.y;const bx=Cc.x-.2;
+  const ys=camp.map(r=>anc[r.id]).filter(Boolean).map(e=>e.y);d.setDrawColor(...AC);d.setLineWidth(.45);
+  d.line(ox,oy,bx,oy);d.line(bx,Math.min(oy,...ys),bx,Math.max(oy,...ys));ys.forEach(y=>d.line(bx,y,Cc.x+3,y));d.setFillColor(...AC);d.circle(bx,oy,.7,"F")}
+ /* leyenda */
+ d.setFontSize(6);d.setTextColor(...GR);d.text("Croquis orientativo generado a partir de la actuación guiada. Las etiquetas P# indican el paso donde se usa cada referencia. Cotejar siempre con el esquema de la posición.",x0+3,y0+H+3.5,{maxWidth:W-6});
+ return refs.length}
+
+/* --- generación del PDF A4 --- */
+async function iaGPdfIA(){
+ const g=$("#t_gui");const txt=g?g.value.trim():"";if(!txt){msg("Pega primero la actuación guiada");return}
+ const i=inc.find(x=>x.id==($("#t_sel")||{}).value)||{};
+ i.guiada=txt;i.def=($("#t_def")||{}).value?.trim()??i.def;i.com=($("#t_com")||{}).value?.trim()??i.com;try{sv("pbb_inc",inc)}catch(e){}
+ msg("Generando PDF A4…");
+ try{await cargaJsPDF()}catch(e){msg("No se pudo cargar el generador de PDF. Revisa la conexión");return}
+ const R=iaGParse(txt);const refs=iaGRefs(txt,R);
+ const {jsPDF}=window.jspdf;const d=new jsPDF({unit:"mm",format:"a4",orientation:"portrait"});
+ const W=210,Hp=297,M=14,CW=W-2*M,PR=[110,30,140],AC=[230,110,20],TX=[25,25,30],MU=[110,110,120];
+ let y=0;const ahora=new Date();const fh=ahora.toLocaleDateString("es-ES")+" "+ahora.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+ const cab=()=>{d.setFillColor(...PR);d.rect(0,0,W,20,"F");d.setFillColor(...AC);d.rect(0,20,W,1.4,"F");d.setTextColor(255,255,255);d.setFont("helvetica","bold");d.setFontSize(14);d.text("Instrucciones IA · Actuación guiada",M,9);d.setFont("helvetica","normal");d.setFontSize(9.5);
+  d.text(iaGTxt(`PBB ${i.pos||"-"} · ${i.tipo||"-"} · Nº orden ${i.orden||"-"}`),M,15.5);d.setFontSize(8);d.text("PBB TKE Barajas · "+fh,W-M,15.5,{align:"right"});y=28};
+ const pie=()=>{const n=d.getNumberOfPages();for(let p=1;p<=n;p++){d.setPage(p);d.setDrawColor(220,220,228);d.line(M,Hp-12,W-M,Hp-12);d.setFontSize(7);d.setTextColor(...MU);d.text(iaGTxt(`OT ${i.orden||"-"} · PBB ${i.pos||"-"} · ${i.tipo||"-"}`)+(i.tecnico?" · Técnico: "+iaGTxt(i.tecnico):"")+(i.turno?" · "+iaGTxt(i.turno):""),M,Hp-7);d.text(`Página ${p} de ${n}`,W-M,Hp-7,{align:"right"})}};
+ const nueva=need=>{if(y+need>Hp-16){d.addPage();cab()}};
+ const titulo=t=>{nueva(12);d.setFont("helvetica","bold");d.setFontSize(11);d.setTextColor(...PR);d.text(iaGTxt(t).toUpperCase(),M,y+4);d.setDrawColor(...AC);d.setLineWidth(.6);d.line(M,y+6,M+16,y+6);y+=10;d.setFont("helvetica","normal")};
+ const parrafo=(t,o={})=>{d.setFontSize(o.fs||9);d.setFont("helvetica",o.b?"bold":"normal");d.setTextColor(...(o.c||TX));const ls=d.splitTextToSize(iaGTxt(t),(o.w||CW)-(o.ind||0));ls.forEach(l=>{nueva(4.6);d.text(l,M+(o.ind||0),y+3.4);y+=4.3});y+=o.after??1.5};
+ cab();
+ /* datos de la avería */
+ d.setFillColor(246,243,251);const datos=[["Definición",i.def||"-"],["Comentario",i.com||"(sin comentario)"]];
+ let hD=6;datos.forEach(([k,v])=>{hD+=d.splitTextToSize(iaGTxt(v),CW-34).length*4.3+2});d.roundedRect(M,y,CW,hD,2,2,"F");let yy=y+5;
+ datos.forEach(([k,v])=>{d.setFont("helvetica","bold");d.setFontSize(8.5);d.setTextColor(...PR);d.text(k,M+4,yy+1);d.setFont("helvetica","normal");d.setTextColor(...TX);const ls=d.splitTextToSize(iaGTxt(v),CW-34);d.text(ls,M+30,yy+1,{lineHeightFactor:1.35});yy+=ls.length*4.3+2});y+=hD+5;
+ /* avisos de seguridad */
+ if(R.avisos.length){d.setFontSize(8.5);const ls=R.avisos.map(a=>d.splitTextToSize(iaGTxt(a),CW-14));const h=ls.reduce((s,l)=>s+l.length*4.2+1,7);nueva(h+4);
+  d.setFillColor(255,243,230);d.setDrawColor(...AC);d.setLineWidth(.5);d.roundedRect(M,y,CW,h,2,2,"FD");d.setFont("helvetica","bold");d.setTextColor(...AC);d.text("ATENCIÓN",M+4,y+5);d.setFont("helvetica","normal");d.setTextColor(...TX);let ya=y+9.5;
+  ls.forEach(l=>{d.setFillColor(...AC);d.circle(M+5.5,ya-1,.8,"F");d.text(l,M+8,ya);ya+=l.length*4.2+1});y+=h+5}
+ /* croquis */
+ if(refs.length){titulo("Croquis de elementos afectados");const nz=refs.length;const Hc=iaGCroquisAlto(refs);nueva(Hc+8);iaGCroquis(d,M,y,CW,Hc,refs);y+=Hc+8}
+ /* diagnóstico */
+ if(R.diag.length){titulo("Diagnóstico");R.diag.forEach(t=>{nueva(5);d.setFillColor(...PR);d.circle(M+1.5,y+2.3,.7,"F");parrafo(t,{ind:4,after:1})});y+=2}
+ /* pasos reordenados */
+ titulo("Actuación paso a paso");
+ if(!R.fases||!R.fases.length){parrafo("No se han encontrado pasos numerados en la actuación guiada. Se incluye el texto completo al final.",{c:MU})}
+ (R.fases||[]).forEach((f,fi)=>{nueva(14);d.setFillColor(240,234,248);d.rect(M,y,CW,6.5,"F");d.setFont("helvetica","bold");d.setFontSize(9);d.setTextColor(...PR);d.text(`FASE ${fi+1} · ${f.t.toUpperCase()}`,M+3,y+4.5);y+=9;
+  f.pasos.forEach(p=>{const txtp=(p.ctx?"["+iaGTxt(p.ctx)+"] ":"")+iaGTxt(p.t);d.setFontSize(9);const ls=d.splitTextToSize(txtp,CW-17);const sl=p.sub.map(s=>d.splitTextToSize(iaGTxt(s),CW-23));const h=ls.length*4.3+sl.reduce((s,l)=>s+l.length*4.1,0)+3;nueva(Math.min(h,40));
+   d.setFillColor(...PR);d.circle(M+4,y+2.6,3,"F");d.setTextColor(255,255,255);d.setFont("helvetica","bold");d.setFontSize(8.5);d.text(String(p.n),M+4,y+3.6,{align:"center"});
+   d.setDrawColor(...MU);d.setLineWidth(.3);d.rect(W-M-4,y+.4,3.6,3.6);/* casilla de verificación */
+   d.setFont("helvetica","normal");d.setFontSize(9);d.setTextColor(...TX);ls.forEach(l=>{nueva(4.5);d.text(l,M+10,y+3.6);y+=4.3});
+   sl.forEach(l=>{l.forEach((x,k)=>{nueva(4.3);if(!k){d.setFillColor(...AC);d.circle(M+12,y+2.4,.6,"F")}d.text(x,M+15,y+3.4);y+=4.1})});y+=2.4})});
+ /* resolución */
+ nueva(16);d.setFillColor(232,246,236);d.setDrawColor(60,150,90);d.setLineWidth(.4);d.roundedRect(M,y,CW,11,2,2,"FD");d.setFont("helvetica","bold");d.setFontSize(9);d.setTextColor(40,120,70);d.text("RESOLUCIÓN FINAL",M+4,y+4.6);d.setFont("helvetica","normal");d.setTextColor(...TX);d.setFontSize(8.5);d.text("Avería resuelta · prueba funcional correcta · anotar actuación y hora de cierre en la OT.",M+4,y+8.8);y+=16;
+ /* tablas de referencia */
+ R.tablas.forEach(tb=>{if(!tb.filas.length)return;titulo(tb.titulo.length>40?"Referencias":tb.titulo);const nc=Math.max(...tb.filas.map(f=>f.length));const cw=CW/nc;
+  tb.filas.forEach((f,fi)=>{d.setFontSize(7.4);d.setFont("helvetica",fi?"normal":"bold");const cells=Array.from({length:nc},(_,c)=>d.splitTextToSize(iaGTxt(f[c]||""),cw-2.4));const h=Math.max(...cells.map(c=>c.length))*3.4+2.4;nueva(h);
+   if(!fi){d.setFillColor(...PR);d.rect(M,y,CW,h,"F");d.setTextColor(255,255,255)}else{if(fi%2==0){d.setFillColor(248,246,252);d.rect(M,y,CW,h,"F")}d.setTextColor(...TX)}
+   cells.forEach((c,ci)=>d.text(c,M+ci*cw+1.2,y+3.3));d.setDrawColor(225,222,232);d.setLineWidth(.2);d.line(M,y+h,M+CW,y+h);y+=h});y+=5});
+ /* notas */
+ if(R.notas.length){titulo("Notas");R.notas.forEach(t=>parrafo(t,{fs:8.5,c:MU}))}
+ /* registro de campo */
+ nueva(34);titulo("Registro de la actuación");const cam=[["Hora de inicio",i.hIni],["Hora de llegada",i.hLle],["Hora de cierre",i.hCie],["Técnico",i.tecnico],["Elemento sustituido / reparado",""],["Firma",""]];
+ d.setFontSize(8.5);cam.forEach(([k,v],ci)=>{const cx=M+(ci%2)*(CW/2),cy=y+Math.floor(ci/2)*9;d.setTextColor(...MU);d.text(k,cx,cy+3);d.setDrawColor(200,200,210);d.line(cx+(k.length>16?48:30),cy+3.6,cx+CW/2-4,cy+3.6);if(v){d.setTextColor(...TX);d.text(iaGTxt(v),cx+(k.length>16?49:31),cy+2.8)}});y+=30;
+ pie();
+ const nom=`Instrucciones_IA_PBB${i.pos||""}_${i.tipo||""}_${i.orden||""}.pdf`.replace(/[^\w.\-]/g,"");
+ pMuestra(d.output("blob"),nom)}
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v59"}})();
 </script></body></html>
