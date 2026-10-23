@@ -195,9 +195,9 @@ function editar(id){const i=inc.find(x=>x.id==id);const o=(a,v)=>a.map(p=>`<opti
  <label>Hora final de cierre</label><input id="e_hc" type="time" value="${i.hCie||""}">
  <label>Actuación</label><textarea id="e_a" rows="2">${esc(i.act)}</textarea>
  <label>Observaciones</label><textarea id="e_o" rows="2">${esc(i.obs)}</textarea>
- <label>Estado</label><select id="e_est" onchange="if(this.value=='abierta'&&'${i.estado}'=='cerrada'){$('#e_hl').value='';$('#e_hc').value='';msg('Horas de llegada y cierre borradas: introdúcelas al resolver')}"><option value="abierta" ${i.estado=="abierta"?"selected":""}>Abierta</option><option value="cerrada" ${i.estado=="cerrada"?"selected":""}>Cerrada</option></select>
+ <label>Estado</label><select id="e_est" onchange="if(this.value=='abierta'&&'${i.estado}'=='cerrada'){$('#e_hl').value='';$('#e_hc').value='';$('#e_a').value='';$('#e_o').value='';msg('Reabierta: horas de llegada y cierre, actuación y observaciones borradas')}"><option value="abierta" ${i.estado=="abierta"?"selected":""}>Abierta</option><option value="cerrada" ${i.estado=="cerrada"?"selected":""}>Cerrada</option></select>
  <button class="pri" style="margin-top:14px" onclick="guardaEdit('${id}')">Guardar cambios</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
-function guardaEdit(id){const i=inc.find(x=>x.id==id);const reab=i.estado=="cerrada"&&$("#e_est").value=="abierta";Object.assign(i,{pos:$("#e_pos").value,tipo:$("#e_tipo").value,orden:$("#e_ord").value.trim(),rep:$("#e_rep").value.trim(),fecha:$("#e_f").value,desc:$("#e_d").value.trim(),hIni:$("#e_hi").value,hLle:$("#e_hl").value,hCie:$("#e_hc").value,act:$("#e_a").value.trim(),obs:$("#e_o").value.trim(),estado:$("#e_est").value});if(reab){i.hLle="";i.hCie=""}sv("pbb_inc",inc);closeSheet();render();msg(reab?"OT reabierta: horas de llegada y cierre borradas":"Registro actualizado")}
+function guardaEdit(id){const i=inc.find(x=>x.id==id);const reab=i.estado=="cerrada"&&$("#e_est").value=="abierta";Object.assign(i,{pos:$("#e_pos").value,tipo:$("#e_tipo").value,orden:$("#e_ord").value.trim(),rep:$("#e_rep").value.trim(),fecha:$("#e_f").value,desc:$("#e_d").value.trim(),hIni:$("#e_hi").value,hLle:$("#e_hl").value,hCie:$("#e_hc").value,act:$("#e_a").value.trim(),obs:$("#e_o").value.trim(),estado:$("#e_est").value});if(reab){i.hLle="";i.hCie="";i.act="";i.obs=""}sv("pbb_inc",inc);closeSheet();render();msg(reab?"OT reabierta: horas, actuación y observaciones borradas":"Registro actualizado")}
 function cerrar(id){
  const i=inc.find(x=>x.id==id);
  const ab=i.estado=="abierta",ya=ahora();
@@ -2146,4 +2146,5 @@ const esHZ=i=>!!i&&[i.tipo,...(i.equipos||[])].includes("HZ");
  window._hzO=o}})();
 function _hzSigue(id){if(window._hzO)window._hzO(id)}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v73"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v74"}})();
 </script></body></html>
