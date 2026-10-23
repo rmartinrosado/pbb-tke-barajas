@@ -1988,4 +1988,38 @@ async function camGuarda(id){const v=($("#cam_ip").value||"").trim();if(v&&!/^\d
  d.innerHTML=`<summary><b>📹 Cámaras RCS</b> <span class="mu" style="font-weight:400">(${CAMS.length})</span></summary><div id="g_cam">${camHTML()}</div>`;
  d.addEventListener("toggle",()=>{d.open?gAbierto.add("CAM"):gAbierto.delete("CAM")});seg.after(d)}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v64"}})();
+/* ===== v65: Cámaras RCS con la tabla TKE «Dispositivos y direcciones MAD-T4S rev.1» =====
+ Las IPs NO están en este código: se leen de Supabase (camaras_ip, solo con sesión). Aquí solo la correspondencia
+ nombre de la tabla TKE ↔ cámara del plano y la red. */
+(function(){const t={"ET-P2":"Cámara Ruedas Delantera PBB","IT-P2":"Cámara Interior Túnel Int.","ET-P3":"Cámara Interior Ronda","C-P4":"Cámara Frontal Cabina","C-P5":"Cámara Cabina Inf. Izq.","C-P3":"Cámara Cabina Superior","C-P1":"Cámara Cabina Derecha","SS-P1":"Cámara Escalera"};
+ CAMS.forEach(c=>c.t=t[c.id]);const ss=CAMS.find(c=>c.id=="SS-P1");if(ss)ss.d="Exterior, escalera de servicio (vigila motores del avión). Solo en las posiciones que la tienen en la tabla TKE.";
+ CAMS.splice(3,0,{id:"BR",n:"Bajo ronda (rotonda)",z:"TE",m:"—",c:"—",x:"—",t:"Cámara Bajo Ronda",d:"Exterior, bajo la rotonda. Figura en la tabla de direcciones TKE, no en el folio 95 de RCS PLANOS.",xy:[40,112]})})();
+const CAMPOS=[500,502,504,507,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,540,542,544,546,548,550,552,554,556,558,560,562,564,566,568,570,572,574,576,578,579,583,584,586];
+const CAMOTROS=[["PLC","PLC (armario E)"],["HMI","HMI · Magelis pupitre"],["ENC","Encoder rotonda"],["SW","Switch PoE E-V1"],["ANT","PLC anticolisión"]];
+let camDev={},camRed={};
+camLee=async function(pos){if(camIPpos===pos||camCarga)return;camCarga=true;camIP={};camDev={};
+ try{let r=await sb.from("camaras_ip").select("cam,ip,dev_id,nombre").eq("pos",pos);if(r.error)r=await sb.from("camaras_ip").select("cam,ip").eq("pos",pos);
+  (r.data||[]).forEach(x=>{camIP[x.cam]=x.ip;camDev[x.cam]=x});camIPpos=pos}catch(e){}
+ if(!camRed._ok){try{const r=await sb.from("red_pbb").select("clave,valor");if(!r.error){(r.data||[]).forEach(x=>camRed[x.clave]=x.valor);camRed._ok=1}}catch(e){}}
+ camCarga=false;camPinta()};
+const camHay=c=>!Object.keys(camIP).length||!!camIP[c.id]||!["SS-P1","BR"].includes(c.id);
+const camOrig=camHTML;
+camHTML=function(){const pos=camPosAct();if(camIPpos!==pos)camLee(pos);
+ const L=[...new Set([...POS.map(String),...CAMPOS.map(String)])].sort(ordPos);
+ const vis=CAMS.filter(camHay);
+ let h=`<label>Posición PBB</label><select onchange="camPos=this.value;camIPpos=null;camSel='';camPinta()">${L.map(p=>`<option ${p==pos?"selected":""}>${p}</option>`).join("")}</select>`;
+ h+=camSVG();
+ h+=`<div style="margin-top:10px">${vis.map(c=>{const i=CAMS.indexOf(c),z=CAMZ[c.z],ip=(camIP[c.id]||"").trim(),d=camDev[c.id];return `<button class="sec" onclick="camElige('${c.id}')" style="width:100%;display:flex;align-items:center;gap:8px;text-align:left;margin-top:6px;padding:8px;${c.id==camSel?`border-color:${z[1]};border-width:2px`:""}"><span style="flex:none;width:22px;height:22px;border-radius:50%;background:${z[1]};color:#fff;font-size:12px;font-weight:700;display:grid;place-content:center">${i+1}</span><span style="flex:1;min-width:0"><b style="font-size:13px">${esc(c.n)}</b><br><span class="mu" style="font-size:11px">${c.id=="BR"?"":"+"+c.id+" · "}${z[0]}${d&&d.dev_id?" · ID "+d.dev_id:""}</span></span><b style="font-size:12px;color:var(--pr);white-space:nowrap">${ip?esc(ip):"—"}</b></button>`}).join("")}</div>`;
+ h+=`<div id="cam_det">${camDet()}</div>`;
+ const otros=CAMOTROS.filter(o=>camIP[o[0]]);
+ if(otros.length)h+=`<label style="margin-top:12px">Otros equipos de la red de la PBB ${esc(pos)}</label><div style="display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:13px">${otros.map(o=>`<span>${o[1]}</span><b style="color:var(--pr)">${esc(camIP[o[0]])}</b>`).join("")}</div>`;
+ const ips=[...vis.map(c=>camIP[c.id]),...otros.map(o=>camIP[o[0]])].filter(Boolean);
+ if(ips.length){const all=`for %i in (${ips.join(" ")}) do @ping -n 1 -w 700 %i | find "TTL="`;
+  h+=`<label style="margin-top:12px">Comprobar toda la PBB ${esc(pos)} (CMD)</label><div style="display:flex;gap:6px"><code style="flex:1;min-width:0;padding:8px;border-radius:6px;background:#111;color:#7CFC9A;font-size:12px;overflow-x:auto;white-space:nowrap">${esc(all)}</code><button class="sec" style="width:auto;padding:6px 10px" onclick='camCopia(${JSON.stringify(all).replace(/'/g,"&#39;")})'>Copiar</button></div><div class="mu" style="font-size:11px;margin-top:4px">Muestra una línea «Respuesta desde … TTL=» por cada equipo que contesta: el que falte es el que no está en red.</div>`}
+ if(camRed.red)h+=`<div style="margin-top:12px;border:1px solid var(--bd);border-radius:8px;padding:8px;font-size:12px"><b>Red PBB T4S</b><div class="mu">Red ${esc(camRed.red)} · máscara 255.255.252.0 · gateway ${esc(camRed.gateway||"")}</div>${camRed.usuario?`<div style="margin-top:4px">Acceso equipos: usuario <b>${esc(camRed.usuario)}</b> (S mayúscula) · contraseña <b>${esc(camRed.clave||"")}</b> (con cero, termina en punto)</div>`:""}<div class="mu" style="font-size:11px;margin-top:4px">${esc(camRed.fuente||"")}</div></div>`;
+ else if(!Object.keys(camIP).length)h+=`<div class="mu" style="font-size:12px;margin-top:10px">Sin direcciones cargadas para esta posición.</div>`;
+ h+=`<div class="mu" style="font-size:11px;margin-top:10px">Alimentación: E-Q14 + E-K14 (folio 25, salida E-A0 «Sistema de vídeo») · switch E-V1 por E-Q18 (6 A 30 mA) y fuente 48 V E-X4.1 (folio 93). E-V1: X9 display Magelis CP-A1 · X10 PLC E-A0 · enlace al switch del CBTH.</div>`;
+ return h};
+(function(){const o=camDet;camDet=function(){let h=o();const c=CAMS.find(x=>x.id==camSel);if(c&&c.t)h=h.replace('<span class="mu">Modelo</span>',`<span class="mu">Tabla TKE</span><span>${esc(c.t)}${camDev[c.id]&&camDev[c.id].dev_id?" (ID "+camDev[c.id].dev_id+")":""}</span><span class="mu">Modelo</span>`);return h}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v65"}})();
 </script></body></html>
