@@ -2152,4 +2152,9 @@ function _hzSigue(id){if(window._hzO)window._hzO(id)}
 const SEG_HZ=[GUIA.seg[0],"Dejar el convertidor 400 Hz sin tensión: pulsar la seta de emergencia del convertidor o bajar la protección de alimentación del convertidor en el CBTH (bloquear y etiquetar).",GUIA.seg[6]];
 (function(){const o=vTec;vTec=function(){o();if(gTipo!="HZ")return;const ol=document.querySelector('details.gd[data-k="SEG"] ol.gol');if(ol)ol.innerHTML=SEG_HZ.map(x=>`<li>${esc(x)}</li>`).join("")}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v76"}})();
+/* ===== v77: papelera para borrar la Actuación de la OT ===== */
+function delAct(id){const i=inc.find(x=>x.id==id);if(!i||!i.act)return;if(!confirm(`¿Borrar la actuación de la OT ${i.orden||""}?`))return;i.act="";sv("pbb_inc",inc);render();msg("Actuación borrada")}
+(function(){const o=card;card=function(i){let h=o(i);if(!(tecnico||admin)||!i.act)return h;const a=`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`;
+ return h.replace(a,`<div class="gblq"><div class="mu" style="white-space:pre-wrap"><b>Actuación:</b> ${esc(i.act)}</div><div class="gblqf"><button class="sec gbdel" title="Borrar actuación" aria-label="Borrar actuación" onclick="delAct('${i.id}')">${IC('trash')}</button></div></div>`)}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v77"}})();
 </script></body></html>
