@@ -124,8 +124,8 @@ function resolver(id){
  const i=inc.find(x=>x.id==id);
  $("#sheetc").innerHTML=`<h3 style="margin:0">Resolución · PBB ${i.pos} (${i.tipo})</h3><div class="mu">Orden ${esc(i.orden)}</div>
  <label>Hora de inicio</label><input id="r_i" type="time" value="${i.hIni||""}">
- <label>Hora de llegada</label><input id="r_l" type="time" value="${i.hLle||ahora()}">
- <label>Hora final de cierre</label><input id="r_c" type="time" value="${i.hCie||ahora()}">
+ ${i.estado=="abierta"?`<input id="r_l" type="hidden" value="${i.hLle||""}"><input id="r_c" type="hidden" value="">`:`<label>Hora de llegada</label><input id="r_l" type="time" value="${i.hLle||""}">
+ <label>Hora final de cierre</label><input id="r_c" type="time" value="${i.hCie||""}">`}
  <label>Actuación</label><textarea id="r_a" rows="3">${esc(i.act)}</textarea>
  <label>Observaciones</label><textarea id="r_o" rows="2">${esc(i.obs)}</textarea>
  <button class="pri" style="margin-top:14px" onclick="cerrar('${id}')">Cerrar avería</button>
@@ -200,7 +200,8 @@ function editar(id){const i=inc.find(x=>x.id==id);const o=(a,v)=>a.map(p=>`<opti
 function guardaEdit(id){const i=inc.find(x=>x.id==id);const reab=i.estado=="cerrada"&&$("#e_est").value=="abierta";Object.assign(i,{pos:$("#e_pos").value,tipo:$("#e_tipo").value,orden:$("#e_ord").value.trim(),rep:$("#e_rep").value.trim(),fecha:$("#e_f").value,desc:$("#e_d").value.trim(),hIni:$("#e_hi").value,hLle:$("#e_hl").value,hCie:$("#e_hc").value,act:$("#e_a").value.trim(),obs:$("#e_o").value.trim(),estado:$("#e_est").value});if(reab){i.hLle="";i.hCie=""}sv("pbb_inc",inc);closeSheet();render();msg(reab?"OT reabierta: horas de llegada y cierre borradas":"Registro actualizado")}
 function cerrar(id){
  const i=inc.find(x=>x.id==id);
- Object.assign(i,{hIni:$("#r_i").value,hLle:$("#r_l").value,hCie:$("#r_c").value,act:$("#r_a").value.trim(),obs:$("#r_o").value.trim(),estado:"cerrada"});
+ const ab=i.estado=="abierta",ya=ahora();
+ Object.assign(i,{hIni:$("#r_i").value,hLle:$("#r_l").value||(ab?ya:""),hCie:ab?ya:$("#r_c").value,act:$("#r_a").value.trim(),obs:$("#r_o").value.trim(),estado:"cerrada"});
  sv("pbb_inc",inc);closeSheet();render();
 }
 function borrar(id){$("#sheetc").innerHTML=`<h3 style="margin:0">¿Eliminar incidencia?</h3><div class="mu">Esta acción no se puede deshacer.</div><button class="pri" style="margin-top:14px" onclick="delInc('${id}')">Eliminar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
@@ -1543,5 +1544,5 @@ const _insCierra53=insCierra;insCierra=function(){_insCierra53();insOv=false;ins
 function insMods(id){insOT(id);const o0=inc.find(x=>x.id==id);if(!o0||o0.tipo!="PAS")return;if(o0.tipo=="HZ"){gIAutoOT=gOT;gIAutoTxt=""}insTipo="PAS";insVerMods=true;if(!RUTAS[gIMod])gIMod="E-A9";const R=RUTAS[gIMod];if(R.s.length&&!R.s.some(x=>x.id==gISig))gISig=R.s[0].id;
  const c=$("#g_ins");if(c)c.innerHTML=gInsHTML();const t=document.querySelector(".insh b");if(t)t.textContent="Módulos PLC · inspección cable a cable"}
 (function(){const st=document.createElement("style");st.textContent=`.cacr .gplc svg{width:26px;height:26px}.cacts{flex-wrap:wrap}.cacr{flex-wrap:wrap;justify-content:flex-end}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v57"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v58"}})();
 </script></body></html>
