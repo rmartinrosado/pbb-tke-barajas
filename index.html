@@ -2133,4 +2133,17 @@ function guiHechos(i){const out=[];let sec="";
  if(!add.length)return;a.value=(cur.trim()?cur.trim()+"\n":"")+add.join("\n");a.rows=Math.min(12,Math.max(3,a.value.split("\n").length+1));
  const n=document.createElement("div");n.className="mu";n.style.cssText="font-size:12px;margin-top:4px";n.textContent=`Añadidos ${hs.length} paso(s) marcados en la actuación guiada. Puedes editarlos antes de cerrar.`;a.after(n)}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v72"}})();
+/* ===== v73: OT HZ → aviso de ACTUACIÓN INICIAL «COMPROBAR INSERCIÓN 90%» antes de la guía de campo ===== */
+const esHZ=i=>!!i&&[i.tipo,...(i.equipos||[])].includes("HZ");
+(function(){const o=insOT;insOT=function(id){const i=inc.find(x=>x.id==id);if(!esHZ(i)||esVideo(i)){o(id);return}
+ $("#sheetc").innerHTML=`<div style="text-align:center"><div style="font-size:40px;line-height:1">⚠️</div>
+ <div class="mu" style="margin-top:6px;font-weight:700;letter-spacing:.8px">ACTUACIÓN INICIAL</div>
+ <h2 style="margin:8px 0 6px;color:var(--ac);font-size:24px">COMPROBAR INSERCIÓN 90%</h2>
+ <div class="mu" style="font-size:13px">PBB ${esc(i.pos)} · OT ${esc(i.orden)}${i.desc?" · "+esc(i.desc):""}</div></div>
+ <div style="margin-top:12px;font-size:13px;border:1px solid var(--bd);border-radius:8px;padding:10px">Conector PDS 400 bien insertado en el avión: el interruptor de enclavamiento al 90 % (28 Vdc) debe cerrar. Si no está insertado a fondo, el convertidor no da salida y la PBB recibe «bloqueo 90 % conector» (E-A2 · 3 · 3).</div>
+ <button class="pri" style="width:100%;margin-top:14px" onclick="closeSheet();_hzSigue('${id}')">Comprobado · ir a la guía de campo</button>
+ <button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cerrar</button>`;$("#sheet").style.display="flex";
+ window._hzO=o}})();
+function _hzSigue(id){if(window._hzO)window._hzO(id)}
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v73"}})();
 </script></body></html>
