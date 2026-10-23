@@ -2118,4 +2118,8 @@ function tkYo(){const a=identificado()?`Estás identificado como <b>${esc(tecNom
  const bt=document.createElement("button");bt.type="button";bt.className="mopt tkme";bt.textContent=`${turno?"Turno "+turno:""}${tecNombre?" · "+tecNombre:""} ✎`;bt.onclick=tkYo;r1.appendChild(bt)}})();
 try{barra()}catch(e){}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v70"}})();
+/* ===== v71: en Operador y Técnico no se muestran en la cabecera los rótulos de acciones (solo en Administrador) ===== */
+(function(){const ob=barra;barra=function(){ob();const b=document.getElementById("mbar");if(!b||admin)return;const r=b.querySelector("#mrow2");if(r)r.remove()}})();
+try{barra()}catch(e){}
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v71"}})();
 </script></body></html>
