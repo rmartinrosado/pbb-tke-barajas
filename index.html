@@ -1892,4 +1892,28 @@ function ppBanner(pos){const o=document.querySelector(".insov .card");if(!o)retu
  gIPdf=(0,eval)("("+s.replace(/^async function gIPdf/,"async function")+")")}catch(e){console.warn("v61 gIPdf",e)}})();
 ppBase();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v61"}})();
+/* ===== v62: polímetro en OT de aire (AAP, AAR, AAC) → cierre de la OT con tipo de equipo y alarma ===== */
+const AIRE_T=["AAP","AAR","AAC"];
+function esAire(i){return !!i&&[i.tipo,...(i.equipos||[])].some(t=>AIRE_T.includes(t))}
+let acEq="",acAl=[];
+function aireCie(id){const i=inc.find(x=>x.id==id);if(!i)return;
+ if(acEq===""||aireCie._id!==id){acEq=i.aap||(AAP_EQ.includes(i.tipo)?i.tipo:"");acAl=[...(i.alarmas||[])];aireCie._id=id}
+ $("#sheetc").innerHTML=`<h3 style="margin:0">Cierre OT · PBB ${esc(i.pos)} (${esc(i.tipo)})</h3><div class="mu">Orden ${esc(i.orden)}${i.def?" · "+esc(i.def):""}</div>
+ <label>Tipo de equipo</label><div class="gchips">${AAP_EQ.map(k=>`<button class="${k==acEq?"pri":"sec"}" onclick="acEq='${k}';if(acEq!=='${esc(i.aap||"")}')acAl=[];aireCie('${id}')">${k}</button>`).join("")}</div>
+ ${acEq?`<label>Alarma asociada al aviso (${acEq})</label><div class="gst">${AAP_AL.map((x,xi)=>`<label class="gpaso"><input type="checkbox" ${acAl.includes(x)?"checked":""} onchange="acMarca(${xi},this.checked)"><span><b>${xi+1}.</b> ${esc(x)}</span></label>`).join("")}</div>`:`<div class="mu" style="margin-top:6px">Elige AAC o AAR para ver las alarmas.</div>`}
+ ${i.alarmas&&i.alarmas.length?`<div class="mu" style="margin-top:6px">Registrado: ${esc(i.aap||"")} · ${esc(i.alarmas.join(", "))}</div>`:""}
+ <button class="pri" style="margin-top:14px;width:100%" onclick="acGuarda('${id}',true)">Guardar y Cerrar / Resolver</button>
+ <button class="sec" style="width:100%;margin-top:8px" onclick="acGuarda('${id}',false)">Guardar alarma</button>
+ <button class="sec" style="width:100%;margin-top:8px" onclick="acEq='';closeSheet()">Cancelar</button>`;
+ $("#sheet").style.display="flex"}
+function acMarca(xi,v){const x=AAP_AL[xi];const a=acAl.filter(y=>y!==x);if(v)a.push(x);acAl=AAP_AL.filter(y=>a.includes(y))}
+function acGuarda(id,cerrarOT){const i=inc.find(x=>x.id==id);if(!i)return;
+ if(!acEq){msg("Elige el tipo de equipo: AAC o AAR");return}
+ if(!acAl.length){msg("Marca al menos una alarma");return}
+ i.aap=acEq;i.alarmas=[...acAl];const lin=`Alarma ${i.aap}: ${i.alarmas.join(", ")}`;
+ const l=(i.act||"").split("\n").filter(x=>!/^Alarma AA[CR]: /.test(x));l.push(lin);i.act=l.filter(x=>x.trim()).join("\n");
+ sv("pbb_inc",inc);acEq="";
+ if(cerrarOT){resolver(id)}else{closeSheet();render();msg(`Alarma guardada en la OT ${i.orden}`)}}
+(function(){const o=insOT;insOT=function(id){const i=inc.find(x=>x.id==id);if(esAire(i)){acEq="";aireCie(id);return}o(id)}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v62"}})();
 </script></body></html>
