@@ -2031,4 +2031,24 @@ async function camImporta(inp){const f=inp.files&&inp.files[0];if(!f)return;let 
  inp.value="";camIPpos=null;camPinta();msg(err?`Importadas ${ok}; error: ${err}`:`Importadas ${ok} direcciones`)}
 (function(){const o=camHTML;camHTML=function(){let h=o();if(admin)h+=`<label class="sec" style="display:block;text-align:center;margin-top:10px;padding:10px;cursor:pointer">Importar tabla de direcciones (.json)<input type="file" accept=".json,application/json" hidden onchange="camImporta(this)"></label>`;return h}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v66"}})();
+/* ===== v67: marcas de la hoja TKE (celdas en verde / amarillo y notas) ===== */
+const CAMMARCA=(()=>{const v="v",a="a",m={};const set=(p,l,c,n)=>{m[p]=m[p]||{};l.forEach(k=>m[p][k]=[c,n||""])};
+ set("550",["ET-P3","C-P5"],a);
+ set("552",["PLC","HMI","ET-P2","IT-P2","ET-P3","C-P4","C-P3","C-P1","SW"],v);set("552",["C-P5"],a);
+ set("554",["PLC","HMI","ET-P2","IT-P2","ET-P3","C-P4","C-P5","C-P3","C-P1","BR","SW","SS-P1"],v);
+ set("556",["PLC","HMI","ET-P2","IT-P2","ET-P3","C-P4","C-P5","C-P3","C-P1","BR","SW","SS-P1"],v);
+ set("562",["PLC","HMI","ET-P2","IT-P2","ET-P3","C-P4","C-P5","C-P3","C-P1","SW"],v);set("562",["BR"],a,"Nota en la hoja: «Cámara escalera»");
+ return m})();
+const CAMMC={v:["#2f9e6e","Marcada en verde en la hoja TKE"],a:["#e0b400","Marcada en amarillo en la hoja TKE"]};
+function camMarca(id){const m=(CAMMARCA[camPosAct()]||{})[id];return m?{c:CAMMC[m[0]][0],t:CAMMC[m[0]][1],n:m[1]}:null}
+const camBadge=id=>{const m=camMarca(id);return m?`<span title="${esc(m.t)}" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${m.c};margin-left:6px;vertical-align:middle;border:1px solid #0003"></span>`:""};
+(function(){const o=camHTML;camHTML=function(){let h=o();
+ CAMS.forEach(c=>{h=h.replace(`<b style="font-size:13px">${esc(c.n)}</b>`,`<b style="font-size:13px">${esc(c.n)}</b>${camBadge(c.id)}`)});
+ CAMOTROS.forEach(x=>{h=h.replace(`<span>${x[1]}</span>`,`<span>${x[1]}${camBadge(x[0])}</span>`)});
+ const M=CAMMARCA[camPosAct()];if(M){const nv=Object.values(M).filter(x=>x[0]=="v").length,na=Object.values(M).filter(x=>x[0]=="a").length;
+  h=h.replace(`<div style="margin-top:10px">`,`<div style="margin-top:8px;font-size:11px;display:flex;gap:12px;flex-wrap:wrap">${nv?`<span>${camBadge(Object.keys(M).find(k=>M[k][0]=="v"))} ${nv} en verde</span>`:""}${na?`<span>${camBadge(Object.keys(M).find(k=>M[k][0]=="a"))} ${na} en amarillo</span>`:""}<span class="mu">(marcas de la hoja TKE)</span></div><div style="margin-top:10px">`)}
+ return h}})();
+(function(){const o=camDet;camDet=function(){let h=o();const m=camSel&&camMarca(camSel);
+ if(m)if(camSel=="BR")h=h.replace("E-V1 (MikroTik CRS112) · puerto — PoE","E-V1 (MikroTik CRS112) · puerto sin documentar").replace("— (Cat.5e)","sin documentar en RCS PLANOS").replace("revisar PoE en E-V1 (—), cable — y","revisar PoE en E-V1, su cable y");h=h.replace('<span class="mu">Referencia</span>',`<span class="mu">Hoja TKE</span><span style="color:${m.c};font-weight:700">● ${esc(m.t.replace(" en la hoja TKE",""))}${m.n?`<br><span style="font-weight:400;color:var(--tx)">${esc(m.n)}</span>`:""}</span><span class="mu">Referencia</span>`);return h}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v67"}})();
 </script></body></html>
