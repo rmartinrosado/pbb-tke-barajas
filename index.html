@@ -2148,4 +2148,8 @@ function _hzSigue(id){if(window._hzO)window._hzO(id)}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v73"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v74"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v75"}})();
+/* ===== v76: Seguridad específica en la guía de campo HZ ===== */
+const SEG_HZ=[GUIA.seg[0],"Dejar el convertidor 400 Hz sin tensión: pulsar la seta de emergencia del convertidor o bajar la protección de alimentación del convertidor en el CBTH (bloquear y etiquetar).",GUIA.seg[6]];
+(function(){const o=vTec;vTec=function(){o();if(gTipo!="HZ")return;const ol=document.querySelector('details.gd[data-k="SEG"] ol.gol');if(ol)ol.innerHTML=SEG_HZ.map(x=>`<li>${esc(x)}</li>`).join("")}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v76"}})();
 </script></body></html>
