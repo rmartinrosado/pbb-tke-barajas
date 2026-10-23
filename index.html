@@ -53,7 +53,7 @@ addEventListener("load",function(){setTimeout(__diag,4000)});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>')</script>
-<script src="cableado.js?v=55"></script>
+<script src="cableado.js?v=56"></script>
 <script>
 let POS=[500,502,504,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,538,539,540,542,544,546,548,550];
 const TIPOS=["PAS","AAA","AAP","HZ","Sigma"];
@@ -89,7 +89,7 @@ function card(i){
  <div class="mu">Inicio ${i.hIni||"–"}${ab?"":` · Llegada ${i.hLle||"–"} · Cierre ${i.hCie||"–"}`}</div>
  ${i.aap?`<div class="mu"><b>Equipo AAP:</b> ${esc(i.aap)}${i.alarmas&&i.alarmas.length?` · <b>Alarma:</b> ${esc(i.alarmas.join(", "))}`:""}</div>`:""}${i.def?`<div class="mu"><b>Definición:</b> ${esc(i.def)}</div>`:""}${i.com?`<div class="mu"><b>Comentario:</b> ${esc(i.com)}</div>`:""}<div class="gfrow">${i.guiada?`<details style="margin-top:6px" ${guiAb.has(i.id)?"open":""} ontoggle="togGui('${i.id}',this.open)"><summary class="sec" style="display:inline-block;padding:8px 14px;cursor:pointer;font-weight:600">Actuación guiada</summary><div style="margin-top:8px">${guiBloques(i)}</div></details>`:""}</div>${i.plc?`<img src="${i.plc}" alt="PLC" style="width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:6px">`:""}${i.act?`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`:""}${i.obs?`<div class="mu"><b>Obs.:</b> ${esc(i.obs)}</div>`:""}
  ${ab&&(tecnico||admin)&&view!="dash"?`<button class="pri" style="padding:9px;width:100%;margin-top:8px" onclick="resolver('${i.id}')">Cerrar / Resolver</button>`:""}
- <div class="cacts"><span class="cacl">${admin||tecnico?`<button class="sec" onclick="editar('${i.id}')">Editar</button>`:""}${admin?`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`:""}</span><span class="cacr">${view=="track"?`${ab?`<button class="sec gwr" title="Inspección cable a cable" aria-label="Inspección cable a cable de esta OT" onclick="insOT('${i.id}')">${IC('mult')}</button>${i.tipo=="PAS"||i.tipo=="HZ"?`<button class="sec gwr gplc" title="Módulos PLC" aria-label="Módulos PLC de esta OT" onclick="insMods('${i.id}')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="${P.plc}"/></svg></button>`:""}`:""}${(tecnico||admin)&&i.tipo=="PAS"?`${i.plc?`<button class="sec gdl2" title="Borrar foto PLC" aria-label="Borrar foto PLC" onclick="delOT('${i.id}')">${IC('trash')}</button>`:""}<button class="sec gfb2" onclick="gFotoOT('${i.id}')">${IC('cam')}FOTO PLC</button>`:""}`:""}</span></div></div>`;
+ <div class="cacts"><span class="cacl">${admin||tecnico?`<button class="sec" onclick="editar('${i.id}')">Editar</button>`:""}${admin?`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`:""}</span><span class="cacr">${view=="track"?`${ab?`<button class="sec gwr" title="Inspección cable a cable" aria-label="Inspección cable a cable de esta OT" onclick="insOT('${i.id}')">${IC('mult')}</button>${i.tipo=="PAS"?`<button class="sec gwr gplc" title="Módulos PLC" aria-label="Módulos PLC de esta OT" onclick="insMods('${i.id}')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="${P.plc}"/></svg></button>`:""}`:""}${(tecnico||admin)&&i.tipo=="PAS"?`${i.plc?`<button class="sec gdl2" title="Borrar foto PLC" aria-label="Borrar foto PLC" onclick="delOT('${i.id}')">${IC('trash')}</button>`:""}<button class="sec gfb2" onclick="gFotoOT('${i.id}')">${IC('cam')}FOTO PLC</button>`:""}`:""}</span></div></div>`;
 }
 function vDash(){
  const ab=inc.filter(i=>i.estado=="abierta"),ce=inc.length-ab.length;
@@ -1431,14 +1431,14 @@ function cConexT(S){const out=[];for(let i=0;i<S.p.length-1;i++){const a=S.p[i],
 
 /* ===== v53: botón polímetro de la OT → inspección cable a cable directa según los planos del equipo =====
  PAS: si la OT identifica la señal, se abre directamente su ruta (sin la rejilla de módulos PLC; «Cambiar señal» la muestra).
- HZ: rutas cable a cable del mando del conector 400 Hz según el plano PDS 400 (botones, pilotos, interruptor 90 %, sondas PTC).
+ HZ: rutas cable a cable del mando del conector 400 Hz según el plano PDS CONECTOR (botones, pilotos, interruptor 90 %, sondas PTC).
  Otros equipos sin rutas en planos: aviso y acceso a la guía de campo. */
 const HZUBI={
- MANDO:{c:"Mando",n:"Frontal del mando del conector PDS 400",k:"#2e7d32"},
+ MANDO:{c:"Mando",n:"Frontal del mando del conector PDS CONECTOR",k:"#2e7d32"},
  REG:{c:"Regleta 24",n:"Regleta de la manguera de 24 hilos (caja del mando)",k:"#6c1daa"},
  MAN:{c:"Manguera 24",n:"Manguera de 24 conductores (recogedor / cesta)",k:"#ef6c00"},
  CONV:{c:"Convertidor",n:"Convertidor 400 Hz · bornas de mando",k:"#455a64"},
- CON:{c:"Conector",n:"Conector de avión PDS 400 (pines de potencia y control)",k:"#00838f"},
+ CON:{c:"Conector",n:"Conector de avión PDS CONECTOR (pines de potencia y control)",k:"#00838f"},
  PBB:{c:"AE PBB",n:"Armario eléctrico E de la pasarela",k:"#8d6e63"}};
 const HZCOM={p:"Común: hilo 9 ↔ hilo 24 en la regleta (unidos en el plano)",e:"≈0 Ω",x:"Común 9/24 cortado o pin flojo: falla también el resto de botones, pilotos e interruptor 90 %.",u:["REG"]};
 function hzBoton(id,n,col,h,hu){return {id,t:`Botón ${n} (${col}) del mando`,r:`Botón ${n}: hilo ${h} (unido al ${hu}) ↔ común hilo 9 (unido al 24). Cables del botón en azul (BL).`,
@@ -1490,13 +1490,13 @@ let insOv=false,insTipo="PAS",insVerMods=false,hzSig="",hzAutoTxt="";
 function hzS(){return HZRUT.find(x=>x.id==hzSig)}
 function hzUbiHTML(q){const zs=q.u||["REG"];return `<span class="gubi">${zs.map(k=>`<span class="gubc" style="--uk:${HZUBI[k].k}">📍 ${esc(HZUBI[k].c)}</span>`).join("")}<span class="gubn">${esc(zs.map(k=>HZUBI[k].n).join(" · "))}</span></span>`}
 function hzInsHTML(){const S=hzS();
- let h=`<div class="mu" style="font-size:12px;margin:6px 0">Ruta de medida desde el plano PDS 400 (mando del conector 400 Hz). Compruébala siempre con el plano.</div>`;
+ let h=`<div class="mu" style="font-size:12px;margin:6px 0">Ruta de medida desde el plano PDS CONECTOR (mando del conector 400 Hz). Compruébala siempre con el plano.</div>`;
  if(hzAutoTxt&&S)h+=`<div class="gav" style="border-left-color:var(--pr)">${esc(hzAutoTxt)}</div>`;
  if(!S||insVerMods)h+=`<label>Elemento del mando</label><div class="gst">${HZRUT.map(x=>`<button class="${S&&x.id==S.id?"pri":"sec"}" style="width:100%;text-align:left;margin:3px 0" onclick="hzSig='${x.id}';gIMod='HZ';gISig='${x.id}';hzAutoTxt='';insVerMods=false;gPintaIns()">${esc(x.t)}</button>`).join("")}</div>`;
  if(!S)return h;
  const res=gIRes[gIKey()]||[];const nok=S.p.findIndex((_,i)=>res[i]&&res[i].ok===false);
  const seq=[];S.p.forEach(q=>(q.u||[]).forEach(k=>{if(seq[seq.length-1]!=k)seq.push(k)}));
- h+=`<div class="insdirh"><div><b>${esc(S.t)}</b><div class="mu" style="font-size:12px">HZ · plano PDS 400</div></div>${insVerMods?"":`<button class="sec" onclick="insVerMods=true;gPintaIns()">Cambiar</button>`}</div>
+ h+=`<div class="insdirh"><div><b>${esc(S.t)}</b><div class="mu" style="font-size:12px">HZ · plano PDS CONECTOR</div></div>${insVerMods?"":`<button class="sec" onclick="insVerMods=true;gPintaIns()">Cambiar</button>`}</div>
  <div class="gav">${esc(S.r)}</div><div class="grec"><b>Recorrido:</b> ${seq.map(k=>`<span class="gubc" style="--uk:${HZUBI[k].k}">${esc(HZUBI[k].c)}</span>`).join(" → ")}</div><div class="mu" style="font-size:12px">${esc(S.ref)}</div>
  ${nok>=0?`<div class="gav" style="border-left-color:#c62828;background:color-mix(in srgb,#c62828 12%,transparent)"><b>Fallo localizado en el paso ${nok+1}:</b> ${esc(S.p[nok].x)}${nok>0?` (el paso ${nok} estaba bien).`:""}</div>`:""}
  <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br>${hzUbiHTML(q)}<small class="mu">Esperado: ${esc(q.e)}</small>
@@ -1539,8 +1539,8 @@ const _insCierra53=insCierra;insCierra=function(){_insCierra53();insOv=false;ins
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v53"}})();
 
 /* ===== v54: botón «Módulos PLC» en la tarjeta OT, junto al polímetro: abre la inspección con la rejilla de módulos ===== */
-function insMods(id){insOT(id);const o0=inc.find(x=>x.id==id);if(!o0||(o0.tipo!="PAS"&&o0.tipo!="HZ"))return;if(o0.tipo=="HZ"){gIAutoOT=gOT;gIAutoTxt=""}insTipo="PAS";insVerMods=true;if(!RUTAS[gIMod])gIMod="E-A9";const R=RUTAS[gIMod];if(R.s.length&&!R.s.some(x=>x.id==gISig))gISig=R.s[0].id;
+function insMods(id){insOT(id);const o0=inc.find(x=>x.id==id);if(!o0||o0.tipo!="PAS")return;if(o0.tipo=="HZ"){gIAutoOT=gOT;gIAutoTxt=""}insTipo="PAS";insVerMods=true;if(!RUTAS[gIMod])gIMod="E-A9";const R=RUTAS[gIMod];if(R.s.length&&!R.s.some(x=>x.id==gISig))gISig=R.s[0].id;
  const c=$("#g_ins");if(c)c.innerHTML=gInsHTML();const t=document.querySelector(".insh b");if(t)t.textContent="Módulos PLC · inspección cable a cable"}
 (function(){const st=document.createElement("style");st.textContent=`.cacr .gplc svg{width:26px;height:26px}.cacts{flex-wrap:wrap}.cacr{flex-wrap:wrap;justify-content:flex-end}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v55"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v56"}})();
 </script></body></html>
