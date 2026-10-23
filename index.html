@@ -53,7 +53,7 @@ addEventListener("load",function(){setTimeout(__diag,4000)});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>')</script>
-<script src="cableado.js?v=53"></script>
+<script src="cableado.js?v=54"></script>
 <script>
 let POS=[500,502,504,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,538,539,540,542,544,546,548,550];
 const TIPOS=["PAS","AAA","AAP","HZ","Sigma"];
@@ -71,6 +71,7 @@ const ahora=()=>{const d=new Date();return String(d.getHours()).padStart(2,"0")+
 function toggleModo(){admin=false;closeSheet();if(!tecnico){render();pedirTec();return}setO();return;view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
 function go(v,f){view=v;if(f)filtro=f;render();scrollTo(0,0)}
 const P={home:'M3 11l9-8 9 8v10H3z',plus:'M12 5v14M5 12h14',list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',plans:'M4 4h16v16H4zM4 9h16M9 9v11',mult:'M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM8.5 4.5h7v4h-7zM12 11a3 3 0 1 0 0 6a3 3 0 1 0 0-6M12 14l1.6-1.6M9 20h.01M15 20h.01',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.2-.5-.5-2.2z',check:'M5 12l5 5 9-10'};
+P.plc='M4.5 2.5h15a2.5 2.5 0 0 1 2.5 2.5v14a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 19V5a2.5 2.5 0 0 1 2.5-2.5zM5 5.5h14v7.5H5zM7 11.3V7.2h1.3a1.05 1.05 0 0 1 0 2.1H7M10.6 7.2v4.1h1.8M17.2 7.7a2 2 0 1 0 0 3.1M5 15.8h3.4v2.7H5zM10.3 15.8h3.4v2.7h-3.4zM15.6 15.8H19v2.7h-3.4z';
 const IC=k=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${P[k]}"/></svg>`;
 function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||admin))||(view=="tec"&&!(tecnico||admin)))view="dash";
  $("#modo").classList.toggle("on",tecnico);$("#mo").classList.toggle("on",!tecnico&&!admin);$("#adm").classList.toggle("on",admin);
@@ -88,7 +89,7 @@ function card(i){
  <div class="mu">Inicio ${i.hIni||"–"}${ab?"":` · Llegada ${i.hLle||"–"} · Cierre ${i.hCie||"–"}`}</div>
  ${i.aap?`<div class="mu"><b>Equipo AAP:</b> ${esc(i.aap)}${i.alarmas&&i.alarmas.length?` · <b>Alarma:</b> ${esc(i.alarmas.join(", "))}`:""}</div>`:""}${i.def?`<div class="mu"><b>Definición:</b> ${esc(i.def)}</div>`:""}${i.com?`<div class="mu"><b>Comentario:</b> ${esc(i.com)}</div>`:""}<div class="gfrow">${i.guiada?`<details style="margin-top:6px" ${guiAb.has(i.id)?"open":""} ontoggle="togGui('${i.id}',this.open)"><summary class="sec" style="display:inline-block;padding:8px 14px;cursor:pointer;font-weight:600">Actuación guiada</summary><div style="margin-top:8px">${guiBloques(i)}</div></details>`:""}</div>${i.plc?`<img src="${i.plc}" alt="PLC" style="width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:6px">`:""}${i.act?`<div class="mu"><b>Actuación:</b> ${esc(i.act)}</div>`:""}${i.obs?`<div class="mu"><b>Obs.:</b> ${esc(i.obs)}</div>`:""}
  ${ab&&(tecnico||admin)&&view!="dash"?`<button class="pri" style="padding:9px;width:100%;margin-top:8px" onclick="resolver('${i.id}')">Cerrar / Resolver</button>`:""}
- <div class="cacts"><span class="cacl">${admin||tecnico?`<button class="sec" onclick="editar('${i.id}')">Editar</button>`:""}${admin?`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`:""}</span><span class="cacr">${view=="track"?`${ab?`<button class="sec gwr" title="Inspección cable a cable" aria-label="Inspección cable a cable de esta OT" onclick="insOT('${i.id}')">${IC('mult')}</button>`:""}${(tecnico||admin)&&i.tipo=="PAS"?`${i.plc?`<button class="sec gdl2" title="Borrar foto PLC" aria-label="Borrar foto PLC" onclick="delOT('${i.id}')">${IC('trash')}</button>`:""}<button class="sec gfb2" onclick="gFotoOT('${i.id}')">${IC('cam')}FOTO PLC</button>`:""}`:""}</span></div></div>`;
+ <div class="cacts"><span class="cacl">${admin||tecnico?`<button class="sec" onclick="editar('${i.id}')">Editar</button>`:""}${admin?`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`:""}</span><span class="cacr">${view=="track"?`${ab?`<button class="sec gwr" title="Inspección cable a cable" aria-label="Inspección cable a cable de esta OT" onclick="insOT('${i.id}')">${IC('mult')}</button><button class="sec gwr gplc" title="Módulos PLC" aria-label="Módulos PLC de esta OT" onclick="insMods('${i.id}')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="${P.plc}"/></svg></button>`:""}${(tecnico||admin)&&i.tipo=="PAS"?`${i.plc?`<button class="sec gdl2" title="Borrar foto PLC" aria-label="Borrar foto PLC" onclick="delOT('${i.id}')">${IC('trash')}</button>`:""}<button class="sec gfb2" onclick="gFotoOT('${i.id}')">${IC('cam')}FOTO PLC</button>`:""}`:""}</span></div></div>`;
 }
 function vDash(){
  const ab=inc.filter(i=>i.estado=="abierta"),ce=inc.length-ab.length;
@@ -1536,4 +1537,10 @@ insOT=function(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;gIAutoOT=nu
 const _insCierra53=insCierra;insCierra=function(){_insCierra53();insOv=false;insTipo="PAS";insVerMods=false;gIMod=RUTAS[gIMod]?gIMod:"E-A9";if(!RUTAS[gIMod].s.some(x=>x.id==gISig)&&RUTAS[gIMod].s.length)gISig=RUTAS[gIMod].s[0].id;if(view=="tec")try{vTec()}catch(e){}};
 (function(){const st=document.createElement("style");st.textContent=`.insdirh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 4px;padding:8px 10px;border:1px solid var(--pr);border-radius:10px}.insdirh button{width:auto;padding:6px 12px;white-space:nowrap}`;document.head.appendChild(st)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v53"}})();
+
+/* ===== v54: botón «Módulos PLC» en la tarjeta OT, junto al polímetro: abre la inspección con la rejilla de módulos ===== */
+function insMods(id){insOT(id);const o0=inc.find(x=>x.id==id);if(o0&&o0.tipo!="PAS"&&!(o0.equipos||[]).includes("PAS")){gIAutoOT=gOT;gIAutoTxt=""}insTipo="PAS";insVerMods=true;if(!RUTAS[gIMod])gIMod="E-A9";const R=RUTAS[gIMod];if(R.s.length&&!R.s.some(x=>x.id==gISig))gISig=R.s[0].id;
+ const c=$("#g_ins");if(c)c.innerHTML=gInsHTML();const t=document.querySelector(".insh b");if(t)t.textContent="Módulos PLC · inspección cable a cable"}
+(function(){const st=document.createElement("style");st.textContent=`.cacr .gplc svg{width:26px;height:26px}.cacts{flex-wrap:wrap}.cacr{flex-wrap:wrap;justify-content:flex-end}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v54"}})();
 </script></body></html>
