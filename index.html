@@ -2022,4 +2022,13 @@ camHTML=function(){const pos=camPosAct();if(camIPpos!==pos)camLee(pos);
  return h};
 (function(){const o=camDet;camDet=function(){let h=o();const c=CAMS.find(x=>x.id==camSel);if(c&&c.t)h=h.replace('<span class="mu">Modelo</span>',`<span class="mu">Tabla TKE</span><span>${esc(c.t)}${camDev[c.id]&&camDev[c.id].dev_id?" (ID "+camDev[c.id].dev_id+")":""}</span><span class="mu">Modelo</span>`);return h}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v65"}})();
+/* ===== v66: importación (administrador) de la tabla de direcciones TKE a camaras_ip ===== */
+async function camImporta(inp){const f=inp.files&&inp.files[0];if(!f)return;let a;
+ try{a=JSON.parse(await f.text())}catch(e){msg("Archivo no válido");return}
+ const rows=(a.rows||a).map(r=>Array.isArray(r)?{pos:String(r[0]),cam:r[1],ip:r[4]||r[2]}:{pos:String(r.pos),cam:r.cam,ip:r.ip}).filter(r=>r.pos&&r.cam&&/^\d{1,3}(\.\d{1,3}){3}$/.test(r.ip||""));
+ if(!rows.length){msg("El archivo no trae direcciones");return}
+ let ok=0,err="";for(let i=0;i<rows.length;i+=100){const r=await sb.from("camaras_ip").upsert(rows.slice(i,i+100).map(x=>Object.assign(x,{updated_at:new Date().toISOString()})));if(r.error){err=r.error.message;break}ok+=Math.min(100,rows.length-i)}
+ inp.value="";camIPpos=null;camPinta();msg(err?`Importadas ${ok}; error: ${err}`:`Importadas ${ok} direcciones`)}
+(function(){const o=camHTML;camHTML=function(){let h=o();if(admin)h+=`<label class="sec" style="display:block;text-align:center;margin-top:10px;padding:10px;cursor:pointer">Importar tabla de direcciones (.json)<input type="file" accept=".json,application/json" hidden onchange="camImporta(this)"></label>`;return h}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v66"}})();
 </script></body></html>
