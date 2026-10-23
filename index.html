@@ -2063,4 +2063,59 @@ function camAbreOT(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;camPos=
 (function(){const o=insOT;insOT=function(id){const i=inc.find(x=>x.id==id);if(esVideo(i)){camAbreOT(id);return}o(id)}})();
 (function(){const o=card;card=function(i){let h=o(i);if(esVideo(i))h=h.replace(/<button class="sec gdl2"[^>]*>[\s\S]*?<\/button>/,"").replace(/<button class="sec gfb2"[^>]*>[\s\S]*?FOTO PLC<\/button>/,"").replace('title="Inspección cable a cable"','title="Cámaras RCS"').replace('aria-label="Inspección cable a cable de esta OT"','aria-label="Cámaras RCS de esta OT"');return h}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v69"}})();
+/* ===== v70: alta rápida de técnicos (check por turno), edición y botón de técnico en la cabecera ===== */
+const TURNOS=["Mañana","Tarde","Noche"];
+let tkTur=new Set(),tkEdit=null;
+(function(){const st=document.createElement("style");st.textContent=`.tkch{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}.tkch button{font:inherit;font-size:14px;font-weight:600;padding:12px 4px;border-radius:8px;border:2px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}.tkch button.on{border-color:var(--pr);background:var(--pr);color:#fff}.tkst{display:inline-grid;place-content:center;width:20px;height:20px;border-radius:50%;background:var(--pr);color:#fff;font-size:12px;margin-right:6px}.tkmini{display:flex;gap:4px;flex-wrap:wrap}.tkmini button{font:inherit;font-size:11px;padding:4px 8px;border-radius:12px;border:1px solid var(--pr);background:transparent;color:var(--tx);cursor:pointer}.tkmini button.on{background:var(--pr);color:#fff}button.mopt.tkme{color:var(--tx);border-color:var(--pr);font-weight:600}`;document.head.appendChild(st)})();
+function tkGrupos(){const r=window._tecAll||{data:[]},g=new Map();for(const x of (r.data||[])){const k=claveN(x.nombre);if(!k)continue;if(!g.has(k))g.set(k,{k,n:String(x.nombre).trim(),l:[]});g.get(k).l.push(x)}return [...g.values()].sort((a,b)=>a.n.localeCompare(b.n,"es"))}
+function tkCod(){const c=String(Math.floor(1000+Math.random()*9000));const i=$("#g_c");if(i){i.type="text";i.value=c}}
+function tkTog(t){tkTur.has(t)?tkTur.delete(t):tkTur.add(t);document.querySelectorAll("#tk_t button").forEach(b=>{const on=tkTur.has(b.dataset.t);b.classList.toggle("on",on);b.textContent=(on?"✓ ":"")+b.dataset.t})}
+gesTec=async function(){if(!admin)return;
+ $("#sheetc").innerHTML=`<h3 style="margin:0">Técnicos</h3><div class="mu" style="margin-top:8px">Cargando…</div>`;$("#sheet").style.display="flex";
+ window._tecAll=await listaTec();tkTur=new Set([turno||"Mañana"].filter(t=>TURNOS.includes(t)));tkEdit=null;tkPinta()};
+function tkPinta(){const gs=tkGrupos();
+ let h=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">${tkEdit?"Editar técnico":"Alta de técnico"}</h3><button class="sec" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>`;
+ const e=tkEdit&&gs.find(g=>g.k==tkEdit);
+ h+=`<label><span class="tkst">1</span>¿Nombre del técnico?</label><input id="g_n" list="tk_nl" autocomplete="off" placeholder="Escribe o elige" value="${e?esc(e.n):""}" ${e?"":'oninput="tkNombre(this.value)"'}><datalist id="tk_nl">${gs.map(g=>`<option value="${esc(g.n)}">`).join("")}</datalist><div id="tk_av" class="mu" style="font-size:12px;margin-top:4px"></div>
+ <label><span class="tkst">2</span>¿En qué turnos trabaja? (marca uno o varios)</label><div class="tkch" id="tk_t">${TURNOS.map(t=>`<button type="button" data-t="${t}" class="${tkTur.has(t)?"on":""}" onclick="tkTog('${t}')">${tkTur.has(t)?"✓ ":""}${t}</button>`).join("")}</div>
+ <label><span class="tkst">3</span>${e?"Nuevo código (vacío = mantener)":"¿Código de acceso? (mín. 4)"}</label><div style="display:flex;gap:6px"><input id="g_c" type="password" inputmode="numeric" autocomplete="new-password"><button class="sec" style="width:auto;padding:6px 12px" onclick="tkCod()">Generar</button></div>
+ <button class="pri" style="margin-top:14px;width:100%" onclick="${e?`tkGuarda('${esc(e.k)}')`:"tkAlta()"}">${e?"Guardar cambios":"Dar de alta"}</button>
+ ${e?`<button class="sec" style="width:100%;margin-top:8px" onclick="tkEdit=null;tkTur=new Set(['Mañana']);tkPinta()">Cancelar edición</button>`:""}`;
+ h+=`<label style="margin-top:18px">Técnicos dados de alta (${gs.length})</label>`+(gs.length?gs.map(g=>{const ts=new Set(g.l.map(x=>x.turno));return `<div style="border:1px solid var(--bd);border-radius:8px;padding:8px;margin-top:6px"><div class="row" style="flex-wrap:nowrap;gap:6px"><b style="overflow-wrap:anywhere">${esc(g.n)}</b><button class="sec" style="width:auto;padding:4px 10px" data-k="${esc(g.k)}" onclick="tkEditar(this.dataset.k)">✎ Editar</button></div><div class="tkmini" style="margin-top:6px">${TURNOS.map(t=>`<button class="${ts.has(t)?"on":""}" data-k="${esc(g.k)}" onclick="tkTurno(this.dataset.k,'${t}')">${ts.has(t)?"✓ ":""}${t}</button>`).join("")}</div></div>`}).join(""):`<div class="mu">Sin técnicos dados de alta</div>`);
+ $("#sheetc").innerHTML=h;if(!e)tkNombre("")}
+function tkNombre(v){const d=$("#tk_av");if(!d)return;const g=tkGrupos().find(x=>x.k==claveN(v));
+ d.innerHTML=g?`Ya existe en: ${esc(g.l.map(x=>x.turno).join(", "))}. Se añadirán los turnos marcados que falten (código vacío = el mismo).`:""}
+async function tkAlta(){const n=$("#g_n").value.trim().replace(/\s+/g," "),c=$("#g_c").value.trim();const ts=[...tkTur];
+ if(!n){msg("Escribe el nombre");return}if(!ts.length){msg("Marca al menos un turno");return}
+ const g=tkGrupos().find(x=>x.k==claveN(n));let cod=c;
+ if(!cod&&g){const r=await sb.from("tecnicos").select("codigo").eq("id",g.l[0].id).maybeSingle();cod=r.data&&r.data.codigo}
+ if(!cod||String(cod).length<4){msg("Código de al menos 4 caracteres (o pulsa Generar)");return}
+ const nuevos=ts.filter(t=>!(g&&g.l.some(x=>x.turno==t)));if(!nuevos.length){msg("Ya está dado de alta en esos turnos");return}
+ const r=await sb.from("tecnicos").insert(nuevos.map(t=>({nombre:g?g.n:n,turno:t,codigo:cod}))).select("id");
+ if(r.error||!r.data||!r.data.length){msg("No se pudo dar de alta: "+((r.error&&r.error.message)||"sin permiso"));return}
+ msg(`${g?g.n:n} · ${nuevos.join(", ")}${c?" · código "+c:""}`);window._tecAll=await listaTec();tkPinta()}
+function tkEditar(k){const g=tkGrupos().find(x=>x.k==k);if(!g)return;tkEdit=k;tkTur=new Set(g.l.map(x=>x.turno));tkPinta();$("#sheetc").scrollTop=0}
+async function tkGuarda(k){const g=tkGrupos().find(x=>x.k==k);if(!g)return;const n=$("#g_n").value.trim().replace(/\s+/g," "),c=$("#g_c").value.trim(),ts=[...tkTur];
+ if(!n){msg("Escribe el nombre");return}if(!ts.length){msg("Marca al menos un turno (o elimina el técnico quitando todos desde la lista)");return}if(c&&c.length<4){msg("Código mínimo 4 caracteres");return}
+ let cod=c;if(!cod){const r=await sb.from("tecnicos").select("codigo").eq("id",g.l[0].id).maybeSingle();cod=r.data&&r.data.codigo}
+ const ids=g.l.map(x=>x.id),quitar=g.l.filter(x=>!ts.includes(x.turno)).map(x=>x.id),poner=ts.filter(t=>!g.l.some(x=>x.turno==t));let err="";
+ const upd={nombre:n};if(c)upd.codigo=c;const r1=await sb.from("tecnicos").update(upd).in("id",ids).select("id");if(r1.error)err=r1.error.message;
+ if(!err&&quitar.length){const r=await sb.from("tecnicos").delete().in("id",quitar).select("id");if(r.error)err=r.error.message}
+ if(!err&&poner.length){const r=await sb.from("tecnicos").insert(poner.map(t=>({nombre:n,turno:t,codigo:cod}))).select("id");if(r.error)err=r.error.message}
+ if(err){msg("No se pudo guardar: "+err);return}msg(n+" actualizado");tkEdit=null;tkTur=new Set(["Mañana"]);window._tecAll=await listaTec();tkPinta()}
+async function tkTurno(k,t){const g=tkGrupos().find(x=>x.k==k);if(!g)return;const f=g.l.find(x=>x.turno==t);
+ if(f){if(g.l.length==1&&!confirm(`${g.n} solo está en el turno ${t}. ¿Eliminar el técnico?`))return;const r=await sb.from("tecnicos").delete().eq("id",f.id).select("id");if(r.error||!r.data||!r.data.length){msg("No se pudo quitar el turno");return}msg(`${g.n}: quitado el turno ${t}`)}
+ else{const c=await sb.from("tecnicos").select("codigo").eq("id",g.l[0].id).maybeSingle();const r=await sb.from("tecnicos").insert({nombre:g.n,turno:t,codigo:c.data&&c.data.codigo}).select("id");if(r.error||!r.data||!r.data.length){msg("No se pudo añadir el turno");return}msg(`${g.n}: añadido el turno ${t}`)}
+ window._tecAll=await listaTec();tkPinta()}
+/* Cabecera: en modo Técnico/Operador el turno y el nombre son un botón para cambiar o editar el técnico identificado */
+function tkYo(){const a=identificado()?`Estás identificado como <b>${esc(tecNombre)}</b> · turno <b>${esc(turno)}</b>.`:"No hay técnico identificado.";
+ $("#sheetc").innerHTML=`<h3 style="margin:0">Técnico de este turno</h3><div class="mu" style="margin-top:6px">${a}</div>
+ <button class="pri" style="width:100%;margin-top:14px" onclick="${tecnico?"pedirTec()":"pedirTurnoO()"}">Cambiar turno o técnico</button>
+ ${admin||rol=="admin"?`<button class="sec" style="width:100%;margin-top:8px" onclick="${admin?"gesTec()":"msg('Entra en modo Administrador (A) para editar el alta')"}">Editar altas de técnicos</button>`:""}
+ <button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cerrar</button>`;$("#sheet").style.display="flex"}
+(function(){const ob=barra;barra=function(){ob();const b=document.getElementById("mbar");if(!b||!user||admin||!(turno||tecNombre))return;
+ const r1=b.querySelector(".mrow1");if(!r1)return;r1.querySelectorAll(".mopt").forEach(x=>{if(/Turno|Identificarse/.test(x.textContent)||x.textContent.trim()==tecNombre)x.remove()});
+ const bt=document.createElement("button");bt.type="button";bt.className="mopt tkme";bt.textContent=`${turno?"Turno "+turno:""}${tecNombre?" · "+tecNombre:""} ✎`;bt.onclick=tkYo;r1.appendChild(bt)}})();
+try{barra()}catch(e){}
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v70"}})();
 </script></body></html>
