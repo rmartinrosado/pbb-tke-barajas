@@ -1027,7 +1027,7 @@ const RUTAS_DET=Object.assign({},RUTAS);
 function gIGenera(){const det=RUTAS_DET;Object.keys(RUTAS).forEach(k=>delete RUTAS[k]);
  INS_E.concat(INS_P).forEach(id=>{const M=PLC.find(x=>x.id==id);const D=det[id];
   if(!M){RUTAS[id]={n:"Sin datos en PLC RCS",ref:"",s:[],vacio:true};return}
-  const arm=id.startsWith("E")?"armario E":"pupitre",cero=id.startsWith("E")?"+E-X68:2 (0 V)":"el 0 V del pupitre (ver folio)";
+  const arm=id.startsWith("E")?"armario E":"pupitre",cero=id.startsWith("E")?"+E-X68:2 (0 V)":"+P-X92.1:2 (0 V del pupitre · hilo 205 blanco, folio 40)";
   const ref=M.t=="DO"||M.t=="SDO"?`Polímetro en V DC respecto a ${cero}. Una salida solo da 24 V con la orden activa (LED encendido): provocar la maniobra o forzar la condición antes de medir.`
    :M.t=="SDI"?`Polímetro en V DC. Punta negra en la GND del módulo (borna x.3 de la misma entrada) o en ${cero}. Las salidas UT son pulsos de test: el polímetro puede marcar algo menos de 24 V.`
    :`Polímetro en V DC. Punta negra en ${cero}. Cada entrada se alimenta desde la borna +24 V de su mismo grupo en el módulo.`;
@@ -2246,12 +2246,13 @@ function anaHTML(i,R,dentro){if(!R||(!R.rel.length&&!R.guia.length&&!R.elem.leng
   return `<button class="anas${on?" on":""}" onclick="anaVa('${x.mod}','${String(x.S.id).replace(/'/g,"\\'")}')"><b>${ix+1}</b><span><b>${esc(x.mod)}</b> · Mód. ${x.S.k||"-"} · LED ${x.S.l||"-"}${x.S.led?" · IN "+esc(x.S.led):""}<br>${esc(x.S.t)}</span></button>`}).join("");
  const gd=R.guia.map(g=>`<button class="anag" onclick="anaGuia(${g.si})">📋 ${esc(g.t)}</button>`).join("");
  return `<details class="anap" open><summary><b>🎯 Análisis de la OT</b> <span class="mu" style="font-weight:400">· ${R.rel.length} señal(es) · ${R.mods.length} módulo(s) · ${R.elem.length} elemento(s)</span></summary>
- ${pc?`<div class="anal">Palabras clave de la descripción</div><div class="anaw">${pc}</div>`:""}
- ${R.mods.length?`<div class="anal">Módulos PLC implicados</div><div class="anaw">${R.mods.map(m=>`<button class="anam${dentro&&m==gIMod?" on":""}" onclick="anaVa('${m}')">${m}</button>`).join("")}</div>`:""}
- ${sg?`<div class="anal">Señales relacionadas (de más a menos probable)</div><div class="anass">${sg}</div>`:""}
+  ${R.mods.length?`<div class="anal">Módulos PLC implicados</div><div class="anaw">${R.mods.map(m=>`<button class="anam${dentro&&m==gIMod?" on":""}" onclick="anaVa('${m}')">${m}</button>`).join("")}</div>`:""}
+ ${R.rel.length?`<div class="anal">Señales implicadas (de más a menos probable)</div><select class="anasel" onchange="anaSelSig(this.value)"><option value="">— Elige una señal (${R.rel.length}) —</option>${R.rel.map((x,ix)=>{const on=dentro&&x.mod==gIMod&&x.S.id==gISig;return `<option value="${esc(x.mod+"¦"+x.S.id)}"${on?" selected":""}>${ix+1}. ${esc(x.mod)} · Mód. ${x.S.k||"-"} · LED ${x.S.l||"-"}${x.S.led?" · IN "+esc(x.S.led):""} — ${esc(x.S.t)}</option>`}).join("")}</select>`:""}
  ${R.elem.length?`<div class="anal">Elementos de campo a revisar</div><div class="anaw">${R.elem.map(t=>`<span class="anae">${esc(t)}</span>`).join("")}</div>`:""}
  ${gd?`<div class="anal">Guía de campo · actuación más eficaz</div><div class="anass">${gd}</div>`:""}
  <div class="mu" style="font-size:11px;margin-top:6px">Orden propuesto: empezar por la señal 1 y sus elementos; si el LED es coherente, pasar a la siguiente.</div></details>`}
+function anaSelSig(v){if(!v)return;const k=v.indexOf("¦");const mod=v.slice(0,k),sid=v.slice(k+1);
+ if(!document.querySelector(".insov")){const id=gOT||anaGOT;if(id)insOT(id)}anaVa(mod,sid)}
 function anaVa(mod,sid){if(!RUTAS[mod])return;gIMod=mod;const R=RUTAS[mod];const S=sid?R.s.find(x=>x.id==sid):null;
  if(S){gISig=S.id;gIAutoTxt=`Señal ${S.id} seleccionada desde el análisis de la OT.`;insVerMods=false}
  else{const a=anaOT(inc.find(x=>x.id==gOT));const r=a&&a.rel.find(x=>x.mod==mod);gISig=r?r.S.id:(R.s[0]&&R.s[0].id);gIAutoTxt="";insVerMods=true}
@@ -2286,7 +2287,7 @@ details.anap>summary{cursor:pointer;list-style:none}details.anap>summary::-webki
 .anaw{display:flex;flex-wrap:wrap;gap:6px}.anac,.anae{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--card);border:1px solid color-mix(in srgb,var(--pr) 35%,transparent)}
 .anafix{border-color:#ef6c00;color:#ef6c00}.anae{font-family:ui-monospace,Menlo,monospace;font-weight:700}
 .anam{width:auto;margin:0;padding:6px 12px;border:1.5px solid #ef6c00;color:#ef6c00;background:var(--card);font-weight:700}.anam.on{background:#ef6c00;color:#fff}
-.anass{display:flex;flex-direction:column;gap:6px}.anas,.anag{display:flex;gap:10px;align-items:flex-start;width:100%;margin:0;text-align:left;padding:8px 10px;background:var(--card);border:1px solid color-mix(in srgb,var(--pr) 30%,transparent);color:var(--tx);font-weight:400;font-size:13px;line-height:1.3}
+.anasel{width:100%;margin:2px 0 0;font-size:14px}.anass{display:flex;flex-direction:column;gap:6px}.anas,.anag{display:flex;gap:10px;align-items:flex-start;width:100%;margin:0;text-align:left;padding:8px 10px;background:var(--card);border:1px solid color-mix(in srgb,var(--pr) 30%,transparent);color:var(--tx);font-weight:400;font-size:13px;line-height:1.3}
 .anas>b{flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--pr);color:#fff;font-size:12px}
 .anas.on{border:2px solid #ef6c00;background:color-mix(in srgb,#ef6c00 8%,var(--card))}
 .gmods button.rel{box-shadow:0 0 0 2px #ef6c00 inset;color:#ef6c00;font-weight:800}.gmods button.rel.on{color:#fff}
@@ -2303,4 +2304,5 @@ let anaPLC=false,anaEnt=false;
 (function(){const o=gInsHTML;gInsHTML=function(){if(!anaPLC)return o();const oa=anaOT;anaOT=()=>null;try{return o()}finally{anaOT=oa}}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v81"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v82"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v83"}})();
 </script></body></html>
