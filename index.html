@@ -597,9 +597,10 @@ function vTec(){
  if(gTipo=="PAS"){
   h+=det("Mapa de alimentaciones",GUIA.alim.map(a=>`<div style="margin-top:8px"><b>${a[0]}</b><div class="mu" style="white-space:pre-wrap;margin-top:4px">${esc(a[1])}</div></div>`).join(""))}
  let cie=lista(GUIA.cierre);
- if(gTipo=="AAP"){const a=ot&&ot.aap||"";if(gAlOT!==gOT){gAl=[...(ot&&ot.alarmas||[])];gAlOT=gOT}const al=gAl;
-  cie=`<label>Equipo AAP</label><div class="gchips">${AAP_EQ.map(k=>`<button class="${k==a?"pri":"sec"}" onclick="gAap('${k}')">${k}</button>`).join("")}</div>`+
-  (a?`<label>Alarma del equipo actual (${a})</label><div class="gst">${AAP_AL.map((x,xi)=>`<label class="gpaso"><input type="checkbox" ${al.includes(x)?"checked":""} onchange="gAlarma(${xi},this.checked)"><span><b>${xi+1}.</b> ${esc(x)}</span></label>`).join("")}</div><button class="pri" style="width:100%;margin-top:10px" onclick="gGuardaAl()">Guardar alarma</button>${ot&&ot.alarmas&&ot.alarmas.length?`<div class="mu" style="margin-top:6px">Registrado: ${esc(ot.alarmas.join(", "))}</div>`:""}`:`<div class="mu" style="margin-top:6px">Elige AAC o AAR para ver las alarmas.</div>`)+cie}
+ if(gTipo=="AAP"){if(gAlOT!==gOT){gAlM=alDe(ot);gEq=AAP_EQ.find(k=>gAlM[k].length)||"";gAlOT=gOT}const a=gEq,al=a?gAlM[a]:[];const reg=alTxt(alDe(ot));
+  cie=`<label>Equipo AAP</label><div class="gchips">${AAP_EQ.map(k=>`<button class="${k==a?"pri":"sec"}" onclick="gAap('${k}')">${k}${gAlM[k].length?` (${gAlM[k].length})`:""}</button>`).join("")}</div>`+
+  (a?`<label>Alarma del equipo actual (${a})</label><div class="gst">${AAP_AL.map((x,xi)=>`<label class="gpaso"><input type="checkbox" ${al.includes(x)?"checked":""} onchange="gAlarma(${xi},this.checked)"><span><b>${xi+1}.</b> ${esc(x)}</span></label>`).join("")}</div><div class="mu" style="margin-top:6px">Puedes marcar alarmas en AAC y en AAR; cambia de tipo sin perder lo marcado.</div><button class="pri" style="width:100%;margin-top:10px" onclick="gGuardaAl()">Guardar alarma</button>`:`<div class="mu" style="margin-top:6px">Elige AAC o AAR para ver las alarmas.</div>`)+
+  (reg.length?`<div class="mu" style="margin-top:6px">Registrado: ${reg.map(esc).join(" · ")}</div>`:"")+cie}
  h+=det("Cierre de la actuación",cie,gAbierto.has("CIE")?"open":"","CIE");
  $("#app").innerHTML=h;gFillDoc();
  document.querySelectorAll("details.gd[data-k]").forEach(d=>d.addEventListener("toggle",()=>{d.open?gAbierto.add(d.dataset.k):gAbierto.delete(d.dataset.k)}));
@@ -607,14 +608,23 @@ function vTec(){
 const gAbierto=new Set();
 (function(){const f=()=>{const h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hh",h.offsetHeight+"px")};addEventListener("resize",f);addEventListener("load",f);setInterval(f,1500);if(window.ResizeObserver)addEventListener("load",()=>{const h=document.querySelector("header");if(h)new ResizeObserver(f).observe(h)});f()})();
 const AAP_EQ=["AAC","AAR"],AAP_AL=["Equipo apagado. Reiniciar","U0","00:05","00:25"];
+/* v92: alarmas de varios tipos de equipo a la vez → i.alAire={AAC:[..],AAR:[..]} */
+function alDe(i){const m={};AAP_EQ.forEach(k=>m[k]=[]);if(!i)return m;
+ if(i.alAire){AAP_EQ.forEach(k=>m[k]=AAP_AL.filter(x=>(i.alAire[k]||[]).includes(x)))}
+ else if(AAP_EQ.includes(i.aap)){m[i.aap]=AAP_AL.filter(x=>(i.alarmas||[]).includes(x))}
+ return m}
+function alTxt(m){return AAP_EQ.filter(k=>m[k]&&m[k].length).map(k=>`${k}: ${m[k].join(", ")}`)}
+function alGuardaOT(i,m){const c={};AAP_EQ.forEach(k=>c[k]=AAP_AL.filter(x=>(m[k]||[]).includes(x)));
+ i.alAire=c;const eq=AAP_EQ.filter(k=>c[k].length);i.aap=eq.join(", ");i.alarmas=eq.flatMap(k=>c[k].map(x=>`${k} ${x}`));
+ const l=(i.act||"").split("\n").filter(x=>!/^Alarma AA[CR]: /.test(x));eq.forEach(k=>l.push(`Alarma ${k}: ${c[k].join(", ")}`));
+ i.act=l.filter(x=>x.trim()).join("\n")}
+function alNum(m){return AAP_EQ.reduce((s,k)=>s+(m[k]||[]).length,0)}
 function gOtSel(){const i=inc.find(x=>x.id==gOT);if(!i)msg("No hay OT abierta seleccionada");return i}
-let gAl=[],gAlOT=null;
-function gAap(k){const i=gOtSel();if(!i)return;if(i.aap!==k){i.aap=k;gAl=[]}gAbierto.add("CIE");sv("pbb_inc",inc);vTec()}
-function gAlarma(xi,v){const x=AAP_AL[xi];const a=gAl.filter(y=>y!==x);if(v)a.push(x);gAl=AAP_AL.filter(y=>a.includes(y))}
-function gGuardaAl(){const i=gOtSel();if(!i)return;if(!gAl.length){msg("Marca al menos una alarma");return}
- i.alarmas=[...gAl];const lin=`Alarma ${i.aap}: ${i.alarmas.join(", ")}`;
- const l=(i.act||"").split("\n").filter(x=>!/^Alarma AA[CR]: /.test(x));l.push(lin);i.act=l.filter(x=>x.trim()).join("\n");
- sv("pbb_inc",inc);gAbierto.add("CIE");vTec();msg(`Alarma guardada en la OT ${i.orden}`)}
+let gAlM=alDe(null),gEq="",gAlOT=null;
+function gAap(k){const i=gOtSel();if(!i)return;gEq=k;gAbierto.add("CIE");vTec()}
+function gAlarma(xi,v){if(!gEq)return;const x=AAP_AL[xi];const a=gAlM[gEq].filter(y=>y!==x);if(v)a.push(x);gAlM[gEq]=AAP_AL.filter(y=>a.includes(y))}
+function gGuardaAl(){const i=gOtSel();if(!i)return;if(!alNum(gAlM)){msg("Marca al menos una alarma");return}
+ alGuardaOT(i,gAlM);sv("pbb_inc",inc);gAbierto.add("CIE");vTec();msg(`Alarmas guardadas en la OT ${i.orden}`)}
 let gCache={},gPagIni=0,gDocs=null;
 async function gLista(){if(!gDocs)gDocs=(await allPdf()).filter(x=>!esImg(x));return gDocs}
 function gDocId(t,l){let id=null;try{id=localStorage.getItem("g_doc2_"+t)}catch(e){}if(id&&l.some(x=>x.id==id))return id;for(const re of (GUIA.dk[t]||[])){const d=l.find(x=>re.test(x.name)&&!/CBTH/i.test(x.name));if(d)return d.id}return ""}
@@ -1896,25 +1906,23 @@ ppBase();
 /* ===== v62: polímetro en OT de aire (AAP, AAR, AAC) → cierre de la OT con tipo de equipo y alarma ===== */
 const AIRE_T=["AAP","AAR","AAC"];
 function esAire(i){return !!i&&[i.tipo,...(i.equipos||[])].some(t=>AIRE_T.includes(t))}
-let acEq="",acAl=[];
+let acEq="",acM=alDe(null);
 function aireCie(id){const i=inc.find(x=>x.id==id);if(!i)return;
- if(acEq===""||aireCie._id!==id){acEq=i.aap||(AAP_EQ.includes(i.tipo)?i.tipo:"");acAl=[...(i.alarmas||[])];aireCie._id=id}
+ if(acEq===""||aireCie._id!==id){acM=alDe(i);acEq=AAP_EQ.find(k=>acM[k].length)||(AAP_EQ.includes(i.tipo)?i.tipo:"");aireCie._id=id}
+ const acAl=acEq?acM[acEq]:[],reg=alTxt(alDe(i));
  $("#sheetc").innerHTML=`<h3 style="margin:0">Cierre OT · PBB ${esc(i.pos)} (${esc(i.tipo)})</h3><div class="mu">Orden ${esc(i.orden)}${i.def?" · "+esc(i.def):""}</div>
- <label>Tipo de equipo</label><div class="gchips">${AAP_EQ.map(k=>`<button class="${k==acEq?"pri":"sec"}" onclick="acEq='${k}';if(acEq!=='${esc(i.aap||"")}')acAl=[];aireCie('${id}')">${k}</button>`).join("")}</div>
- ${acEq?`<label>Alarma asociada al aviso (${acEq})</label><div class="gst">${AAP_AL.map((x,xi)=>`<label class="gpaso"><input type="checkbox" ${acAl.includes(x)?"checked":""} onchange="acMarca(${xi},this.checked)"><span><b>${xi+1}.</b> ${esc(x)}</span></label>`).join("")}</div>`:`<div class="mu" style="margin-top:6px">Elige AAC o AAR para ver las alarmas.</div>`}
- ${i.alarmas&&i.alarmas.length?`<div class="mu" style="margin-top:6px">Registrado: ${esc(i.aap||"")} · ${esc(i.alarmas.join(", "))}</div>`:""}
+ <label>Tipo de equipo</label><div class="gchips">${AAP_EQ.map(k=>`<button class="${k==acEq?"pri":"sec"}" onclick="acEq='${k}';aireCie('${id}')">${k}${acM[k].length?` (${acM[k].length})`:""}</button>`).join("")}</div>
+ ${acEq?`<label>Alarma asociada al aviso (${acEq})</label><div class="gst">${AAP_AL.map((x,xi)=>`<label class="gpaso"><input type="checkbox" ${acAl.includes(x)?"checked":""} onchange="acMarca(${xi},this.checked)"><span><b>${xi+1}.</b> ${esc(x)}</span></label>`).join("")}</div><div class="mu" style="margin-top:6px">Puedes marcar alarmas en AAC y en AAR; cambia de tipo sin perder lo marcado.</div>`:`<div class="mu" style="margin-top:6px">Elige AAC o AAR para ver las alarmas.</div>`}
+ ${reg.length?`<div class="mu" style="margin-top:6px">Registrado: ${reg.map(esc).join(" · ")}</div>`:""}
  <button class="pri" style="margin-top:14px;width:100%" onclick="acGuarda('${id}',true)">Guardar y Cerrar / Resolver</button>
  <button class="sec" style="width:100%;margin-top:8px" onclick="acGuarda('${id}',false)">Guardar alarma</button>
  <button class="sec" style="width:100%;margin-top:8px" onclick="acEq='';closeSheet()">Cancelar</button>`;
  $("#sheet").style.display="flex"}
-function acMarca(xi,v){const x=AAP_AL[xi];const a=acAl.filter(y=>y!==x);if(v)a.push(x);acAl=AAP_AL.filter(y=>a.includes(y))}
+function acMarca(xi,v){if(!acEq)return;const x=AAP_AL[xi];const a=acM[acEq].filter(y=>y!==x);if(v)a.push(x);acM[acEq]=AAP_AL.filter(y=>a.includes(y));aireCie(aireCie._id)}
 function acGuarda(id,cerrarOT){const i=inc.find(x=>x.id==id);if(!i)return;
- if(!acEq){msg("Elige el tipo de equipo: AAC o AAR");return}
- if(!acAl.length){msg("Marca al menos una alarma");return}
- i.aap=acEq;i.alarmas=[...acAl];const lin=`Alarma ${i.aap}: ${i.alarmas.join(", ")}`;
- const l=(i.act||"").split("\n").filter(x=>!/^Alarma AA[CR]: /.test(x));l.push(lin);i.act=l.filter(x=>x.trim()).join("\n");
- sv("pbb_inc",inc);acEq="";
- if(cerrarOT){resolver(id)}else{closeSheet();render();msg(`Alarma guardada en la OT ${i.orden}`)}}
+ if(!alNum(acM)){msg(acEq?"Marca al menos una alarma":"Elige el tipo de equipo: AAC o AAR");return}
+ alGuardaOT(i,acM);sv("pbb_inc",inc);acEq="";
+ if(cerrarOT){resolver(id)}else{closeSheet();render();msg(`Alarmas guardadas en la OT ${i.orden} (${alTxt(i.alAire).join(" · ")})`)}}
 (function(){const o=insOT;insOT=function(id){const i=inc.find(x=>x.id==id);if(esAire(i)){acEq="";aireCie(id);return}o(id)}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v62"}})();
 /* ===== v63: herramientas de administrador en la cabecera (fija al hacer scroll) ===== */
@@ -2417,4 +2425,6 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
 (function(){const o=nTermSet;nTermSet=function(t){o(t);const n=$("#f_posn"),s=$("#f_pos");if(n&&s&&n.value&&!POS.some(x=>String(x)==n.value&&termDe(x)==t))n.value=""}})();
 (function(){const o=guardar;guardar=function(){const n=$("#f_posn"),s=$("#f_pos");
  if(n&&n.value&&s&&n.value!==s.value){msg(`La PBB ${n.value} no está dada de alta`);n.focus();return}return o()}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v92"}})();
+/* ===== v92: cierre de OT de aire con alarmas de AAC y AAR a la vez (i.alAire); se guardan con «Guardar alarma» y quedan en Actuación hasta Cerrar/Resolver ===== */
 </script></body></html>
