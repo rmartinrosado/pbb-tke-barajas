@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v18"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v19"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2552,13 +2552,14 @@ function hqAnade(t){if(t.dataset.hq||t.type!="time"||!t.parentNode)return;t.data
 function hqTodo(){document.querySelectorAll('input[type=time]:not([data-hq])').forEach(hqAnade)}
 new MutationObserver(hqTodo).observe(document.body,{childList:true,subtree:true});hqTodo();
 /* ===== v6: en Seguimiento OT cada OT se ve plegada (solo la primera línea); al tocarla se despliega el resto ===== */
-const segAb=new Set();
+const segAb=new Set(),segPl=new Set(); /* v19: abiertas desplegadas por defecto (segPl = plegadas a mano); cerradas plegadas (segAb = desplegadas a mano hasta salir) */
 (function(){const st=document.createElement("style");st.textContent=`.ot .ohd{cursor:pointer;-webkit-tap-highlight-color:transparent}.ot .ohd>span{display:inline-flex;align-items:center;gap:8px}.ot .ohd>span::after{content:"▾";font-size:16px;color:var(--mu,#888);transition:transform .2s}.ot.oab .ohd>span::after{transform:rotate(180deg)}.ot .obd{display:none;margin-top:6px}.ot.oab .obd{display:block}`;document.head.appendChild(st)})();
 (function(){const o=card;card=function(i){const h=o(i);if(view!="track")return h;return h.replace('<div class="card">',`<div class="card ot" data-oid="${i.id}">`)}})();
 function segPliega(){if(view!="track")return;document.querySelectorAll("#app .card.ot:not([data-pl])").forEach(c=>{c.dataset.pl="1";
  const hd=c.firstElementChild;if(!hd)return;hd.classList.add("ohd");const bd=document.createElement("div");bd.className="obd";
- while(hd.nextSibling)bd.appendChild(hd.nextSibling);c.appendChild(bd);if(segAb.has(c.dataset.oid))c.classList.add("oab");
- hd.addEventListener("click",()=>{const a=c.classList.toggle("oab");a?segAb.add(c.dataset.oid):segAb.delete(c.dataset.oid)})})}
+ while(hd.nextSibling)bd.appendChild(hd.nextSibling);c.appendChild(bd);const id=c.dataset.oid;const esAb=()=>{const i=inc.find(x=>x.id==id);return !!i&&i.estado=="abierta"};
+ if(esAb()?!segPl.has(id):segAb.has(id))c.classList.add("oab");
+ hd.addEventListener("click",()=>{const a=c.classList.toggle("oab");if(esAb()){a?segPl.delete(id):segPl.add(id)}else{a?segAb.add(id):segAb.delete(id)}})})}
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);segPliega();return r}})();
 new MutationObserver(segPliega).observe(document.body,{childList:true,subtree:true});
 /* ===== v7: foto de pasarela de fondo en la cabecera fija, aclarada para que se lean textos y logo ===== */
@@ -2863,4 +2864,8 @@ function infActuacion(k){const t=k.replace(/\d+$/,""),si=+k.slice(t.length);cons
 @media print{body>*:not(#infov){display:none!important}#infov{position:static;overflow:visible}#infov .inbar{display:none}}`;document.head.appendChild(st)})();
 (function(){const o=gOrdena;gOrdena=function(){o();const top=document.querySelector("#app details.gd.gef");if(!top)return;const b=top.querySelector(".gefb");if(!b||top.querySelector(".gprn"))return;
  b.insertAdjacentHTML("afterend",`<button class="gprn" title="Informe de la actuación" aria-label="Generar informe de la actuación para imprimir" onclick="event.preventDefault();event.stopPropagation();infActuacion('${top.dataset.k}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg></button>`)}})();
+/* ===== v19: OT cerrada → caja plegada (también «Actuación guiada»); solo las OT abiertas se mantienen desplegadas ===== */
+(function(){const o=cerrar;cerrar=function(id){const r=o.apply(this,arguments);const i=inc.find(x=>x.id==id);if(i&&i.estado!="abierta"){segAb.delete(id);segPl.delete(id);guiAb.delete(id);render()}return r}})();
+(function(){const o=go;go=function(v,f){if(v!="track")segAb.clear();return o(v,f)}})();
+(function(){const o=card;card=function(i){let h=o(i);if(i.estado=="abierta")return h;return h.replace(/(<details style="margin-top:6px") open( ontoggle="togGui)/,"$1$2")}})();
 </script></body></html>
