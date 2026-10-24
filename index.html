@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v11"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v12"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2691,4 +2691,19 @@ EL_C.clear&&EL_C.clear();
  return h}})();
 (function(){const st=document.createElement("style");st.textContent=".elplan{font-size:11px;font-weight:600;margin:4px 0 2px;opacity:.8}";document.head.appendChild(st)})();
 (function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);return h.replace('<div class="elus">',`<div class="elplan">Recorridos según plano ${elPlano()=="504"?"PBB_504 (posiciones 504 / 508)":"RCS_PLANOS"}</div><div class="elus">`)}})();
+/* ===== v12: Guía de campo ordenada por eficacia para la OT: la actuación más eficaz va la primera (abierta),
+ justo debajo del Análisis de la OT; después Seguridad, cotejo/inspección y el resto de averías, primero las relacionadas. ===== */
+(function(){const st=document.createElement("style");st.textContent=`details.gd.gef{border:2px solid #ef6c00}.gefb{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#ef6c00;border-radius:999px;padding:2px 8px;margin-bottom:4px}`;document.head.appendChild(st)})();
+function gOrdena(){if(view!="tec")return;const i=inc.find(x=>x.id==gOT);const R=i?anaOT(i):null;
+ const all=[...document.querySelectorAll("#app details.gd[data-k]")].filter(d=>new RegExp("^"+gTipo+"\\d+$").test(d.dataset.k));if(!all.length)return;
+ const rank=R&&R.tipo==gTipo?R.guia.map(g=>g.si):[];if(!rank.length)return;
+ const pos=k=>{const ix=rank.indexOf(+k.slice(gTipo.length));return ix<0?999:ix};
+ const sorted=[...all].sort((a,b)=>pos(a.dataset.k)-pos(b.dataset.k));
+ const top=sorted[0];if(pos(top.dataset.k)==999)return;
+ const anc=document.getElementById("anag")||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
+ if(anc&&anc.nextElementSibling!==top)anc.insertAdjacentElement("afterend",top);
+ top.classList.add("gef");if(!top.dataset.ef){top.dataset.ef=1;top.open=true;const sm=top.querySelector("summary");if(sm)sm.insertAdjacentHTML("afterbegin",`<span class="gefb">⭐ Actuación más eficaz</span><br>`)}
+ const rest=sorted.slice(1),first=all.filter(d=>d!==top)[0];if(!first)return;
+ const mk=document.createComment("g");first.parentNode.insertBefore(mk,first);rest.forEach(d=>mk.parentNode.insertBefore(d,mk));mk.remove()}
+(function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);gOrdena();return r}})();
 </script></body></html>
