@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v12"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v13"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2706,4 +2706,15 @@ function gOrdena(){if(view!="tec")return;const i=inc.find(x=>x.id==gOT);const R=
  const rest=sorted.slice(1),first=all.filter(d=>d!==top)[0];if(!first)return;
  const mk=document.createComment("g");first.parentNode.insertBefore(mk,first);rest.forEach(d=>mk.parentNode.insertBefore(d,mk));mk.remove()}
 (function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);gOrdena();return r}})();
+/* ===== v13: botón «varita mágica» junto al polímetro: abre directamente la actuación más eficaz de la OT ===== */
+const IC_VARITA=`<svg width="26" height="26" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21 14.5 9.5"/><path d="m12.5 7.5 4 4" stroke-width="2.6"/><path d="M17.5 2.5v4M15.5 4.5h4M20.5 9.5v3M19 11h3M9.5 3v2.5M8.25 4.25h2.5"/></svg>`;
+function varita(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;
+ const R=anaOT(i);if(R&&R.guia&&R.guia.length){anaGuia(R.guia[0].si);return}
+ gTipo=[i.tipo,...(i.equipos||[])].find(t=>GUIA.tipos[t])||"PAS";go("tec");msg("Sin actuación clara para esta descripción: se abre la guía de campo");
+ setTimeout(()=>{const c=document.getElementById("anag")||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));if(c)c.scrollIntoView({block:"start",behavior:"smooth"})},80)}
+(function(){const o=card;card=function(i){let h=o(i);if(view!="track"||i.estado!="abierta"||!(tecnico||admin))return h;
+ const b=`<button class="sec gwr gvar" title="Actuación más eficaz" aria-label="Ir a la actuación más eficaz de esta OT" onclick="varita('${i.id}')">${IC_VARITA}</button>`;
+ const re=new RegExp(`(<button class="sec gwr"[^>]*onclick="insOT\\('${i.id}'\\)">[\\s\\S]*?</button>)`);
+ return re.test(h)?h.replace(re,"$1"+b):h.replace('<span class="cacr">','<span class="cacr">'+b)}})();
+(function(){const st=document.createElement("style");st.textContent=".gvar{color:#ef6c00!important;border-color:#ef6c00!important}";document.head.appendChild(st)})();
 </script></body></html>
