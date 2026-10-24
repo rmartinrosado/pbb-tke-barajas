@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v21"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v22"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2885,7 +2885,7 @@ function puenteHTML(i,P){return `<div class="pucab">🔌 PRIMERA ACTUACIÓN EN C
   <li>Coordina con CGA / Responsable de Turno y anota en la OT la hora del puente.</li>
   <li>Pon el puente en las bornas del módulo indicadas, con etiqueta visible «PUENTE PROVISIONAL · OT ${esc(i.orden||"")}».</li>
   <li>Mueve la pasarela solo en MANUAL, despacio y con un compañero vigilando la zona del elemento anulado. Es solo para trasladarla y dejarla operativa de forma controlada.</li>
-  <li>Las setas de emergencia, bordes, zapata, bumpers y finales de límite NO se puentean nunca: por eso no aparecen aquí.</li>
+  <li>Las setas de emergencia, bordes, zapata y bumpers NO se puentean nunca: son la parada del compañero que vigila.</li>
   <li>Quita el puente en cuanto repares el elemento, comprueba que vuelve a actuar y anótalo en la OT. No se cierra la OT con el puente puesto.</li></ol></div>`}
 (function(){const st=document.createElement("style");st.textContent=`.pucard{border:2px solid #c62828!important}.pucab{font-weight:700;color:#fff;background:#c62828;border-radius:8px;padding:6px 10px;margin-bottom:8px}
 .puit{border-left:3px solid #c62828;padding:4px 0 4px 8px;margin:6px 0}.puac{margin-top:3px;font-weight:600}.pucond{font-size:13px;margin-top:8px}.pucond ol{padding-left:18px;margin:4px 0}`;document.head.appendChild(st)})();
@@ -2927,7 +2927,7 @@ function segOT(i){if(!i||i.estado!="abierta")return null;const t=segNorm([i.desc
  return {lim,cont,zs,n12}}
 function segIO(it){const[id,a,b,el,nom]=it;const M=PLC.find(m=>m.id==id);let est="";
  if(M&&id!="E-A0"){const m=/^(\d+)\.(\d)/.exec(a);if(m){const n=+m[1],c=+m[2],k=Math.ceil(n/2);const l=M.t=="SDI"||M.t=="SDO"?n-2*k+2:(c==1?1:3)+(n%2?0:1);const L=M.m[k-1]&&M.m[k-1][l-1];if(L)est=L[1]==1?"en reposo / servicio: LED ENCENDIDO":L[1]==0?"en reposo: LED APAGADO":""}}
- const r=elRutas(el.split(" / ")[0]).find(x=>!x.av&&new RegExp("\\b"+id+"\\b").test(x.sig+" "+x.txt));
+ const RR=elRutas(el.split(" / ")[0]).filter(x=>!x.av&&new RegExp("\\b"+id+"\\b").test(x.sig+" "+x.txt));const r=RR.find(x=>x.txt.includes(`(borna ${a})`))||RR[0];
  return `<div class="puit"><b>${esc(id)} · borna ${esc(a)}${b?` / ${esc(b)}`:""}</b> — ${esc(nom)} · <b>${esc(el)}</b>${est?`<div class="mu">${esc(est)}</div>`:""}${r?`<div class="mu">Recorrido: ${esc(r.txt)}${r.f?` · folio ${r.f}`:""}</div>`:""}</div>`}
 function segHTML(i,S){let h=`<div class="pucab">🔌 PRIMERA ACTUACIÓN EN CAMPO · ${S.lim?"límite activado":""}${S.lim&&S.cont?" + ":""}${S.cont?`PAS bloqueada por contactor de seguridades${S.n12?" "+S.n12:" 1 / 2"}`:""}</div>
  <div class="puac">1. Recuperar la pasarela con <b>maniobra controlada</b>: selector <b>CP-S33 «BYPASS SEGURIDADES»</b> en el pupitre (entra al PLC por E-A8 bornas 3.1 / 3.2). Es el medio previsto por el fabricante para mover la pasarela con una seguridad activada: en MANUAL, despacio y con un compañero vigilando. Al terminar, selector en posición normal.</div>
@@ -2951,4 +2951,24 @@ function segVa(id){gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(view!="te
  const d=document.querySelector("#infov .indoc");if(!d)return;const s3=[...d.querySelectorAll("section")].find(x=>/^3\./.test((x.querySelector("h3")||{}).textContent||""));
  const n=document.createElement("section");n.innerHTML=`<h3>3. Primera actuación: seguridades</h3>${segHTML(i,S)}`;if(s3){s3.insertAdjacentElement("beforebegin",n);
   [...d.querySelectorAll("section h3")].forEach(h=>{if(h!==n.querySelector("h3")){const m=/^(\d+)\.\s/.exec(h.textContent);if(m&&+m[1]>=3)h.textContent=h.textContent.replace(/^\d+/,+m[1]+1)}})}}})();
+/* ===== v22: puentes provisionales con hilo en las entradas de LÍMITE del PLC (a petición del responsable, con compañero vigilando).
+ Contactor de seguridades bloqueado: se puentea la ENTRADA abierta de la cadena (límite / antiatrapamiento), nunca las salidas E-A6 → E-K0/E-K0.1
+ ni las setas, porque eso anula también la parada de emergencia que necesita el compañero. ===== */
+function segPuente(it){const[id,a,b,el,nom]=it;const M=PLC.find(m=>m.id==id);if(!M)return "";const m=/^(\d+)\.(\d)/.exec(a);if(!m)return "";
+ const n=+m[1],c=+m[2],k=Math.ceil(n/2);const l=M.t=="SDI"?n-2*k+2:(c==1?1:3)+(n%2?0:1);const L=M.m[k-1]&&M.m[k-1][l-1];const st=L?L[1]:1;
+ const RR=elRutas(el.split(" / ")[0]).filter(x=>!x.av&&new RegExp("\\b"+id+"\\b").test(x.sig+" "+x.txt));const r=RR.find(x=>x.txt.includes(`(borna ${a})`))||RR[0];
+ let q;if(M.t=="SDI")q=`⚡ PUENTE PROVISIONAL: borna <b>${n}.1 – ${n}.2</b> del módulo ${id} (entrada y su salida de test UT del mismo canal). El LED del canal debe encenderse.`;
+ else{const v=`${n}.${c+1}`;q=st==0?`🔧 Soltar el hilo de la borna <b>IN ${a}</b> del módulo ${id} y aislarlo (es una entrada que se activa al pisar el límite: puentearla la activaría). El LED se apaga.`
+  :`⚡ PUENTE PROVISIONAL: borna <b>IN ${a} – ${v} (+24 V)</b> del módulo ${id}. El LED de la entrada debe encenderse.`}
+ return `<div class="puit"><b>${esc(id)} · ${esc(nom)} · ${esc(el)}</b><div class="puac">${q}</div>${r?`<div class="mu">Recorrido del elemento: ${esc(r.txt)}${r.f?` · folio ${r.f}`:""}</div>`:""}</div>`}
+(function(){const o=segHTML;segHTML=function(i,S){let h=o(i,S);
+ h=h.replace(/<div class="puac">2\. Si con el bypass[\s\S]*?<\/div>/,`<div class="puac">2. Si con el bypass no deja maniobrar: <b>puentes provisionales con hilo</b> en el módulo del PLC del elemento afectado (abajo). Solo el del límite activado; con el elemento comprobado a la vista y el compañero vigilando.</div>`);
+ if(S.lim){const pz=S.zs.map(z=>z.it.map(segPuente).join("")).join("");h=h.replace(/<div class="anal">Límites · entradas del PLC<\/div>/,`<div class="anal">Límites · puentes provisionales en el PLC</div>${pz}<div class="anal">Límites · entradas del PLC (medida)</div>`)}
+ if(S.cont)h=h.replace(/<div class="anal">Contactores de seguridad · salidas y entradas del PLC<\/div>/,`<div class="anal">Contactor de seguridades bloqueado · qué puentear</div>
+  <div class="puit"><div class="puac">1) Mira en el cotejo PLC qué entrada safety está APAGADA debiendo estar encendida: E-A8 (finales de carrera, setas, bypass), E-A9 (antiatrapamientos), E-A10.</div>
+  <div class="puac">2) Si es un final de carrera o un antiatrapamiento: puentea SOLO esa entrada (puente x.1 – x.2 del canal del módulo; ver límites arriba o la tabla de puentes). Los contactores E-K0 / E-K0.1 vuelven a entrar solos al rearmar.</div>
+  <div class="puac">3) Si es una seta de emergencia: no se puentea; localiza la seta pulsada o el cable de la cadena.</div></div>
+  <div class="anal">Contactores de seguridad · salidas y entradas del PLC (medida)</div>`);
+ h=h.replace(/<div class="gnp" style="margin-top:8px">⛔[\s\S]*?<\/div>$/,`<div class="gnp" style="margin-top:8px">⛔ No se puentean las salidas E-A6 → bobinas E-K0 / E-K0.1 ni las setas de emergencia: anulan la parada de emergencia, que es lo que tiene el compañero que vigila para parar la pasarela. Etiqueta cada puente con el nº de OT, anota la hora y quítalos al reparar, comprobando que el límite vuelve a actuar. No se cierra la OT con puentes puestos.</div>`);
+ return h}})();
 </script></body></html>
