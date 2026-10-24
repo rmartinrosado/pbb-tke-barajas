@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v16"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v17"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2718,22 +2718,21 @@ function varita(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;if(typeof 
  return h.replace('<span class="cacr">','<span class="cacr">'+b)}})();
 (function(){const st=document.createElement("style");st.textContent=".gvar{color:#ef6c00!important;border-color:#ef6c00!important}";document.head.appendChild(st)})();
 /* ===== v14: «Seguridad antes de intervenir» siempre justo después de la caja «Guía de campo», como paso prioritario ===== */
-(function(){const st=document.createElement("style");st.textContent=`details.gd.gseg{border:2px solid #c62828}.gsegb{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#c62828;border-radius:999px;padding:2px 8px;margin-bottom:4px}`;document.head.appendChild(st)})();
+(function(){const st=document.createElement("style");st.textContent=`.gsegb{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#c62828;border-radius:999px;padding:2px 8px;margin-bottom:4px}`;document.head.appendChild(st)})();
 function gSegPrimero(){if(view!="tec")return;const seg=document.querySelector('#app details.gd[data-k="SEG"]');
  const c=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));if(!seg||!c)return;
  if(c.nextElementSibling!==seg)c.insertAdjacentElement("afterend",seg);seg.classList.add("gseg");
- if(!seg.dataset.pr){seg.dataset.pr=1;const sm=seg.querySelector("summary");if(sm)sm.insertAdjacentHTML("afterbegin",`<span class="gsegb">PASO 1 · PRIORITARIO</span><br>`)}}
+ if(!seg.dataset.pr){seg.dataset.pr=1;const t=seg.querySelector("summary b");if(t&&t.innerHTML.includes("⚠️"))t.innerHTML=t.innerHTML.replace("⚠️",`<span class="gsegw">⚠️</span>`)}}
 (function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);gSegPrimero();return r}})();
 new MutationObserver(()=>{const seg=document.querySelector('#app details.gd[data-k="SEG"]');if(!seg)return;const p=seg.previousElementSibling;if(!p||!/Guía de campo/.test((p.querySelector&&p.querySelector("h3")||{}).textContent||""))gSegPrimero()}).observe(document.getElementById("app"),{childList:true});
 /* ===== v15: la caja de Seguridad parpadea hasta que el usuario hace scroll ===== */
 (function(){const st=document.createElement("style");st.textContent=`@keyframes gsegpar{0%,100%{background:var(--card);box-shadow:0 0 0 0 #c6282800}50%{background:#fde2e2;box-shadow:0 0 0 4px #c6282855}}
-details.gd.gseg.gpar{animation:gsegpar 1s ease-in-out infinite}details.gd.gseg.gpar .gsegb{animation:gsegpar 1s ease-in-out infinite;background:#c62828}
-@media (prefers-color-scheme:dark){@keyframes gsegpar{0%,100%{background:var(--card)}50%{background:#5a1a1a}}}`;document.head.appendChild(st)})();
+@keyframes gsegw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.15;transform:scale(1.15)}}.gsegw{display:inline-block}details.gd.gseg.gpar .gsegw{animation:gsegw 1s ease-in-out infinite}`;document.head.appendChild(st)})();
 function gSegPara(){document.querySelectorAll("details.gd.gpar").forEach(d=>d.classList.remove("gpar"))}
 (function(){const o=gSegPrimero;gSegPrimero=function(){o();const seg=document.querySelector('#app details.gd[data-k="SEG"]');if(seg&&!seg.dataset.par){seg.dataset.par=1;seg.classList.add("gpar")}}})();
 ["wheel","touchmove"].forEach(e=>addEventListener(e,gSegPara,{passive:true,capture:true}));
 addEventListener("keydown",e=>{if(/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End| )$/.test(e.key))gSegPara()},{capture:true});
 /* ===== v16: varita mágica la primera de los iconos, más grande y parpadeando ===== */
 (function(){const st=document.createElement("style");st.textContent=`@keyframes gvarpar{0%,100%{background:var(--card);color:#ef6c00;box-shadow:0 0 0 0 #ef6c0000}50%{background:#ef6c00;color:#fff;box-shadow:0 0 0 4px #ef6c0055}}
-.cacr .gvar{animation:gvarpar 1s ease-in-out infinite;border-width:2px!important;width:58px!important;height:52px!important;padding:0!important}.cacr .gvar svg{width:34px!important;height:34px!important}`;document.head.appendChild(st)})();
+.cacr .gvar{animation:gvarpar 2s ease-in-out infinite}`;document.head.appendChild(st)})();
 </script></body></html>
