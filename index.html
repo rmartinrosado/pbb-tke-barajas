@@ -2305,7 +2305,16 @@ let anaPLC=false,anaEnt=false;
 (function(){const o=gInsHTML;gInsHTML=function(){if(!anaPLC)return o();const oa=anaOT;anaOT=()=>null;try{return o()}finally{anaOT=oa}}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v81"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v82"}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v87"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v88"}})();
+/* ===== v88: en posiciones remotas tampoco hay AAP (aire acondicionado de pasarela) ===== */
+const REM_FUERA=["PAS","AAP"];
+(function(){const o=remForm;remForm=function(){o();const s=$("#f_pos");if(!s)return;const r=esRem(s.value);const c=document.querySelector('.eqc[value="AAP"]');if(!c)return;
+ const l=c.closest("label");if(l)l.style.display=r?"none":"";if(r&&c.checked){c.checked=false;if(typeof pintaEq=="function")pintaEq()}}})();
+(function(){const o=vTec;vTec=function(){const ab=gOTs();const i0=ab.find(x=>x.id==gOT)||(!gOT&&ab[0]);
+ if(otRem(i0)&&gTipo=="AAP"){const k=[i0.tipo,...(i0.equipos||[])].find(t=>!REM_FUERA.includes(t)&&GUIA.tipos[t]);gTipo=k||"PAS"}
+ o();const i=inc.find(x=>x.id==gOT);if(!otRem(i))return;
+ const c=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
+ if(c)c.querySelectorAll(".gchips button").forEach(b=>{if(b.textContent.trim()=="AAP")b.remove()})}})();
 /* ===== v87: posiciones remotas sin pasarela (538, 539, 580, 581, 582) =====
  En naranja en el listado de PBB. En la OT nueva se quita el dibujo y la casilla PAS (se mantienen AAA, AAP, HZ, SVGA, Sigma).
  Guía de campo e inspección cable a cable sin nada de la pasarela: sin PAS, cotejo PLC, cámaras RCS ni pasos que pasan por la PBB. */
@@ -2313,7 +2322,7 @@ const REMOTAS=new Set(["538","539","580","581","582"]);
 const esRem=p=>REMOTAS.has(String(p));
 const otRem=i=>!!i&&esRem(i.pos);
 const SEG_REM=[GUIA.seg[0],"Posición remota sin pasarela: asegurar la zona de trabajo junto al equipo y coordinar con la operación del avión.","Dejar el equipo sin tensión: abrir su protección de alimentación, bloquear, etiquetar y comprobar ausencia de tensión.",GUIA.seg[6]];
-const REM_AV=`<div class="gav" style="border-left-color:#ef6c00">Posición remota sin pasarela: no hay guía de pasarela (PAS) ni inspección cable a cable de la PBB para esta OT.</div>`;
+const REM_AV=`<div class="gav" style="border-left-color:#ef6c00">Posición remota sin pasarela: no hay guía de pasarela (PAS) ni de aire acondicionado de pasarela (AAP), ni inspección cable a cable de la PBB para esta OT.</div>`;
 (function(){const st=document.createElement("style");st.textContent=`.tlst span.rem{border-color:#ef6c00;color:#ef6c00;font-weight:700;background:color-mix(in srgb,#ef6c00 12%,transparent)}.remnota{font-size:12px;color:#ef6c00;margin-top:10px}`;document.head.appendChild(st)})();
 /* Listado de PBB: remotas en naranja */
 posLista=function(){return TERMS.map(t=>{const l=posDe(t);return `<div class="tgrp"><b>${t} · ${l.length} PBB</b><div class="tlst">${l.length?l.map(p=>`<span class="${esRem(p)?"rem":""}">${esc(String(p))}</span>`).join(""):`<span class="mu">Sin PBB dadas de alta</span>`}</div></div>`}).join("")+`<div class="remnota">● En naranja: posiciones remotas sin pasarela.</div>`};
@@ -2326,11 +2335,11 @@ function remForm(){const s=$("#f_pos");if(!s)return;const r=esRem(s.value);const
 (function(){const o=vNew;vNew=function(){o();const s=$("#f_pos");if(s){s.addEventListener("change",remForm);nTermSet(nTerm)}}})();
 /* Guía de campo */
 (function(){const o=vTec;vTec=function(){const ab=gOTs();const i0=ab.find(x=>x.id==gOT)||(!gOT&&ab[0]);const r0=otRem(i0);
- if(r0){const k=[i0.tipo,...(i0.equipos||[])].find(t=>t!="PAS"&&GUIA.tipos[t]);if(gTipo=="PAS"||gSyncOT!==i0.id){if(k)gTipo=k;gSyncOT=i0.id}}
+ if(r0){const k=[i0.tipo,...(i0.equipos||[])].find(t=>t!="PAS"&&t!="AAP"&&GUIA.tipos[t]);if(gTipo=="PAS"||gSyncOT!==i0.id){if(k)gTipo=k;gSyncOT=i0.id}}
  o();const i=inc.find(x=>x.id==gOT);if(!otRem(i))return;
  const c=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
- const k=[i.tipo,...(i.equipos||[])].find(t=>t!="PAS"&&GUIA.tipos[t]);
- if(!k||gTipo=="PAS"){if(c){const sel=c.querySelector("select");let n=sel&&sel.nextElementSibling;while(n){const m=n.nextElementSibling;n.remove();n=m}c.insertAdjacentHTML("beforeend",REM_AV)}
+ const k=[i.tipo,...(i.equipos||[])].find(t=>t!="PAS"&&t!="AAP"&&GUIA.tipos[t]);
+ if(!k||gTipo=="PAS"||gTipo=="AAP"){if(c){const sel=c.querySelector("select");let n=sel&&sel.nextElementSibling;while(n){const m=n.nextElementSibling;n.remove();n=m}c.insertAdjacentHTML("beforeend",REM_AV)}
   document.querySelectorAll('#app details.gd,#anag').forEach(x=>x.remove());document.querySelectorAll("#app > .card.mu").forEach(x=>x.remove());return}
  if(c)c.querySelectorAll(".gchips button").forEach(b=>{if(b.textContent.trim()=="PAS")b.remove()});
  document.querySelectorAll('#app details.gd[data-k="CAM"],#app details.gd[data-k="COT"],#app details.gd[data-k="INS"],#app details.gd[data-k="AAA4"],#anag').forEach(x=>x.remove());
