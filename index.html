@@ -2304,6 +2304,16 @@ let anaPLC=false,anaEnt=false;
 (function(){const o=gInsHTML;gInsHTML=function(){if(!anaPLC)return o();const oa=anaOT;anaOT=()=>null;try{return o()}finally{anaOT=oa}}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v81"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v82"}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v84"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v85"}})();
 /* ===== v84: nuevo tipo de OT SVGA (guiado automático de aeronaves al stand junto a la PBB) ===== */
+/* ===== v85: SVGA sin guía de campo ni inspección cable a cable (aún no hay planos ni documentación cargados) ===== */
+const svgaSolo=i=>{if(!i)return false;const t=[i.tipo,...(i.equipos||[])];return t.includes("SVGA")&&!t.some(x=>x=="PAS"||x=="HZ"||GUIA.tipos[x])};
+const SVGA_AV=`<div class="gav">SVGA · Sistema de guiado automático de aeronaves: todavía no hay planos ni documentación técnica cargados, así que no hay guía de campo ni inspección cable a cable para este equipo.</div>`;
+(function(){const o=anaOT;anaOT=function(i){return svgaSolo(i)?null:o(i)}})();
+(function(){const o=insOT;insOT=function(id){o(id);if(!svgaSolo(inc.find(x=>x.id==id)))return;const c=$("#g_ins");if(c)c.innerHTML=SVGA_AV}})();
+(function(){const o=vTec;vTec=function(){o();if(!svgaSolo(inc.find(x=>x.id==gOT)))return;
+ const c=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
+ if(c){const sel=c.querySelector("select");let n=sel&&sel.nextElementSibling;while(n){const m=n.nextElementSibling;n.remove();n=m}const g=c.querySelector("#g_doc");if(g)g.remove();c.insertAdjacentHTML("beforeend",SVGA_AV)}
+ document.querySelectorAll('#app details.gd:not([data-k="CAM"]),#anag').forEach(x=>x.remove());
+ document.querySelectorAll("#app > .card.mu").forEach(x=>x.remove())}})();
 </script></body></html>
