@@ -2090,7 +2090,7 @@ function tkPinta(){const gs=tkGrupos();
  <label><span class="tkst">3</span>${e?"Nuevo código (vacío = mantener)":"¿Código de acceso? (mín. 4)"}</label><div style="display:flex;gap:6px"><input id="g_c" type="password" inputmode="numeric" autocomplete="new-password"><button class="sec" style="width:auto;padding:6px 12px" onclick="tkCod()">Generar</button></div>
  <button class="pri" style="margin-top:14px;width:100%" onclick="${e?`tkGuarda('${esc(e.k)}')`:"tkAlta()"}">${e?"Guardar cambios":"Dar de alta"}</button>
  ${e?`<button class="sec" style="width:100%;margin-top:8px" onclick="tkEdit=null;tkTur=new Set(['Mañana']);tkPinta()">Cancelar edición</button>`:""}`;
- h+=`<label style="margin-top:18px">Técnicos dados de alta (${gs.length})</label>`+(gs.length?gs.map(g=>{const ts=new Set(g.l.map(x=>x.turno));return `<div style="border:1px solid var(--bd);border-radius:8px;padding:8px;margin-top:6px"><div class="row" style="flex-wrap:nowrap;gap:6px"><b style="overflow-wrap:anywhere">${esc(g.n)}</b><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><button class="sec" style="width:auto;padding:4px 10px" data-k="${esc(g.k)}" onclick="tkEditar(this.dataset.k)">✎ Editar</button><button class="sec gbdel" style="width:auto;padding:4px 10px;color:#c62828" title="Eliminar técnico" aria-label="Eliminar técnico ${esc(g.n)}" data-k="${esc(g.k)}" onclick="tkBorra(this.dataset.k)">${IC('trash')}</button></div></div><div class="tkmini" style="margin-top:6px">${TURNOS.map(t=>`<button class="${ts.has(t)?"on":""}" data-k="${esc(g.k)}" onclick="tkTurno(this.dataset.k,'${t}')">${ts.has(t)?"✓ ":""}${t}</button>`).join("")}</div></div>`}).join(""):`<div class="mu">Sin técnicos dados de alta</div>`);
+ h+=`<label style="margin-top:18px">Técnicos dados de alta (${gs.length})</label>`+(gs.length?gs.map(g=>{const ts=new Set(g.l.map(x=>x.turno));return `<div style="border:1px solid var(--bd);border-radius:8px;padding:8px;margin-top:6px"><div class="row" style="flex-wrap:nowrap;gap:6px"><b style="overflow-wrap:anywhere">${esc(g.n)}</b><div style="display:flex;align-items:center;gap:6px;flex:none"><button class="sec" style="width:auto;padding:4px 10px" data-k="${esc(g.k)}" onclick="tkEditar(this.dataset.k)">✎ Editar</button><button class="sec tkdel" title="Eliminar técnico" aria-label="Eliminar técnico ${esc(g.n)}" data-k="${esc(g.k)}" onclick="tkBorra(this.dataset.k)">${IC('trash')}</button></div></div><div class="tkmini" style="margin-top:6px">${TURNOS.map(t=>`<button class="${ts.has(t)?"on":""}" data-k="${esc(g.k)}" onclick="tkTurno(this.dataset.k,'${t}')">${ts.has(t)?"✓ ":""}${t}</button>`).join("")}</div></div>`}).join(""):`<div class="mu">Sin técnicos dados de alta</div>`);
  $("#sheetc").innerHTML=h;if(!e)tkNombre("")}
 function tkNombre(v){const d=$("#tk_av");if(!d)return;const g=tkGrupos().find(x=>x.k==claveN(v));
  d.innerHTML=g?`Ya existe en: ${esc(g.l.map(x=>x.turno).join(", "))}. Se añadirán los turnos marcados que falten (código vacío = el mismo).`:""}
@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v96"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v97"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2519,4 +2519,5 @@ async function tkBorra(k){const g=tkGrupos().find(x=>x.k==k);if(!g)return;
  const r=await sb.from("tecnicos").delete().in("id",g.l.map(x=>x.id)).select("id");
  if(r.error||!r.data||!r.data.length){msg("No se pudo eliminar"+(r.error?": "+r.error.message:""));return}
  msg(`Técnico ${g.n} eliminado`);if(tkEdit==k){tkEdit=null;tkTur=new Set(["Mañana"])}window._tecAll=await listaTec();tkPinta()}
+(function(){const st=document.createElement("style");st.textContent=".tkdel{width:auto;padding:4px 8px;display:inline-flex;align-items:center;justify-content:center;color:#c62828;border-color:#e57373}.tkdel svg{width:16px;height:16px}";document.head.appendChild(st)})();
 </script></body></html>
