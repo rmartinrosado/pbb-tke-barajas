@@ -2307,6 +2307,7 @@ let anaPLC=false,anaEnt=false;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v82"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v88"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v89"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v90"}})();
 /* ===== v88: en posiciones remotas tampoco hay AAP (aire acondicionado de pasarela) ===== */
 const REM_FUERA=["PAS","AAP"];
 (function(){const o=remForm;remForm=function(){o();const s=$("#f_pos");if(!s)return;const r=esRem(s.value);const c=document.querySelector('.eqc[value="AAP"]');if(!c)return;
@@ -2392,4 +2393,20 @@ const SVGA_AV=`<div class="gav">SVGA · Sistema de guiado automático de aeronav
  if(c){const sel=c.querySelector("select");let n=sel&&sel.nextElementSibling;while(n){const m=n.nextElementSibling;n.remove();n=m}const g=c.querySelector("#g_doc");if(g)g.remove();c.insertAdjacentHTML("beforeend",SVGA_AV)}
  document.querySelectorAll('#app details.gd:not([data-k="CAM"]),#anag').forEach(x=>x.remove());
  document.querySelectorAll("#app > .card.mu").forEach(x=>x.remove())}})();
+/* ===== v90: Posición PBB con lista desplegable y también tecleando el número ===== */
+(function(){const st=document.createElement("style");st.textContent=`.posw{display:flex;gap:8px;align-items:stretch}.posw select{flex:1;min-width:0}.posw input{width:42%;flex:none;font-size:18px;font-weight:700;letter-spacing:1px;text-align:center}.posw input.mal{border-color:#d32f2f;color:#d32f2f}#f_posm{font-size:12px;margin-top:4px;min-height:14px}`;document.head.appendChild(st)})();
+function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s)return;const v=n.value.replace(/\D/g,"");if(n.value!==v)n.value=v;
+ n.classList.remove("mal");if(m){m.textContent="";m.style.color=""}if(!v)return;
+ const p=POS.find(x=>String(x)==v);
+ if(p===undefined){const k=POS.some(x=>String(x).startsWith(v));if(!k){n.classList.add("mal");if(m){m.textContent=`La PBB ${v} no está dada de alta`;m.style.color="#d32f2f"}}return}
+ const t=termDe(p);if(t!=nTerm)nTermSet(t);if(s.value!==v){s.value=v;remForm()}
+ if(m)m.textContent=`PBB ${v} · ${t}${esRem(v)?" · remota":""}`}
+(function(){const o=vNew;vNew=function(){o();const s=$("#f_pos");if(!s||$("#f_posn"))return;
+ const w=document.createElement("div");w.className="posw";s.before(w);w.appendChild(s);
+ w.insertAdjacentHTML("beforeend",`<input id="f_posn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="Teclear nº" oninput="posTeclea()">`);
+ w.insertAdjacentHTML("afterend",`<div id="f_posm" class="mu"></div>`);
+ s.addEventListener("change",()=>{const n=$("#f_posn");if(n){n.value=s.value;posTeclea()}})}})();
+(function(){const o=nTermSet;nTermSet=function(t){o(t);const n=$("#f_posn"),s=$("#f_pos");if(n&&s&&n.value&&!POS.some(x=>String(x)==n.value&&termDe(x)==t))n.value=""}})();
+(function(){const o=guardar;guardar=function(){const n=$("#f_posn"),s=$("#f_pos");
+ if(n&&n.value&&s&&n.value!==s.value){msg(`La PBB ${n.value} no está dada de alta`);n.focus();return}return o()}})();
 </script></body></html>
