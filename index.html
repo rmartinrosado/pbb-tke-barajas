@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v1"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v2"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2536,4 +2536,8 @@ async function tkBorra(k){const g=tkGrupos().find(x=>x.k==k);if(!g)return;
 (function(){const o=cerrar;cerrar=function(id){const i=inc.find(x=>x.id==id),c=$("#r_c");
  if(i&&i.estado=="abierta"&&c)c.value=ahora();return o(id)}})();
 setInterval(()=>{const c=document.querySelector("#r_c[data-auto]");if(c&&c.isConnected)c.value=ahora()},5000);
+/* ===== v2: al volver a la app (iPhone suspende la conexión en segundo plano) se recargan las OT; además, refresco cada 20 s ===== */
+(function(){let ult=0;const rec=()=>{if(!user||document.hidden)return;const n=Date.now();if(n-ult<3000)return;ult=n;cargaInc(true).catch(()=>{})};
+ document.addEventListener("visibilitychange",rec);addEventListener("pageshow",rec);addEventListener("focus",rec);addEventListener("online",rec);
+ setInterval(rec,20000)})();
 </script></body></html>
