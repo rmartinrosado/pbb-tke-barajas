@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v7"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v8"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2566,4 +2566,13 @@ new MutationObserver(segPliega).observe(document.body,{childList:true,subtree:tr
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--hdov:rgba(30,21,48,.78)}}
 :root[data-theme=dark]{--hdov:rgba(30,21,48,.78)}
 header{background:linear-gradient(var(--hdov),var(--hdov)),url("cabecera.jpg") center 40%/cover no-repeat,var(--card)!important}`;document.head.appendChild(st)})();
+/* ===== v8: la hora de inicio de una OT nueva es la del momento en que se pulsa Guardar ===== */
+(function(){const st=document.createElement("style");st.textContent="#f_hi[data-auto]{opacity:.75;pointer-events:none}";document.head.appendChild(st)})();
+(function(){const o=hqAnade;hqAnade=function(t){if(t&&t.id=="f_hi")return;return o(t)}})();
+function hiAuto(){const f=$("#f_hi");if(!f||f.dataset.auto)return;f.dataset.auto="1";f.readOnly=true;f.tabIndex=-1;f.value=ahora();
+ const n=document.createElement("div");n.className="mu";n.style.cssText="font-size:12px;margin-top:4px";n.textContent="Se registra automáticamente al guardar la OT";f.after(n)}
+(function(){const o=render;render=function(){const r=o.apply(this,arguments);hiAuto();return r}})();
+new MutationObserver(hiAuto).observe(document.body,{childList:true,subtree:true});
+(function(){const o=guardar;guardar=function(){const f=$("#f_hi");if(f)f.value=ahora();return o.apply(this,arguments)}})();
+setInterval(()=>{const f=document.querySelector("#f_hi[data-auto]");if(f)f.value=ahora()},5000);
 </script></body></html>
