@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v19"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v20"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2868,4 +2868,43 @@ function infActuacion(k){const t=k.replace(/\d+$/,""),si=+k.slice(t.length);cons
 (function(){const o=cerrar;cerrar=function(id){const r=o.apply(this,arguments);const i=inc.find(x=>x.id==id);if(i&&i.estado!="abierta"){segAb.delete(id);segPl.delete(id);guiAb.delete(id);render()}return r}})();
 (function(){const o=go;go=function(v,f){if(v!="track")segAb.clear();return o(v,f)}})();
 (function(){const o=card;card=function(i){let h=o(i);if(i.estado=="abierta")return h;return h.replace(/(<details style="margin-top:6px") open( ontoggle="togGui)/,"$1$2")}})();
+/* ===== v20: OT con un elemento de seguridad activado → PRIMERA actuación: puente provisional en la entrada del módulo PLC
+ (solo los puentes permitidos de la tabla PUENTE, nunca setas, bordes, zapata, límites…), con sus condiciones, para mover la pasarela. ===== */
+function puKey(mod,S){if(S.k&&S.l)return `${mod}|${S.k}|${S.l}`;const m=/^(\d+)\.(\d)/.exec(S.led||"");if(!m)return null;const a=+m[1],c=+m[2],k=Math.ceil(a/2);
+ const M=PLC.find(x=>x.id==mod);if((M&&M.t=="SDI")||/^E-A(8|9|10)$/.test(mod))return `${mod}|${k}|${a-2*k+2}`;return `${mod}|${k}|${(c==1?1:3)+(a%2?0:1)}`}
+function puentesOT(i){if(!i||i.estado!="abierta")return [];const R=anaOT(i);if(!R)return [];const pos=String(i.pos),out=[],vis=new Set();
+ R.rel.forEach(x=>{const key=puKey(x.mod,x.S);if(!key||vis.has(key)||!PUENTE[key])return;const t=PUENTE[key];
+  if(/^Solo 504\/507\/508/.test(t)&&!["504","507","508"].includes(pos))return;if(/^Solo 504 /.test(t)&&pos!="504")return;
+  vis.add(key);const[id,k,l]=key.split("|");const M=PLC.find(m=>m.id==id);const L=M&&M.m[k-1]&&M.m[k-1][l-1];const b=M?pBorna(M,+k,+l):null;
+  out.push({key,id,k,l,t,nom:L?L[0]:x.S.t,b,f:M?M.f[k-1]:null,suelta:/no puentear/i.test(t)})});return out}
+function puenteHTML(i,P){return `<div class="pucab">🔌 PRIMERA ACTUACIÓN EN CAMPO · puente provisional para recuperar la pasarela</div>
+ ${P.map(p=>`<div class="puit"><b>${esc(p.id)} · módulo ${p.k} · LED ${p.l}</b> — ${esc(p.nom)}${p.f?` <span class="mu">(folio ${p.f})</span>`:""}
+  <div class="puac">${p.suelta?"🔧":"⚡"} ${esc(p.t)}</div>${p.b&&!p.suelta?`<div class="mu">Entrada del módulo: IN ${esc(p.b.in)} · alimentación/test: ${esc(p.b.v)}</div>`:""}</div>`).join("")}
+ <div class="pucond"><b>Condiciones obligatorias:</b><ol>
+  <li>Antes de puentear, comprueba físicamente el elemento: nada ni nadie atrapado, puerta / portón / carro en su posición segura.</li>
+  <li>Coordina con CGA / Responsable de Turno y anota en la OT la hora del puente.</li>
+  <li>Pon el puente en las bornas del módulo indicadas, con etiqueta visible «PUENTE PROVISIONAL · OT ${esc(i.orden||"")}».</li>
+  <li>Mueve la pasarela solo en MANUAL, despacio y con un compañero vigilando la zona del elemento anulado. Es solo para trasladarla y dejarla operativa de forma controlada.</li>
+  <li>Las setas de emergencia, bordes, zapata, bumpers y finales de límite NO se puentean nunca: por eso no aparecen aquí.</li>
+  <li>Quita el puente en cuanto repares el elemento, comprueba que vuelve a actuar y anótalo en la OT. No se cierra la OT con el puente puesto.</li></ol></div>`}
+(function(){const st=document.createElement("style");st.textContent=`.pucard{border:2px solid #c62828!important}.pucab{font-weight:700;color:#fff;background:#c62828;border-radius:8px;padding:6px 10px;margin-bottom:8px}
+.puit{border-left:3px solid #c62828;padding:4px 0 4px 8px;margin:6px 0}.puac{margin-top:3px;font-weight:600}.pucond{font-size:13px;margin-top:8px}.pucond ol{padding-left:18px;margin:4px 0}`;document.head.appendChild(st)})();
+function puPinta(){if(view!="tec")return;const i=inc.find(x=>x.id==gOT);const old=document.getElementById("gpte");const P=puentesOT(i);
+ if(!P.length){if(old)old.remove();return}if(old)return;
+ const d=document.createElement("div");d.id="gpte";d.className="card pucard";d.innerHTML=puenteHTML(i,P);
+ const top=document.querySelector("#app details.gd.gef"),anc=document.getElementById("anag");
+ if(top)top.insertAdjacentElement("beforebegin",d);else if(anc)anc.insertAdjacentElement("afterend",d)}
+(function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);puPinta();return r}})();
+/* en el Análisis de la OT: el puente aparece el primero de «Guía de campo · actuación más eficaz» */
+(function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);const P=puentesOT(i);if(!P.length)return h;
+ const btn=`<button class="anag" style="border:2px solid #c62828;font-weight:700" onclick="puVa('${i.id}')">🔌 1º · Puente provisional: ${esc(P.map(p=>p.nom).join(" / "))}</button>`;
+ if(h.includes('<div class="anass">'))return h.replace('<div class="anass">','<div class="anass">'+btn);
+ return h.replace(/(<div class="mu" style="font-size:11px;margin-top:6px">Orden propuesto)/,`<div class="anal">Guía de campo · actuación más eficaz</div><div class="anass">${btn}</div>$1`)}})();
+function puVa(id){gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(view!="tec")go("tec");else vTec();setTimeout(()=>{const d=document.getElementById("gpte");if(d)d.scrollIntoView({block:"start",behavior:"smooth"})},120)}
+/* la varita lleva primero al puente si lo hay */
+(function(){const o=varita;varita=function(id){const i=inc.find(x=>x.id==id);if(puentesOT(i).length){puVa(id);return}return o(id)}})();
+/* el informe imprimible empieza la actuación por el puente */
+(function(){const o=infActuacion;infActuacion=function(k){o(k);const i=inc.find(x=>x.id==gOT);const P=puentesOT(i);if(!P.length)return;
+ const d=document.querySelector("#infov .indoc");if(!d)return;const secs=[...d.querySelectorAll("section")];const s3=secs.find(x=>/^3\./.test((x.querySelector("h3")||{}).textContent||""));
+ const n=document.createElement("section");n.innerHTML=`<h3>3. Primera actuación: puente provisional</h3>${puenteHTML(i,P)}`;if(s3){s3.insertAdjacentElement("beforebegin",n);s3.querySelector("h3").textContent="4. Actuación paso a paso (reparación)"}}})();
 </script></body></html>
