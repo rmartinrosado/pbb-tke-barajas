@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v3"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v4"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2528,16 +2528,29 @@ async function tkBorra(k){const g=tkGrupos().find(x=>x.k==k);if(!g)return;
  tkTur=ts;tkPinta();if($("#g_n"))$("#g_n").value=n;if($("#g_c"))$("#g_c").value=c;return o(k)}})();
 /* ===== v99: técnicos dados de alta en lista desplegable ===== */
 (function(){const st=document.createElement("style");st.textContent=`.tklst{margin-top:18px;border:1px solid var(--bd);border-radius:10px}.tklst>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;display:flex;justify-content:space-between;align-items:center}.tklst>summary::-webkit-details-marker{display:none}.tklst>summary::after{content:"▾";font-size:18px;display:inline-block;transition:transform .2s}.tklst[open]>summary::after{transform:rotate(180deg)}.tklstc{padding:0 8px 8px}`;document.head.appendChild(st)})();
-/* ===== v1: en la Resolución de una OT abierta la hora final de cierre la pone la app al pulsar «Cerrar avería» ===== */
-(function(){const st=document.createElement("style");st.textContent="#r_c[data-auto]{opacity:.75;pointer-events:none}";document.head.appendChild(st)})();
-(function(){const o=resolver;resolver=function(id){o(id);const i=inc.find(x=>x.id==id);if(!i||i.estado!="abierta")return;
- const c=$("#r_c");if(!c)return;c.type="time";c.readOnly=true;c.tabIndex=-1;c.dataset.auto="1";c.value=ahora();
- const n=document.createElement("div");n.className="mu";n.style.cssText="font-size:12px;margin-top:4px";n.textContent="Se rellena automáticamente al cerrar la avería";c.after(n)}})();
-(function(){const o=cerrar;cerrar=function(id){const i=inc.find(x=>x.id==id),c=$("#r_c");
- if(i&&i.estado=="abierta"&&c)c.value=ahora();return o(id)}})();
-setInterval(()=>{const c=document.querySelector("#r_c[data-auto]");if(c&&c.isConnected)c.value=ahora()},5000);
 /* ===== v2: al volver a la app (iPhone suspende la conexión en segundo plano) se recargan las OT; además, refresco cada 5 s (v3) ===== */
 (function(){let ult=0;const rec=()=>{if(!user||document.hidden)return;const n=Date.now();if(n-ult<3000)return;ult=n;cargaInc(true).catch(()=>{})};
  document.addEventListener("visibilitychange",rec);addEventListener("pageshow",rec);addEventListener("focus",rec);addEventListener("online",rec);
  setInterval(rec,5000)})();
+/* ===== v4: llegada y cierre a mano si no están grabadas (la llegada se graba con «He llegado a la posición»); caja rápida hhmm junto a cada hora ===== */
+(function(){const o=resolver;resolver=function(id){o(id);const i=inc.find(x=>x.id==id);if(!i||i.estado!="abierta")return;
+ const l=$("#r_l"),c=$("#r_c");if(l)l.value=i.hLle||"";if(c)c.value=i.hCie||""}})();
+(function(){const st=document.createElement("style");st.textContent=`.hrow{display:flex;gap:8px;align-items:stretch}.hrow>input[type=time]{flex:1 1 auto;min-width:0;width:auto;margin:0}.hrow>.hq{flex:0 0 92px;width:92px;margin:0;text-align:center;font-size:18px;letter-spacing:1px}.hq.hqx{outline:2px solid #d33}`;document.head.appendChild(st)})();
+function hqLee(v,fin){const t=(v||"").replace(/[.,h]/g,":").trim();let h,m;
+ const c=/^(\d{1,2}):(\d{1,2})$/.exec(t);if(c){h=+c[1];m=+c[2]}else{const d=t.replace(/\D/g,"");
+  if(d.length==4){h=+d.slice(0,2);m=+d.slice(2)}else if(fin&&d.length==3){h=+d[0];m=+d.slice(1)}else if(fin&&d.length&&d.length<=2){h=+d;m=0}else return undefined}
+ if(h>23||m>59)return null;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")}
+function hqPon(t,q,fin){const v=hqLee(q.value,fin);if(v===undefined){q.classList.toggle("hqx",fin&&q.value.trim()!="");return false}
+ if(v===null){q.classList.add("hqx");return false}q.classList.remove("hqx");t.value=v;t.style.outline="";q.value=v;
+ t.dispatchEvent(new Event("input",{bubbles:true}));t.dispatchEvent(new Event("change",{bubbles:true}));return true}
+function hqAnade(t){if(t.dataset.hq||t.type!="time"||!t.parentNode)return;t.dataset.hq="1";
+ const r=document.createElement("div");r.className="hrow";t.parentNode.insertBefore(r,t);
+ const q=document.createElement("input");q.className="hq";q.type="text";q.inputMode="numeric";q.maxLength=5;q.placeholder="hhmm";q.autocomplete="off";q.setAttribute("aria-label","Hora rápida (24 h)");
+ r.append(t,q);
+ q.addEventListener("input",()=>{const d=q.value.replace(/\D/g,"");if(d.length==4&&hqPon(t,q,false)){const n=[...document.querySelectorAll(".hq")];const k=n.indexOf(q);if(n[k+1]&&n[k+1].closest("#sheet,#app")==q.closest("#sheet,#app"))n[k+1].focus();else q.blur()}});
+ q.addEventListener("blur",()=>{if(q.value.trim())hqPon(t,q,true)});
+ q.addEventListener("keydown",e=>{if(e.key=="Enter"){e.preventDefault();hqPon(t,q,true);q.blur()}});
+ t.addEventListener("change",()=>{if(t.value&&q.value!=t.value&&!q.matches(":focus")){q.value="";q.classList.remove("hqx")}})}
+function hqTodo(){document.querySelectorAll('input[type=time]:not([data-hq])').forEach(hqAnade)}
+new MutationObserver(hqTodo).observe(document.body,{childList:true,subtree:true});hqTodo();
 </script></body></html>
