@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v20"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v21"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2907,4 +2907,48 @@ function puVa(id){gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(view!="tec
 (function(){const o=infActuacion;infActuacion=function(k){o(k);const i=inc.find(x=>x.id==gOT);const P=puentesOT(i);if(!P.length)return;
  const d=document.querySelector("#infov .indoc");if(!d)return;const secs=[...d.querySelectorAll("section")];const s3=secs.find(x=>/^3\./.test((x.querySelector("h3")||{}).textContent||""));
  const n=document.createElement("section");n.innerHTML=`<h3>3. Primera actuación: puente provisional</h3>${puenteHTML(i,P)}`;if(s3){s3.insertAdjacentElement("beforebegin",n);s3.querySelector("h3").textContent="4. Actuación paso a paso (reparación)"}}})();
+/* ===== v21: análisis de palabras de la OT para LÍMITES activados y PAS bloqueada por CONTACTOR DE SEGURIDADES 1/2.
+ Primera actuación: maniobra controlada con el bypass del fabricante CP-S33 + entradas/salidas del PLC implicadas para medir.
+ Las entradas de límite del PLC de seguridad y las salidas de los contactores de seguridad NO se puentean con hilo. ===== */
+const LIM_DEF=[
+ {z:"tras",re:/traslac|giro|rueda|bogie|avance|retroce/,it:[["E-A8","5.1","5.2","H-S1","F.C. traslación (safety)"],["E-A3","7.1",null,"H-B3","Límite giro traslación izquierda"],["E-A3","8.1",null,"H-B4","Límite giro traslación derecha"]]},
+ {z:"ext",re:/extensi|tunel|telescop|recoger|extender/,it:[["E-A8","6.1","6.2","ET-S1","F.C. extensión túneles (safety)"]]},
+ {z:"rot",re:/rotonda/,it:[["E-A8","7.1","7.2","CO-S1","F.C. rotonda (safety)"]]},
+ {z:"inc",re:/inclinac|altura|subir|bajar|sube|baja|elevac/,it:[["E-A8","8.1","8.2","IT-S3 / IT-S2","F.C. inclinación inferior / superior (safety)"],["E-A2","2.4",null,"IT-B10","Límite inferior inclinación"],["E-A2","3.1",null,"IT-B11","Límite superior inclinación"]]},
+ {z:"cab",re:/cabina/,it:[["P-A6","1.1",null,"C-B2","Límite cabina izquierda"],["P-A6","2.1",null,"C-B1","Límite cabina derecha"]]},
+ {z:"sue",re:/suelo/,it:[["P-A6","3.4",null,"C-S2","F.C. límite suelo izquierda"],["P-A6","4.1",null,"C-S1","F.C. límite suelo derecha"]]}];
+const CONT_IT=[["E-A6","3.1","3.3","E-K0","Salida safety → bobina CONTACTOR SEGURIDAD 1 (E-K0)"],["E-A6","4.1","4.3","E-K0.1","Salida safety → bobina CONTACTOR SEGURIDAD 2 (E-K0.1)"],["E-A0","1.1",null,"E-K0 / E-K0.1","Entrada «Línea de seguridades» (estado de E-K0 y E-K0.1)"],["E-A8","3.1","3.2","CP-S33","Bypass seguridades (selector del pupitre)"]];
+function segNorm(t){return String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")}
+function segOT(i){if(!i||i.estado!="abierta")return null;const t=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
+ const lim=/\blimite|final(es)? de carrera|fin de carrera|\bf\.?c\.?\b|\bfc\b/.test(t);
+ const cont=/contactor(es)? (de )?seguridad(es)?|seguridad(es)? ?(1|2|uno|dos)\b|\be-?k0(\.1)?\b|\bk0\b|linea de seguridad/.test(t);
+ if(!lim&&!cont)return null;let zs=lim?LIM_DEF.filter(d=>d.re.test(t)):[];if(lim&&!zs.length)zs=LIM_DEF.filter(d=>/tras|ext|rot|inc/.test(d.z));
+ const n12=/(seguridad(es)?|contactor)\s*(2|dos)\b|k0\.1/.test(t)?2:/(seguridad(es)?|contactor)\s*(1|uno)\b/.test(t)?1:0;
+ return {lim,cont,zs,n12}}
+function segIO(it){const[id,a,b,el,nom]=it;const M=PLC.find(m=>m.id==id);let est="";
+ if(M&&id!="E-A0"){const m=/^(\d+)\.(\d)/.exec(a);if(m){const n=+m[1],c=+m[2],k=Math.ceil(n/2);const l=M.t=="SDI"||M.t=="SDO"?n-2*k+2:(c==1?1:3)+(n%2?0:1);const L=M.m[k-1]&&M.m[k-1][l-1];if(L)est=L[1]==1?"en reposo / servicio: LED ENCENDIDO":L[1]==0?"en reposo: LED APAGADO":""}}
+ const r=elRutas(el.split(" / ")[0]).find(x=>!x.av&&new RegExp("\\b"+id+"\\b").test(x.sig+" "+x.txt));
+ return `<div class="puit"><b>${esc(id)} · borna ${esc(a)}${b?` / ${esc(b)}`:""}</b> — ${esc(nom)} · <b>${esc(el)}</b>${est?`<div class="mu">${esc(est)}</div>`:""}${r?`<div class="mu">Recorrido: ${esc(r.txt)}${r.f?` · folio ${r.f}`:""}</div>`:""}</div>`}
+function segHTML(i,S){let h=`<div class="pucab">🔌 PRIMERA ACTUACIÓN EN CAMPO · ${S.lim?"límite activado":""}${S.lim&&S.cont?" + ":""}${S.cont?`PAS bloqueada por contactor de seguridades${S.n12?" "+S.n12:" 1 / 2"}`:""}</div>
+ <div class="puac">1. Recuperar la pasarela con <b>maniobra controlada</b>: selector <b>CP-S33 «BYPASS SEGURIDADES»</b> en el pupitre (entra al PLC por E-A8 bornas 3.1 / 3.2). Es el medio previsto por el fabricante para mover la pasarela con una seguridad activada: en MANUAL, despacio y con un compañero vigilando. Al terminar, selector en posición normal.</div>
+ <div class="puac">2. Si con el bypass no deja maniobrar, mide estas entradas y salidas del PLC para localizar el fallo:</div>`;
+ if(S.lim){h+=`<div class="anal">Límites · entradas del PLC</div>`;S.zs.forEach(z=>z.it.forEach(it=>h+=segIO(it)))}
+ if(S.cont){h+=`<div class="anal">Contactores de seguridad · salidas y entradas del PLC</div>`;CONT_IT.filter(it=>!S.n12||it[3]!=(S.n12==1?"E-K0.1":"E-K0")).forEach(it=>h+=segIO(it));
+  h+=`<div class="mu">Si las entradas safety están bien y E-A6 no da salida a E-K0 / E-K0.1: alimentación safety (E-Q30.3 / E-Q30.4, borna E-X68:6) e Interbus E-A11 ↔ P-A0 (cable EP-W3).</div>`}
+ h+=`<div class="gnp" style="margin-top:8px">⛔ No se puentean con hilo las entradas de límite del PLC de seguridad (E-A8) ni las salidas de los contactores de seguridad (E-A6 → E-K0 / E-K0.1): dejan la pasarela sin ninguna protección frente a golpes con el avión o atrapamientos. Para mover la pasarela, el bypass CP-S33; para dejarla en servicio, reparar el elemento.</div>`;return h}
+function segPinta(){if(view!="tec")return;const i=inc.find(x=>x.id==gOT);const S=segOT(i);const old=document.getElementById("gsegl");
+ if(!S){if(old)old.remove();return}if(old)return;const d=document.createElement("div");d.id="gsegl";d.className="card pucard";d.innerHTML=segHTML(i,S);
+ const ref=document.getElementById("gpte")||document.querySelector("#app details.gd.gef"),anc=document.getElementById("anag");
+ if(ref)ref.insertAdjacentElement("beforebegin",d);else if(anc)anc.insertAdjacentElement("afterend",d)}
+(function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);segPinta();return r}})();
+(function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);const S=segOT(i);if(!S)return h;
+ const btn=`<button class="anag" style="border:2px solid #c62828;font-weight:700" onclick="segVa('${i.id}')">🔌 1º · ${S.lim?"Límite activado":""}${S.lim&&S.cont?" + ":""}${S.cont?"Contactor de seguridades":""}: maniobra controlada y E/S del PLC</button>`;
+ if(h.includes('<div class="anass">'))return h.replace('<div class="anass">','<div class="anass">'+btn);
+ return h.replace(/(<div class="mu" style="font-size:11px;margin-top:6px">Orden propuesto)/,`<div class="anal">Guía de campo · actuación más eficaz</div><div class="anass">${btn}</div>$1`)}})();
+function segVa(id){gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(view!="tec")go("tec");else vTec();setTimeout(()=>{const d=document.getElementById("gsegl");if(d)d.scrollIntoView({block:"start",behavior:"smooth"})},120)}
+(function(){const o=varita;varita=function(id){const i=inc.find(x=>x.id==id);if(segOT(i)){segVa(id);return}return o(id)}})();
+(function(){const o=infActuacion;infActuacion=function(k){o(k);const i=inc.find(x=>x.id==gOT);const S=segOT(i);if(!S)return;
+ const d=document.querySelector("#infov .indoc");if(!d)return;const s3=[...d.querySelectorAll("section")].find(x=>/^3\./.test((x.querySelector("h3")||{}).textContent||""));
+ const n=document.createElement("section");n.innerHTML=`<h3>3. Primera actuación: seguridades</h3>${segHTML(i,S)}`;if(s3){s3.insertAdjacentElement("beforebegin",n);
+  [...d.querySelectorAll("section h3")].forEach(h=>{if(h!==n.querySelector("h3")){const m=/^(\d+)\.\s/.exec(h.textContent);if(m&&+m[1]>=3)h.textContent=h.textContent.replace(/^\d+/,+m[1]+1)}})}}})();
 </script></body></html>
