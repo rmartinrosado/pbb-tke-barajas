@@ -21,11 +21,8 @@ function madridAUtc(y: number, mo: number, d: number, h: number, mi: number) {
 }
 function minutos(i: any) { const t = [i.tipo, ...(i.equipos || [])].map((k: string) => LLEG[k]).filter(Boolean); return t.length ? Math.min(...t) : 15; }
 function limite(id: string, i: any): number | null {
-  const m = /^(\d{1,2}):(\d{2})/.exec(i.hIni || ""); if (!m) return null;
-  const c = Number(id); if (!isFinite(c) || c < 1e12) return null; // el id de la OT es el instante de creación
-  const p = partes(c); let d = madridAUtc(p.year, p.month, p.day, +m[1], +m[2]);
-  if (d - c > 12 * 3600e3) d -= 24 * 3600e3; else if (c - d > 12 * 3600e3) d += 24 * 3600e3;
-  return d + minutos(i) * 60e3;
+  const c = Number(id); if (!isFinite(c) || c < 1e12) return null; // el id de la OT es el instante en que se guardó: la cuenta atrás empieza ahí
+  return c + minutos(i) * 60e3;
 }
 
 async function config() {

@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v4"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v5"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2449,9 +2449,7 @@ const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite 
  if(ok)return o(id)}})();
 const LLEG_MIN={PAS:10,HZ:15,AAA:15,AAP:15,SVGA:15,Sigma:15};
 function llegMin(i){const t=[i.tipo,...(i.equipos||[])].map(k=>LLEG_MIN[k]).filter(Boolean);return t.length?Math.min(...t):15}
-function llegFin(i){const m=hMin(i.hIni);if(m==null)return null;const c=new Date(+i.id||Date.now());if(isNaN(c))return null;
- const d=new Date(c);d.setHours(Math.floor(m/60),m%60,0,0);if(d-c>12*3600e3)d.setDate(d.getDate()-1);else if(c-d>12*3600e3)d.setDate(d.getDate()+1);
- return d.getTime()+llegMin(i)*60e3}
+function llegFin(i){const c=+i.id;if(!isFinite(c)||c<1e12)return null;return c+llegMin(i)*60e3} /* v5: desde que se guarda la OT */
 const llegPend=i=>i&&i.estado=="abierta"&&!i.hLle&&!!i.hIni;
 function llegTxt(i){const f=llegFin(i);if(f==null)return"";const r=Math.round((f-Date.now())/1000),a=Math.abs(r),mm=Math.floor(a/60),ss=String(a%60).padStart(2,"0");
  return r>=0?`⏱ Llegada: quedan <b>${mm}:${ss}</b> (${llegMin(i)} min)`:`⚠ Fuera de tiempo de llegada: <b>+${mm}:${ss}</b> · Llamar a CGA`}
