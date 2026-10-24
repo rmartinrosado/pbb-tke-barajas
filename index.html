@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v8"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v9"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2575,4 +2575,44 @@ function hiAuto(){const f=$("#f_hi");if(!f||f.dataset.auto)return;f.dataset.auto
 new MutationObserver(hiAuto).observe(document.body,{childList:true,subtree:true});
 (function(){const o=guardar;guardar=function(){const f=$("#f_hi");if(f)f.value=ahora();return o.apply(this,arguments)}})();
 setInterval(()=>{const f=document.querySelector("#f_hi[data-auto]");if(f)f.value=ahora()},5000);
+/* ===== v9: ubicación de cada elemento y recorrido con bornas / interconexiones intermedias
+ (Elementos de campo a revisar y pasos de la Guía de campo). Datos: cableado.js (RCS_PLANOS rev. D) + prefijo de lugar (+). ===== */
+UBI.CP=UBI.CP||{c:"Mandos pupitre",n:"Pupitre de mando · frontal de mandos (setas, joystick, selectores)",k:"#1565c0"};
+UBI.C4=UBI.C4||{c:"Cabina",n:"Cabina de la PBB · zona C4 (regletero C4)",k:"#00838f"};
+function elZona(tag){const pre=String(tag).replace(/^\+/,"").split("-")[0];return UBI[pre]||UBI[pre.replace(/\d+$/,"")]||null}
+function elNodo(n){const t=String(n.t||"").replace(/^\+/,"");
+ if(n.k=="B")return {txt:`borna ${t}:${n.p}`,t,b:1};
+ if(n.k=="C")return {txt:`común ${n.w}`,t:""};
+ if(n.k=="M")return {txt:n.l?`→ ${n.l}`:"",t:""};
+ return {txt:t+(n.ps&&n.ps.length?` (${n.ps.join("-")})`:n.p?`:${n.p}`:""),t}}
+function elVia(n){return (n.v||[]).map(v=>v.m?`manguera ${v.m}${v.t?` (${v.t}`:""}${v.d?`${v.t?", ":" ("}cond. ${v.d}`:""}${v.t||v.d?")":""}`:v.h?`hilo ${v.h}${v.c?" "+v.c:""}`:"").filter(Boolean)}
+const EL_C=new Map();
+function elRutas(tag){if(EL_C.has(tag))return EL_C.get(tag);const C=window.CABLEADO||{},T="+"+tag,out=[];
+ const esW=/-W\d/.test(tag);
+ Object.values(C).forEach(e=>{const ix=e.n.findIndex(n=>n.t==T||(esW&&(n.v||[]).some(v=>v.m==tag)));if(ix<0)return;
+  const pasos=[`${e.m} ${e.k||""} (borna ${e.b})`.replace(/\s+/g," ")],bor=[];
+  e.n.slice(0,ix+1).forEach((n,k)=>{elVia(n).forEach(v=>pasos.push(v));const N=elNodo(n);if(!N.txt)return;
+   const z=N.t?elZona(N.t):null;pasos.push(N.txt+(z?` [${z.c}]`:""));if(N.b&&!(n.t==T))bor.push(`${N.t}:${n.p}${z?" ("+z.c+")":""}`)});
+  const sig=`${e.m} ${e.k||""}${e.d?" · "+e.d:""}`;
+  if(!out.some(o=>o.txt==pasos.join(" → ")))out.push({txt:pasos.join(" → "),bor,sig,f:e.n[ix].f||e.f})});
+ EL_C.set(tag,out);return out}
+function elHTML(tag,corto){const z=elZona(tag),R=elRutas(tag);
+ const zh=z?`<span class="gubc" style="--uk:${z.k}">📍 ${esc(z.c)}</span> <span class="eln">${esc(z.n)}</span>`:`<span class="eln">Ubicación: ver plano</span>`;
+ const rs=R.slice(0,corto?2:4).map(r=>`<div class="elr"><span class="els">${esc(r.sig)}</span>${esc(r.txt)}${r.f?` · <i>folio ${r.f}</i>`:""}${r.bor.length?`<div class="elb">🔗 Bornas intermedias: <b>${esc(r.bor.join(" · "))}</b></div>`:/-X\d/.test(tag)?"":`<div class="elb">Conexión directa, sin bornas intermedias en el plano</div>`}</div>`).join("");
+ const mas=R.length>(corto?2:4)?`<div class="elb">+${R.length-(corto?2:4)} recorrido(s) más</div>`:"";
+ const nada=R.length?"":(/-W\d/.test(tag)?`<div class="elb">Manguera: tramo según plano${typeof CABLE_UBI!="undefined"&&CABLE_UBI[tag.split("-")[0]]?" ("+esc(CABLE_UBI[tag.split("-")[0]])+")":""}</div>`:`<div class="elb">Bornas / interconexiones no detalladas en los datos cargados: ver plano.</div>`);
+ return `<div class="elu"><div class="elh"><b>${esc(tag)}</b> ${zh}</div>${rs}${mas}${nada}</div>`}
+(function(){const st=document.createElement("style");st.textContent=`.elus{margin-top:8px;display:flex;flex-direction:column;gap:8px}.elu{border-left:3px solid var(--bd);padding:2px 0 2px 8px;font-size:12px}.elh{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.eln{opacity:.75;font-size:11px}.elr{margin-top:3px;line-height:1.35}.els{display:block;font-weight:600;font-size:11px;opacity:.8}.elb{font-size:11px;opacity:.85;margin-top:2px}.gpaso .elus{margin-top:6px}`;document.head.appendChild(st)})();
+(function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);if(!R||!R.elem||!R.elem.length)return h;
+ const k=h.indexOf('Elementos de campo a revisar</div><div class="anaw">');if(k<0)return h;const e=h.indexOf("</div>",k+45);if(e<0)return h;
+ return h.slice(0,e+6)+`<div class="elus">${R.elem.map(t=>elHTML(t)).join("")}</div>`+h.slice(e+6)}})();
+function elPasos(){if(view!="tec")return;document.querySelectorAll("#app details.gd .gst > label.gpaso > span:not([data-u])").forEach(sp=>{sp.dataset.u="1";
+ const tags=[...new Set((sp.textContent.toUpperCase().match(ANA_TAG)||[]).map(t=>t.replace(/'+$/,"")))].filter(t=>elZona(t)).slice(0,6);if(!tags.length)return;
+ const d=document.createElement("div");d.className="elus";d.innerHTML=tags.map(t=>elHTML(t,true)).join("");sp.appendChild(d)})}
+(function(){const o=render;render=function(){const r=o.apply(this,arguments);elPasos();return r}})();
+new MutationObserver(elPasos).observe(document.body,{childList:true,subtree:true});
+/* ===== v9: AAA · actuación más eficaz (memorizada): cerrar la puerta del carro y ajuste del FC del carro + cierre de puerta ===== */
+GUIA.tipos.AAA.s.unshift({t:"Bloqueo carro A/A · puerta del carro",p:["Cerrar la puerta del carro.","Ajuste del FC del carro + cierre de puerta."],r:"AAA pág. 7, 16 · PBB E-A2 DIN09 (carro A/A)",ef:1});
+(function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r.tipo!="AAA")return r;
+ if(!r.guia.some(g=>g.si==0))r.guia.unshift({si:0,t:GUIA.tipos.AAA.s[0].t,sc:99});else{r.guia.sort((a,b)=>(b.si==0)-(a.si==0))}return r}})();
 </script></body></html>
