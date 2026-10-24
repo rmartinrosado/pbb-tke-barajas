@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v17"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v18"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2634,7 +2634,7 @@ const RUT_MAN=(()=>{const r=(sig,f,txt,bor)=>({sig,f,txt:txt.join(" → "),bor})
  ad("H-Y3",r("Bajada rápida · salida PLC E-A7 1.1",44,["E-A7 borna 1.1 [Armario E]","hilo 275 RD","borna E-X55:6 [Armario E]","manguera EH-W1 (cond. 6)","borna H-X51:6 [Elevación]","manguera H-W8 (H07RN-F 3x1,5, BK)","H-Y3 x1"],["E-X55:6 (Armario E)","H-X51:6 (Elevación)"]));
  ad("H-Y4",r("Bajada rápida izquierda (12 V) · salida PLC E-A7 1.3",44,["E-A7 borna 1.3 [Armario E]","hilo 8 WH","borna E-X56:11 [Armario E]","manguera EH-W2 (H07RN-F 12x1,5, cond. 11)","borna H-X52:11 [Elevación]","manguera H-W6 (H07RN-F 3x1,5, BK)","H-Y4 x1"],["E-X56:11 (Armario E)","H-X52:11 (Elevación)"]));
  ad("H-Y5",r("Bajada rápida derecha (12 V) · salida PLC E-A7 2.1",44,["E-A7 borna 2.1 [Armario E]","hilo 33 RD","borna E-X55:15 [Armario E]","manguera EH-W1 (cond. 15)","borna H-X51:15 [Elevación]","manguera H-W7 (H07RN-F 3x1,5, BK)","H-Y5 x1"],["E-X55:15 (Armario E)","H-X51:15 (Elevación)"]));
- ad("H-M1 H-W13 E-K3",r("Motor bomba hidráulica 5,5 kW 11,4 A",34,["E-X72 L1/L2/L3 [Armario E]","E-Q3 GV2P 9-14 A (reg. 11,4 A) 1-3-5 / 2-4-6","hilos 141 GY · 142 BK · 144 BN","contactor E-K3 1/L1-3/L2-5/L3 → 2/T1-4/T2-6/T3","borna E-X56:5-6 / 7-8 / 9-10 (fases en paralelo) [Armario E]","manguera EH-W2 (H07RN-F 12x1,5, cond. 5-10)","borna H-X52:5-6 / 7-8 / 9-10 · PE H-X52:14 [Elevación]","manguera H-W13 (H07RN-F 5x2,5: GY-BK-BN-GNYE)","H-M1 U/V/W/PE"],["E-X56:5-10 (Armario E)","H-X52:5-10 y :14 PE (Elevación)"]));
+ ad("H-M1 H-W13 E-K3",r("Motor bomba hidráulica 5,5 kW 11,4 A",34,["E-X72 L1/L2/L3 [Armario E]","E-Q3 GV2P 9-14 A (reg. 11,4 A) 1-3-5 / 2-4-6","hilos 141 GY · 142 BK · 144 BN","contactor E-K3 (entra por 1-3-5, sale por 2-4-6)","borna E-X56:5-6 / 7-8 / 9-10 (fases en paralelo) [Armario E]","manguera EH-W2 (H07RN-F 12x1,5, cond. 5-10)","borna H-X52:5-6 / 7-8 / 9-10 · PE H-X52:14 [Elevación]","manguera H-W13 (H07RN-F 5x2,5: GY-BK-BN-GNYE)","H-M1 U/V/W/PE"],["E-X56:5-10 (Armario E)","H-X52:5-10 y :14 PE (Elevación)"]));
  ad("T-M1 ETR-W1 E-U1",r("Motor traslación izquierdo 5,5 kW 11,5 A",32,["E-K1 2/T1-4/T2-6/T3 [Armario E]","hilos 110 GY · 121 BK · 120 BN (4 mm²)","variador E-U1 ATV28 L1/L2/L3","salida U2/V2/W2 · hilos 126 · 127 · 128","manguera ETR-W1 (4G2,5 apantallada) directa","T-M1 U1/V1/W1/PE [Traslación] · resistencia de frenado E-R1 (82 Ω) en BRK+/BRK-"],[]));
  ad("T-M2 ETR-W2 E-U2",r("Motor traslación derecho 5,5 kW 11,5 A",33,["E-K1 [Armario E]","variador E-U2 ATV28 L1/L2/L3","salida U2/V2/W2 · hilos 132 · 133 · 134","manguera ETR-W2 (4G2,5 apantallada) directa","T-M2 U1/V1/W1/PE [Traslación] · resistencia de frenado E-R2 (82 Ω)"],[]));
  ad("T-Y1 E-K24 E-Q24",r("Freno motor izquierdo (230 V)",30,["E-Q24 2P 6 A [Armario E]","E-K0.1 (5/L3-6/T3)","E-K24 (1-2 / 3-4)","hilos 157 BN / 159 BU","borna E-X56:1 / 2 [Armario E]","manguera EH-W2 (H07RN-F 12x1,5, cond. 1-2, PE :12)","borna H-X52:1 / 2 [Elevación]","manguera H-W19 (H07RN-F 7x1,5)","T-Y1 L/N/PE [Traslación]"],["E-X56:1-2 (Armario E)","H-X52:1-2 (Elevación)"]));
@@ -2735,4 +2735,132 @@ addEventListener("keydown",e=>{if(/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End|
 /* ===== v16: varita mágica la primera de los iconos, más grande y parpadeando ===== */
 (function(){const st=document.createElement("style");st.textContent=`@keyframes gvarpar{0%,100%{background:var(--card);color:#ef6c00;box-shadow:0 0 0 0 #ef6c0000}50%{background:#ef6c00;color:#fff;box-shadow:0 0 0 4px #ef6c0055}}
 .cacr .gvar{animation:gvarpar 2s ease-in-out infinite}`;document.head.appendChild(st)})();
+/* ===== v18: botón impresora junto a «Actuación más eficaz»: informe paso a paso para el técnico (polímetro, seguridad,
+ recorrido completo de cada elemento con bornas y mangueras, y medidas esperadas por bloque). Sin pasos repetidos. ===== */
+const INF_VAL={"H-Y1":[24,.8],"H-Y2":[24,.8],"H-Y3":[24,.8],"H-Y4":[12,1.5],"H-Y5":[12,1.5]};
+function infTipo(tag,r){const t=(r.sig+" "+r.txt);
+ if(/^H-Y\d/.test(tag)||/Válvula|Bajada rápida/i.test(r.sig))return "val";
+ if(/Freno motor/i.test(r.sig))return "fre";
+ if(/traslación/i.test(r.sig)&&/Motor/i.test(r.sig))return "var";
+ if(/Motor/i.test(r.sig))return /U\/N|L\/N|N\/V|V\/N/.test(t)?"mono":"tri";
+ if(/4-20|AIN|Potenci/i.test(t))return "ana";
+ if(/\(A[12]-A[12]\)/.test(r.txt)&&/OUT|DOS|salida/i.test(r.sig))return "bob";
+ if(/GELBAU|Borde|Zapata/i.test(t))return "gel";
+ if(/Barrera óptica/i.test(t))return "bar";
+ if(/\bIN\d|DIN\d|DIS\d|\bIN0|E-A\d+ \d\.\d|E-A8 \d/i.test(t))return "din";
+ return "otro"}
+function infMedidas(tipo,tag,r){const A=(r.sig.match(/(\d+(?:,\d+)?)\s*A\b/)||[])[1];
+ const M={
+  tri:{pol:"V~ (alterna) para tensión · Ω sin tensión · pinza amperimétrica para corriente",m:[
+   "CON TENSIÓN (400 V, solo personal habilitado): entre fases (L1-L2, L2-L3, L1-L3) a la entrada del guardamotor ≈ 400 V AC; cada fase a tierra ≈ 230 V AC.",
+   "A la salida del contactor: ≈ 400 V entre fases SOLO con orden de marcha; sin orden, 0 V. Si llega 400 V a la entrada y no a la salida con orden → contactor o su bobina.",
+   "En marcha, con la pinza: las tres fases deben consumir parecido"+(A?` y no más de ${A} A (dato del plano)`:"")+". Mucho más → motor forzado o fallo mecánico/hidráulico.",
+   "SIN TENSIÓN y bloqueado (bornas sueltas del motor): resistencia U-V, V-W y U-W iguales entre sí (unos pocos ohmios). Una distinta o abierta (OL) → devanado dañado.",
+   "Cada fase contra PE: OL (abierto) con el polímetro. Con medidor de aislamiento: más de 1 MΩ.",
+   "Cada hilo de la manguera, de borna a borna: continuidad < 1 Ω."]},
+  mono:{pol:"V~ (alterna) para tensión · Ω sin tensión",m:[
+   "CON TENSIÓN: con la orden de marcha, ≈ 230 V AC entre fase y neutro en las bornas del motor; sin orden, 0 V.",
+   "SIN TENSIÓN: devanado con resistencia de unos pocos ohmios (OL = devanado cortado). Cada borna contra PE: OL.",
+   "Cada hilo de la manguera, de borna a borna: continuidad < 1 Ω."]},
+  var:{pol:"V~ (alterna) en la entrada del variador · pinza amperimétrica en la salida",m:[
+   "Entrada del variador (L1-L2-L3): ≈ 400 V AC entre fases con el contactor de línea cerrado.",
+   "Salida del variador (U-V-W) hacia el motor: NO se mide con el polímetro normal (es tensión troceada, lectura falsa). Usa la pinza: en marcha, las tres fases parecidas"+(A?` y por debajo de ${A} A`:"")+".",
+   "Si el variador está en fallo, lee el código en su pantalla antes de rearmar.",
+   "SIN TENSIÓN y con la manguera suelta del variador: resistencia U-V, V-W, U-W iguales entre sí; cada fase contra PE: OL.",
+   "Manguera apantallada: comprobar que la pantalla (SH) está conectada a tierra en los dos extremos."]},
+  fre:{pol:"V~ (alterna)",m:[
+   "Freno en reposo (pasarela parada): 0 V entre L y N en el freno → el freno está echado.",
+   "Al dar marcha de traslación: ≈ 230 V AC entre L y N en las bornas del freno → el freno se suelta (se oye el clac).",
+   "Si llega 230 V y el freno no suelta → bobina del freno. SIN TENSIÓN: bobina con resistencia (OL = bobina cortada).",
+   "Cada hilo de la manguera, de borna a borna: continuidad < 1 Ω."]},
+  val:{pol:"V⎓ (continua)",m:(()=>{const v=INF_VAL[tag];const V=v?v[0]:24,I=v?v[1]:null;return [
+   `Sin orden: 0 V entre x1 y x2 de la válvula.`,
+   `Con la orden (pedir subir / bajar): ≈ ${V} V DC entre x1 y x2. Si no llega, sigue el recorrido hacia atrás borna a borna hasta encontrar dónde se pierde.`,
+   `Si llega ${V} V y la válvula no actúa → bobina.`+(I?` SIN TENSIÓN la bobina debe dar ≈ ${Math.round(V/I)} Ω (${V} V / ${String(I).replace(".",",")} A). OL = bobina cortada; ≈ 0 Ω = bobina en corto.`:""),
+   "Cada hilo de la manguera, de borna a borna: continuidad < 1 Ω."]})()},
+  din:{pol:"V⎓ (continua) · punta negra en 0 V (hilo 205)",m:[
+   "Mide siempre respecto a 0 V (hilo 205: armario E borna E-X68:2; pupitre borna 0 V del regletero de 24 V).",
+   "Contacto o sensor ACTIVO (cerrado): ≈ 24 V DC en la borna de la entrada del PLC y el LED de esa entrada ENCENDIDO.",
+   "Contacto ABIERTO: 0 V y LED apagado.",
+   "Si hay 24 V antes del contacto y 0 V después estando accionado → contacto o sensor averiado. Si hay 24 V en la borna y el LED no enciende → módulo o borna del módulo.",
+   "SIN TENSIÓN: contacto cerrado ≈ 0 Ω, abierto OL. Cada hilo de borna a borna: < 1 Ω."]},
+  ana:{pol:"V⎓ para la alimentación · mA (en serie) para la señal",m:[
+   "Alimentación del sensor: ≈ 24 V DC entre el + y el 0 V.",
+   "Señal 4-20 mA: polímetro en mA y en serie con el hilo de señal. ≈ 4 mA en un extremo del recorrido y ≈ 20 mA en el otro, cambiando de forma suave.",
+   "0 mA → cable cortado o sensor sin alimentar. Más de 20 mA → sensor averiado o cable en corto.",
+   "Potenciómetro SIN TENSIÓN: entre extremos la resistencia es fija; entre cursor y un extremo cambia suavemente al girar, sin saltos.",
+   "Cable apantallado: la pantalla (SH) a tierra en un solo punto, según el plano."]},
+  bob:{pol:"V⎓ (continua) · mide en la bobina, entre A1 y A2",m:[
+   "Con la orden (por ejemplo, pedir el movimiento): LED de la salida del módulo ENCENDIDO y ≈ 24 V DC entre A1 y A2 de la bobina. El relé o contactor debe entrar (se oye el clac).",
+   "Sin orden: LED apagado y 0 V entre A1 y A2.",
+   "LED encendido pero 0 V en la bobina → hilo o borna entre el módulo y la bobina.",
+   "24 V en la bobina y no entra → bobina averiada. SIN TENSIÓN: la bobina da una resistencia (OL = bobina cortada)."]},
+  gel:{pol:"Observación de LEDs del relé · V⎓",m:[
+   "Relé GELBAU: LED VERDE (OUTPUT ACTIVATED) = todo correcto; LED ROJO (STRIP ACTIVATED) = borde o zapata pisado; LED AMARILLO (CIRCUIT FAULT) = cable cortado o en corto en el circuito del borde.",
+   "Alimentación del relé A1-A2: ≈ 24 V DC.",
+   "Pisa el borde o la zapata: el LED pasa a rojo y al soltar vuelve a verde.",
+   "Si queda en amarillo: SIN TENSIÓN revisa continuidad del cable del borde hasta el relé (< 1 Ω por hilo) y los conectores intermedios."]},
+  bar:{pol:"V⎓ (continua)",m:[
+   "Alimentación del emisor y del receptor (pines 1 y 3, BN-BU): ≈ 24 V DC.",
+   "Al cortar el haz con la mano, la salida Q del receptor (pin 4) cambia de estado y el LED de la entrada del módulo E-A9 cambia.",
+   "Si no cambia: limpia las ópticas, realinea emisor y receptor y revisa los conectores CON1A/CON1B del túnel."]},
+  otro:{pol:"según el punto: V⎓ para 24 V, V~ para 230/400 V, Ω sin tensión",m:[
+   "Comprueba tensión en cada borna del recorrido con el elemento accionado y continuidad (< 1 Ω) de cada hilo sin tensión."]}};
+ return M[tipo]||M.otro}
+function infHops(txt){return String(txt).split(" → ").map(x=>x.trim().replace(/^→\s*/,"")).filter(Boolean)}
+function infHopTxt(h){const z=(h.match(/\[([^\]]+)\]/)||[])[1];const t=h.replace(/\s*\[[^\]]+\]/,"");
+ if(/^borna /i.test(t))return `Localiza la <b>${esc(t)}</b>${z?` en <b>${esc(z)}</b>`:""} (regletero y número de borna).`;
+ if(/^manguera /i.test(t))return `Sigue la <b>${esc(t)}</b>: comprueba que está entera y sin roces y sus conectores apretados.`;
+ if(/^hilos? /i.test(t))return `Hilo <b>${esc(t.replace(/^hilos? /i,""))}</b> (número marcado en el propio cable).`;
+ if(/^conector /i.test(t))return `Conector <b>${esc(t.replace(/^conector /i,""))}</b>${z?` en ${esc(z)}`:""}: revisa que los pines estén limpios y bien encajados.`;
+ return `<b>${esc(t)}</b>${z?` (${esc(z)})`:""}.`}
+function infActuacion(k){const t=k.replace(/\d+$/,""),si=+k.slice(t.length);const G=GUIA.tipos[t];const S=G&&G.s[si];if(!S)return;
+ const i=inc.find(x=>x.id==gOT);const pl=elPlano();const plN=pl=="504"?"PBB_504 (posiciones 504 y 508)":"RCS_PLANOS";
+ const vistos=new Map(),pasosVistos=new Set();let h="",nb=0;
+ const pasos=S.p.map((p,pi)=>({p,pi,g:S.g&&S.g[pi]})).filter(x=>{const n=x.p.toLowerCase().replace(/\s+/g," ").trim();if(pasosVistos.has(n))return false;pasosVistos.add(n);return true});
+ pasos.forEach((x,ix)=>{const tags=[...new Set((x.p.toUpperCase().match(ANA_TAG)||[]).map(t=>t.replace(/'+$/,"")))].filter(t=>elZona(t));
+  let b="";tags.forEach(tag=>{const z=elZona(tag);const R=elRutas(tag);
+   b+=`<div class="ib"><h4>${esc(tag)} · ${esc(z?z.c:"ver plano")}</h4>${z?`<p class="iz">📍 Dónde está: ${esc(z.n)}</p>`:""}`;
+   if(!R.length&&!/^[EP]-A\d+$/.test(tag)){b+=false?`<p>Es un módulo del PLC. Mira sus LED: entrada o salida implicada encendida o apagada según la orden. El LED de diagnóstico debe estar en verde.</p>`:`<p>El plano no detalla aquí sus bornas intermedias: localízalo en el folio indicado y comprueba tensión y continuidad.</p>`}
+   const esMod=/^[EP]-A\d+$/.test(tag);
+   if(esMod)b+=`<p>Es un módulo del PLC. Mira sus LED: la entrada o salida implicada encendida o apagada según la orden, y el LED de diagnóstico en verde. Sus recorridos se ven en los elementos de este paso.</p>`;
+   const gnd=R.filter(r=>/\bGND\b/.test(r.sig)&&/\(A2-A1\)/.test(r.txt));const R2=R.filter(r=>!gnd.includes(r)).map(r=>{if(/\(A1-A2\)/.test(r.txt)&&gnd.length&&!/\bGND\b/.test(r.txt)){const g=gnd.find(x=>x.f==r.f)||gnd[0];return Object.assign({},r,{txt:r.txt+" → retorno 0 V: "+infHops(g.txt).reverse().join(" → ")})}return r});
+   (esMod?[]:[...R2].sort((a,c)=>infHops(c.txt).length-infHops(a.txt).length)).slice(0,3).forEach(r=>{if(r.av){b+=`<p class="iw">${esc(r.txt)}</p>`;return}
+    const hs=infHops(r.txt);const prev=[...vistos.entries()].find(([k])=>k==r.txt||hs.every(x=>k.split(" → ").map(y=>y.trim().replace(/^→\s*/,"")).includes(x)));
+    if(prev){b+=`<p class="ir">Este recorrido ya está explicado en <b>${esc(prev[1])}</b>: no se repite.</p>`;return}
+    vistos.set(r.txt,`${tag} (paso ${ix+1})`);nb++;const tipo=infTipo(tag,r),M=infMedidas(tipo,tag,r);
+    b+=`<div class="ic"><p><b>Bloque ${nb} · ${esc(r.sig)}</b>${r.f?` · folio ${r.f} de ${esc(plN)}`:""}</p>
+     <p class="ipol">🔧 Polímetro: ${esc(M.pol)}</p><p><b>Recorrido, de principio a fin:</b></p>
+     <ol>${infHops(r.txt).map(hp=>`<li>${infHopTxt(hp)}</li>`).join("")}</ol>
+     ${r.bor&&r.bor.length?`<p>🔗 <b>Bornas / interconexiones intermedias:</b> ${esc(r.bor.join(" · "))}. Mide en cada una para saber en qué tramo se pierde la señal.</p>`:`<p>Sin bornas intermedias: el cable va directo de un extremo al otro.</p>`}
+     <p><b>Medidas esperadas:</b></p><ul>${M.m.map(m=>`<li>${esc(m)}</li>`).join("")}</ul></div>`});
+   b+=`</div>`});
+  h+=`<section><h3>Paso ${ix+1}. ${esc(x.p)}</h3>${x.g?`<p class="iz">Plano: página ${x.g}</p>`:""}${b||`<p>Paso de comprobación visual o de maniobra: hazlo tal como se indica.</p>`}</section>`});
+ const pupi=pl=="504"?"P-X92:1 (24 V) / P-X92:2 (0 V)":"P-X92.1:1 (24 V) / P-X92.1:2 (0 V)";
+ const html=`<div class="ihd"><h2>Informe de actuación · ${esc(S.t)}</h2>
+  <p>${i?`OT ${esc(i.orden||"")} · PBB ${esc(i.pos)} (${esc(i.tipo)}) · ${esc(i.desc||"")} · `:""}${esc(new Date().toLocaleString("es-ES"))}${typeof tecNombre!="undefined"&&tecNombre?" · Técnico: "+esc(tecNombre):""}</p>
+  <p>Plano utilizado: <b>${esc(plN)}</b> · PLC_RCS para los LED${S.r?" · "+esc(S.r):""}</p></div>
+ <section><h3>0. Material</h3><ul><li>Polímetro CAT III 600 V o superior, con puntas en buen estado.</li><li>Pinza amperimétrica (para corriente de motores).</li><li>Medidor de aislamiento si hay que comprobar un motor.</li><li>EPI, candado y tarjeta de bloqueo, linterna y planos (${esc(plN)}).</li></ul></section>
+ <section><h3>1. Seguridad antes de intervenir</h3><ol>${GUIA.seg.map(x=>`<li>${esc(x)}</li>`).join("")}</ol></section>
+ <section><h3>2. Preparar el polímetro</h3><ol>
+  <li>Comprueba la batería del polímetro y que las puntas y cables no estén pelados.</li>
+  <li>Punta NEGRA en <b>COM</b>. Punta ROJA en <b>VΩ</b>. Solo pasa la roja a <b>mA / A</b> para medir corriente en serie, y devuélvela a VΩ al terminar.</li>
+  <li>Junta las dos puntas en <b>Ω</b>: debe marcar casi 0 Ω (es la resistencia de las puntas).</li>
+  <li>Comprueba que mide bien en un punto conocido: armario E, borna E-X68:1 (24 V) respecto a E-X68:2 (0 V) → ≈ 24 V DC. En el pupitre: ${esc(pupi)}.</li>
+  <li>Selector según lo que vayas a medir: <b>V⎓</b> para 24 V / 12 V continua · <b>V~</b> para 230 / 400 V alterna · <b>Ω o continuidad</b> SIEMPRE sin tensión · <b>mA</b> en serie para señales 4-20 mA.</li>
+  <li>Antes de medir resistencia o continuidad: confirma ausencia de tensión con el polímetro en V~ y V⎓.</li></ol></section>
+ <section><h3>3. Actuación paso a paso</h3><p class="iz">Los recorridos ya explicados no se repiten. Ve de un extremo al otro: donde deje de estar la medida esperada, ahí está el fallo.</p></section>
+ ${h}
+ <section><h3>Final</h3><ol>${(GUIA.cierre||[]).map(x=>`<li>${esc(x)}</li>`).join("")||"<li>Recoge herramientas, quita bloqueos, prueba la pasarela con CGA y anota la actuación en la OT.</li>"}</ol></section>`;
+ let d=document.getElementById("infov");if(!d){d=document.createElement("div");d.id="infov";document.body.appendChild(d)}
+ d.innerHTML=`<div class="inbar"><button class="pri" onclick="window.print()">🖨️ Imprimir / guardar PDF</button><button class="sec" onclick="document.getElementById('infov').remove()">Cerrar</button></div><div class="indoc">${html}</div>`;d.scrollTop=0}
+(function(){const st=document.createElement("style");st.textContent=`#infov{position:fixed;inset:0;z-index:80;background:#fff;color:#111;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 0 40px}
+#infov .inbar{position:sticky;top:0;display:flex;gap:8px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:#fff;border-bottom:1px solid #ddd}#infov .inbar button{width:auto;margin:0;flex:1}
+#infov .indoc{padding:12px 16px;font-size:14px;line-height:1.45}#infov h2{font-size:18px;margin:6px 0}#infov h3{font-size:16px;margin:16px 0 6px;color:#5b0f8f;border-bottom:2px solid #f0700a;padding-bottom:3px}#infov h4{margin:10px 0 4px;font-size:14px}
+#infov .ib{border-left:3px solid #ccc;padding-left:10px;margin:8px 0}#infov .ic{background:#f6f2fa;border-radius:8px;padding:8px 10px;margin:6px 0}#infov .iz{color:#555;font-size:13px}#infov .ipol{font-weight:600}#infov .ir,#infov .iw{font-style:italic;color:#7a4300}
+#infov ol,#infov ul{padding-left:20px;margin:4px 0}#infov li{margin:2px 0}#infov section{break-inside:auto}#infov .ic{break-inside:avoid}
+.gprn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:28px;margin:0 0 4px 6px;padding:0;border:1.5px solid #ef6c00;border-radius:8px;background:var(--card);color:#ef6c00;vertical-align:middle}.gprn svg{width:18px;height:18px}
+@media print{body>*:not(#infov){display:none!important}#infov{position:static;overflow:visible}#infov .inbar{display:none}}`;document.head.appendChild(st)})();
+(function(){const o=gOrdena;gOrdena=function(){o();const top=document.querySelector("#app details.gd.gef");if(!top)return;const b=top.querySelector(".gefb");if(!b||top.querySelector(".gprn"))return;
+ b.insertAdjacentHTML("afterend",`<button class="gprn" title="Informe de la actuación" aria-label="Generar informe de la actuación para imprimir" onclick="event.preventDefault();event.stopPropagation();infActuacion('${top.dataset.k}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg></button>`)}})();
 </script></body></html>
