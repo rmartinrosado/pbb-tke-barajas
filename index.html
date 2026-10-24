@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v94"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v95"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2486,4 +2486,31 @@ setInterval(()=>{if(typeof inc=="undefined"||!Array.isArray(inc))return;
  if(!(typeof tecnico!="undefined"&&(tecnico||admin)))return;const hd=llegHecho(),now=Date.now();
  for(const i of inc){if(!llegPend(i)||hd[i.id])continue;const f=llegFin(i);if(f==null)continue;const r=f-now;if(r<=60e3&&r>-3600e3){llegAlarma(i);break}}
  if(document.getElementById("llegAl")){const id=(document.querySelector("#llegAl [data-ctd]")||{}).dataset;const i=id&&inc.find(x=>x.id==id.ctd);if(i&&!llegPend(i))llegCalla()}},1000);
+/* ===== v95: notificaciones push de llegada (también con el móvil bloqueado) vía Supabase ===== */
+const PUSH_PUB="BAE_2oCtpKUQ88F2N5JwaVjoBW6mKChpGJx3vVaUpKBrgyenSfRogCqjRJNmhJJtbthRmIHmEJfHp0eGNtqHxMw";
+let pushEst="";/* "", "ok", "denegado", "nosoporta", "instalar" */
+const pushReg=("serviceWorker" in navigator)?navigator.serviceWorker.register("sw.js").catch(()=>null):Promise.resolve(null);
+function pushB64(s){const p="=".repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(b,c=>c.charCodeAt(0))}
+async function pushAlta(aviso){try{
+ if(!user||!(tecnico||admin))return;
+ if(!("Notification" in window)||!("PushManager" in window)){pushEst=/iPhone|iPad/.test(navigator.userAgent)&&!navigator.standalone?"instalar":"nosoporta";return pushPinta()}
+ if(Notification.permission=="default"&&aviso)await Notification.requestPermission();
+ if(Notification.permission!="granted"){pushEst=Notification.permission=="denied"?"denegado":"";return pushPinta()}
+ const r=await pushReg;if(!r)return;await navigator.serviceWorker.ready;
+ let sub=await r.pushManager.getSubscription();if(!sub)sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushB64(PUSH_PUB)});
+ const j=sub.toJSON();const {error}=await sb.from("push_subs").upsert({endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,user_id:user.id,email:user.email,actualizado:new Date().toISOString()},{onConflict:"endpoint"});
+ const nuevo=pushEst!="ok";pushEst=error?"":"ok";if(error)console.log("push_subs",error);
+ if(aviso&&nuevo&&!error)msg("Avisos de llegada activados en este móvil");pushPinta()}catch(e){console.log("push",e)}}
+async function pushPrueba(){try{const r=await pushReg;const sub=r&&await r.pushManager.getSubscription();if(!sub){pushAlta(true);return}
+ const x=await fetch(SUPABASE_URL+"/functions/v1/aviso-llegada",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prueba:true,endpoint:sub.endpoint})});
+ const d=await x.json();msg(d.enviados?"Aviso de prueba enviado: bloquea el móvil y espera unos segundos":"No se pudo enviar el aviso de prueba")}catch(e){msg("No se pudo enviar el aviso de prueba")}}
+function pushPinta(){if(view!="track"||!(tecnico||admin))return;const c=document.querySelector("#app .card");if(!c)return;let b=document.getElementById("pushb");
+ if(!b){b=document.createElement("div");b.id="pushb";b.style.cssText="margin-top:8px";c.appendChild(b)}
+ b.innerHTML=pushEst=="ok"?`<div class="row" style="gap:8px;align-items:center"><span class="mu" style="font-size:13px">🔔 Avisos de llegada activos en este móvil</span><button class="sec" style="padding:6px 10px" onclick="pushPrueba()">Probar</button></div>`
+ :pushEst=="instalar"?`<div class="mu" style="font-size:13px">🔕 Para recibir avisos con el móvil bloqueado: Compartir → «Añadir a pantalla de inicio» y abre la app desde ese icono.</div>`
+ :pushEst=="denegado"?`<div class="mu" style="font-size:13px">🔕 Notificaciones bloqueadas: actívalas en Ajustes → Notificaciones → PBB TKE.</div>`
+ :pushEst=="nosoporta"?"":`<button class="sec" style="width:100%;padding:9px" onclick="pushAlta(true)">🔔 Activar avisos de llegada en este móvil</button>`}
+(function(){const o=cab;cab=function(){o();setTimeout(pushPinta,0)}})();
+addEventListener("pointerdown",()=>{if(user&&(tecnico||admin)&&pushEst!="ok")pushAlta(true)},{capture:true});
+setTimeout(function t(){if(user){pushAlta(false)}else setTimeout(t,2000)},2500);
 </script></body></html>
