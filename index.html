@@ -103,7 +103,7 @@ function vDash(){
 }
 function vNew(){ultTipo="PAS";
  $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 4px">Registrar incidencia</h3>
- <label>Posición PBB</label><select id="f_pos">${POS.map(p=>`<option>${p}</option>`).join("")}</select>
+ <label>Posición PBB</label><select id="f_pos">${POS.map(p=>`<option value="${p}">${p}</option>`).join("")}</select>
  <label>Tipo de incidencia</label><div class="pbbw"><div class="pbbd"><img src="${SIL}" alt="Pasarela PBB">${EQ.map(e=>`<span class="ptag ${e.k=="PAS"?"on":""}" data-k="${e.k}" style="left:${e.x}%;top:${e.y}%" onclick="togEq('${e.k}')">${e.k}</span>`).join("")}</div><div class="pchk">${EQ.map(e=>`<label><input type="checkbox" class="eqc" value="${e.k}" ${e.k=="PAS"?"checked":""} onchange="pintaEq()">${e.k}</label>`).join("")}</div></div>
  <label>Número de orden (CGA)</label><div style="display:flex;align-items:stretch"><span id="pf_v" style="display:flex;align-items:center;padding:0 12px;background:var(--pr);color:var(--prt);border-radius:6px 0 0 6px;font-weight:700;letter-spacing:1px">${pref}</span><div style="display:flex;flex-direction:column;width:38px"><button type="button" onclick="cambiaPref(1)" aria-label="Subir" style="flex:1;background:var(--pr);color:var(--prt);border:0;border-left:1px solid #fff5;border-bottom:1px solid #fff5;font-size:12px;padding:0">▲</button><button type="button" onclick="cambiaPref(-1)" aria-label="Bajar" style="flex:1;background:var(--pr);color:var(--prt);border:0;border-left:1px solid #fff5;font-size:12px;padding:0">▼</button></div><input id="f_ord" inputmode="numeric" maxlength="3" placeholder="000" oninput="this.value=this.value.replace(/[^0-9]/g,'')" style="border-radius:0 6px 6px 0;letter-spacing:3px;font-weight:600"></div><div class="mu" style="margin-top:4px">Introduce solo los 3 últimos dígitos</div>
  <label>Reportado por</label><select id="f_rep" onchange="$('#f_otro').classList.toggle('hide',this.value!='Otro')"><option>CGA</option><option>Responsable Turno</option><option>Otro</option></select>
@@ -118,7 +118,7 @@ function guardar(){
  if(!$("#f_pos").value){msg("Elige una PBB del terminal");return}
 if(!document.querySelector(".eqc:checked")){msg("Marca el tipo de incidencia en el dibujo");return}
  let rep=$("#f_rep").value;if(rep=="Otro")rep="Otro: "+($("#f_otro").value.trim()||"s/d");
- inc.unshift({id:Date.now()+"",pos:$("#f_pos").value,tipo:(document.querySelector(".eqc:checked")||{}).value||"PAS",equipos:[...document.querySelectorAll(".eqc:checked")].map(x=>x.value),orden,rep,desc:$("#f_desc").value.trim(),hIni:$("#f_hi").value,hLle:"",hCie:"",act:"",obs:"",fecha:hoy(),estado:"abierta"});
+ inc.unshift({id:Date.now()+"",pos:String($("#f_pos").value).replace(/\s*·\s*remota$/,""),tipo:(document.querySelector(".eqc:checked")||{}).value||"PAS",equipos:[...document.querySelectorAll(".eqc:checked")].map(x=>x.value),orden,rep,desc:$("#f_desc").value.trim(),hIni:$("#f_hi").value,hLle:"",hCie:"",act:"",obs:"",fecha:hoy(),estado:"abierta"});
  sv("pbb_inc",inc);go("dash");
 }
 function resolver(id){
@@ -2306,6 +2306,7 @@ let anaPLC=false,anaEnt=false;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v81"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v82"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v88"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v89"}})();
 /* ===== v88: en posiciones remotas tampoco hay AAP (aire acondicionado de pasarela) ===== */
 const REM_FUERA=["PAS","AAP"];
 (function(){const o=remForm;remForm=function(){o();const s=$("#f_pos");if(!s)return;const r=esRem(s.value);const c=document.querySelector('.eqc[value="AAP"]');if(!c)return;
@@ -2319,7 +2320,7 @@ const REM_FUERA=["PAS","AAP"];
  En naranja en el listado de PBB. En la OT nueva se quita el dibujo y la casilla PAS (se mantienen AAA, AAP, HZ, SVGA, Sigma).
  Guía de campo e inspección cable a cable sin nada de la pasarela: sin PAS, cotejo PLC, cámaras RCS ni pasos que pasan por la PBB. */
 const REMOTAS=new Set(["538","539","580","581","582"]);
-const esRem=p=>REMOTAS.has(String(p));
+const esRem=p=>REMOTAS.has(String(p).replace(/\s*·\s*remota$/,"").trim());
 const otRem=i=>!!i&&esRem(i.pos);
 const SEG_REM=[GUIA.seg[0],"Posición remota sin pasarela: asegurar la zona de trabajo junto al equipo y coordinar con la operación del avión.","Dejar el equipo sin tensión: abrir su protección de alimentación, bloquear, etiquetar y comprobar ausencia de tensión.",GUIA.seg[6]];
 const REM_AV=`<div class="gav" style="border-left-color:#ef6c00">Posición remota sin pasarela: no hay guía de pasarela (PAS) ni de aire acondicionado de pasarela (AAP), ni inspección cable a cable de la PBB para esta OT.</div>`;
@@ -2331,7 +2332,7 @@ function remForm(){const s=$("#f_pos");if(!s)return;const r=esRem(s.value);const
  const c=document.querySelector('.eqc[value="PAS"]');if(c){const l=c.closest("label");if(l)l.style.display=r?"none":"";if(r&&c.checked){c.checked=false;if(typeof pintaEq=="function")pintaEq()}else if(!r&&!document.querySelector(".eqc:checked")){c.checked=true;if(typeof pintaEq=="function")pintaEq()}}
  const w=document.querySelector(".pbbw .pchk");if(w)w.style.flex=r?"1":"";
  let n=$("#f_remn");if(r&&!n){n=document.createElement("div");n.id="f_remn";n.className="remnota";n.textContent="Posición remota sin pasarela: marca el equipo afectado.";const pw=document.querySelector(".pbbw");if(pw)pw.before(n)}else if(!r&&n)n.remove()}
-(function(){const o=nTermSet;nTermSet=function(t){o(t);const s=$("#f_pos");if(s){[...s.options].forEach(op=>{if(esRem(op.value))op.textContent=op.value+" · remota"});remForm()}}})();
+(function(){const o=nTermSet;nTermSet=function(t){o(t);const s=$("#f_pos");if(s){[...s.options].forEach(op=>{const v=op.value;op.value=v;if(esRem(v))op.textContent=v+" · remota"});remForm()}}})();
 (function(){const o=vNew;vNew=function(){o();const s=$("#f_pos");if(s){s.addEventListener("change",remForm);nTermSet(nTerm)}}})();
 /* Guía de campo */
 (function(){const o=vTec;vTec=function(){const ab=gOTs();const i0=ab.find(x=>x.id==gOT)||(!gOT&&ab[0]);const r0=otRem(i0);
@@ -2376,7 +2377,7 @@ guardaPos=async function(){const v=$("#n_p").value.trim();if(!v){msg("Introduce 
  if(r.error||!r.data||!r.data.length){msg("Sin permiso para añadir posiciones");return}
  PTERM[v]=(r.data[0]&&r.data[0].terminal)||apTerm;POS.push(v);POS.sort(ordPos);render();addPos();msg(`Posición ${v} añadida a ${PTERM[v]}`)};
 function nTermSet(t){nTerm=t;document.querySelectorAll("#f_term button").forEach(b=>b.className=b.textContent==t?"pri":"sec");
- const s=$("#f_pos");if(!s)return;const l=posDe(t);s.innerHTML=l.length?l.map(p=>`<option>${p}</option>`).join(""):`<option value="">Sin PBB en ${t}</option>`}
+ const s=$("#f_pos");if(!s)return;const l=posDe(t);s.innerHTML=l.length?l.map(p=>`<option value="${p}">${p}</option>`).join(""):`<option value="">Sin PBB en ${t}</option>`}
 (function(){const o=vNew;vNew=function(){o();const s=$("#f_pos");if(!s)return;const lb=s.previousElementSibling;
  const w=document.createElement("div");w.innerHTML=`<label>Terminal</label><div id="f_term">${tChips(nTerm,"nTermSet")}</div>`;
  (lb&&lb.tagName=="LABEL"?lb:s).before(...w.childNodes);nTermSet(nTerm)}})();
