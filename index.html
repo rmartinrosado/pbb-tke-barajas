@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v10"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v11"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2598,7 +2598,7 @@ function elRutas(tag){if(EL_C.has(tag))return EL_C.get(tag);const C=window.CABLE
  EL_C.set(tag,out);return out}
 function elHTML(tag,corto){const z=elZona(tag),R=elRutas(tag);
  const zh=z?`<span class="gubc" style="--uk:${z.k}">📍 ${esc(z.c)}</span> <span class="eln">${esc(z.n)}</span>`:`<span class="eln">Ubicación: ver plano</span>`;
- const rs=R.slice(0,corto?2:4).map(r=>`<div class="elr"><span class="els">${esc(r.sig)}</span>${esc(r.txt)}${r.f?` · <i>folio ${r.f}</i>`:""}${r.bor.length?`<div class="elb">🔗 Bornas intermedias: <b>${esc(r.bor.join(" · "))}</b></div>`:/-X\d/.test(tag)?"":`<div class="elb">Conexión directa, sin bornas intermedias en el plano</div>`}</div>`).join("");
+ const rs=R.slice(0,corto?2:4).map(r=>`<div class="elr"><span class="els">${esc(r.sig)}</span>${esc(r.txt)}${r.f?` · <i>folio ${r.f}</i>`:""}${r.av?"":r.bor.length?`<div class="elb">🔗 Bornas intermedias: <b>${esc(r.bor.join(" · "))}</b></div>`:/-X\d/.test(tag)?"":`<div class="elb">Conexión directa, sin bornas intermedias en el plano</div>`}</div>`).join("");
  const mas=R.length>(corto?2:4)?`<div class="elb">+${R.length-(corto?2:4)} recorrido(s) más</div>`:"";
  const nada=R.length?"":(/-W\d/.test(tag)?`<div class="elb">Manguera: tramo según plano${typeof CABLE_UBI!="undefined"&&CABLE_UBI[tag.split("-")[0]]?" ("+esc(CABLE_UBI[tag.split("-")[0]])+")":""}</div>`:`<div class="elb">Bornas / interconexiones no detalladas en los datos cargados: ver plano.</div>`);
  return `<div class="elu"><div class="elh"><b>${esc(tag)}</b> ${zh}</div>${rs}${mas}${nada}</div>`}
@@ -2654,4 +2654,41 @@ const RUT_MAN=(()=>{const r=(sig,f,txt,bor)=>({sig,f,txt:txt.join(" → "),bor})
  ad("C-B4 CP-W14 P-U5",r("Zapata de seguridad · relé GELBAU P-U5",45,["P-U5 Z1 / Z2 [Pupitre]","hilos 387 / 388 RD","manguera CP-W14 (fabricante, BN/BU) directa","C-B4 1-2 [Cabina]","salida P-U5 13/14 → hilos 411/412 → P-X51:9/10 → EP-W1 (cond. 9-10) → E-X59:9/10 → E-A10 4:8.2 / 8.1"],["P-X51:9-10 (Pupitre)","E-X59:9-10 (Armario E)"]));
  return R})();
 (function(){const o=elRutas;elRutas=function(tag){const m=RUT_MAN[tag]||[];const a=o(tag);return m.concat(a.filter(x=>!m.some(y=>y.txt==x.txt)))}})();
+/* ===== v11: recorridos según el plano de la posición. 504 y 508 → PBB_504 (T87911031260, «Stand_504&508»); resto → RCS_PLANOS.
+ PLC_RCS es común. Folios de PBB_504 comparados con RCS: si el circuito es idéntico se reutiliza el recorrido; si cambia, solo
+ se muestran los recorridos leídos de PBB_504 (o el aviso de ver el folio). Corrige además C-B52 / C-B22 en RCS (folio 85). ===== */
+function elPlano(){const p=typeof ppCtx=="function"?ppCtx():null;return p=="504"||p=="508"?"504":"RCS"}
+const EL504_DIF=new Set([40,41,49,57,60,62,66,69,81,82,85,87,88,97,98,99,100]);
+const EL504_OKMAN=new Set(["T-B5","T-B6","T-CON10","T1-W1","T1-W2","E-U5","C-B14","EP-W8","P-W20","C-R10","E-R10","E-W9"]);
+const RUT_504=(()=>{const r=(sig,f,txt,bor)=>({sig,f,txt:txt.join(" → "),bor,pl:"504"});const R={};
+ const ad=(tags,o)=>tags.split(" ").forEach(t=>(R[t]=R[t]||[]).push(o));
+ ad("C-B52 P-W18",r("Contacto avión IZQUIERDA · P-A5 DIN08 (4.4)",85,["24 V / 0 V borna P-X92:8 / 9 [Pupitre]","manguera P-W18 (SAC-5P M12, BN/BU)","C-B52 1 / 3 [Cabina]","salida C-B52 2 (/Q)","P-W18 WH · hilo 740","borna P-X92:7 [Pupitre]","hilo 740 RD","P-A5 DIN08 borna 4.4"],["P-X92:7, :8, :9 (Pupitre)"]));
+ ad("C-B51 P-W17",r("Contacto avión DERECHA · P-A5 DIN01 (1.1)",85,["24 V / 0 V borna P-X92:8 / 9 [Pupitre]","manguera P-W17 (SAC-5P M12, BN/BU)","C-B51 1 / 3 [Cabina]","salida C-B51 2 (/Q)","P-W17 WH · hilo 320","borna P-X92:12 [Pupitre]","hilo 320 RD","P-A5 DIN01 borna 1.1"],["P-X92:8, :9, :12 (Pupitre)"]));
+ ad("C-B22 C4-X64 P-W24",r("Sensor suelo (sube dcha / izda) · P-A5 DIN03 (1.4) y DIN04 (2.4)",85,["24 V hilo 336 y 0 V hilo 205","manguera P-W24 (H07RN-F 5x1,5, BN/BU)","borna C4-X64:1 / 2 [Cabina]","C-B22 +24 V / 0 V · contactos R+ (1) y R- (2)","borna C4-X64:3 (R+) / 4 (R-) [Cabina]","manguera P-W24 BK · hilos 375 / 376","P-A5 DIN03 (1.4) suelo sube derecha / DIN04 (2.4) suelo sube izquierda"],["C4-X64:1-4 (Cabina)"]));
+ ad("C-B6 C-B3 P-W19 P-W15",r("Sensor proximidad · P-A5 DIN05 (3.1)",85,["24 V / 0 V borna P-X92:8 / 9 [Pupitre]","mangueras P-W19 (C-B6) y P-W15 (C-B3) (SAC-5P M12, BN/BU)","C-B6 / C-B3 1 / 3 [Cabina]","salidas 4 en paralelo por P-W19 BK y P-W15 BK","borna P-X92:13 [Pupitre]","hilo 378 RD","P-A5 DIN05 borna 3.1"],["P-X92:8, :9, :13 (Pupitre)"]));
+ ad("E-K0.1 E-K26 EP-W4",r("Estado E-K0.1 (DIN06) y E-K26 (DIN07) · P-A5",85,["24 V hilo 332 borna P-X92.1:7 [Pupitre]","manguera EP-W4 (H07RN-F 27x1,5, cond. 7)","borna E-X68.1:7 [Armario E]","E-K0.1 (21-22) → hilo 741 / E-K26 (51-52) → hilo 742","borna E-X68.1:5 / 6 [Armario E]","manguera EP-W4 (cond. 5 / 6)","borna P-X92.1:5 / 6 [Pupitre]","P-A5 DIN06 (4.1) / DIN07 (3.4)"],["E-X68.1:5-7 (Armario E)","P-X92.1:5-7 (Pupitre)"]));
+ ad("IT-B1 IT-B1.1 ITIT-W21 ITIT-W21.1 EIT-W3 E-X74",r("Barrera óptica túnel interior IZQUIERDA · E-A9 DIS05 (5.1)",98,["alimentación borna E-X74:1 (hilo 754) / :2 (0 V hilo 205) [Armario E]","manguera EIT-W3 (Super-Paar-Tronic 4x2x0,5, BN/WH)","conector IT-CON1A/1B pines 1 / 2 [Túnel interior]","ITIT-W21 → emisor IT-B1 1/3 · ITIT-W21.1 → receptor IT-B1.1 1/3","test: E-A9 5.2 → E-X74:4 → EIT-W3 YE → CON1:6 → ITIT-W21 BK → IT-B1 4 (TE)","salida receptor IT-B1.1 4 (Q) → ITIT-W21.1 BK hilo 743","conector CON1:5","EIT-W3 GN","borna E-X74:3 [Armario E]","hilo 743 → E-A9 DIS05 (5.1)"],["E-X74:1-4 (Armario E)","conector IT-CON1A/1B:1, 2, 5, 6 (Túnel interior)"]));
+ ad("IT-B2 IT-B2.1 ITIT-W22 ITIT-W22.1 EIT-W3 E-X74",r("Barrera óptica túnel interior DERECHA · E-A9 DIS06 (6.1)",98,["alimentación borna E-X74:5 (hilo 756) / :6 (0 V hilo 205) [Armario E]","manguera EIT-W3 (GY/PK)","conector IT-CON1A/1B pines 3 / 4 [Túnel interior]","ITIT-W22 → emisor IT-B2 1/3 · ITIT-W22.1 → receptor IT-B2.1 1/3","test: E-A9 6.2 → E-X74:8 → EIT-W3 RD → CON1:8 → ITIT-W22 BK → IT-B2 4 (TE)","salida receptor IT-B2.1 4 (Q) → ITIT-W22.1 BK hilo 744","conector CON1:7","EIT-W3 BU","borna E-X74:7 [Armario E]","hilo 744 → E-A9 DIS06 (6.1)"],["E-X74:5-8 (Armario E)","conector IT-CON1A/1B:3, 4, 7, 8 (Túnel interior)"]));
+ ad("MT-B1 MT-B1.1 MTMT-W21 MTMT-W21.1 EMT-W2 E-X74.1",r("Barrera óptica túnel medio IZQUIERDA (solo stand 504) · E-A9 DIS02 (2.1)",99,["alimentación borna E-X74.1:1 (hilo 755) / :2 (0 V hilo 205) [Armario E]","manguera EMT-W2 (Super-Paar-Tronic 4x2x0,5, BN/WH)","conector MT-CON1A/1B pines 1 / 2 [Túnel medio]","MTMT-W21 → emisor MT-B1 · MTMT-W21.1 → receptor MT-B1.1","test: E-A9 2.2 → E-X74.1:4 → EMT-W2 YE → CON1:6 → MT-B1 4 (TE)","salida MT-B1.1 4 (Q) → MTMT-W21.1 BK hilo 745","conector CON1:5","EMT-W2 GN","borna E-X74.1:3 [Armario E]","hilo 745 → E-A9 DIS02 (2.1)"],["E-X74.1:1-4 (Armario E)","conector MT-CON1A/1B:1, 2, 5, 6 (Túnel medio)"]));
+ ad("MT-B2 MT-B2.1 MTMT-W22 MTMT-W22.1 EMT-W2 E-X74.1",r("Barrera óptica túnel medio DERECHA (solo stand 504) · E-A9 DIS08 (8.1)",99,["alimentación borna E-X74.1:5 (hilo 757) / :6 (0 V hilo 205) [Armario E]","manguera EMT-W2 (GY/PK)","conector MT-CON1A/1B pines 3 / 4 [Túnel medio]","MTMT-W22 → emisor MT-B2 · MTMT-W22.1 → receptor MT-B2.1","test: E-A9 8.2 → E-X74.1:8 → EMT-W2 RD → CON1:8 → MT-B2 4 (TE)","salida MT-B2.1 4 (Q) → MTMT-W22.1 BK hilo 746","conector CON1:7","EMT-W2 BU","borna E-X74.1:7 [Armario E]","hilo 746 → E-A9 DIS08 (8.1)"],["E-X74.1:5-8 (Armario E)","conector MT-CON1A/1B:3, 4, 7, 8 (Túnel medio)"]));
+ ad("H-S11 PH-W1",r("Pulsador luminoso «OK retirada PBB» · E-A9 DIS01 (1.1)",69,["H-S11 13-14 [Elevación]","manguera PH-W1 (cond. 3 / 4, hilos 332 / 2000)","borna P-X92.3:3 / 4 [Pupitre]","borna P-X92.2:8 / 9","manguera EP-W4 (H07RN-F 27x1,5, cond. 8 / 9)","borna E-X68.1:8 / 9 [Armario E]","hilos 680 / 681 → E-A9 DIS01 (1.1 / 1.2)"],["P-X92.3:3-4 y P-X92.2:8-9 (Pupitre)","E-X68.1:8-9 (Armario E)"]));
+ ad("R-S2 ITR-W5 EIT-W10",r("Pulsador autorización rotonda · E-A9 DIS03 (3.1)",69,["R-S2 13-14 [Rotonda]","manguera ITR-W5 (H07RN-F 5x1,5, GY/BK)","borna IT-X50:12 / 13 [Túnel interior]","manguera EIT-W10 (Super-Paar-Tronic 20x0,75, VT/GYPK)","borna E-X70:12 / 13 [Armario E]","hilos 682 / 683 → E-A9 DIS03 (3.1 / 3.2)"],["IT-X50:12-13 (Túnel interior)","E-X70:12-13 (Armario E)"]));
+ return R})();
+const RUT_RCS_FIX={"C-B22":[{sig:"Sensor suelo · P-A5 DIN03 (1.4) suelo sube derecha / DIN04 (2.4) suelo sube izquierda",f:85,txt:["24 V hilo 336 (P-X92:8) y 0 V hilo 205","manguera P-W24 (H07RN-F 5x1,5, BN/BU)","borna C4-X64:1 / 2 [Cabina]","C-B22 +24 V / 0 V · contactos R+ (1) y R- (2)","borna C4-X64:3 (R+) / 4 (R-) [Cabina]","manguera P-W24 BK · hilos 375 / 376","P-A5 DIN03 (1.4) / DIN04 (2.4)"].join(" → "),bor:["C4-X64:1-4 (Cabina)"]}],
+ "C-B52":[{sig:"Contacto avión · P-A5 DIN01 (1.1), en paralelo con C-B51",f:85,txt:["24 V / 0 V borna P-X92:8 / 9 [Pupitre]","manguera P-W18 (SAC-5P M12, BN/BU)","C-B52 1 / 3 [Cabina]","salida C-B52 4 → P-W18 BK","en paralelo con la salida de C-B51 (P-W17)","borna P-X92:12 [Pupitre]","hilo 320 RD → P-A5 DIN01 (1.1)"].join(" → "),bor:["P-X92:8, :9, :12 (Pupitre)"]}]};
+EL_C.clear&&EL_C.clear();
+(function(){const o=elRutas;elRutas=function(tag){const pl=elPlano();
+ let a=o(tag).filter(x=>!(tag=="C-B52"&&/^P-A5 IN0[34]/.test(x.sig))&&!(tag=="C4-X64"&&false));
+ if(pl=="RCS"){const fx=RUT_RCS_FIX[tag]||[];return fx.concat(a.filter(x=>!(fx.length&&x.f==85)))}
+ const m=RUT_504[tag]||[];
+ const ok=a.filter(x=>!(+x.f==52&&/E-K0\.1/.test(x.txt))).filter(x=>x.pl=="504"||!EL504_DIF.has(+x.f)||((RUT_MAN[tag]||[]).includes(x)&&EL504_OKMAN.has(tag)))
+  .filter(x=>!(m.length&&+x.f==+m[0].f)).map(x=>Object.assign({},x,{pl:"504"}));
+ const quitados=a.filter(x=>!ok.some(y=>y.txt==x.txt)&&!m.some(y=>y.txt==x.txt));
+ const r=m.concat(ok);if(!r.length&&quitados.length)r.push({sig:"PBB_504 (posiciones 504 y 508)",f:quitados[0].f,txt:`Este circuito cambia respecto a RCS: ver folio ${quitados[0].f} del plano PBB_504`,bor:[],pl:"504",av:1});
+ return r}})();
+(function(){const o=elHTML;elHTML=function(tag,corto){let h=o(tag,corto);const pl=elPlano();
+ h=h.replace(/<i>folio (\d+)<\/i>/g,(x,f)=>`<i>folio ${f} · ${pl=="504"?"PBB_504":"RCS_PLANOS"}</i>`);
+ return h}})();
+(function(){const st=document.createElement("style");st.textContent=".elplan{font-size:11px;font-weight:600;margin:4px 0 2px;opacity:.8}";document.head.appendChild(st)})();
+(function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);return h.replace('<div class="elus">',`<div class="elplan">Recorridos según plano ${elPlano()=="504"?"PBB_504 (posiciones 504 / 508)":"RCS_PLANOS"}</div><div class="elus">`)}})();
 </script></body></html>
