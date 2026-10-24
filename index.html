@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v5"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v6"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2551,4 +2551,14 @@ function hqAnade(t){if(t.dataset.hq||t.type!="time"||!t.parentNode)return;t.data
  t.addEventListener("change",()=>{if(t.value&&q.value!=t.value&&!q.matches(":focus")){q.value="";q.classList.remove("hqx")}})}
 function hqTodo(){document.querySelectorAll('input[type=time]:not([data-hq])').forEach(hqAnade)}
 new MutationObserver(hqTodo).observe(document.body,{childList:true,subtree:true});hqTodo();
+/* ===== v6: en Seguimiento OT cada OT se ve plegada (solo la primera línea); al tocarla se despliega el resto ===== */
+const segAb=new Set();
+(function(){const st=document.createElement("style");st.textContent=`.ot .ohd{cursor:pointer;-webkit-tap-highlight-color:transparent}.ot .ohd>span{display:inline-flex;align-items:center;gap:8px}.ot .ohd>span::after{content:"▾";font-size:16px;color:var(--mu,#888);transition:transform .2s}.ot.oab .ohd>span::after{transform:rotate(180deg)}.ot .obd{display:none;margin-top:6px}.ot.oab .obd{display:block}`;document.head.appendChild(st)})();
+(function(){const o=card;card=function(i){const h=o(i);if(view!="track")return h;return h.replace('<div class="card">',`<div class="card ot" data-oid="${i.id}">`)}})();
+function segPliega(){if(view!="track")return;document.querySelectorAll("#app .card.ot:not([data-pl])").forEach(c=>{c.dataset.pl="1";
+ const hd=c.firstElementChild;if(!hd)return;hd.classList.add("ohd");const bd=document.createElement("div");bd.className="obd";
+ while(hd.nextSibling)bd.appendChild(hd.nextSibling);c.appendChild(bd);if(segAb.has(c.dataset.oid))c.classList.add("oab");
+ hd.addEventListener("click",()=>{const a=c.classList.toggle("oab");a?segAb.add(c.dataset.oid):segAb.delete(c.dataset.oid)})})}
+(function(){const o=render;render=function(){const r=o.apply(this,arguments);segPliega();return r}})();
+new MutationObserver(segPliega).observe(document.body,{childList:true,subtree:true});
 </script></body></html>
