@@ -2428,9 +2428,62 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v92"}})();
 /* ===== v92: cierre de OT de aire con alarmas de AAC y AAR a la vez (i.alAire); se guardan con «Guardar alarma» y quedan en Actuación hasta Cerrar/Resolver ===== */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v93"}})();
-/* ===== v93: en OT de aire (AAP, AAR, AAC) abiertas, «Cerrar avería» muestra las tres horas: inicio, llegada y cierre (cierre = hora actual) ===== */
-(function(){const o=resolver;resolver=function(id){o(id);const i=inc.find(x=>x.id==id);if(!i||i.estado!="abierta"||!esAire(i))return;
+/* ===== v93→v94: en Resolución de cualquier OT abierta se ven las tres horas (inicio, llegada, cierre = hora actual) ===== */
+(function(){const o=resolver;resolver=function(id){o(id);const i=inc.find(x=>x.id==id);if(!i||i.estado!="abierta")return;
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
- mk(l,"Hora de llegada",i.hLle||ahora());mk(c,"Hora final de cierre",ahora())}})();
+ mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v94"}})();
+/* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
+const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
+const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
+(function(){const o=cerrar;cerrar=function(id){const fi=$("#r_i"),fl=$("#r_l"),fc=$("#r_c");
+ const ped=(el,t)=>{msg(t);if(el&&el.type!="hidden"){el.focus();el.style.outline="2px solid #d33"}return false};
+ const ok=(()=>{const hi=hMin(fi&&fi.value),hl=hMin(fl&&fl.value),hc=hMin(fc&&fc.value);
+  if(hi==null)return ped(fi,"Introduce la hora de inicio");
+  if(hl==null)return ped(fl,"Introduce la hora de llegada");
+  if(hc==null)return ped(fc,"Introduce la hora de cierre");
+  if(!hTras(hi,hl))return ped(fl,`La hora de llegada (${fl.value}) no puede ser anterior a la de inicio (${fi.value})`);
+  if(!hTras(hl,hc))return ped(fc,`La hora de cierre (${fc.value}) no puede ser anterior a la de llegada (${fl.value})`);
+  return true})();
+ if(ok)return o(id)}})();
+const LLEG_MIN={PAS:10,HZ:15,AAA:15,AAP:15,SVGA:15,Sigma:15};
+function llegMin(i){const t=[i.tipo,...(i.equipos||[])].map(k=>LLEG_MIN[k]).filter(Boolean);return t.length?Math.min(...t):15}
+function llegFin(i){const m=hMin(i.hIni);if(m==null)return null;const c=new Date(+i.id||Date.now());if(isNaN(c))return null;
+ const d=new Date(c);d.setHours(Math.floor(m/60),m%60,0,0);if(d-c>12*3600e3)d.setDate(d.getDate()-1);else if(c-d>12*3600e3)d.setDate(d.getDate()+1);
+ return d.getTime()+llegMin(i)*60e3}
+const llegPend=i=>i&&i.estado=="abierta"&&!i.hLle&&!!i.hIni;
+function llegTxt(i){const f=llegFin(i);if(f==null)return"";const r=Math.round((f-Date.now())/1000),a=Math.abs(r),mm=Math.floor(a/60),ss=String(a%60).padStart(2,"0");
+ return r>=0?`⏱ Llegada: quedan <b>${mm}:${ss}</b> (${llegMin(i)} min)`:`⚠ Fuera de tiempo de llegada: <b>+${mm}:${ss}</b> · Llamar a CGA`}
+function llegCls(i){const f=llegFin(i),r=f==null?999:(f-Date.now())/1000;return r<0?"ctd ctdx":r<=60?"ctd ctdw":"ctd"}
+function llegada(id){const i=inc.find(x=>x.id==id);if(!i)return;i.hLle=ahora();sv("pbb_inc",inc);render();msg(`Llegada registrada a las ${i.hLle} · OT ${i.orden}`)}
+(function(){const o=card;card=function(i){let h=o(i);if(!llegPend(i)||llegFin(i)==null)return h;
+ const box=`<div class="${llegCls(i)}" data-ctd="${i.id}">${llegTxt(i)}</div>${(tecnico||admin)?`<button class="sec" style="width:100%;margin-top:6px;padding:9px" onclick="llegada('${i.id}')">He llegado a la posición</button>`:""}`;
+ return h.replace(/(<div class="mu">Inicio [^<]*<\/div>)/,"$1"+box)}})();
+(function(){const st=document.createElement("style");st.textContent=`.ctd{margin-top:6px;padding:8px 10px;border-radius:8px;background:#efe7fb;color:#3b1170;font-size:14px}.ctdw{background:#fff1d6;color:#7a4300;animation:ctdp 1s infinite}.ctdx{background:#fde2e2;color:#9b1111}@keyframes ctdp{50%{opacity:.55}}
+#llegAl{position:fixed;inset:0;background:#000a;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px}#llegAl .card{max-width:400px;width:100%;border:3px solid #d33}`;document.head.appendChild(st)})();
+/* sonido: WAV generado; se desbloquea con el primer toque (requisito de iOS) */
+const llegAudio=(()=>{const sr=8000,n=sr*1.2,b=new ArrayBuffer(44+n*2),v=new DataView(b);const w=(o,t)=>[...t].forEach((c,k)=>v.setUint8(o+k,c.charCodeAt(0)));
+ w(0,"RIFF");v.setUint32(4,36+n*2,true);w(8,"WAVEfmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*2,true);
+ for(let k=0;k<n;k++){const t=k/sr,on=(t%0.4)<0.25;v.setInt16(44+k*2,on?Math.sin(2*Math.PI*(t%0.8<0.4?1400:1000)*t)*26000:0,true)}
+ let bin="";new Uint8Array(b).forEach(x=>bin+=String.fromCharCode(x));const a=new Audio("data:audio/wav;base64,"+btoa(bin));a.loop=true;a.preload="auto";return a})();
+let llegListo=false;
+addEventListener("pointerdown",()=>{if(llegListo)return;llegListo=true;llegAudio.muted=true;llegAudio.play().then(()=>{llegAudio.pause();llegAudio.currentTime=0;llegAudio.muted=false}).catch(()=>{llegAudio.muted=false});
+ try{if("Notification" in window&&Notification.permission=="default")Notification.requestPermission()}catch(e){}},{capture:true});
+function llegHecho(){try{return JSON.parse(localStorage.getItem("pbb_lleg_al")||"{}")}catch(e){return{}}}
+function llegAlarma(i){const hd=llegHecho();hd[i.id]=Date.now();try{localStorage.setItem("pbb_lleg_al",JSON.stringify(hd))}catch(e){}
+ const t=`OT prioritaria · PBB ${i.pos} (${i.tipo}) · Orden ${i.orden}`,cuerpo=`Queda 1 minuto para el tiempo de llegada (${llegMin(i)} min). Llamar a CGA.`;
+ try{llegAudio.muted=false;llegAudio.currentTime=0;llegAudio.play().catch(()=>{})}catch(e){}
+ try{navigator.vibrate&&navigator.vibrate([600,250,600,250,600])}catch(e){}
+ try{if("Notification" in window&&Notification.permission=="granted"){const op={body:cuerpo,tag:"lleg"+i.id,requireInteraction:true};
+  if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(r=>r?r.showNotification(t,op):new Notification(t,op)).catch(()=>{try{new Notification(t,op)}catch(e){}});else new Notification(t,op)}}catch(e){}
+ let d=document.getElementById("llegAl");if(!d){d=document.createElement("div");d.id="llegAl";document.body.appendChild(d)}
+ d.innerHTML=`<div class="card"><h3 style="margin:0 0 6px;color:#b11">⏰ ${esc(t)}</h3><p style="margin:0 0 10px">${esc(cuerpo)}</p><div class="${llegCls(i)}" data-ctd="${i.id}">${llegTxt(i)}</div>
+ <button class="pri" style="width:100%;margin-top:12px" onclick="llegada('${i.id}');llegCalla()">He llegado</button><button class="sec" style="width:100%;margin-top:8px" onclick="llegCalla()">Entendido (silenciar)</button></div>`}
+function llegCalla(){try{llegAudio.pause();llegAudio.currentTime=0}catch(e){}const d=document.getElementById("llegAl");if(d)d.remove()}
+setInterval(()=>{if(typeof inc=="undefined"||!Array.isArray(inc))return;
+ document.querySelectorAll("[data-ctd]").forEach(el=>{const i=inc.find(x=>x.id==el.dataset.ctd);if(!llegPend(i)){el.remove();return}el.className=llegCls(i);el.innerHTML=llegTxt(i)});
+ if(!(typeof tecnico!="undefined"&&(tecnico||admin)))return;const hd=llegHecho(),now=Date.now();
+ for(const i of inc){if(!llegPend(i)||hd[i.id])continue;const f=llegFin(i);if(f==null)continue;const r=f-now;if(r<=60e3&&r>-3600e3){llegAlarma(i);break}}
+ if(document.getElementById("llegAl")){const id=(document.querySelector("#llegAl [data-ctd]")||{}).dataset;const i=id&&inc.find(x=>x.id==id.ctd);if(i&&!llegPend(i))llegCalla()}},1000);
 </script></body></html>
