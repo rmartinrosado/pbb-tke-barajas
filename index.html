@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v97"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v98"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2520,4 +2520,10 @@ async function tkBorra(k){const g=tkGrupos().find(x=>x.k==k);if(!g)return;
  if(r.error||!r.data||!r.data.length){msg("No se pudo eliminar"+(r.error?": "+r.error.message:""));return}
  msg(`Técnico ${g.n} eliminado`);if(tkEdit==k){tkEdit=null;tkTur=new Set(["Mañana"])}window._tecAll=await listaTec();tkPinta()}
 (function(){const st=document.createElement("style");st.textContent=".tkdel{width:auto;padding:4px 8px;display:inline-flex;align-items:center;justify-content:center;color:#c62828;border-color:#e57373}.tkdel svg{width:16px;height:16px}";document.head.appendChild(st)})();
+/* ===== v98: editar técnico — los turnos del formulario siguen a la lista y se guardan sobre el estado real ===== */
+(function(){const o=tkTurno;tkTurno=async function(k,t){await o(k,t);if(tkEdit===k){const g=tkGrupos().find(x=>x.k==k);if(g){tkTur=new Set(g.l.map(x=>x.turno));tkPinta()}else{tkEdit=null;tkTur=new Set(["Mañana"]);tkPinta()}}}})();
+(function(){const o=tkGuarda;tkGuarda=async function(k){const n=$("#g_n")&&$("#g_n").value,c=$("#g_c")&&$("#g_c").value,ts=new Set(tkTur);
+ window._tecAll=await listaTec(); /* recarga para comparar con los turnos que hay de verdad en la base de datos */
+ if(!tkGrupos().find(x=>x.k==k)){msg("Ese técnico ya no existe");tkEdit=null;tkPinta();return}
+ tkTur=ts;tkPinta();if($("#g_n"))$("#g_n").value=n;if($("#g_c"))$("#g_c").value=c;return o(k)}})();
 </script></body></html>
