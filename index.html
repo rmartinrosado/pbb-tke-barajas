@@ -3142,9 +3142,9 @@ let bqOT="";
 function bqNorm(v){return String(v||"").toUpperCase().replace(/\s+/g,"")}
 function bqCasa(i,q){if(!q)return true;const o=bqNorm(i.orden),p=bqNorm(i.pos);const d=q.replace(/^T/,"");
  return o.includes(q)||p==q||p=="T"+d||p.startsWith(q)||(d.length>=1&&p=="T"+d)}
-/* v45: las OT cerradas que no son del turno activo (Mañana 06-14, Tarde 14-22, Noche 22-06) se ocultan; al buscarlas sí aparecen */
+/* v45: las OT cerradas que no son del turno activo (Mañana 07-15, Tarde 15-23, Noche 23-07) se ocultan; al buscarlas sí aparecen */
 function turnoVentana(){const d=new Date(),h=d.getHours(),a=new Date(d);a.setMinutes(0,0,0);let n,ini;
- if(h>=6&&h<14){n="Mañana";ini=6}else if(h>=14&&h<22){n="Tarde";ini=14}else{n="Noche";ini=22;if(h<6)a.setDate(a.getDate()-1)}
+ if(h>=7&&h<15){n="Mañana";ini=7}else if(h>=15&&h<23){n="Tarde";ini=15}else{n="Noche";ini=23;if(h<7)a.setDate(a.getDate()-1)}
  a.setHours(ini);return{n,ini:a.getTime(),fin:a.getTime()+8*3600000}}
 function enTurnoActivo(i,w){w=w||turnoVentana();const f=String(i.fecha||"").slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(f))return false;
  const hh=/^\d{1,2}:\d{2}/.test(i.hIni||"")?i.hIni:(/^\d{1,2}:\d{2}/.test(i.hCie||"")?i.hCie:"");
