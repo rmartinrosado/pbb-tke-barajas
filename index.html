@@ -70,7 +70,7 @@ inc=[];tecnico=true;proy=ld("pbb_proy",GPT);
 const hoy=()=>new Date().toISOString().slice(0,10);
 const ahora=()=>{const d=new Date();return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
 function toggleModo(){admin=false;closeSheet();if(!tecnico){render();pedirTec();return}setO();return;view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
-function go(v,f){view=v;if(f)filtro=f;render();scrollTo(0,0)}
+function go(v,f){if(v=="plans"&&!admin)return;view=v;if(f)filtro=f;render();scrollTo(0,0)}
 const P={home:'M3 11l9-8 9 8v10H3z',plus:'M12 5v14M5 12h14',list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',plans:'M4 4h16v16H4zM4 9h16M9 9v11',mult:'M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM8.5 4.5h7v4h-7zM12 11a3 3 0 1 0 0 6a3 3 0 1 0 0-6M12 14l1.6-1.6M9 20h.01M15 20h.01',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.2-.5-.5-2.2z',check:'M5 12l5 5 9-10',ia:'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z'};
 P.plc='M4.5 2.5h15a2.5 2.5 0 0 1 2.5 2.5v14a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 19V5a2.5 2.5 0 0 1 2.5-2.5zM5 5.5h14v7.5H5zM7 11.3V7.2h1.3a1.05 1.05 0 0 1 0 2.1H7M10.6 7.2v4.1h1.8M17.2 7.7a2 2 0 1 0 0 3.1M5 15.8h3.4v2.7H5zM10.3 15.8h3.4v2.7h-3.4zM15.6 15.8H19v2.7h-3.4z';
 const IC=k=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${P[k]}"/></svg>`;
@@ -78,7 +78,7 @@ function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||
  $("#modo").classList.toggle("on",tecnico);$("#mo").classList.toggle("on",!tecnico&&!admin);$("#adm").classList.toggle("on",admin);
  const tabs=[["dash",IC('home'),"Inicio"],["new",IC('plus'),"Nueva"],["track",IC('list'),"Seguimiento OT"]];if(tecnico||admin)tabs.push(["plans",IC('plans'),"Planos"]);
  if(tecnico||admin)tabs.push(["tec",IC('tool'),"Técnico"]);
- $("#nav").innerHTML=tabs.map(t=>`<button class="${view==t[0]?"on":""}" onclick="go('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join("");
+ $("#nav").innerHTML=tabs.map(t=>`<button class="${view==t[0]?"on":""}" onclick="go('${t[0]}')" ${t[0]=="plans"&&!admin?'disabled style="opacity:.35;filter:grayscale(1)"':""}><span>${t[1]}</span>${t[2]}</button>`).join("");
  ({dash:vDash,new:vNew,track:vTrack,plans:vPlans,tec:vTec})[view]();
 }
 function card(i){
@@ -98,7 +98,7 @@ function vDash(){
  <div class="grid" style="margin-bottom:10px"><button class="btn" onclick="go('new')"><span>${IC('plus')}</span>Registrar OT</button>
  <button class="btn" onclick="resTec()" ${tecnico||admin?"":"disabled"} aria-label="Resolución Claude" style="justify-content:center"><img src="claude-wordmark.png" alt="Claude" style="height:34px;max-width:100%;background:#fff;border-radius:8px;padding:6px 10px;display:block"></button>
  <button class="btn" onclick="go('track','todas')"><span>${IC('list')}</span>Seguimiento OT</button>
- <button class="btn" onclick="go('plans')" ${admin?"":"disabled"} ${admin?"":'style="opacity:.45" title="En desarrollo"'}><span>${IC('plans')}</span>Planos y esquemas${admin?"":'<small style="display:block;font-size:11px;opacity:.8">En desarrollo</small>'}</button></div>
+ <button class="btn" onclick="go('plans')" ${admin?"":"disabled"}><span>${IC('plans')}</span>Planos y esquemas</button></div>
  <h3 style="margin:18px 2px 8px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)">Órdenes de Trabajo Abiertas</h3>${ab.map(card).join("")||'<div class="card mu">Sin averías abiertas.</div>'}`;
 }
 function vNew(){ultTipo="PAS";
