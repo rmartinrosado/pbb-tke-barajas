@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v24"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v25"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -3017,4 +3017,15 @@ function segQuita(k){const i=inc.find(x=>x.id==gOT);if(!i)return;i.segEl=[].conc
   ${sel.length?`<div class="mu" style="margin-top:4px">Elegidos: ${sel.map(k=>{const x=SEG_ALL.find(y=>segK(y)==k);return x?`<span class="anac">${esc(x[4])} <a href="#" onclick="event.preventDefault();segQuita('${esc(k)}')">✕</a></span>`:""}).join(" ")}</div>`:""}
   <div class="mu" style="margin-top:4px">Si es una SETA DE EMERGENCIA no se puentea: localiza la seta pulsada y rearma.</div></div>`;
  return h.replace(/(<div class="puac">1\. Recuperar)/,box+"$1")}})();
+/* ===== v25: la PRIMERA ACTUACIÓN (caja roja) va SIEMPRE en la primera línea de la guía de campo, justo tras la caja «Guía de campo»;
+ después «Seguridad antes de intervenir». La varita lleva a ella. La caja roja parpadea cada 2 s. ===== */
+gSegPrimero=function(){if(view!="tec")return;const c=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));if(!c)return;
+ const red=document.getElementById("gsegl")||document.getElementById("gpte");const seg=document.querySelector('#app details.gd[data-k="SEG"]');
+ if(red&&c.nextElementSibling!==red)c.insertAdjacentElement("afterend",red);const anc=red||c;
+ if(seg){if(anc.nextElementSibling!==seg)anc.insertAdjacentElement("afterend",seg);seg.classList.add("gseg");
+  if(!seg.dataset.pr){seg.dataset.pr=1;const t=seg.querySelector("summary b");if(t&&t.innerHTML.includes("⚠️"))t.innerHTML=t.innerHTML.replace("⚠️",`<span class="gsegw">⚠️</span>`)}
+  if(!seg.dataset.par){seg.dataset.par=1;seg.classList.add("gpar")}}};
+(function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);gSegPrimero();return r}})();
+(function(){const st=document.createElement("style");st.textContent=`@keyframes pupar{0%,100%{box-shadow:0 0 0 0 #c6282800;border-color:#c62828}50%{box-shadow:0 0 0 5px #c6282866;border-color:#ff5252;background:color-mix(in srgb,#c62828 14%,var(--card))}}
+.card.pucard{animation:pupar 2s ease-in-out infinite}`;document.head.appendChild(st)})();
 </script></body></html>
