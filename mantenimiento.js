@@ -1,4 +1,4 @@
-/* ===== Mantenimiento preventivo PBB (v35) =====
+/* ===== Mantenimiento preventivo PBB (v40) =====
  Programa de mantenimientos M (mensual) y S (semestral) por posición y día, guardado en Supabase (tabla «mantenimientos»).
  - Pestaña «Mant.»: hoy, calendario del mes y detalle del día. Técnicos y admin marcan «Hecho».
  - Inicio: aviso con las posiciones que tocan hoy.
@@ -25,9 +25,30 @@ window.mantCarga=mantCarga;
 /* ---------- vista principal ---------- */
 function chip(x,grande){const ok=x.estado=="hecho";
  return `<span class="mchip ${x.tipo=="S"?"s":"m"} ${ok?"ok":""} ${grande?"g":""}"><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":""}</span>`}
-function filaDia(x){const ok=x.estado=="hecho";
- return `<div class="mfila ${ok?"ok":""}">${chip(x,true)}<div class="mfinfo"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}${ok?`<div class="mu">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${x.hecho_at?" · "+new Date(x.hecho_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}</div>`:`<div class="mu">Pendiente</div>`}</div>
- ${puede()?`<button class="${ok?"sec":"pri"} mbtn" onclick="mantHecho('${x.id}',${ok?0:1})">${ok?"Deshacer":"✔ Hecho"}</button>`:""}${admin?`<button class="sec mdel" aria-label="Borrar" onclick="mantBorra('${x.id}')">✕</button>`:""}</div>`}
+/* v40: cada posición del día es una caja desplegable con «Incidencias anteriores» (OT del mes previo en esa posición)
+ y «Trabajos realizados» (cuaderno de notas del mantenimiento). Al guardar las notas la caja se pliega. */
+const mAb=new Set(),mCerr=new Set(),mBorr={};
+const abierta=x=>mAb.has(x.id)||(!mCerr.has(x.id)&&!x.trabajos&&x.fecha==hoy());
+function incPrevias(x){if(typeof inc=="undefined"||!Array.isArray(inc))return [];const[y,m,d]=x.fecha.split("-").map(Number);const desde=iso(new Date(y,m-2,d));
+ return inc.filter(i=>String(i.pos).toUpperCase()==String(x.pos).toUpperCase()&&(i.fecha||"")>=desde&&(i.fecha||"")<x.fecha).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""))}
+const fCorta=s=>{const[y,m,d]=String(s||"").split("-");return d?`${d}/${m}`:"–"};
+function cajaInc(x){const l=incPrevias(x);const[y,m,d]=x.fecha.split("-").map(Number);const desde=iso(new Date(y,m-2,d));
+ return `<div class="msec"><div class="msect">⚠️ Incidencias anteriores <span>${fCorta(desde)} – ${fCorta(iso(new Date(y,m-1,d-1)))}</span></div>${l.length?l.map(i=>`<div class="minc"><div class="mincc"><b>${fCorta(i.fecha)}</b> <span class="tag">${esc(i.tipo||"")}</span>${i.orden?` <span class="mu">CGA ${esc(String(i.orden))}</span>`:""}<span class="${i.estado=="abierta"?"ab":"ce"}" style="margin-left:auto;font-size:11px">${i.estado=="abierta"?"ABIERTA":"CERRADA"}</span></div>${i.desc?`<div class="mincd">${esc(i.desc)}</div>`:""}${i.act?`<div class="mincd"><b>Actuación:</b> ${esc(i.act)}</div>`:""}</div>`).join(""):`<div class="mu" style="font-size:13px">Sin OT registradas en esta posición el mes anterior.</div>`}</div>`}
+function cajaTrab(x){const v=x.id in mBorr?mBorr[x.id]:(x.trabajos||"");
+ return `<div class="msec"><div class="msect">📝 Trabajos realizados${x.trabajos_at?` <span>${esc(x.trabajos_por||"")} · ${new Date(x.trabajos_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>`:""}</div>
+ ${puede()?`<textarea class="mtrab" rows="5" placeholder="Anota los trabajos efectuados en el mantenimiento de hoy…" oninput="mantBorr('${x.id}',this.value)">${esc(v)}</textarea><button class="pri" style="margin-top:8px;width:100%" onclick="mantTrab('${x.id}')">💾 Guardar trabajos</button>`
+ :`<div class="mnotas">${x.trabajos?esc(x.trabajos):'<span class="mu">Sin anotaciones.</span>'}</div>`}</div>`}
+function filaDia(x){const ok=x.estado=="hecho";const ab=abierta(x);
+ return `<div class="mcaja ${ab?"ab":""}"><div class="mfila ${ok?"ok":""}">${chip(x,true)}<div class="mfinfo" onclick="mantTog('${x.id}')" style="cursor:pointer"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}${ok?`<div class="mu">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${x.hecho_at?" · "+new Date(x.hecho_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}</div>`:`<div class="mu">Pendiente</div>`}<div class="mtog">${ab?"▲ Plegar":`▼ ${x.trabajos?"📝 Trabajos anotados · ":""}Ver incidencias y trabajos`}</div></div>
+ ${puede()?`<button class="${ok?"sec":"pri"} mbtn" onclick="mantHecho('${x.id}',${ok?0:1})">${ok?"Deshacer":"✔ Hecho"}</button>`:""}${admin?`<button class="sec mdel" aria-label="Borrar" onclick="mantBorra('${x.id}')">✕</button>`:""}</div>
+ ${ab?`<div class="mcuerpo">${cajaInc(x)}${cajaTrab(x)}</div>`:""}</div>`}
+window.mantTog=id=>{const x=MANT.find(z=>z.id==id);if(!x)return;if(abierta(x)){mAb.delete(id);mCerr.add(id)}else{mCerr.delete(id);mAb.add(id)}vMant()};
+window.mantBorr=(id,v)=>{mBorr[id]=v};
+window.mantTrab=async id=>{const v=(id in mBorr?mBorr[id]:"").trim();const x=MANT.find(z=>z.id==id);if(!x)return;if(!v&&!x.trabajos){msg("Escribe los trabajos realizados");return}
+ const t=(typeof tecNombre!="undefined"&&tecNombre)||(user&&user.email)||"";
+ const r=await sb.from("mantenimientos").update({trabajos:v||null,trabajos_por:v?t:null,trabajos_at:v?new Date().toISOString():null}).eq("id",id).select();
+ if(r.error||!r.data||!r.data.length){msg("No se pudo guardar (sin permiso)");return}const k=MANT.findIndex(z=>z.id==id);if(k>=0)MANT[k]=r.data[0];
+ delete mBorr[id];mAb.delete(id);mCerr.add(id);msg("Trabajos guardados ✔");vMant()};
 function calHTML(){const[y,m]=mMes;const pri=new Date(y,m,1);const off=(pri.getDay()+6)%7;const nd=new Date(y,m+1,0).getDate();const h=hoy();
  let c=DIAS.map(d=>`<div class="mcab">${d}</div>`).join("");for(let k=0;k<off;k++)c+=`<div></div>`;
  for(let d=1;d<=nd;d++){const s=iso(new Date(y,m,d));const l=delDia(s);const pend=l.filter(x=>x.estado!="hecho").length;
@@ -216,5 +237,10 @@ function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.g
 .mmini{font-size:9.5px;font-weight:700;border-radius:4px;padding:0 2px;color:#fff;background:var(--pr);line-height:1.35;white-space:nowrap;overflow:hidden}.mmini.s{background:#ef6c00}.mmini.ok{background:#2e9e44}.mmas{font-size:9.5px;color:var(--mu)}
 .mhora{font-size:12px;color:var(--mu);margin-top:1px}.mnota{font-size:12px;font-weight:700;color:#d32f2f;margin-top:2px}
 .mhdr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}.mevt{font-size:12px;font-weight:600;color:var(--mu);white-space:nowrap}.mevt b{color:var(--tx);font-size:14px;letter-spacing:.5px}
+.mcaja{border-top:1px solid var(--bd)}.mcaja .mfila{border-top:none;padding:12px 0}.mcaja.ab{background:color-mix(in srgb,var(--pr) 3%,transparent);margin:0 -12px;padding:0 12px 12px;border-radius:10px}
+.mtog{font-size:12px;font-weight:700;color:var(--pr);margin-top:4px}.mcuerpo{display:flex;flex-direction:column;gap:12px}
+.msec{border:1px solid var(--bd);border-radius:10px;padding:10px;background:var(--card)}.msect{font-weight:700;font-size:14px;margin-bottom:6px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.msect span{font-weight:500;font-size:12px;color:var(--mu)}
+.minc{padding:6px 0;border-top:1px dashed var(--bd)}.minc:first-of-type{border-top:none}.mincc{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px}.mincd{font-size:12.5px;color:var(--mu);margin-top:2px}
+.mtrab{width:100%;box-sizing:border-box;min-height:120px;font-size:15px;line-height:1.45;background:repeating-linear-gradient(transparent 0 21px,color-mix(in srgb,var(--bd) 70%,transparent) 21px 22px);background-attachment:local}.mnotas{white-space:pre-wrap;font-size:14px}
 .mfile{display:flex!important;justify-content:center;align-items:center;margin-top:12px;padding:12px;border-radius:10px;cursor:pointer;font-weight:700}`;document.head.appendChild(st)})();
 })();
