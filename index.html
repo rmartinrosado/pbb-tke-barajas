@@ -2491,7 +2491,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v33"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v34"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -3137,4 +3137,24 @@ async function refrescaApp(){if(!admin){msg("Solo en modo administrador");return
    try{if(location.search)history.replaceState(null,"",location.pathname)}catch(e){}setTimeout(()=>msg("App actualizada · modo Administrador"),300)}}
  return o.apply(this,arguments)}})();
 (function(){const st=document.createElement("style");st.textContent=`.madm .madmref{border-color:#2e9e44!important;color:#2e9e44!important;flex:0 0 auto;padding:7px 10px}`;document.head.appendChild(st)})();
+/* ===== Seguimiento OT: buscador rápido por Nº de orden CGA o por posición (filtra al teclear, sin recargar la vista) ===== */
+let bqOT="";
+function bqNorm(v){return String(v||"").toUpperCase().replace(/\s+/g,"")}
+function bqCasa(i,q){if(!q)return true;const o=bqNorm(i.orden),p=bqNorm(i.pos);const d=q.replace(/^T/,"");
+ return o.includes(q)||p==q||p=="T"+d||p.startsWith(q)||(d.length>=1&&p=="T"+d)}
+function bqAplica(){if(view!="track")return;const q=bqNorm(bqOT);let n=0;
+ document.querySelectorAll("#app .card.ot[data-oid]").forEach(c=>{const i=inc.find(x=>x.id==c.dataset.oid);const ok=!!i&&bqCasa(i,q);c.style.display=ok?"":"none";if(ok)n++});
+ const r=$("#bq_res");if(r)r.textContent=q?(n?`${n} OT encontrada${n>1?"s":""}`:"Ninguna OT con ese Nº de orden o posición"):"";
+ const x=$("#bq_x");if(x)x.style.visibility=q?"visible":"hidden";
+ const sin=[...document.querySelectorAll("#app > .card.mu")].find(c=>/Sin resultados/.test(c.textContent));if(sin&&q)sin.style.display="none"}
+function bqIn(v){bqOT=v;bqAplica()}
+function bqBorra(){bqOT="";const e=$("#bq");if(e){e.value="";e.focus()}bqAplica()}
+(function(){const o=vTrack;vTrack=function(){const r=o.apply(this,arguments);const c=document.querySelector("#app .card");if(!c||$("#bq"))return r;
+ const h=c.querySelector("h3");const w=document.createElement("div");w.className="bqw";
+ w.innerHTML=`<div class="bqbox"><span class="bqlupa">🔍</span><input id="bq" type="search" inputmode="numeric" autocomplete="off" enterkeyhint="search" placeholder="Nº de orden o posición (ej. 600500 · 528)" value="${esc(bqOT)}" oninput="bqIn(this.value)" onkeydown="if(event.key=='Enter')this.blur()"><button type="button" id="bq_x" class="bqx" aria-label="Borrar búsqueda" onclick="bqBorra()">✕</button></div><div id="bq_res" class="mu bqres"></div>`;
+ if(h)h.insertAdjacentElement("afterend",w);else c.prepend(w);setTimeout(bqAplica,0);return r}})();
+(function(){const o=render;render=function(){const r=o.apply(this,arguments);if(view=="track")setTimeout(bqAplica,0);return r}})();
+(function(){const st=document.createElement("style");st.textContent=`.bqw{margin:8px 0 4px}.bqbox{display:flex;align-items:center;gap:6px;border:2px solid var(--pr);border-radius:12px;padding:2px 6px 2px 10px;background:var(--card)}
+.bqbox input{flex:1;min-width:0;border:0!important;background:transparent!important;font-size:18px;font-weight:600;padding:10px 4px;outline:none;box-shadow:none!important}.bqbox input::-webkit-search-cancel-button{display:none}
+.bqlupa{font-size:18px}.bqx{width:auto!important;margin:0!important;padding:6px 10px!important;border:0!important;background:transparent!important;color:var(--mu)!important;font-size:18px;visibility:hidden}.bqres{font-size:12px;margin-top:4px;min-height:14px}`;document.head.appendChild(st)})();
 </script></body></html>
