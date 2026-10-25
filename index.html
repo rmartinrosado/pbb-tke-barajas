@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v26"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v27"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -3038,4 +3038,7 @@ const plegOT=new Set(),anaAbOT=new Set();
   d.open=anaAbOT.has(gOT);d.ontoggle=()=>{d.open?anaAbOT.add(gOT):anaAbOT.delete(gOT)}}}
  const g=document.querySelector("#app details.gd.gef");if(g&&!plegOT.has(gOT)){g.open=false;if(typeof gAbierto!="undefined")gAbierto.delete(g.dataset.k)}
  if(gOT)plegOT.add(gOT);return r}})();
+/* ===== v27: en Seguimiento OT la «Actuación guiada» (actuación más eficaz copiada a la OT) aparece SIEMPRE plegada al entrar;
+ si se abre a mano sigue abierta mientras se está en la pantalla (aunque se refresque), y se vuelve a plegar al salir y volver. ===== */
+(function(){const o=go;go=function(v,f){if(v=="track"&&view!="track")guiAb.clear();return o(v,f)}})();
 </script></body></html>
