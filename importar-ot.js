@@ -1,4 +1,4 @@
-/* ===== v41: Importar hoja de registro de OT del día (Inicio) =====
+/* ===== v42: Importar hoja de registro de OT del día (Inicio) =====
  Foto (OCR), PDF, Excel o CSV de la hoja que hoy se rellena a mano. Vale cualquier fecha (del día o antigua).
  - «Integrantes» → técnicos de la OT (se reconocen los técnicos dados de alta).
  - «Actuación», «Incidencia» u «Observaciones» → campo «Descripción de los Trabajos / Actuación» (desc).
@@ -9,7 +9,7 @@ const TIPOS=["SVGA","SIGMA","PAS","AAA","AAP","AAC","AAR","HZ"];
 const tipoOK=t=>{const u=NORM(t);const k=TIPOS.find(x=>new RegExp("\\b"+x+"\\b").test(u));return k?(k=="SIGMA"?"Sigma":k):""};
 const isoD=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const hh=s=>{const m=/(\d{1,2})\s*[:.h]\s*(\d{2})/.exec(String(s||""));return m&&+m[1]<24&&+m[2]<60?m[1].padStart(2,"0")+":"+m[2]:""};
-let R={fecha:"",turno:"",integ:"",txt:"",ocup:false};let TEC=[];
+let R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{}};let TEC=[];
 
 function fechaTxt(t){const U=NORM(t);let m;
  if((m=/\b(\d{4})-(\d{2})-(\d{2})\b/.exec(U)))return `${m[1]}-${m[2]}-${m[3]}`;
@@ -18,37 +18,45 @@ function fechaTxt(t){const U=NORM(t);let m;
  if((m=/\b(\d{1,2})\s*(?:DE\s*)?(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|SET|OCT|NOV|DIC)[A-Z]*\.?\s*(?:DE\s*)?(\d{4})?/.exec(U)))return isoD(new Date(m[3]?+m[3]:new Date().getFullYear(),MS[m[2]],+m[1]));
  return ""}
 const turnoTxt=t=>{const U=NORM(t);return /\bNOCHE\b/.test(U)?"Noche":/\bTARDE\b/.test(U)?"Tarde":/\bMANANA\b/.test(U)?"Mañana":""};
-function posDe(s){const U=NORM(s).replace(/\bPBB\s*/g,"");const P=new Map((typeof POS!="undefined"?POS:[]).map(p=>[NORM(p),String(p)]));
- const re=/\b(T\s?\d{1,3}|\d{3})\b/g;let m;while((m=re.exec(U))){const k=m[1].replace(/\s/g,"");if(P.has(k))return P.get(k)}return ""}
+function posDe(s,libre){const U=NORM(s).replace(/\bPBB\s*/g,"");const P=new Map((typeof POS!="undefined"?POS:[]).map(p=>[NORM(p),String(p)]));
+ const re=/\b(T\s?\d{1,3}|\d{3})\b/g;let m,pri="";while((m=re.exec(U))){const k=m[1].replace(/\s/g,"");if(P.has(k))return P.get(k);if(!pri)pri=k}return libre?pri:""}
+const posReg=p=>(typeof POS!="undefined"?POS:[]).some(x=>NORM(x)==NORM(p));
+/* Hoja TKE: Noche 22–06, Mañana 06–14, Tarde 14–22 */
+const turnoHora=h=>{if(!h)return "";const n=+h.slice(0,2);return n>=22||n<6?"Noche":n<14?"Mañana":"Tarde"};
+const limpiaInteg=t=>String(t||"").replace(/\b(INTEGRANTES?|TURNO|FECHA)\b/gi,"").replace(/\b\d{1,2}\s*[\/\.\-]\s*\d{1,2}\s*[\/\.\-]\s*\d{2,4}\b/g,"").replace(/\s*[\/+&]\s*|\s+Y\s+/gi,", ").replace(/^[\s,.:;\-|]+|[\s,.:;\-|]+$/g,"").replace(/\s{2,}/g," ")
 const ordenDe=s=>{const m=/\b([56]\d{2})\s?(\d{3})\b(?![:.]\d)/.exec(String(s||""));return m?m[1]+m[2]:""};
 function tecsDe(t){const U=NORM(t);return TEC.filter(n=>n&&U.includes(NORM(n))).filter((n,i,a)=>a.indexOf(n)==i)}
 
 /* --- tabla (Excel/CSV): busca la fila de cabecera por palabras clave --- */
-const COL={pos:/POSICI|^PBB|PASARELA|PUERTA|STAND/,tipo:/^TIPO|EQUIPO|SISTEMA/,orden:/ORDEN|N.?\s*OT|^OT\b|CGA|AVISO/,hIni:/INICIO|AVISO.*HORA|H\.?\s*INI/,hLle:/LLEGADA|H\.?\s*LLE/,hCie:/CIERRE|FIN\b|FINAL|H\.?\s*FIN|RESOLU/,
+const COL={pos:/POSICI|^PBB|^PAS$|PASARELA|PUERTA|STAND/,tipo:/^TIPO|EQUIPO|SISTEMA/,orden:/ORDEN|N.?\s*OT|^OT\b|CGA|AVISO/,hIni:/INICIO|AVISO.*HORA|H\.?\s*INI/,hLle:/LLEGADA|H\.?\s*LLE/,hCie:/CIERRE|FIN\b|FINAL|H\.?\s*FIN|RESOLU/,
  desc:/ACTUACI|INCIDENCI|OBSERV|DESCRIP|TRABAJO|AVERIA/,integ:/INTEGRANT|TECNIC|OPERARI/,fecha:/^FECHA|DIA\b/};
 function deTabla(filas){let hi=-1,map={};
  for(let r=0;r<Math.min(filas.length,25);r++){const m={};filas[r].forEach((c,j)=>{const u=NORM(c).trim();if(!u)return;for(const k in COL)if(!(k in m)&&COL[k].test(u)){if(k=="desc"){(m.desc=m.desc||[]).push(j);continue}m[k]=j;break}else if(k=="desc"&&COL.desc.test(u)&&m.desc&&!m.desc.includes(j))m.desc.push(j)});
   if(("pos" in m)&&(m.desc||("orden" in m))){hi=r;map=m;break}}
- const cab=filas.slice(0,hi<0?6:hi).map(f=>f.join(" ")).join("\n");leeCab(cab);
+ const cab=filas.slice(0,hi<0?6:hi).map(f=>f.join(" ")).join("\n");leeCab(cab);cab.split("\n").forEach(leeTurno);
  if(hi<0)return deLineas(filas.map(f=>f.join(" ")).join("\n"));
- const out=[];for(const f of filas.slice(hi+1)){const g=k=>k in map?String(f[map[k]]??"").trim():"";const pos=posDe(g("pos"));if(!pos)continue;
+ const out=[];for(const f of filas.slice(hi+1)){const g=k=>k in map?String(f[map[k]]??"").trim():"";const pos=posDe(g("pos"),true);if(!pos)continue;
   const desc=(map.desc||[]).map(j=>String(f[j]??"").trim()).filter(Boolean).join(" · ");
   out.push({pos,tipo:tipoOK(g("tipo"))||tipoOK(desc)||"PAS",orden:ordenDe(g("orden")),hIni:hh(g("hIni")),hLle:hh(g("hLle")),hCie:hh(g("hCie")),desc,integ:g("integ"),fecha:fechaTxt(g("fecha"))})}
  return out}
 /* --- texto libre (foto/PDF): una OT por línea con posición --- */
 function leeCab(t){if(!R.fecha)R.fecha=fechaTxt(t);if(!R.turno)R.turno=turnoTxt(t);
  const m=/INTEGRANTES?\W{0,3}([^\n]*)/i.exec(NORM(t));const tt=tecsDe(t);if(!R.integ)R.integ=tt.length?tt.join(", "):(m?m[1].trim():"")}
+/* línea de cabecera «25/10/26 NOCHE ALBERTO» / «MAÑANA RAUL/ALEX» → integrantes por turno */
+function leeTurno(l){const U=NORM(l);const t=turnoTxt(U);if(!t||/\b[56]\d{5}\b/.test(U))return false;
+ const tt=tecsDe(l);const resto=limpiaInteg(U.replace(/\b(NOCHE|TARDE|MANANA)\b/g," ").replace(/^\W*\d?\W*/,""));const v=tt.length?tt.join(", "):resto;if(v)R.turnos[t]=v;return true}
 function deLineas(texto){leeCab(texto);const out=[];let ult=null;
- String(texto||"").split(/\r?\n/).forEach(l=>{const L=l.trim();if(!L)return;const pos=posDe(L.replace(/\b\d{1,2}[:.]\d{2}\b/g," ").replace(/\b[56]\d{5}\b/g," "));
+ String(texto||"").split(/\r?\n/).forEach(l=>{const L=l.trim();if(!L)return;if(leeTurno(L))return;const sin=L.replace(/\b\d{1,2}[:.]\d{2}\b/g," ").replace(/\b[56]\d{5}\b/g," ");
+  const ini=/^\W*(?:PBB\s*)?(T\s?\d{1,3}|\d{3})\b/i.exec(sin);const pos=(ini&&(ordenDe(L)||/\d{1,2}[:.]\d{2}/.test(L))?ini[1].replace(/\s/g,"").toUpperCase():"")||posDe(sin);
   const horas=[...L.matchAll(/\b(\d{1,2})\s*[:.h]\s*(\d{2})\b/g)].map(m=>hh(m[0])).filter(Boolean);
   if(!pos){if(ult&&L.length>3&&!/INTEGRANT|FECHA|TURNO|POSICI.*TIPO/i.test(NORM(L)))ult.desc=(ult.desc?ult.desc+" ":"")+L;return}
-  let desc=L.replace(/\bPBB\b/ig,"").replace(new RegExp("\\b"+pos+"\\b"),"").replace(/\b[56]\d{5}\b/,"").replace(/\b\d{1,2}\s*[:.h]\s*\d{2}\b/g,"").replace(/\b(SVGA|SIGMA|PAS|AAA|AAP|AAC|AAR|HZ)\b/i,"").replace(/^[\s\-|·:,;]+|[\s\-|·:,;]+$/g,"").replace(/\s{2,}/g," ");
+  let desc=L.replace(/\bPBB\b/ig,"").replace(new RegExp("\\b"+pos+"\\b"),"").replace(/\b[56]\d{5}\b/,"").replace(/\b\d{1,2}\s*[:.h]\s*\d{2}\b/g,"").replace(/\b(SVGA|SIGMA|PAS|AAA|AAP|AAC|AAR|HZ)\b/i,"").replace(/^[\s\-|·:,;.]+|[\s\-|·:,;]+$/g,"").replace(/\s{2,}/g," ");
   ult={pos,tipo:tipoOK(L)||"PAS",orden:ordenDe(L),hIni:horas[0]||"",hLle:horas[1]||"",hCie:horas[2]||"",desc,integ:"",fecha:""};out.push(ult)});
  return out}
 
 /* --- formato de revisión: una línea por OT --- */
 const aLinea=o=>[o.pos,o.tipo,o.orden||"-",[o.hIni,o.hLle,o.hCie].map(x=>x||"--").join(" "),o.desc||""].join(" | ")+(o.integ?` | ${o.integ}`:"");
-function deRevision(t){const ok=[],mal=[];String(t||"").split(/\r?\n/).forEach((l,i)=>{if(!l.trim())return;const c=l.split("|").map(x=>x.trim());const pos=posDe(c[0]||"");
+function deRevision(t){const ok=[],mal=[];String(t||"").split(/\r?\n/).forEach((l,i)=>{if(!l.trim())return;const c=l.split("|").map(x=>x.trim());const pos=posDe(c[0]||"",true);
   if(!pos){mal.push(i+1);return}const hs=(c[3]||"").split(/\s+/).map(hh);
   ok.push({pos,tipo:tipoOK(c[1])||"PAS",orden:ordenDe(c[2]),hIni:hs[0]||"",hLle:hs[1]||"",hCie:hs[2]||"",desc:c[4]||"",integ:c[5]||""})});return {ok,mal}}
 
@@ -74,22 +82,24 @@ window.otImp=async()=>{if(!(typeof admin!="undefined"&&admin)&&!(typeof tecnico!
  <div id="oi_est" class="mu" style="font-size:12px;margin-top:6px"></div>
  <div class="grid"><div><label>Fecha de la hoja</label><input id="oi_f" type="date" value="${R.fecha}" onchange="otR('fecha',this.value)"></div>
  <div><label>Turno</label><select id="oi_t" onchange="otR('turno',this.value)">${["","Mañana","Tarde","Noche"].map(t=>`<option ${t==R.turno?"selected":""} value="${t}">${t||"—"}</option>`).join("")}</select></div></div>
- <label>Integrantes (técnicos)</label><input id="oi_i" value="${esc(R.integ)}" placeholder="Ej. RAUL MARTIN, TÉCNICO 20" oninput="otR('integ',this.value)" list="oi_tl"><datalist id="oi_tl">${TEC.map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
- <label>OT reconocidas · una por línea: posición | tipo | nº orden | inicio llegada cierre | descripción de los trabajos</label>
+ <label>Integrantes (técnicos, si no van por línea)</label><input id="oi_i" value="${esc(R.integ)}" placeholder="Ej. RAUL MARTIN, TÉCNICO 20" oninput="otR('integ',this.value)" list="oi_tl"><datalist id="oi_tl">${TEC.map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
+ <label>OT reconocidas · una por línea: posición | tipo | nº OT | inicio llegada final | actuación, incidencia u observaciones | integrantes</label>
  <textarea id="oi_txt" rows="9" style="font-family:ui-monospace,monospace;font-size:12.5px" oninput="otR('txt',this.value)" placeholder="528 | PAS | 596500 | 08:10 08:20 09:05 | Fallo autonivelación, ajuste sensores">${esc(R.txt)}</textarea>
  <div id="oi_prev" class="mu" style="font-size:12px;margin-top:4px"></div>
  <button class="pri" style="margin-top:10px;width:100%" onclick="otImpGuarda()">Guardar OT en la app</button>`;
  $("#sheet").style.display="flex";prev()};
 window.otR=(k,v)=>{R[k]=v;if(k=="txt")prev()};
-function prev(){const e=$("#oi_prev");if(!e)return;const{ok,mal}=deRevision(R.txt);e.innerHTML=ok.length?`${ok.length} OT listas para importar${mal.length?` · <span style="color:#d32f2f">líneas sin posición válida: ${mal.join(", ")}</span>`:""}`:""}
-window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;const st=$("#oi_est");const set=t=>{if(st)st.textContent=t};R.fecha="";R.turno="";R.integ="";
+function prev(){const e=$("#oi_prev");if(!e)return;const{ok,mal}=deRevision(R.txt);const nr=[...new Set(ok.map(o=>o.pos).filter(p=>!posReg(p)))];e.innerHTML=ok.length?`${ok.length} OT listas para importar${nr.length?` · <span style="color:#ef6c00">posiciones no dadas de alta: ${nr.join(", ")} (se importan igual)</span>`:""}${mal.length?` · <span style="color:#d32f2f">líneas sin posición válida: ${mal.join(", ")}</span>`:""}`:""}
+window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;const st=$("#oi_est");const set=t=>{if(st)st.textContent=t};R.fecha="";R.turno="";R.integ="";R.turnos={};
  try{const n=file.name.toLowerCase();let ots=[];
   if(/^image\//.test(file.type)){set("Leyendo la foto… (la primera vez descarga el lector)");ots=deLineas(await ocr(file,set))}
   else if(n.endsWith(".pdf")){set("Leyendo PDF…");ots=deLineas(await pdfTxt(file))}
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");ots=deTabla(await excelFilas(file))}
   else{const t=await file.text();ots=t.includes(";")||t.includes(",")?deTabla(csvFilas(t)):deLineas(t)}
   const fs=ots.map(o=>o.fecha).filter(Boolean);if(!R.fecha&&fs.length)R.fecha=fs[0];if(!R.fecha)R.fecha=hoy();
-  if(!R.integ){const t=ots.map(o=>o.integ).filter(Boolean);if(t.length)R.integ=[...new Set(t)].join(", ")}
+  const nt=Object.keys(R.turnos).length;if(nt){ots.forEach(o=>{if(!o.integ)o.integ=R.turnos[turnoHora(o.hIni)]||""});if(!R.turno&&nt==1)R.turno=Object.keys(R.turnos)[0]}
+  if(!R.integ&&nt==1)R.integ=Object.values(R.turnos)[0];
+  if(!R.integ&&!nt){const t=ots.map(o=>o.integ).filter(Boolean);if(t.length)R.integ=[...new Set(t)].join(", ")}
   R.txt=ots.map(o=>aLinea({...o,integ:o.integ&&o.integ!=R.integ?o.integ:""})).join("\n");
   const a=$("#oi_f"),b=$("#oi_t"),c=$("#oi_i"),d=$("#oi_txt");if(a)a.value=R.fecha;if(b)b.value=R.turno;if(c)c.value=R.integ;if(d)d.value=R.txt;prev();
   set(ots.length?`Leída «${file.name}»: ${ots.length} OT. Revisa y corrige antes de guardar.`:`No he encontrado OT con posición en «${file.name}». Escríbelas en el cuadro o prueba con una foto más nítida y recta.`);window._otOCR=ots}
@@ -100,8 +110,8 @@ window.otImpGuarda=async()=>{const{ok,mal}=deRevision(R.txt);if(!ok.length){msg(
  ok.forEach((o,k)=>{const ya=inc.some(i=>(o.orden&&String(i.orden)==o.orden)||(i.pos==o.pos&&i.fecha==f&&o.hIni&&i.hIni==o.hIni));if(ya){dup++;return}
   const integ=o.integ||R.integ;const cerr=!!o.hCie||f<hoy();
   inc.unshift({id:String(base+k),pos:o.pos,tipo:o.tipo,equipos:[o.tipo],orden:o.orden,rep:"CGA",desc:o.desc,hIni:o.hIni,hLle:o.hLle,hCie:o.hCie,act:"",obs:"",fecha:f,estado:cerr?"cerrada":"abierta",
-   turno:R.turno||undefined,tecnico:integ||undefined,integrantes:integ||undefined,origen:"hoja importada"});n++});
- sv("pbb_inc",inc);closeSheet();R={fecha:"",turno:"",integ:"",txt:"",ocup:false};msg(`${n} OT importada${n==1?"":"s"}${dup?` · ${dup} ya existía${dup==1?"":"n"}`:""}`);go("dash")};
+   turno:(Object.keys(R.turnos).length>1?turnoHora(o.hIni):"")||R.turno||turnoHora(o.hIni)||undefined,tecnico:integ||undefined,integrantes:integ||undefined,origen:"hoja importada"});n++});
+ sv("pbb_inc",inc);closeSheet();R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{}};msg(`${n} OT importada${n==1?"":"s"}${dup?` · ${dup} ya existía${dup==1?"":"n"}`:""}`);go("dash")};
 
 /* botón en Inicio */
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);
@@ -111,5 +121,5 @@ window.otImpGuarda=async()=>{const{ok,mal}=deRevision(R.txt);if(!ok.length){msg(
   if(g)g.insertAdjacentElement("afterend",b);else{const a=document.getElementById("app");if(a)a.prepend(b)}}
  return r}})();
 (function(){const st=document.createElement("style");st.textContent=`.oibtn{width:100%;margin:0 0 10px!important}.oifile{display:flex!important;justify-content:center;align-items:center;margin-top:12px;padding:12px;border-radius:10px;cursor:pointer;font-weight:700}`;document.head.appendChild(st)})();
-window._otTest={deLineas,deTabla,deRevision};
+window._otTest={deLineas,deTabla,deRevision,R:()=>R};
 })();
