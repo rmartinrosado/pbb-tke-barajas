@@ -864,7 +864,7 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v44"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v45"}})();
 iniciar();
 /* ===== v37: inspección cable a cable (rutas de medida desde RCS_PLANOS) =====
  Cada paso: p = punto de medida, e = valor esperado, x = qué falla si no se cumple, f = folio RCS_PLANOS. */
@@ -1076,7 +1076,7 @@ function pMuestra(blob,nom){const url=URL.createObjectURL(blob);const file=new F
  <button class="sec" id="p_x" style="width:100%">Cerrar</button></div>`;document.body.appendChild(o);
  const sh=o.querySelector("#p_sh");if(sh)sh.onclick=async()=>{try{await navigator.share({files:[file],title:"Inspección cable a cable"})}catch(e){}};
  o.querySelector("#p_x").onclick=()=>{o.remove();setTimeout(()=>URL.revokeObjectURL(url),6e4)}}
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v44"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v45"}})();
 
 /* ===== v40: inspección cable a cable para todos los módulos PLC (E-A0…E-A10, P-A0…P-A6) + autoselección desde la OT ===== */
 const INS_E=["E-A0","E-A1","E-A2","E-A3","E-A4","E-A5","E-A6","E-A7","E-A8","E-A9","E-A10"],INS_P=["P-A0","P-A1","P-A2","P-A3","P-A4","P-A5","P-A6"];
@@ -1159,7 +1159,7 @@ function gInsHTML(){gIAuto();const R=RUTAS[gIMod]||RUTAS["E-A9"];
  <button class="pri" style="width:100%;margin-top:8px" onclick="gIPdf()">📄 Generar PDF A4 · Inspección cable a cable</button>`;
  return h}
 (function(){const st=document.createElement("style");st.textContent=`.gmods button.vac{opacity:.45}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v44"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v45"}})();
 
 /* ===== v41: llave en las OT abiertas de Inicio → solo la inspección cable a cable de esa OT ===== */
 const gNorm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
@@ -1189,7 +1189,7 @@ function insCierra(){const o=document.querySelector(".insov");if(o)o.remove();do
 (function(){const st=document.createElement("style");st.textContent=`.cbad{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.gwr{width:46px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;border-color:var(--pr);color:var(--pr)}.gwr svg{width:22px;height:22px}
 .insov{position:fixed;inset:0;z-index:35;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .insh{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;background:var(--card);border-bottom:2px solid var(--pr)}.insh button{width:auto;padding:8px 14px;white-space:nowrap}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v44"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v45"}})();
 
 /* ===== v44: botones de la tarjeta OT: en Inicio sin FOTO PLC / multímetro / Cerrar; en Seguimiento a la derecha junto a Editar ===== */
 (function(){const st=document.createElement("style");st.textContent=`.gfrow{min-height:0!important}.cacts{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}.cacl,.cacr{display:flex;align-items:center;gap:8px}.cacl button,.cacr button{width:auto;margin:0}.cacr{margin-left:auto}.gfb2{display:flex;align-items:center;gap:6px;height:42px;padding:0 12px;font-weight:700;color:var(--tx)}.gfb2 svg{width:18px;height:18px}.gdl2{width:44px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;color:#ff6b6b;border-color:#ff6b6b}.gdl2 svg{width:20px;height:20px}.cacr .gwr{height:42px;width:46px}.cacr .gdl2{width:44px}`;document.head.appendChild(st)})();
@@ -2491,7 +2491,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v44"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v45"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -3142,11 +3142,23 @@ let bqOT="";
 function bqNorm(v){return String(v||"").toUpperCase().replace(/\s+/g,"")}
 function bqCasa(i,q){if(!q)return true;const o=bqNorm(i.orden),p=bqNorm(i.pos);const d=q.replace(/^T/,"");
  return o.includes(q)||p==q||p=="T"+d||p.startsWith(q)||(d.length>=1&&p=="T"+d)}
-function bqAplica(){if(view!="track")return;const q=bqNorm(bqOT);let n=0;
- document.querySelectorAll("#app .card.ot[data-oid]").forEach(c=>{const i=inc.find(x=>x.id==c.dataset.oid);const ok=!!i&&bqCasa(i,q);c.style.display=ok?"":"none";if(ok)n++});
- const r=$("#bq_res");if(r)r.textContent=q?(n?`${n} OT encontrada${n>1?"s":""}`:"Ninguna OT con ese Nº de orden o posición"):"";
+/* v45: las OT cerradas que no son del turno activo (Mañana 06-14, Tarde 14-22, Noche 22-06) se ocultan; al buscarlas sí aparecen */
+function turnoVentana(){const d=new Date(),h=d.getHours(),a=new Date(d);a.setMinutes(0,0,0);let n,ini;
+ if(h>=6&&h<14){n="Mañana";ini=6}else if(h>=14&&h<22){n="Tarde";ini=14}else{n="Noche";ini=22;if(h<6)a.setDate(a.getDate()-1)}
+ a.setHours(ini);return{n,ini:a.getTime(),fin:a.getTime()+8*3600000}}
+function enTurnoActivo(i,w){w=w||turnoVentana();const f=String(i.fecha||"").slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(f))return false;
+ const hh=/^\d{1,2}:\d{2}/.test(i.hIni||"")?i.hIni:(/^\d{1,2}:\d{2}/.test(i.hCie||"")?i.hCie:"");
+ for(const k of [0,1]){if(k&&!(hh&&+hh.split(":")[0]<3))break;/* fecha guardada en UTC: tras medianoche puede ir un día atrasada */const t=new Date(f+"T00:00:00");t.setDate(t.getDate()+k);
+  if(hh){const[a,b]=hh.split(":");t.setHours(+a,+b,0,0);if(t.getTime()>=w.ini&&t.getTime()<w.fin)return true}
+  else if(k==0&&i.turno==w.n&&t.getTime()<=w.fin&&t.getTime()+86400000>w.ini)return true}
+ return false}
+function otVisible(i,w){return i.estado!="cerrada"||enTurnoActivo(i,w)}
+function bqAplica(){if(view!="track")return;const q=bqNorm(bqOT);let n=0,oc=0;const w=turnoVentana();
+ document.querySelectorAll("#app .card.ot[data-oid]").forEach(c=>{const i=inc.find(x=>x.id==c.dataset.oid);let ok=!!i&&bqCasa(i,q);if(ok&&!q&&!otVisible(i,w)){ok=false;oc++}c.style.display=ok?"":"none";if(ok)n++});
+ const r=$("#bq_res");if(r)r.textContent=q?(n?`${n} OT encontrada${n>1?"s":""}`:"Ninguna OT con ese Nº de orden o posición"):(oc?`${oc} OT cerrada${oc>1?"s":""} de otros turnos oculta${oc>1?"s":""} · búscalas por Nº de orden o posición`:"");
  const x=$("#bq_x");if(x)x.style.visibility=q?"visible":"hidden";
- const sin=[...document.querySelectorAll("#app > .card.mu")].find(c=>/Sin resultados/.test(c.textContent));if(sin&&q)sin.style.display="none"}
+ const sin=[...document.querySelectorAll("#app > .card.mu")].find(c=>/Sin resultados/.test(c.textContent));if(sin&&q)sin.style.display="none";
+ let vac=$("#bq_vac");if(!q&&oc&&!n){if(!vac){vac=document.createElement("div");vac.id="bq_vac";vac.className="card mu";vac.textContent="No hay OT abiertas ni del turno "+w.n.toLowerCase()+". Busca una OT anterior por su Nº de orden o posición.";$("#app").appendChild(vac)}vac.style.display=""}else if(vac)vac.style.display="none"}
 function bqIn(v){bqOT=v;bqAplica()}
 function bqBorra(){bqOT="";const e=$("#bq");if(e){e.value="";e.focus()}bqAplica()}
 (function(){const o=vTrack;vTrack=function(){const r=o.apply(this,arguments);const c=document.querySelector("#app .card");if(!c||$("#bq"))return r;
