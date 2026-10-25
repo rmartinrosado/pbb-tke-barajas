@@ -133,7 +133,7 @@ function resolver(id){
  <button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;
  $("#sheet").style.display="flex";
 }
-function closeSheet(){$("#sheet").style.display="none"}
+function closeSheet(){$("#sheet").style.display="none";if(typeof apBorrar!="undefined")apBorrar=false}
 function msg(t){const d=document.createElement("div");d.textContent=t;d.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(80px + env(safe-area-inset-bottom,0px));background:#111;color:#fff;padding:12px;border-radius:6px;z-index:20;text-align:center";document.body.appendChild(d);setTimeout(()=>d.remove(),2600)}
 function adminBtn(){if(admin){setO();return}
  $("#sheetc").innerHTML=`<h3 style="margin:0">Acceso Administrador</h3><label>Código</label><input id="a_c" type="password" autocomplete="off"><button class="pri" style="margin-top:14px" onclick="loginAdm()">Entrar</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
@@ -2427,12 +2427,24 @@ cargaPos=async function(){let r=await sb.from("posiciones").select("num,terminal
 .tgrp{margin-top:12px}.tgrp b{display:block;font-size:12px;letter-spacing:.06em;color:var(--pr);margin-bottom:6px}.tlst{display:flex;flex-wrap:wrap;gap:6px}.tlst span{font-size:13px;padding:4px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--pr) 40%,transparent)}`;document.head.appendChild(st)})();
 const tChips=(sel,fn)=>`<div class="tchips">${TERMS.map(t=>`<button type="button" class="${t==sel?"pri":"sec"}" onclick="${fn}('${t}')">${t}</button>`).join("")}</div>`;
 const posDe=t=>POS.filter(p=>termDe(p)==t);
-function posLista(){return TERMS.map(t=>{const l=posDe(t);return `<div class="tgrp"><b>${t} · ${l.length} PBB</b><div class="tlst">${l.length?l.map(p=>`<span>${esc(String(p))}</span>`).join(""):`<span class="mu">Sin PBB dadas de alta</span>`}</div></div>`}).join("")}
+let apBorrar=false;
+function posLista(){return TERMS.map(t=>{const l=posDe(t);return `<div class="tgrp"><b>${t} · ${l.length} PBB</b><div class="tlst">${l.length?l.map(p=>apBorrar?`<button type="button" class="pdel" onclick="borraPos('${esc(String(p))}')">${esc(String(p))} ✕</button>`:`<span>${esc(String(p))}</span>`).join(""):`<span class="mu">Sin PBB dadas de alta</span>`}</div></div>`}).join("")}
+function apPapelera(){apBorrar=!apBorrar;const v=($("#n_p")||{}).value||"";addPos();if($("#n_p"))$("#n_p").value=v}
+async function borraPos(v){const ab=inc.filter(i=>String(i.pos)==v&&i.estado=="abierta");
+ if(ab.length){msg(`La PBB ${v} tiene ${ab.length} OT abierta${ab.length>1?"s":""}: ciérrala${ab.length>1?"s":""} antes de borrar la posición`);return}
+ if(!confirm(`¿Borrar la posición PBB ${v} (${termDe(v)})?\nLas OT cerradas de esa posición se conservan.`))return;
+ const r=await sb.from("posiciones").delete().eq("num",v).select();
+ if(r.error||!r.data||!r.data.length){msg("No se pudo borrar (solo el administrador puede borrar posiciones)");return}
+ const k=POS.findIndex(x=>String(x)==v);if(k>=0)POS.splice(k,1);delete PTERM[v];
+ try{const ex=ld("pbb_pos",[]).filter(x=>String(x)!=v);sv("pbb_pos",ex)}catch(e){}
+ render();addPos();msg(`Posición ${v} borrada`)}
+(function(){const st=document.createElement("style");st.textContent=`.tlst .pdel{font-size:13px;padding:4px 9px;border-radius:999px;border:1px solid #d32f2f;color:#d32f2f;background:color-mix(in srgb,#d32f2f 8%,transparent);width:auto;margin:0;font-weight:600}
+.aphdr{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:18px}.aphdr h3{margin:0}.apdel{width:46px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;color:#d32f2f!important;border-color:#d32f2f!important}.apdel.on{background:#d32f2f!important;color:#fff!important}.apdel svg{width:22px;height:22px}`;document.head.appendChild(st)})();
 function apSet(t){apTerm=t;const v=($("#n_p")||{}).value||"";addPos();$("#n_p").value=v}
 addPos=function(){$("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Añadir posición PBB</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>
  <label>Terminal</label>${tChips(apTerm,"apSet")}<label>Número de posición</label>${apTerm=="T123"?`<div class="posw"><span style="display:flex;align-items:center;font-size:20px;font-weight:700;padding:0 4px">T</span><input id="n_p" inputmode="numeric" placeholder="Ej. 252" style="flex:1"></div><div class="mu" style="font-size:12px;margin-top:4px">En T123 la posición se guarda con una T delante (p. ej. T252).</div>`:`<input id="n_p" inputmode="numeric" placeholder="Ej. 552">`}
  <button class="pri" style="margin-top:14px;width:100%" onclick="guardaPos()">Añadir a ${apTerm}</button>
- <h3 style="margin:18px 0 0">PBB dadas de alta (${POS.length})</h3>${posLista()}`;$("#sheet").style.display="flex"};
+ <div class="aphdr"><h3>PBB dadas de alta (${POS.length})</h3><button type="button" class="sec apdel ${apBorrar?"on":""}" title="Borrar posiciones" aria-label="Borrar posiciones" onclick="apPapelera()">${IC('trash')}</button></div>${apBorrar?`<div class="mu" style="font-size:12px;margin-top:6px;color:#d32f2f">Modo borrar: toca la posición que quieres eliminar. Vuelve a pulsar la papelera para salir.</div>`:""}${posLista()}`;$("#sheet").style.display="flex"};
 guardaPos=async function(){let v=$("#n_p").value.trim().toUpperCase();if(apTerm=="T123"){v=v.replace(/^T\s*/,"");if(v)v="T"+v}if(!v){msg("Introduce la posición");return}if(POS.some(p=>String(p)==v)){msg(`Esa posición ya existe en ${termDe(v)}`);return}
  let r=await sb.from("posiciones").insert({num:v,terminal:apTerm}).select();
  if(r.error&&/terminal/i.test(r.error.message||""))r=await sb.from("posiciones").insert({num:v}).select();
