@@ -143,7 +143,7 @@ function addPos(){$("#sheetc").innerHTML=`<h3 style="margin:0">Añadir posición
 function guardaPos(){const v=$("#n_p").value.trim();if(!v){msg("Introduce la posición");return}if(POS.some(p=>String(p)==v)){msg("Esa posición ya existe");return}const ex=ld("pbb_pos",[]);ex.push(v);sv("pbb_pos",ex);POS.push(v);POS.sort(ordPos);closeSheet();render();msg("Posición "+v+" añadida")}
 let tFoto="";
 function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const i=ab.find(x=>x.id==sel)||ab[0];
- $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Resolución de avería</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>`+(i?`<label>Avería abierta</label><select id="t_sel" onchange="resTec(this.value)">${ab.map(x=>`<option value="${x.id}" ${x.id==i.id?"selected":""}>PBB ${x.pos} · ${x.tipo} · ${x.orden}</option>`).join("")}</select>
+ $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Resolución IA</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>`+(i?`<label>Avería abierta</label><select id="t_sel" onchange="resTec(this.value)">${ab.map(x=>`<option value="${x.id}" ${x.id==i.id?"selected":""}>PBB ${x.pos} · ${x.tipo} · ${x.orden}</option>`).join("")}</select>
  <label>1 · Foto del estado del PLC</label><input id="t_foto" type="file" accept="image/*" capture="environment" onchange="prevFoto(this)"><img id="t_prev" ${i.plc?`src="${i.plc}"`:""} style="display:${i.plc?"block":"none"};width:100%;margin-top:8px;border-radius:6px">
  <label>2 · Definición de la avería</label><textarea id="t_def" rows="3" placeholder="Describe la avería observada">${esc(i.def)}</textarea>
  <button class="pri" style="margin-top:12px" onclick="guardaTec()">Guardar</button>`:`<div class="mu" style="margin:10px 0">No hay averías abiertas.</div>`)+`<a class="pri" href="${GPT}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:8px">Asistente GPT: diagnóstico y comprobaciones en campo</a><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cerrar</button>`;$("#sheet").style.display="flex";if(i&&!sel&&!i.plc){const f=$("#t_foto");if(f)f.click()}}
@@ -152,7 +152,7 @@ function guardaTec(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;i
 P.trash='M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6';function delOT(id){const i=inc.find(x=>x.id==id);if(!i||!i.plc)return;if(!confirm(`¿Borrar la foto PLC de la OT ${i.orden}?`))return;delete i.plc;plcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Foto PLC borrada de la OT "+(i.orden||""))}
 P.cam='M3 8h4l2-3h6l2 3h4v12H3zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z';
 function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const i=ab.find(x=>x.id==sel)||ab[0];
- let h=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Resolución de avería</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>`;
+ let h=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Resolución IA</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>`;
  if(!i){h+=`<div class="mu" style="margin:10px 0">No hay averías abiertas.</div><button class="sec" style="width:100%" onclick="closeSheet()">Cerrar</button>`}
  else{h+=`<label>Avería abierta</label><select id="t_sel" onchange="resTec(this.value)">${ab.map(x=>`<option value="${x.id}" ${x.id==i.id?"selected":""}>PBB ${x.pos} · ${x.tipo} · ${x.orden}</option>`).join("")}</select>
  <div class="grid" style="margin-top:12px"><button class="btn" onclick="opcFoto()"><span>${IC('cam')}</span>Foto PLC</button><button class="btn" onclick="planosSheet()"><span>${IC('plans')}</span>Planos y documentación</button></div>
@@ -162,7 +162,7 @@ function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const 
  <label>Definición de la avería</label><textarea id="t_def" rows="2">${esc(i.def)}</textarea>
  <label>Comentario</label><textarea id="t_com" rows="2">${esc(i.com)}</textarea>
  <label>Actuación GUIADA</label><textarea id="t_gui" rows="5" onchange="autoGui()">${esc(i.guiada)}</textarea><button class="sec" style="margin-top:6px;width:100%" onclick="pegaGui()">Pegar desde el portapapeles</button>
- <button class="pri" style="margin-top:12px" onclick="guardaTec()">Instrucciones IA</button>`}
+ <button class="pri" aria-label="Instrucciones IA" title="Instrucciones IA" style="margin-top:12px;background:transparent;border:0;box-shadow:none;padding:4px;display:flex;justify-content:center" onclick="guardaTec()"><img src="claude-logo.png" alt="Instrucciones IA" style="height:96px;width:96px;display:block"></button>`}
  $("#sheetc").innerHTML=h;$("#sheet").style.display="flex"}
 async function planosSheet(){const l=await allPdf();$("#t_docs").innerHTML=`<div style="margin-top:10px">`+(l.map(p=>`<div class="row" style="margin:6px 0"><span style="overflow-wrap:anywhere">${esc(p.name)}</span><button class="sec" onclick="ver('${p.id}')">Ver</button></div>`).join("")||'<div class="mu">No hay documentos. Cárgalos en Planos.</div>')+`</div>`}
 function guardaTec(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;i.def=$("#t_def").value.trim();i.com=$("#t_com").value.trim();i.guiada=$("#t_gui").value.trim();if(tFoto)i.plc=tFoto;
@@ -278,7 +278,7 @@ async function ver(id){
 }
 async function delPdf(id){mem=mem.filter(x=>x.id!=id);const d=await idb();if(d){await new Promise(r=>{try{const t=d.transaction("docs","readwrite");t.objectStore("docs").delete(id);t.oncomplete=r;t.onerror=r;t.onabort=r}catch(e){r()}})}vPlans()}
 function vTec(){
- $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 8px">Resolución de avería</h3><button class="pri" onclick="resTec()">Instrucciones</button></div>`;
+ $("#app").innerHTML=`<div class="card"><h3 style="margin:0 0 8px">Resolución IA</h3><button class="pri" onclick="resTec()">Instrucciones</button></div>`;
 }
 
 /* ===== SUPABASE: usuarios, roles y datos compartidos ===== */
@@ -580,7 +580,7 @@ function vTec(){
  const T=GUIA.tipos[gTipo];
  const det=(tit,body,extra,k)=>`<details class="card gd" ${extra||""} ${k?`data-k="${k}"`:""}><summary><b>${tit}</b></summary>${body}</details>`;
  const lista=a=>`<ol class="gol">${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`;
- let h=`<div class="card"><h3 style="margin:0 0 8px">Resolución de avería</h3><button class="pri" onclick="resTec(gOT||undefined)">Instrucciones</button></div>
+ let h=`<div class="card"><h3 style="margin:0 0 8px">Resolución IA</h3><button class="pri" onclick="resTec(gOT||undefined)">Instrucciones</button></div>
  <div class="card"><h3 style="margin:0 0 4px">Guía de campo</h3><div class="mu" style="font-size:12px">${esc(GUIA.fuente)}</div>
  <label>OT asociada</label><select onchange="gOT=this.value;vTec()">${ab.length?ab.map(x=>`<option value="${x.id}" ${x.id==gOT?"selected":""}>PBB ${x.pos} · ${x.tipo} · ${esc(x.orden)}</option>`).join(""):`<option value="">Sin OT abiertas</option>`}</select>
  <label>Tipo de incidencia</label><div class="gchips">${Object.keys(GUIA.tipos).map(k=>`<button class="${k==gTipo?"pri":"sec"}" onclick="gTipo='${k}';vTec()">${k}</button>`).join("")}</div>
@@ -1560,7 +1560,7 @@ function insMods(id){insOT(id);const o0=inc.find(x=>x.id==id);if(!o0||o0.tipo!="
 P.print='M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z';
 (function(){const st=document.createElement("style");st.textContent=`.gprint{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:8px;padding:12px;font-weight:600}.gprint svg{width:26px;height:26px}.gprint.off{opacity:.45}@keyframes gpl{0%,100%{box-shadow:0 0 0 0 #f0730080}50%{box-shadow:0 0 0 8px #f0730000}}.gprint.flash{animation:gpl 1s 3}`;document.head.appendChild(st)})();
 function iaGPrintBtn(){const g=$("#t_gui");if(!g)return;let b=document.querySelector(".gprint");
- if(!b){const ia=[...document.querySelectorAll("#sheetc button.pri")].find(x=>/Instrucciones IA/i.test(x.textContent));if(!ia)return;
+ if(!b){const ia=[...document.querySelectorAll("#sheetc button.pri")].find(x=>/Instrucciones IA/i.test(x.textContent+" "+(x.getAttribute("aria-label")||"")));if(!ia)return;
   b=document.createElement("button");b.type="button";b.className="sec gprint";b.innerHTML=IC('print')+"<span>Imprimir instrucciones · PDF A4</span>";b.onclick=iaGPdfIA;ia.insertAdjacentElement("afterend",b);
   g.addEventListener("input",()=>b.classList.toggle("off",!g.value.trim()))}
  b.classList.toggle("off",!g.value.trim())}
