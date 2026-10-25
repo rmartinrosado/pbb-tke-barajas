@@ -864,7 +864,7 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v42"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v43"}})();
 iniciar();
 /* ===== v37: inspección cable a cable (rutas de medida desde RCS_PLANOS) =====
  Cada paso: p = punto de medida, e = valor esperado, x = qué falla si no se cumple, f = folio RCS_PLANOS. */
@@ -1076,7 +1076,7 @@ function pMuestra(blob,nom){const url=URL.createObjectURL(blob);const file=new F
  <button class="sec" id="p_x" style="width:100%">Cerrar</button></div>`;document.body.appendChild(o);
  const sh=o.querySelector("#p_sh");if(sh)sh.onclick=async()=>{try{await navigator.share({files:[file],title:"Inspección cable a cable"})}catch(e){}};
  o.querySelector("#p_x").onclick=()=>{o.remove();setTimeout(()=>URL.revokeObjectURL(url),6e4)}}
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v42"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v43"}})();
 
 /* ===== v40: inspección cable a cable para todos los módulos PLC (E-A0…E-A10, P-A0…P-A6) + autoselección desde la OT ===== */
 const INS_E=["E-A0","E-A1","E-A2","E-A3","E-A4","E-A5","E-A6","E-A7","E-A8","E-A9","E-A10"],INS_P=["P-A0","P-A1","P-A2","P-A3","P-A4","P-A5","P-A6"];
@@ -1159,7 +1159,7 @@ function gInsHTML(){gIAuto();const R=RUTAS[gIMod]||RUTAS["E-A9"];
  <button class="pri" style="width:100%;margin-top:8px" onclick="gIPdf()">📄 Generar PDF A4 · Inspección cable a cable</button>`;
  return h}
 (function(){const st=document.createElement("style");st.textContent=`.gmods button.vac{opacity:.45}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v42"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v43"}})();
 
 /* ===== v41: llave en las OT abiertas de Inicio → solo la inspección cable a cable de esa OT ===== */
 const gNorm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
@@ -2491,7 +2491,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v42"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v43"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -3158,4 +3158,4 @@ function bqBorra(){bqOT="";const e=$("#bq");if(e){e.value="";e.focus()}bqAplica(
 .bqbox input{flex:1;min-width:0;border:0!important;background:transparent!important;font-size:18px;font-weight:600;padding:10px 4px;outline:none;box-shadow:none!important}.bqbox input::-webkit-search-cancel-button{display:none}
 .bqlupa{font-size:18px}.bqx{width:auto!important;margin:0!important;padding:6px 10px!important;border:0!important;background:transparent!important;color:var(--mu)!important;font-size:18px;visibility:hidden}.bqres{font-size:12px;margin-top:4px;min-height:14px}`;document.head.appendChild(st)})();
 </script>
-<script src="mantenimiento.js?v=40"></script><script src="importar-ot.js?v=42"></script></body></html>
+<script src="mantenimiento.js?v=40"></script><script src="importar-ot.js?v=43"></script></body></html>

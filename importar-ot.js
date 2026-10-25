@@ -1,4 +1,4 @@
-/* ===== v42: Importar hoja de registro de OT del día (Inicio) =====
+/* ===== v43: Importar hoja de registro de OT del día (Inicio) =====
  Foto (OCR), PDF, Excel o CSV de la hoja que hoy se rellena a mano. Vale cualquier fecha (del día o antigua).
  - «Integrantes» → técnicos de la OT (se reconocen los técnicos dados de alta).
  - «Actuación», «Incidencia» u «Observaciones» → campo «Descripción de los Trabajos / Actuación» (desc).
@@ -60,6 +60,16 @@ function deRevision(t){const ok=[],mal=[];String(t||"").split(/\r?\n/).forEach((
   if(!pos){mal.push(i+1);return}const hs=(c[3]||"").split(/\s+/).map(hh);
   ok.push({pos,tipo:tipoOK(c[1])||"PAS",orden:ordenDe(c[2]),hIni:hs[0]||"",hLle:hs[1]||"",hCie:hs[2]||"",desc:c[4]||"",integ:c[5]||""})});return {ok,mal}}
 
+/* v43: lectura de la foto con Claude (función Supabase «leer-hoja»); si no está disponible, OCR local */
+async function claudeLee(file,set){set("Leyendo la hoja con Claude…");const c=await giro(file,0);const k=Math.min(1,2000/Math.max(c.width,c.height));
+ const z=document.createElement("canvas");z.width=Math.round(c.width*k);z.height=Math.round(c.height*k);z.getContext("2d").drawImage(c,0,0,z.width,z.height);
+ const img=z.toDataURL("image/jpeg",.85).split(",")[1];
+ const r=await sb.functions.invoke("leer-hoja",{body:{img,tipo:"image/jpeg",pos:(typeof POS!="undefined"?POS:[]).map(String),tec:TEC}});
+ if(r.error||!r.data||!Array.isArray(r.data.ots)){let m="";try{const j=r.error&&r.error.context&&await r.error.context.json();m=j&&(j.error=="sin_clave"?"sin_clave":j.mensaje)||""}catch(e){}throw new Error(m||"no disponible")}
+ const d=r.data;if(d.fecha&&/^\d{4}-\d{2}-\d{2}$/.test(d.fecha))R.fecha=d.fecha;
+ (d.turnos||[]).forEach(t=>{const n=turnoTxt(t.turno);if(n&&t.integrantes)R.turnos[n]=limpiaInteg(t.integrantes)});
+ const dudas=[];const ots=d.ots.filter(o=>o&&o.pos).map(o=>{if(o.dudas)dudas.push(`${o.pos}: ${o.dudas}`);return {pos:String(o.pos).toUpperCase().replace(/\s/g,""),tipo:tipoOK(o.tipo)||"PAS",orden:ordenDe(o.orden)||String(o.orden||"").replace(/\D/g,""),hIni:hh(o.hIni),hLle:hh(o.hLle),hCie:hh(o.hCie),desc:String(o.desc||"").trim(),integ:"",fecha:""}});
+ ots.dudas=dudas;return ots}
 async function cargaTec(){try{const r=await sb.from("tecnicos").select("nombre");TEC=(r.data||[]).map(x=>x.nombre).filter(Boolean)}catch(e){}}
 function libScript(src,ok){return new Promise((res,rej)=>{if(ok()){res();return}const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("No se pudo cargar "+src));document.head.appendChild(s)})}
 async function ocr(file,set){await libScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js",()=>window.Tesseract);
@@ -92,7 +102,8 @@ window.otR=(k,v)=>{R[k]=v;if(k=="txt")prev()};
 function prev(){const e=$("#oi_prev");if(!e)return;const{ok,mal}=deRevision(R.txt);const nr=[...new Set(ok.map(o=>o.pos).filter(p=>!posReg(p)))];e.innerHTML=ok.length?`${ok.length} OT listas para importar${nr.length?` · <span style="color:#ef6c00">posiciones no dadas de alta: ${nr.join(", ")} (se importan igual)</span>`:""}${mal.length?` · <span style="color:#d32f2f">líneas sin posición válida: ${mal.join(", ")}</span>`:""}`:""}
 window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;const st=$("#oi_est");const set=t=>{if(st)st.textContent=t};R.fecha="";R.turno="";R.integ="";R.turnos={};
  try{const n=file.name.toLowerCase();let ots=[];
-  if(/^image\//.test(file.type)){set("Leyendo la foto… (la primera vez descarga el lector)");ots=deLineas(await ocr(file,set))}
+  if(/^image\//.test(file.type)){try{ots=await claudeLee(file,set)}catch(e){set((e.message=="sin_clave"?"La lectura con Claude aún no está activada":"No se pudo leer con Claude ("+e.message+")")+"; uso el lector local… (con letra a mano falla bastante)");
+   await new Promise(r=>setTimeout(r,1200));ots=deLineas(await ocr(file,set))}}
   else if(n.endsWith(".pdf")){set("Leyendo PDF…");ots=deLineas(await pdfTxt(file))}
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");ots=deTabla(await excelFilas(file))}
   else{const t=await file.text();ots=t.includes(";")||t.includes(",")?deTabla(csvFilas(t)):deLineas(t)}
@@ -102,7 +113,7 @@ window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;const st=$("#o
   if(!R.integ&&!nt){const t=ots.map(o=>o.integ).filter(Boolean);if(t.length)R.integ=[...new Set(t)].join(", ")}
   R.txt=ots.map(o=>aLinea({...o,integ:o.integ&&o.integ!=R.integ?o.integ:""})).join("\n");
   const a=$("#oi_f"),b=$("#oi_t"),c=$("#oi_i"),d=$("#oi_txt");if(a)a.value=R.fecha;if(b)b.value=R.turno;if(c)c.value=R.integ;if(d)d.value=R.txt;prev();
-  set(ots.length?`Leída «${file.name}»: ${ots.length} OT. Revisa y corrige antes de guardar.`:`No he encontrado OT con posición en «${file.name}». Escríbelas en el cuadro o prueba con una foto más nítida y recta.`);window._otOCR=ots}
+  set(ots.length?`Leída «${file.name}»: ${ots.length} OT. Revisa y corrige antes de guardar.${ots.dudas&&ots.dudas.length?" ⚠️ Dudas — "+ots.dudas.join(" · "):""}`:`No he encontrado OT con posición en «${file.name}». Escríbelas en el cuadro o prueba con una foto más nítida y recta.`);window._otOCR=ots}
  catch(e){set("Error al leer el archivo: "+(e.message||e))}finally{R.ocup=false}};
 window.otImpGuarda=async()=>{const{ok,mal}=deRevision(R.txt);if(!ok.length){msg("No hay OT que importar");return}
  if(mal.length&&!confirm(`${mal.length} línea(s) sin posición válida se ignorarán. ¿Importar el resto?`))return;
