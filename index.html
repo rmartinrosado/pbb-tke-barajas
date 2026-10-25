@@ -531,7 +531,7 @@ const GUIA={
  seg:["Coordinar con CGA / Responsable de Turno y anotar Nº de orden.","Pasarela parada, sin avión o con la operación asegurada. Balizar rotonda y ruedas.","Selector en MANTENIMIENTO / MANUAL antes de mover nada.","Potencia: abrir E-S0 (armario E) y/o CBTH-Z0 (40 A), bloquear, etiquetar y comprobar ausencia de tensión.","OJO: el 24 VDC sigue vivo con E-S0 abierto (SAI por CBTH-X12 → E-S0.1). Para cortar mando, abrir E-S0.1.","Nunca dejar puenteadas setas, finales de carrera, bordes ni zapata. El bypass CP-S33 solo para maniobra controlada.","Esta guía no sustituye el procedimiento de TK Airport Solutions ni el de Aena."],
  alim:[["Potencia 400 V","CBTH-Z0 (40 A) → CBTH-X11 → E-X11 → E-S0 → E-K0 → distriblock E-X72 →\n• E-Q1 (22 A) → E-K1 → variadores E-U1 izq / E-U2 dcha (ATV28 5,5 kW) → T-M1 / T-M2\n• E-Q3 (11,4 A) → E-K3 → bomba H-M1 5,5 kW\n• E-Q40 (16 A) → P-Q6 giro cabina C-M1 · P-Q5 brazo autonivelador C-M2\n• E-Q15 (13-18 A) → trafo P-T1 + protectores E-F19/F20/F21"],["Monofásico 230 V","E-Q150 (16 A) → E-K0.1 →\n• E-Q10 ilum. túnel interior · E-Q10.1 cabina/túnel ext./medio\n• E-Q12 gálibos y caldeos · E-Q13 diferencial 30 mA enchufes\n• E-Q15.1 focos · E-Q14 cámara · E-Q17.1 lunetas\n• E-Q4/E-Q4.1 capota · E-Q8 portón · P-Q7 suelo basculante"],["Mando 24 VDC","SAI → E-S0.1 → E-Q22 (3 A) → fuente E-V3 (24 V 10 A) → E-Q30 (10 A) →\n• Armario E: E-Q30.0 (alarma), E-Q30.1…E-Q30.4\n• Pupitre: P-Q30.0 (alarma), P-Q30.1…P-Q30.3\n• E-Q24 frenos traslación · E-Q25 megafonía · E-Q26 retorno autónomo/switch"]],
  leds:[["E-A0","Línea seguridades (E-K0), disyuntores variadores, bomba, capota, portón, protector sobretensiones","—"],["E-A2","Fallo variador U1 y U2 (encendido = OK), límite inferior inclinación","Límite sup. inclinación, bloqueos A/A, carro A/A, convertidor, 90 % conector, freno perdido U1"],["E-A3","Protecciones 24 VDC, freno manual izq/dcha, límite giro traslación izq/dcha","Seta AO, setas traslación, freno perdido U2, estado E-K1/E-K3/E-K24, freno eléctrico"],["E-A6","Bobina E-K1, E-K0, E-K0.1","E-K24, sirena cabina, E-K3"],["E-A8","Sensor portón, bandas ruedas, seta pupitre, FC traslación, extensión, rotonda, inclinación","Bypass seguridad"],["E-A9","Antiatrapamiento túnel interior izq/dcha (y medio en 3 túneles)","Autorización rotonda, sirena"],["E-A10","Bumpers brazo y cabina, barrera rotonda, puerta servicio, modo manual, zapata","Modo auto, local/remoto"],["P-A4","Inversores cabina, disyuntor brazo, cabina, suelo, estado P-Q30","Mandos pupitre"],["P-A5","Brazo autonivelador arriba 1 y 2","Contacto avión, cable 400 Hz, brazo abajo/neutral"],["P-A6","Límites cabina, frenos cabina, FC límite suelo","Pulsadores handling"]],
- dk:{PAS:[/RCS.?PLANOS/i,/PBB/i],AAA:[/AAA|PCA/i],HZ:[/PDS|400/i],AAP:[/AAP/i]},
+ dk:{PAS:[/RCS.?PLANOS/i,/PBB/i],AAA:[/AAA|PCA/i],HZ:[/^(?!.*OPERA).*(PDS|400)/i],AAP:[/AAP/i]},
  tipos:{
   PAS:{n:"Pasarela (PBB)",s:[
    {t:"PBB sin tensión (pupitre y luces apagados)",g:[9, 9, 9, 29, 29, 36],p:["CBTH: ¿CBTH-Z0 cerrado? Medir 400 V entre fases en CBTH-X11 (1-2-3). Si no hay → aguas arriba, avisar.","Armario E: ¿E-S0 cerrado? Medir 400 V en E-X11.","¿220 V SAI en CBTH-X12 (1-2)? ¿E-S0.1 cerrado?","Revisar E-Q22 (3 A) y E-Q30 (10 A). Medir 24 VDC a la salida de E-V3.","E-V3 sin 24 V con 230 V en entrada → sustituir fuente.","LED alarma de E-Q30.0 / P-Q30.0: localizar la salida disparada (E-Q30.1…30.4 / P-Q30.1…30.3) y buscar el cortocircuito antes de rearmar."],r:"pág. 9, 13, 29, 36-40"},
@@ -575,6 +575,30 @@ const GUIA={
    {t:"Filtro sucio / condensados",g:[6, 3],p:["Presostato diferencial PDA (6,5 mbar) → limpiar o cambiar filtro.","Bomba de condensados FBC (clema 57) y sonda de nivel de bandeja."],r:"AAA pág. 3, 6"},
    {t:"Interbloqueo con la pasarela",g:[16, 7],p:["Clemas 136/137 bloqueo pasarela y 128/129 manguera en cesta.","En la PBB, E-A2 DIN08 (máquina A/A) y DIN09 (carro A/A)."],r:"AAA pág. 7, 16"}]},
   HZ:{n:"Convertidor 400 Hz (conector PDS 400)",s:[
+   {t:"Conexión y desconexión del conector PDS 400 al avión (OPERATIVA)",op:1,g:[0,0,1,0,0,0,0,0,0],a:"Nunca retirar el conector con la carga activa: primero OFF, después retirar. El interlock protege, pero los micro-arcos dañan los pines.",p:[
+"CÓMO FUNCIONA (OPERATIVA): pines de potencia A, B, C y N (retorno); pines de control E y F, más cortos: la potencia solo se activa con el conector insertado al 90 % o más y se corta antes de que se separen A, B, C.",
+"Aproximación: pulsar OUT para soltar la manguera necesaria, sin forzar el cable.",
+"Inspección visual del conector PDS 400 y del receptáculo del avión: sin humedad, quemaduras ni pines doblados.",
+"Insertar el conector a fondo hasta el tope (90-100 %) y comprobar que se enciende el LED amarillo 90 % / 28 Vdc.",
+"Pulsar ON. La motorización de la manguera queda bloqueada por seguridad.",
+"Confirmación en cabina: la luz «EXT PWR» del avión pasa de Available a On.",
+"Desconexión: pulsar OFF y comprobar que se apaga el LED rojo ON.",
+"Retirar el conector del avión a mano.",
+"Recogida: con el conector libre y fuera de la zona de peligro del motor, mantener pulsado IN para recoger la manguera de forma ordenada."],r:"OPERATIVA conector HZ PDS400 · PDS 400"},
+   {t:"LED 90 % no enciende / no da potencia (lazo de seguridad E-F, 28 Vdc)",op:1,g:[0,0,1,1,1,1],p:[
+"CÓMO FUNCIONA (OPERATIVA): el convertidor envía 28 Vdc por el pin F; en el receptáculo del avión un puente une F con E; la señal vuelve por E. Solo con los 28 V de vuelta cierra el contactor de potencia y da tensión a A, B y C. LED verde «Available / 28 Vdc» = lazo E-F cerrado; LED rojo «Power ON» = contactor cerrado.",
+"Si el LED 90 % no enciende, NO pulsar ON.",
+"Comprobar que el conector ha llegado al tope mecánico del receptáculo.",
+"Limpiar y revisar los pines cortos E y F (suciedad, desgaste, pin hundido).",
+"Interruptor 90 %: continuidad entre los hilos 9 y 13 de la manguera con el conector a fondo (plano PDS 400). Abierto → interruptor dañado o sus hilos.",
+"Si el conector se mueve hacia fuera, E o F pierden contacto y la potencia se corta: revisar el anclaje si se corta durante el servicio."],r:"OPERATIVA conector HZ PDS400 · PDS 400"},
+   {t:"Manguera no recoge (IN) o no suelta (OUT) · enrollador motorizado",op:1,g:[1,0,0,0,1,1],p:[
+"IN y OUT mueven el motor del enrollador (no el contactor de 400 Hz). Según el plano PDS 400: IN = hilo 2 (unido al 16), OUT = hilo 3 (unido al 23), común hilo 9. Confirmar en el plano: la OPERATIVA nombra el cable 3 para OUT y también para el bloqueo de IN.",
+"IN no recoge: pulsar OFF y comprobar que el LED rojo ON se ha apagado del todo. Con potencia activa IN queda bloqueado.",
+"Sensor 90 % «pegado»: el convertidor cree que sigue conectado al avión y bloquea el motor. Comprobar que el LED 90 % se apaga con el conector fuera; si no, interruptor 90 % (hilos 9-13).",
+"Hombre muerto: IN y OUT solo funcionan mientras se mantiene pulsado y con el desbloqueo de la pasarela activado.",
+"Sobretemperatura: si las PTC de los pines A, B, C o N han disparado, se bloquean todas las funciones (también la motorización) hasta que se enfríe o se resetee. Medir resistencia entre hilos 1 y 14.",
+"Si sigue sin moverse con todo lo anterior correcto: continuidad del botón IN/OUT con el común 9 (ver «Botón del mando no responde»)."],r:"OPERATIVA conector HZ PDS400 · PDS 400"},
    {t:"Convertidor sin salida / bloqueo 90 % conector",g:[1, 1, 1],p:["Conector con interruptor de enclavamiento al 90 % (28 Vdc): comprobar inserción completa.","Interruptor «INTERLOCK» 90 % (2 hilos GR) entre los hilos 9 (común, unido al 24) y 13 (unido al 22) de la manguera de 24: conector metido = continuidad 9-13. Abierto con el conector a fondo → interruptor o sus hilos.","En la PBB, E-A2 DIN10 (convertidor en servicio) y DIN11 (90 % conector)."],r:"PDS 400"},
    {t:"Botón del mando no responde (IN / OUT / ON / OFF)",g:[1, 1, 1, 1, 1, 1, 1],p:["Identifica el botón que falla en el frontal del conector y búscalo en el plano PDS 400. Cada botón une su hilo con el común, hilo 9 (en el plano unido también al 24). Cables del botón: azul (BL).","IN (negro): hilo 2 (unido al 16) ↔ común 9.","OUT (negro): hilo 3 (unido al 23) ↔ común 9.","ON (verde): hilo 4 (unido al 17) ↔ común 9.","OFF (rojo): hilo 5 (unido al 18) ↔ común 9.","Prueba: polímetro en continuidad entre el hilo del botón y el 9 en la regleta de 24: pulsado ≈0 Ω, suelto abierto. Si no cierra, mide en los dos pines del propio botón: si ahí cierra, es el hilo o el pin de la regleta (revisa también el pin unido: 16, 23, 17 o 18).","Si no responde ningún botón: común hilo 9 / 24 cortado o pin 9 flojo (el mismo común lleva pilotos e interruptor 90 %)."],r:"PDS 400"},
    {t:"Piloto del mando no enciende (LED ON / 28 Vdc / 90 %)",g:[1, 1, 1, 1],p:["LED ON (rojo): hilo 6 (azul) ↔ retorno rojo al común 9.","LED 28 Vdc (verde): hilo 7 (azul) ↔ retorno rojo al común 9.","Piloto «security» / 90 % (amarillo): hilo 8 (azul) ↔ retorno rojo al común 9.","Mide tensión entre el hilo del piloto y el 9 con la condición activa: hay tensión y no luce → piloto fundido; sin tensión → hilo, pin o el convertidor no da la señal."],r:"PDS 400"},
@@ -611,7 +635,7 @@ function vTec(){
    const inf=[],acc=[];s.p.forEach((p,pi)=>(gEsInfo(p)?inf:acc).push(pi));let n=0;
    return `<div class="gst">${acc.map(pi=>`<label class="gpaso"><input type="checkbox" ${c[pi]?"checked":""} onchange="gMarca('${k}',${pi},this.checked)"><span><b>${++n}.</b> ${esc(s.p[pi])}</span>${pl(pi)}</label>`).join("")}</div>`+
    (inf.length?`<details class="gelem"><summary>Elementos y referencias (${inf.length})</summary>${inf.map(pi=>`<div class="gelit"><span>${esc(gInfoTxt(s.p[pi]))}</span>${pl(pi)}</div>`).join("")}</details>`:"")})()}
-  <div class="mu" style="font-size:12px;margin:6px 0">Planos: ${esc(s.r)}</div>
+  <div class="mu" style="font-size:12px;margin:6px 0">Planos: ${esc(s.r)}</div>${s.op?`<button class="sec" style="width:100%;margin-bottom:6px" onclick="gOpera()">📄 Ver OPERATIVA conector HZ PDS400</button>`:""}
   <button class="sec" style="width:100%" onclick="gCopia('${gTipo}',${si})">Pasar a «Actuación guiada» de la OT</button>`,gAbierto.has(k)?"open":"",k)});
  if(gTipo=="PAS"){
   h+=det("Mapa de alimentaciones",GUIA.alim.map(a=>`<div style="margin-top:8px"><b>${a[0]}</b><div class="mu" style="white-space:pre-wrap;margin-top:4px">${esc(a[1])}</div></div>`).join(""))}
@@ -651,6 +675,7 @@ async function gFillDoc(){const s=$("#g_doc");if(!s)return;const l=await gLista(
  s.innerHTML=(l.length?`<option value="">— Elegir plano —</option>`:`<option value="">No hay planos cargados (pestaña Planos)</option>`)+l.map(x=>`<option value="${x.id}" ${x.id==id?"selected":""}>${esc(x.name)}</option>`).join("")}
 function gSetDoc(v){try{localStorage.setItem("g_doc2_"+gTipo,v)}catch(e){}}
 function gPagina(name,folio){if(/RCS.?PLANOS/i.test(name)&&folio>96)folio={97:62,98:41,99:41,100:93}[folio]||folio;return (/RCS.?PLANOS/i.test(name)||/50[48]/.test(name)&&!/AAA|CBTH|PDS/i.test(name))&&folio>=9?folio-1:folio}
+async function gOpera(){const l=await gLista();const d=l.find(x=>/OPERA/i.test(x.name)&&/PDS|HZ|400/i.test(x.name));if(!d){msg("Sube a Planos el documento OPERATIVA del conector HZ PDS400");return}gPagIni=1;await ver(d.id)}
 async function gPlano(t,folio){const l=await gLista();const id=gDocId(t,l);const d=l.find(x=>x.id==id);
  if(!d){msg("Elige el plano de esta guía (o súbelo en la pestaña Planos)");const s=$("#g_doc");if(s){s.scrollIntoView({block:"center"});s.focus()}return}
  gPagIni=gPagina(d.name,folio);await ver(d.id)}
@@ -1799,7 +1824,7 @@ async function iaGPdfIA(){
 const PPROP=["504","507","508"];
 const ppRe=p=>new RegExp("(^|\\D)"+p+"(\\D|$)");
 const PPOTROS=/AAA|PCA|CBTH|PDS|AAP/i;
-const PPTIPO={PAS:/PBB|RCS|ESQUEM|PLANO/i,AAA:/AAA|PCA/i,HZ:/PDS|400/i,AAP:/AAP/i,CBTH:/CBTH/i};
+const PPTIPO={PAS:/PBB|RCS|ESQUEM|PLANO/i,AAA:/AAA|PCA/i,HZ:/^(?!.*OPERA).*(PDS|400)/i,AAP:/AAP/i,CBTH:/CBTH/i};
 const PPCACHE={},PPDOC={},PPTXT={};let PPACT=null,PPBASE=null;
 function ppPos(pos){pos=String(pos||"").trim();return PPROP.includes(pos)?pos:null}
 function ppCtx(){let id=null;const sh=$("#sheet"),s=$("#t_sel");
@@ -2207,7 +2232,7 @@ const ANA_BAJA=new Set(["activa","activo","encend","apagad","apaga","funcio","re
 /* grupos de sinónimos: cualquier palabra del grupo activa todas */
 const ANA_SIN=[["seta","emergencia","paro","parada","setas"],["antiatrapamiento","atrapamiento","antiatrap","atrapa","atrapado"],["capota","fuelle","toldo","cortina"],
  ["traslacion","translacion","rueda","ruedas","bogie","avance","desplaza","desplazamiento","carro"],["elevacion","subir","bajar","altura","hidraulica","hidraulico","bomba","cilindro"],
- ["autonivelador","nivelador","autonivel","nivelacion","brazo"],["neutral","neutrales","neutro","neutra","central"],["zapata"],["bumper","parachoques","golpe","choque"],["barrera","fotocelula","optica"],
+ ["autonivelador","nivelador","autonivel","nivelacion","brazo"],["manguera","enrollador","bobinador","carrete","recogedor"],["interlock","lazo"],["neutral","neutrales","neutro","neutra","central"],["zapata"],["bumper","parachoques","golpe","choque"],["barrera","fotocelula","optica"],
  ["porton","persiana","enrollable"],["iluminacion","luz","luces","alumbrado","foco","focos"],["joystick","mando","palanca"],["hombre","muerto"],["variador","variadores","atv"],
  ["freno","frenos","frenado"],["inclinacion","inclina","pendiente"],["extension","retraccion","extender","retraer","telescopico","tunel"],["rotonda","columna","giro"],
  ["400","hz","convertidor","conector","pds","gpu"],["aire","climatizacion","aa","pca","aaa","aap"],["video","camara","camaras"],["sirena","buzzer","bocina","pitido"],
