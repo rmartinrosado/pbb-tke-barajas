@@ -1,4 +1,4 @@
-/* ===== v43: Importar hoja de registro de OT del día (Inicio) =====
+/* ===== v44: Importar hoja de registro de OT del día (Inicio) =====
  Foto (OCR), PDF, Excel o CSV de la hoja que hoy se rellena a mano. Vale cualquier fecha (del día o antigua).
  - «Integrantes» → técnicos de la OT (se reconocen los técnicos dados de alta).
  - «Actuación», «Incidencia» u «Observaciones» → campo «Descripción de los Trabajos / Actuación» (desc).
@@ -9,7 +9,7 @@ const TIPOS=["SVGA","SIGMA","PAS","AAA","AAP","AAC","AAR","HZ"];
 const tipoOK=t=>{const u=NORM(t);const k=TIPOS.find(x=>new RegExp("\\b"+x+"\\b").test(u));return k?(k=="SIGMA"?"Sigma":k):""};
 const isoD=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const hh=s=>{const m=/(\d{1,2})\s*[:.h]\s*(\d{2})/.exec(String(s||""));return m&&+m[1]<24&&+m[2]<60?m[1].padStart(2,"0")+":"+m[2]:""};
-let R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{}};let TEC=[];
+let R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{},rows:[],zoom:1};let TEC=[];
 
 function fechaTxt(t){const U=NORM(t);let m;
  if((m=/\b(\d{4})-(\d{2})-(\d{2})\b/.exec(U)))return `${m[1]}-${m[2]}-${m[3]}`;
@@ -84,45 +84,74 @@ async function excelFilas(file){await libScript("https://cdnjs.cloudflare.com/aj
  const wb=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true});const out=[];wb.SheetNames.forEach(n=>XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,dateNF:"yyyy-mm-dd"}).forEach(f=>out.push(f.map(x=>x??""))));return out}
 const csvFilas=t=>{const sep=(t.split("\n")[0].match(/;/g)||[]).length>(t.split("\n")[0].match(/,/g)||[]).length?";":",";return t.split(/\r?\n/).map(l=>l.split(sep).map(x=>x.replace(/^"|"$/g,"")))};
 
+/* ---------- v44: pantalla de revisión: foto con zoom arriba + OT editables por filas ---------- */
+const TURNOS=["Noche","Mañana","Tarde"];
+const vacia=()=>({pos:"",tipo:"PAS",orden:"",hIni:"",hLle:"",hCie:"",desc:"",integ:""});
+function turnoFila(k){const r=R.rows;for(let j=k;j>=0;j--){const t=turnoHora(r[j]&&r[j].hIni);if(t)return t}const f=TURNOS.filter(t=>R.turnos[t]);return f.length==1?f[0]:(R.turno||"")}
+const integDef=k=>R.turnos[turnoFila(k)]||R.integ||"";
+const tOpt=v=>["PAS","AAA","AAP","AAC","AAR","HZ","SVGA","Sigma"].map(t=>`<option ${t==v?"selected":""}>${t}</option>`).join("");
+function filaHTML(o,k){const t=turnoFila(k);
+ return `<div class="oirow" id="oir${k}"><div class="oirh"><b class="oin">${k+1}</b><span class="mu" style="font-size:12px">${t?"Turno "+t:""}</span><button class="sec oidel" aria-label="Quitar OT" onclick="otQuita(${k})">✕</button></div>
+ <div class="oig3"><div><label>PAS</label><input value="${esc(o.pos)}" list="oi_pl" autocapitalize="characters" oninput="otC(${k},'pos',this.value)" class="${o.pos&&!posReg(o.pos)?"oiw":""}"></div>
+ <div><label>Tipo</label><select onchange="otC(${k},'tipo',this.value)">${tOpt(o.tipo)}</select></div>
+ <div><label>Nº OT</label><input value="${esc(o.orden)}" inputmode="numeric" maxlength="6" oninput="otC(${k},'orden',this.value.replace(/\\D/g,''))" class="${o.orden&&!/^\d{6}$/.test(o.orden)?"oiw":""}"></div></div>
+ <div class="oig3"><div><label>H. inicio</label><input inputmode="numeric" placeholder="hh:mm" maxlength="5" value="${o.hIni}" onchange="this.value=fmtH(this.value);otC(${k},'hIni',this.value,1)"></div><div><label>H. llegada</label><input inputmode="numeric" placeholder="hh:mm" maxlength="5" value="${o.hLle}" onchange="this.value=fmtH(this.value);otC(${k},'hLle',this.value)"></div><div><label>H. final</label><input inputmode="numeric" placeholder="hh:mm" maxlength="5" value="${o.hCie}" onchange="this.value=fmtH(this.value);otC(${k},'hCie',this.value)"></div></div>
+ <label>Actuación, incidencia u observaciones</label><textarea rows="2" oninput="otC(${k},'desc',this.value)">${esc(o.desc)}</textarea>
+ <label>Integrantes</label><input value="${esc(o.integ)}" placeholder="${esc(integDef(k)||"Los del turno")}" list="oi_tl" oninput="otC(${k},'integ',this.value)"></div>`}
+function pintaFilas(){const e=$("#oi_rows");if(e)e.innerHTML=R.rows.map(filaHTML).join("")||`<div class="mu" style="font-size:13px;padding:8px 0">Sin OT todavía. Sube la foto o añádelas a mano.</div>`;prev()}
+function pintaFoto(){const e=$("#oi_foto");if(!e)return;if(!R.foto){e.style.display="none";return}e.style.display="";
+ const im=$("#oi_img");im.src=R.foto;im.style.width=(R.zoom*100)+"%";im.style.transform=R.giro?`rotate(${R.giro}deg)`:"";$("#oi_zv").textContent=Math.round(R.zoom*100)+"%"}
 window.otImp=async()=>{if(!(typeof admin!="undefined"&&admin)&&!(typeof tecnico!="undefined"&&tecnico)){msg("Solo técnicos y administrador importan OT");return}
- if(!TEC.length)await cargaTec();if(!R.fecha)R.fecha=hoy();
+ if(!TEC.length)await cargaTec();if(!R.fecha)R.fecha=hoy();if(!R.rows)R.rows=[];if(!R.zoom)R.zoom=1;
  $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Importar hoja de registro de OT</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px;width:auto">✕</button></div>
- <div class="mu" style="font-size:12px">Sube la foto, PDF, Excel o CSV de la hoja de OT del día (sirve también una hoja antigua). Revisa el resultado antes de guardar.</div>
- <label class="pri oifile">📄 Foto / archivo de la hoja<input type="file" hidden accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" onchange="otImpFile(this.files[0])"></label>
+ <div class="mu" style="font-size:12px">Foto, PDF, Excel o CSV de la hoja (del día o antigua). Corrige cada OT mirando la foto y guarda.</div>
+ <label class="pri oifile">📷 Foto / archivo de la hoja<input type="file" hidden accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" onchange="otImpFile(this.files[0])"></label>
  <div id="oi_est" class="mu" style="font-size:12px;margin-top:6px"></div>
- <div class="grid"><div><label>Fecha de la hoja</label><input id="oi_f" type="date" value="${R.fecha}" onchange="otR('fecha',this.value)"></div>
- <div><label>Turno</label><select id="oi_t" onchange="otR('turno',this.value)">${["","Mañana","Tarde","Noche"].map(t=>`<option ${t==R.turno?"selected":""} value="${t}">${t||"—"}</option>`).join("")}</select></div></div>
- <label>Integrantes (técnicos, si no van por línea)</label><input id="oi_i" value="${esc(R.integ)}" placeholder="Ej. RAUL MARTIN, TÉCNICO 20" oninput="otR('integ',this.value)" list="oi_tl"><datalist id="oi_tl">${TEC.map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
- <label>OT reconocidas · una por línea: posición | tipo | nº OT | inicio llegada final | actuación, incidencia u observaciones | integrantes</label>
- <textarea id="oi_txt" rows="9" style="font-family:ui-monospace,monospace;font-size:12.5px" oninput="otR('txt',this.value)" placeholder="528 | PAS | 596500 | 08:10 08:20 09:05 | Fallo autonivelación, ajuste sensores">${esc(R.txt)}</textarea>
- <div id="oi_prev" class="mu" style="font-size:12px;margin-top:4px"></div>
+ <div id="oi_foto" class="oifoto" style="display:none"><div class="oifb"><button class="sec" onclick="otZoom(-.5)" aria-label="Alejar">−</button><span id="oi_zv">100%</span><button class="sec" onclick="otZoom(.5)" aria-label="Acercar">+</button><button class="sec" onclick="otGiro()" aria-label="Girar foto">⟳</button><button class="sec" onclick="otFotoAlto()" aria-label="Agrandar o reducir el visor">↕</button></div><div class="oifs" id="oi_fs"><img id="oi_img" alt="Hoja de OT"></div></div>
+ <div class="grid"><div><label>Fecha de la hoja</label><input id="oi_f" type="date" value="${R.fecha}" onchange="otR('fecha',this.value)"></div><div></div></div>
+ <div class="oig3">${TURNOS.map(t=>`<div><label>${t}</label><input id="oi_tu_${t}" value="${esc(R.turnos[t]||"")}" placeholder="Integrantes" list="oi_tl" oninput="otTu('${t}',this.value)"></div>`).join("")}</div>
+ <datalist id="oi_tl">${TEC.map(n=>`<option value="${esc(n)}">`).join("")}</datalist><datalist id="oi_pl">${(typeof POS!="undefined"?POS:[]).map(p=>`<option value="${esc(String(p))}">`).join("")}</datalist>
+ <div class="row" style="margin-top:12px;align-items:center"><b>OT de la hoja</b><span id="oi_prev" class="mu" style="font-size:12px"></span></div>
+ <div id="oi_rows"></div>
+ <button class="sec" style="margin-top:8px;width:100%" onclick="otAnade()">＋ Añadir OT</button>
  <button class="pri" style="margin-top:10px;width:100%" onclick="otImpGuarda()">Guardar OT en la app</button>`;
- $("#sheet").style.display="flex";prev()};
-window.otR=(k,v)=>{R[k]=v;if(k=="txt")prev()};
-function prev(){const e=$("#oi_prev");if(!e)return;const{ok,mal}=deRevision(R.txt);const nr=[...new Set(ok.map(o=>o.pos).filter(p=>!posReg(p)))];e.innerHTML=ok.length?`${ok.length} OT listas para importar${nr.length?` · <span style="color:#ef6c00">posiciones no dadas de alta: ${nr.join(", ")} (se importan igual)</span>`:""}${mal.length?` · <span style="color:#d32f2f">líneas sin posición válida: ${mal.join(", ")}</span>`:""}`:""}
+ $("#sheet").style.display="flex";pintaFoto();pintaFilas()};
+window.otR=(k,v)=>{R[k]=v};
+/* «831» → 08:31 · «1215» → 12:15 · «8.31» → 08:31 */
+window.fmtH=v=>{const t=String(v||"").trim();if(!t)return "";const m=/^(\d{1,2})\D+(\d{2})$/.exec(t);if(m)return hh(m[1]+":"+m[2]);const d=t.replace(/\D/g,"");if(d.length==3||d.length==4)return hh(d.slice(0,-2)+":"+d.slice(-2));return t};
+window.otTu=(t,v)=>{R.turnos[t]=v.trim();R.rows.forEach((o,k)=>{const i=document.querySelector(`#oir${k} input[list="oi_tl"]`);if(i)i.placeholder=integDef(k)||"Los del turno"})};
+window.otC=(k,c,v,re)=>{const o=R.rows[k];if(!o)return;o[c]=c=="pos"?v.toUpperCase().replace(/\s/g,""):v;
+ if(c=="pos"){const i=document.querySelector(`#oir${k} input[list="oi_pl"]`);if(i)i.classList.toggle("oiw",!!o.pos&&!posReg(o.pos))}
+ if(c=="orden"){const i=document.querySelector(`#oir${k} input[maxlength="6"]`);if(i)i.classList.toggle("oiw",!!o.orden&&!/^\d{6}$/.test(o.orden))}
+ if(re)pintaFilas();else prev()};
+window.otQuita=k=>{R.rows.splice(k,1);pintaFilas()};
+window.otAnade=()=>{R.rows.push(vacia());pintaFilas();setTimeout(()=>{const e=$("#oir"+(R.rows.length-1));if(e){e.scrollIntoView({behavior:"smooth",block:"center"});const i=e.querySelector("input");if(i)i.focus()}},50)};
+window.otZoom=d=>{R.zoom=Math.max(1,Math.min(5,R.zoom+d));pintaFoto()};
+window.otGiro=()=>{R.giro=((R.giro||0)+90)%360;pintaFoto()};
+window.otFotoAlto=()=>{const e=$("#oi_fs");if(e)e.classList.toggle("alto")};
+function prev(){const e=$("#oi_prev");if(!e)return;const ok=R.rows.filter(o=>o.pos);const nr=[...new Set(ok.map(o=>o.pos).filter(p=>!posReg(p)))];const so=ok.filter(o=>!/^\d{6}$/.test(o.orden)).length;
+ e.innerHTML=`${ok.length} OT${nr.length?` · <span style="color:#ef6c00">no dadas de alta: ${nr.join(", ")}</span>`:""}${so?` · <span style="color:#d32f2f">${so} sin nº OT válido</span>`:""}`}
 window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;const st=$("#oi_est");const set=t=>{if(st)st.textContent=t};R.fecha="";R.turno="";R.integ="";R.turnos={};
+ if(/^image\//.test(file.type)){if(R.foto)URL.revokeObjectURL(R.foto);R.foto=URL.createObjectURL(file);R.zoom=1;R.giro=0;pintaFoto()}
  try{const n=file.name.toLowerCase();let ots=[];
-  if(/^image\//.test(file.type)){try{ots=await claudeLee(file,set)}catch(e){set((e.message=="sin_clave"?"La lectura con Claude aún no está activada":"No se pudo leer con Claude ("+e.message+")")+"; uso el lector local… (con letra a mano falla bastante)");
-   await new Promise(r=>setTimeout(r,1200));ots=deLineas(await ocr(file,set))}}
+  if(/^image\//.test(file.type)){try{ots=await claudeLee(file,set)}catch(e){set("Leyendo la foto con el lector local… (con letra a mano falla bastante: corrige mirando la foto)");ots=deLineas(await ocr(file,set))}}
   else if(n.endsWith(".pdf")){set("Leyendo PDF…");ots=deLineas(await pdfTxt(file))}
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");ots=deTabla(await excelFilas(file))}
   else{const t=await file.text();ots=t.includes(";")||t.includes(",")?deTabla(csvFilas(t)):deLineas(t)}
   const fs=ots.map(o=>o.fecha).filter(Boolean);if(!R.fecha&&fs.length)R.fecha=fs[0];if(!R.fecha)R.fecha=hoy();
-  const nt=Object.keys(R.turnos).length;if(nt){ots.forEach(o=>{if(!o.integ)o.integ=R.turnos[turnoHora(o.hIni)]||""});if(!R.turno&&nt==1)R.turno=Object.keys(R.turnos)[0]}
-  if(!R.integ&&nt==1)R.integ=Object.values(R.turnos)[0];
-  if(!R.integ&&!nt){const t=ots.map(o=>o.integ).filter(Boolean);if(t.length)R.integ=[...new Set(t)].join(", ")}
-  R.txt=ots.map(o=>aLinea({...o,integ:o.integ&&o.integ!=R.integ?o.integ:""})).join("\n");
-  const a=$("#oi_f"),b=$("#oi_t"),c=$("#oi_i"),d=$("#oi_txt");if(a)a.value=R.fecha;if(b)b.value=R.turno;if(c)c.value=R.integ;if(d)d.value=R.txt;prev();
-  set(ots.length?`Leída «${file.name}»: ${ots.length} OT. Revisa y corrige antes de guardar.${ots.dudas&&ots.dudas.length?" ⚠️ Dudas — "+ots.dudas.join(" · "):""}`:`No he encontrado OT con posición en «${file.name}». Escríbelas en el cuadro o prueba con una foto más nítida y recta.`);window._otOCR=ots}
+  if(!Object.keys(R.turnos).length&&R.integ&&R.turno)R.turnos[R.turno]=R.integ;
+  R.rows=ots.map(o=>({pos:o.pos,tipo:o.tipo||"PAS",orden:o.orden||"",hIni:o.hIni||"",hLle:o.hLle||"",hCie:o.hCie||"",desc:o.desc||"",integ:""}));
+  const a=$("#oi_f");if(a)a.value=R.fecha;TURNOS.forEach(t=>{const i=$("#oi_tu_"+t);if(i)i.value=R.turnos[t]||""});pintaFilas();
+  set(ots.length?`Leída «${file.name}»: ${ots.length} OT. Revisa cada una con la foto antes de guardar.${ots.dudas&&ots.dudas.length?" ⚠️ Dudas — "+ots.dudas.join(" · "):""}`:`No he reconocido OT en «${file.name}». Añádelas con «＋ Añadir OT» mirando la foto.`);window._otOCR=ots}
  catch(e){set("Error al leer el archivo: "+(e.message||e))}finally{R.ocup=false}};
-window.otImpGuarda=async()=>{const{ok,mal}=deRevision(R.txt);if(!ok.length){msg("No hay OT que importar");return}
- if(mal.length&&!confirm(`${mal.length} línea(s) sin posición válida se ignorarán. ¿Importar el resto?`))return;
+window.otImpGuarda=async()=>{const ok=R.rows.filter(o=>o.pos);if(!ok.length){msg("No hay OT que importar");return}
+ const sinH=ok.filter(o=>!o.hIni).length;if(sinH&&!confirm(`${sinH} OT sin hora de inicio. ¿Guardar igualmente?`))return;
  const f=R.fecha||hoy();let n=0,dup=0;const base=Date.now();
- ok.forEach((o,k)=>{const ya=inc.some(i=>(o.orden&&String(i.orden)==o.orden)||(i.pos==o.pos&&i.fecha==f&&o.hIni&&i.hIni==o.hIni));if(ya){dup++;return}
-  const integ=o.integ||R.integ;const cerr=!!o.hCie||f<hoy();
-  inc.unshift({id:String(base+k),pos:o.pos,tipo:o.tipo,equipos:[o.tipo],orden:o.orden,rep:"CGA",desc:o.desc,hIni:o.hIni,hLle:o.hLle,hCie:o.hCie,act:"",obs:"",fecha:f,estado:cerr?"cerrada":"abierta",
-   turno:(Object.keys(R.turnos).length>1?turnoHora(o.hIni):"")||R.turno||turnoHora(o.hIni)||undefined,tecnico:integ||undefined,integrantes:integ||undefined,origen:"hoja importada"});n++});
- sv("pbb_inc",inc);closeSheet();R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{}};msg(`${n} OT importada${n==1?"":"s"}${dup?` · ${dup} ya existía${dup==1?"":"n"}`:""}`);go("dash")};
+ R.rows.forEach((o,k)=>{if(!o.pos)return;const ya=inc.some(i=>(o.orden&&String(i.orden)==o.orden)||(i.pos==o.pos&&i.fecha==f&&o.hIni&&i.hIni==o.hIni));if(ya){dup++;return}
+  const integ=(o.integ||integDef(k)).trim();const tu=turnoFila(k);const cerr=!!o.hCie||f<hoy();
+  inc.unshift({id:String(base+k),pos:o.pos,tipo:o.tipo,equipos:[o.tipo],orden:o.orden,rep:"CGA",desc:o.desc.trim(),hIni:o.hIni,hLle:o.hLle,hCie:o.hCie,act:"",obs:"",fecha:f,estado:cerr?"cerrada":"abierta",
+   turno:tu||undefined,tecnico:integ||undefined,integrantes:integ||undefined,origen:"hoja importada"});n++});
+ sv("pbb_inc",inc);closeSheet();if(R.foto)URL.revokeObjectURL(R.foto);R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{},rows:[],zoom:1};msg(`${n} OT importada${n==1?"":"s"}${dup?` · ${dup} ya existía${dup==1?"":"n"}`:""}`);go("dash")};
 
 /* botón en Inicio */
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);
@@ -131,6 +160,13 @@ window.otImpGuarda=async()=>{const{ok,mal}=deRevision(R.txt);if(!ok.length){msg(
   b.innerHTML=`<span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 18v-6M9 15l3 3 3-3"/></svg></span>Importar hoja de OT`;
   if(g)g.insertAdjacentElement("afterend",b);else{const a=document.getElementById("app");if(a)a.prepend(b)}}
  return r}})();
-(function(){const st=document.createElement("style");st.textContent=`.oibtn{width:100%;margin:0 0 10px!important}.oifile{display:flex!important;justify-content:center;align-items:center;margin-top:12px;padding:12px;border-radius:10px;cursor:pointer;font-weight:700}`;document.head.appendChild(st)})();
+(function(){const st=document.createElement("style");st.textContent=`.oibtn{width:100%;margin:0 0 10px!important}.oifoto{position:sticky;top:-14px;z-index:3;background:var(--card);margin:10px -4px 4px;padding:6px 4px;border-bottom:1px solid var(--bd)}
+.oifb{display:flex;gap:6px;align-items:center;margin-bottom:6px}.oifb button{width:auto!important;margin:0!important;padding:5px 12px!important;font-size:16px}.oifb span{font-size:12px;color:var(--mu);min-width:40px;text-align:center}
+.oifs{max-height:34vh;overflow:auto;border-radius:8px;border:1px solid var(--bd);background:#fff;-webkit-overflow-scrolling:touch}.oifs.alto{max-height:60vh}.oifs img{display:block;max-width:none;transform-origin:center}
+.oig3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.oig3 input,.oig3 select{min-width:0;width:100%;box-sizing:border-box}
+.oirow{border:1px solid var(--bd);border-radius:10px;padding:8px 10px;margin-top:8px;background:var(--card)}.oirh{display:flex;align-items:center;gap:8px}.oin{background:var(--pr);color:#fff;border-radius:999px;min-width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.oidel{margin-left:auto!important;width:auto!important;padding:3px 10px!important;color:#d32f2f!important;border-color:#d32f2f!important}.oiw{border-color:#ef6c00!important;background:color-mix(in srgb,#ef6c00 8%,transparent)!important}
+.oirow textarea{width:100%;box-sizing:border-box}
+.oifile{display:flex!important;justify-content:center;align-items:center;margin-top:12px;padding:12px;border-radius:10px;cursor:pointer;font-weight:700}`;document.head.appendChild(st)})();
 window._otTest={deLineas,deTabla,deRevision,R:()=>R};
 })();
