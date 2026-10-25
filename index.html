@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v23"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v24"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2996,4 +2996,25 @@ function senOT(t,pos){const out=[];SEN_DEF.forEach(d=>{if(!d.re.test(t))return;l
 (function(){const o=puPinta;puPinta=function(){const i=inc.find(x=>x.id==gOT);const S=segOT(i);if(S&&S.sen&&S.sen.length){const g=document.getElementById("gpte");if(g)g.remove();return}return o()}})();
 (function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);const S=segOT(i);if(!S||!S.sen||!S.sen.length)return h;
  return h.replace(/🔌 1º · ([^<]*?): maniobra controlada y E\/S del PLC/,(m,a)=>`🔌 1º · ${esc(S.sen.map(x=>x[4]).join(" / "))}${a&&a.trim()?" + "+a:""}: puente provisional en el PLC`)}})();
+/* ===== v24: Magelis «LÍNEA DE SEGURIDAD ACTIVADA» → elegir el elemento que sale en ESTADO DE ALARMAS y dar su puente.
+ El elemento elegido se guarda en la OT (i.segEl) y se comparte con el resto de móviles. ===== */
+const SEG_ALL=(()=>{const a=[];SEN_DEF.forEach(d=>d.sub.forEach(x=>a.push(x[1])));LIM_DEF.forEach(d=>d.it.forEach(x=>a.push(x)));
+ a.push(["E-A9","6.1","6.2","IT-B2","Barrera óptica túnel interior derecha (504/507/508)"],["E-A9","8.1","8.2","MT-B2","Barrera óptica túnel medio derecha (504)"]);
+ return a.filter((x,k,b)=>b.findIndex(y=>y[0]==x[0]&&y[1]==x[1])==k)})();
+const segK=x=>x[0]+"|"+x[1];
+(function(){const o=segOT;segOT=function(i){let r=o(i);if(!i||i.estado!="abierta")return r;const t=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
+ const linea=/linea (de )?seguridad(es)?( activada)?|seguridad(es)? activada/.test(t);
+ if(linea&&!r)r={lim:false,cont:true,zs:[],n12:0,sen:[]};if(r&&linea)r.cont=true;
+ const els=[].concat(i.segEl||[]).map(k=>SEG_ALL.find(x=>segK(x)==k)).filter(Boolean);
+ if(els.length){r=r||{lim:false,cont:false,zs:[],n12:0};r.sen=(r.sen||[]).concat(els.filter(x=>!(r.sen||[]).some(y=>segK(y)==segK(x))));r.man=1}
+ if(r)r.linea=linea;return r}})();
+function segElige(v){const i=inc.find(x=>x.id==gOT);if(!i)return;const l=[].concat(i.segEl||[]);if(v&&!l.includes(v))l.push(v);i.segEl=l;sv("pbb_inc",inc);
+ ANA_C={k:"",r:null};vTec();setTimeout(()=>{const n=document.getElementById("gsegl");if(n)n.scrollIntoView({block:"start",behavior:"smooth"})},60)}
+function segQuita(k){const i=inc.find(x=>x.id==gOT);if(!i)return;i.segEl=[].concat(i.segEl||[]).filter(x=>x!=k);sv("pbb_inc",inc);ANA_C={k:"",r:null};vTec()}
+(function(){const o=segHTML;segHTML=function(i,S){let h=o(i,S);if(!S.cont&&!S.linea&&!S.man)return h;const sel=[].concat(i.segEl||[]);
+ const box=`<div class="puit" style="border-left-color:#ef6c00"><b>Magelis: «LÍNEA DE SEGURIDAD ACTIVADA»</b><div class="mu">Mira en la Magelis el <b>ESTADO DE ALARMAS</b> y elige el elemento que aparece activado para ver su puente provisional:</div>
+  <select class="anasel" onchange="segElige(this.value);this.value=''"><option value="">— Elemento en estado de alarmas —</option>${SEG_ALL.filter(x=>!sel.includes(segK(x))).map(x=>`<option value="${esc(segK(x))}">${esc(x[4])} · ${esc(x[3])} (${esc(x[0])} ${esc(x[1])})</option>`).join("")}</select>
+  ${sel.length?`<div class="mu" style="margin-top:4px">Elegidos: ${sel.map(k=>{const x=SEG_ALL.find(y=>segK(y)==k);return x?`<span class="anac">${esc(x[4])} <a href="#" onclick="event.preventDefault();segQuita('${esc(k)}')">✕</a></span>`:""}).join(" ")}</div>`:""}
+  <div class="mu" style="margin-top:4px">Si es una SETA DE EMERGENCIA no se puentea: localiza la seta pulsada y rearma.</div></div>`;
+ return h.replace(/(<div class="puac">1\. Recuperar)/,box+"$1")}})();
 </script></body></html>
