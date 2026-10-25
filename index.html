@@ -2405,10 +2405,10 @@ const posDe=t=>POS.filter(p=>termDe(p)==t);
 function posLista(){return TERMS.map(t=>{const l=posDe(t);return `<div class="tgrp"><b>${t} · ${l.length} PBB</b><div class="tlst">${l.length?l.map(p=>`<span>${esc(String(p))}</span>`).join(""):`<span class="mu">Sin PBB dadas de alta</span>`}</div></div>`}).join("")}
 function apSet(t){apTerm=t;const v=($("#n_p")||{}).value||"";addPos();$("#n_p").value=v}
 addPos=function(){$("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Añadir posición PBB</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>
- <label>Terminal</label>${tChips(apTerm,"apSet")}<label>Número de posición</label><input id="n_p" inputmode="numeric" placeholder="Ej. 552">
+ <label>Terminal</label>${tChips(apTerm,"apSet")}<label>Número de posición</label>${apTerm=="T123"?`<div class="posw"><span style="display:flex;align-items:center;font-size:20px;font-weight:700;padding:0 4px">T</span><input id="n_p" inputmode="numeric" placeholder="Ej. 252" style="flex:1"></div><div class="mu" style="font-size:12px;margin-top:4px">En T123 la posición se guarda con una T delante (p. ej. T252).</div>`:`<input id="n_p" inputmode="numeric" placeholder="Ej. 552">`}
  <button class="pri" style="margin-top:14px;width:100%" onclick="guardaPos()">Añadir a ${apTerm}</button>
  <h3 style="margin:18px 0 0">PBB dadas de alta (${POS.length})</h3>${posLista()}`;$("#sheet").style.display="flex"};
-guardaPos=async function(){const v=$("#n_p").value.trim();if(!v){msg("Introduce la posición");return}if(POS.some(p=>String(p)==v)){msg(`Esa posición ya existe en ${termDe(v)}`);return}
+guardaPos=async function(){let v=$("#n_p").value.trim().toUpperCase();if(apTerm=="T123"){v=v.replace(/^T\s*/,"");if(v)v="T"+v}if(!v){msg("Introduce la posición");return}if(POS.some(p=>String(p)==v)){msg(`Esa posición ya existe en ${termDe(v)}`);return}
  let r=await sb.from("posiciones").insert({num:v,terminal:apTerm}).select();
  if(r.error&&/terminal/i.test(r.error.message||""))r=await sb.from("posiciones").insert({num:v}).select();
  if(r.error||!r.data||!r.data.length){msg("Sin permiso para añadir posiciones");return}
@@ -2433,10 +2433,10 @@ const SVGA_AV=`<div class="gav">SVGA · Sistema de guiado automático de aeronav
 (function(){const st=document.createElement("style");st.textContent=`.posw{display:flex;gap:8px;align-items:stretch}.posw select{flex:1;min-width:0}.posw input{width:42%;flex:none;font-size:18px;font-weight:700;letter-spacing:1px;text-align:center}.posw input.mal{border-color:#d32f2f;color:#d32f2f}#f_posm{font-size:12px;margin-top:4px;min-height:14px}`;document.head.appendChild(st)})();
 function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s)return;const v=n.value.replace(/\D/g,"");if(n.value!==v)n.value=v;
  n.classList.remove("mal");if(m){m.textContent="";m.style.color=""}if(!v)return;
- const p=POS.find(x=>String(x)==v);
- if(p===undefined){const k=POS.some(x=>String(x).startsWith(v));if(!k){n.classList.add("mal");if(m){m.textContent=`La PBB ${v} no está dada de alta`;m.style.color="#d32f2f"}}return}
- const t=termDe(p);if(t!=nTerm)nTermSet(t);if(s.value!==v){s.value=v;remForm()}
- if(m)m.textContent=`PBB ${v} · ${t}${esRem(v)?" · remota":""}`}
+ const pv=POS.find(x=>String(x)==v),pt=POS.find(x=>String(x)=="T"+v);const p=nTerm=="T123"?(pt??pv):(pv??pt);
+ if(p===undefined){const k=POS.some(x=>String(x).startsWith(v)||String(x).startsWith("T"+v));if(!k){n.classList.add("mal");if(m){m.textContent=`La PBB ${v} no está dada de alta`;m.style.color="#d32f2f"}}return}
+ const t=termDe(p),ps=String(p);if(t!=nTerm)nTermSet(t);if(s.value!==ps){s.value=ps;remForm()}
+ if(m)m.textContent=`PBB ${ps} · ${t}${esRem(ps)?" · remota":""}`}
 (function(){const o=vNew;vNew=function(){o();const s=$("#f_pos");if(!s||$("#f_posn"))return;
  const w=document.createElement("div");w.className="posw";s.before(w);w.appendChild(s);
  w.insertAdjacentHTML("beforeend",`<input id="f_posn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="Teclear nº" oninput="posTeclea()">`);
