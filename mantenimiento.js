@@ -1,0 +1,164 @@
+/* ===== Mantenimiento preventivo PBB (v35) =====
+ Programa de mantenimientos M (mensual) y S (semestral) por posición y día, guardado en Supabase (tabla «mantenimientos»).
+ - Pestaña «Mant.»: hoy, calendario del mes y detalle del día. Técnicos y admin marcan «Hecho».
+ - Inicio: aviso con las posiciones que tocan hoy.
+ - Admin: importar el programa desde foto (OCR), PDF, Excel o CSV → revisión editable → guardar. También alta manual y borrado. */
+(function(){
+const MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const DIAS=["L","M","X","J","V","S","D"];
+let MANT=[],mCarg=false,mMes=null,mSel=null,mTxt="",mImpMes=null,mImpTipo="M",mOcup=false;
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const hoy=()=>iso(new Date());
+const fLarga=s=>{const[y,m,d]=s.split("-").map(Number);const f=new Date(y,m-1,d);return ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"][f.getDay()]+" "+d+" de "+MESES[m-1]};
+const delDia=s=>MANT.filter(x=>x.fecha==s).sort((a,b)=>String(a.pos).localeCompare(String(b.pos),undefined,{numeric:true})||a.tipo.localeCompare(b.tipo));
+const puede=()=>typeof user!="undefined"&&user&&(tecnico||admin);
+
+async function mantCarga(forzar){if(mCarg&&!forzar)return;if(typeof sb=="undefined"||!sb||typeof user=="undefined"||!user)return;
+ const d=new Date();d.setDate(d.getDate()-62);const h=new Date();h.setDate(h.getDate()+400);
+ const r=await sb.from("mantenimientos").select("*").gte("fecha",iso(d)).lte("fecha",iso(h)).order("fecha");
+ if(r.error){console.warn("mantenimientos",r.error);return}MANT=r.data||[];mCarg=true}
+window.mantCarga=mantCarga;
+
+/* ---------- vista principal ---------- */
+function chip(x,grande){const ok=x.estado=="hecho";
+ return `<span class="mchip ${x.tipo=="S"?"s":"m"} ${ok?"ok":""} ${grande?"g":""}"><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":""}</span>`}
+function filaDia(x){const ok=x.estado=="hecho";
+ return `<div class="mfila ${ok?"ok":""}">${chip(x,true)}<div class="mfinfo"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":"Mensual"}${ok?`<div class="mu">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${x.hecho_at?" · "+new Date(x.hecho_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}</div>`:`<div class="mu">Pendiente</div>`}</div>
+ ${puede()?`<button class="${ok?"sec":"pri"} mbtn" onclick="mantHecho('${x.id}',${ok?0:1})">${ok?"Deshacer":"✔ Hecho"}</button>`:""}${admin?`<button class="sec mdel" aria-label="Borrar" onclick="mantBorra('${x.id}')">✕</button>`:""}</div>`}
+function calHTML(){const[y,m]=mMes;const pri=new Date(y,m,1);const off=(pri.getDay()+6)%7;const nd=new Date(y,m+1,0).getDate();const h=hoy();
+ let c=DIAS.map(d=>`<div class="mcab">${d}</div>`).join("");for(let k=0;k<off;k++)c+=`<div></div>`;
+ for(let d=1;d<=nd;d++){const s=iso(new Date(y,m,d));const l=delDia(s);const pend=l.filter(x=>x.estado!="hecho").length;
+  c+=`<button class="mdia ${s==h?"hoy":""} ${s==mSel?"sel":""} ${l.length?(pend?"tiene":"todo"):""}" onclick="mantDia('${s}')"><span class="mnum">${d}</span>${l.slice(0,3).map(x=>`<span class="mmini ${x.tipo=="S"?"s":"m"} ${x.estado=="hecho"?"ok":""}">${esc(String(x.pos))}</span>`).join("")}${l.length>3?`<span class="mmas">+${l.length-3}</span>`:""}</button>`}
+ return `<div class="mcal">${c}</div>`}
+function vMant(){if(!mMes){const d=new Date();mMes=[d.getFullYear(),d.getMonth()]}if(!mSel)mSel=hoy();
+ const h=hoy(),lh=delDia(h),ls=delDia(mSel);const pend=lh.filter(x=>x.estado!="hecho").length;
+ const delMes=MANT.filter(x=>x.fecha.startsWith(mMes[0]+"-"+String(mMes[1]+1).padStart(2,"0")));
+ $("#app").innerHTML=`<div class="card"><div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Mantenimiento preventivo</h3>${admin?`<button class="sec" style="width:auto;padding:6px 12px" onclick="mantImp()">📷 Importar</button>`:""}</div>
+ <div class="mley"><span class="mchip m"><b>M</b></span> Mensual <span class="mchip s"><b>S</b></span> Semestral <span class="mchip m ok"><b>✔</b></span> Hecho</div></div>
+ <div class="card mhoy"><div class="mhoyt">🔧 Hoy · ${fLarga(h)}</div>${lh.length?`<div class="mu" style="margin:2px 0 6px">${pend?`${pend} pendiente${pend>1?"s":""} de ${lh.length}`:"Todo hecho ✔"}</div>${lh.map(filaDia).join("")}`:`<div class="mu" style="margin-top:6px">${mCarg?"Sin mantenimientos programados para hoy.":"Cargando…"}</div>`}</div>
+ <div class="card"><div class="row mnav" style="flex-wrap:nowrap"><button class="sec" onclick="mantMes(-1)">‹</button><b>${MESES[mMes[1]][0].toUpperCase()+MESES[mMes[1]].slice(1)} ${mMes[0]}</b><button class="sec" onclick="mantMes(1)">›</button></div>
+ <div class="mu" style="font-size:12px;margin:4px 0 6px">${delMes.length} mantenimiento${delMes.length==1?"":"s"} este mes · toca un día para ver sus posiciones</div>${calHTML()}</div>
+ ${mSel!=h?`<div class="card"><div class="mhoyt" style="color:var(--tx)">📅 ${fLarga(mSel)}</div>${ls.length?ls.map(filaDia).join(""):`<div class="mu" style="margin-top:6px">Sin mantenimientos este día.</div>`}</div>`:""}
+ ${admin?`<div class="card"><b>Alta manual</b><div class="mu" style="font-size:12px">Posiciones separadas por comas; añade M o S detrás si es distinto del tipo elegido (ej. 502, 504 S).</div>
+  <div class="grid" style="margin-top:6px"><div><label>Fecha</label><input id="ma_f" type="date" value="${mSel}"></div><div><label>Tipo</label><select id="ma_t"><option value="M">Mensual</option><option value="S">Semestral</option></select></div></div>
+  <label>Posiciones</label><input id="ma_p" inputmode="numeric" placeholder="Ej. 502, 504, 528 S"><button class="pri" style="margin-top:10px;width:100%" onclick="mantManual()">Añadir al calendario</button>
+  ${delMes.length?`<button class="sec" style="margin-top:8px;width:100%;color:#d32f2f;border-color:#d32f2f" onclick="mantBorraMes()">🗑 Borrar todo ${MESES[mMes[1]]} ${mMes[0]}</button>`:""}</div>`:""}`;
+ if(!mCarg)mantCarga().then(()=>{if(view=="mant")vMant()})}
+window.vMant=vMant;
+window.mantMes=d=>{let[y,m]=mMes;m+=d;if(m<0){m=11;y--}if(m>11){m=0;y++}mMes=[y,m];vMant()};
+window.mantDia=s=>{mSel=s;vMant();setTimeout(()=>{const c=[...document.querySelectorAll("#app .card")].pop();const t=document.querySelector("#app .card .mhoyt[style]");if(t)t.scrollIntoView({behavior:"smooth",block:"start"})},30)};
+window.mantHecho=async(id,hecho)=>{const t=(typeof tecNombre!="undefined"&&tecNombre)||(user&&user.email)||"";
+ const r=await sb.from("mantenimientos").update(hecho?{estado:"hecho",tecnico:t,hecho_at:new Date().toISOString()}:{estado:"pendiente",tecnico:null,hecho_at:null}).eq("id",id).select();
+ if(r.error||!r.data||!r.data.length){msg("No se pudo guardar (sin permiso)");return}const k=MANT.findIndex(x=>x.id==id);if(k>=0)MANT[k]=r.data[0];msg(hecho?"Mantenimiento hecho ✔":"Marcado como pendiente");vMant()};
+window.mantBorra=async id=>{if(!confirm("¿Borrar este mantenimiento del calendario?"))return;const r=await sb.from("mantenimientos").delete().eq("id",id).select();
+ if(r.error||!r.data||!r.data.length){msg("No se pudo borrar");return}MANT=MANT.filter(x=>x.id!=id);vMant()};
+window.mantBorraMes=async()=>{const[y,m]=mMes;const a=iso(new Date(y,m,1)),b=iso(new Date(y,m+1,0));
+ if(!confirm(`¿Borrar TODOS los mantenimientos de ${MESES[m]} ${y}?`))return;const r=await sb.from("mantenimientos").delete().gte("fecha",a).lte("fecha",b).select();
+ if(r.error){msg("No se pudo borrar");return}await mantCarga(true);msg(`${(r.data||[]).length} mantenimientos borrados`);vMant()};
+window.mantManual=async()=>{const f=$("#ma_f").value,t=$("#ma_t").value,p=$("#ma_p").value;if(!f||!p.trim()){msg("Indica fecha y posiciones");return}
+ const filas=posDeTexto(p,t).map(x=>({fecha:f,pos:x.pos,tipo:x.tipo,origen:"manual"}));if(!filas.length){msg("No reconozco ninguna posición dada de alta");return}
+ await guarda(filas);mSel=f;vMant()};
+
+/* ---------- reconocimiento de posiciones y fechas ---------- */
+function posSet(){const m=new Map();(typeof POS!="undefined"?POS:[]).forEach(p=>m.set(String(p).toUpperCase(),String(p)));return m}
+function posDeTexto(txt,tipoDef){const P=posSet();const out=[];const U=String(txt||"").toUpperCase();
+ const re=/\b(T\s?\d{1,3}|\d{3})\b(\s*[\(\-\/]?\s*(MENSUAL|SEMESTRAL|MENS|SEM|M|S)\b)?/g;let m;
+ const lt=/SEMESTRAL|\bSEM\b/.test(U)?"S":/MENSUAL|\bMENS\b/.test(U)?"M":tipoDef;
+ while((m=re.exec(U))){const k=m[1].replace(/\s/g,"");const p=P.get(k);if(!p)continue;const ts=m[3];const t=ts?(ts[0]=="S"?"S":"M"):lt;
+  if(!out.some(x=>x.pos==p&&x.tipo==t))out.push({pos:p,tipo:t})}return out}
+const MES_RE=/\b(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|SET|OCT|NOV|DIC)[A-Z]*\b/;
+const MES_IX={ENE:0,FEB:1,MAR:2,ABR:3,MAY:4,JUN:5,JUL:6,AGO:7,SEP:8,SET:8,OCT:9,NOV:10,DIC:11};
+function fechaDe(linea,y0,m0){const U=linea.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");let m;
+ if((m=/\b(\d{4})-(\d{2})-(\d{2})\b/.exec(U)))return {f:`${m[1]}-${m[2]}-${m[3]}`,q:m[0]};
+ if((m=/\b(\d{1,2})[\/\.\-](\d{1,2})(?:[\/\.\-](\d{2,4}))?\b/.exec(U))){const d=+m[1],mm=+m[2];let y=m[3]?+m[3]:y0;if(y<100)y+=2000;if(d>=1&&d<=31&&mm>=1&&mm<=12)return {f:iso(new Date(y,mm-1,d)),q:m[0]}}
+ if((m=/\b(\d{1,2})\s*(?:DE\s*)?(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|SET|OCT|NOV|DIC)[A-Z]*\b/.exec(U))){const d=+m[1];if(d>=1&&d<=31)return {f:iso(new Date(y0,MES_IX[m[2]],d)),q:m[0]}}
+ if((m=/\b(LUNES|MARTES|MIERCOLES|JUEVES|VIERNES|SABADO|DOMINGO|LUN|MAR|MIE|JUE|VIE|SAB|DOM)\.?\s*(\d{1,2})\b/.exec(U))){const d=+m[2];if(d>=1&&d<=31)return {f:iso(new Date(y0,m0,d)),q:m[0]}}
+ if((m=/^\s*(?:DIA\s*)?(\d{1,2})\s*[:\-\|\.]/.exec(U))){const d=+m[1];if(d>=1&&d<=31)return {f:iso(new Date(y0,m0,d)),q:m[0]}}
+ return null}
+function analiza(texto,y0,m0,tipoDef){const por=new Map();let cur=null,sueltas=0;
+ String(texto||"").split(/\r?\n/).forEach(l0=>{let l=l0.replace(/[;\t]/g," , ");const fd=fechaDe(l,y0,m0);if(fd){cur=fd.f;l=l.replace(fd.q," ")}
+  const ps=posDeTexto(l,tipoDef);if(!ps.length)return;if(!cur){sueltas+=ps.length;return}
+  if(!por.has(cur))por.set(cur,[]);const a=por.get(cur);ps.forEach(p=>{if(!a.some(x=>x.pos==p.pos&&x.tipo==p.tipo))a.push(p)})});
+ const lin=[...por.keys()].sort().map(f=>`${f}: ${por.get(f).map(x=>x.pos+" "+x.tipo).join(", ")}`);return {txt:lin.join("\n"),sueltas}}
+function canonico(txt){const filas=[],mal=[];String(txt||"").split(/\r?\n/).forEach((l,i)=>{if(!l.trim())return;const m=/^\s*(\d{4}-\d{2}-\d{2})\s*[:|]\s*(.*)$/.exec(l);
+  if(!m){mal.push(i+1);return}posDeTexto(m[2],"M").forEach(p=>filas.push({fecha:m[1],pos:p.pos,tipo:p.tipo,origen:"importado"}))});return {filas,mal}}
+
+/* ---------- lectura de archivos ---------- */
+function carga(src,ok){return new Promise((res,rej)=>{if(ok()){res();return}const s=document.createElement("script");s.src=src;s.onload=()=>res();s.onerror=()=>rej(new Error("No se pudo cargar "+src));document.head.appendChild(s)})}
+async function textoImagen(file,prog){await carga("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js",()=>window.Tesseract);
+ const r=await Tesseract.recognize(file,"spa",{logger:m=>{if(m.status=="recognizing text")prog(Math.round(m.progress*100))}});return r.data.text}
+async function textoPdf(file){if(typeof cargaLib=="function")await cargaLib();const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;let out=[];
+ for(let p=1;p<=pdf.numPages;p++){const tc=await (await pdf.getPage(p)).getTextContent();const filas=new Map();
+  tc.items.forEach(it=>{const y=Math.round(it.transform[5]/3);if(!filas.has(y))filas.set(y,[]);filas.get(y).push([it.transform[4],it.str])});
+  [...filas.keys()].sort((a,b)=>b-a).forEach(y=>out.push(filas.get(y).sort((a,b)=>a[0]-b[0]).map(x=>x[1]).join(" ")))}return out.join("\n")}
+async function textoExcel(file){await carga("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",()=>window.XLSX);
+ const wb=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true});
+ return wb.SheetNames.map(n=>XLSX.utils.sheet_to_csv(wb.Sheets[n],{dateNF:"yyyy-mm-dd"})).join("\n").replace(/,/g," , ")}
+
+/* ---------- importar (admin) ---------- */
+window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");return}if(!mImpMes)mImpMes=[...mMes];
+ const op=[];for(let k=-1;k<13;k++){const d=new Date(new Date().getFullYear(),new Date().getMonth()+k,1);op.push([d.getFullYear(),d.getMonth()])}
+ $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Importar programa de mantenimiento</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>
+ <div class="mu" style="font-size:12px">Sube la foto del cuadro, un PDF, un Excel o un CSV. La app lee las fechas y las posiciones; revisa el resultado antes de guardar.</div>
+ <div class="grid" style="margin-top:6px"><div><label>Mes del programa</label><select id="mi_mes" onchange="mantImpMes(this.value)">${op.map(([y,m])=>`<option value="${y}-${m}" ${y==mImpMes[0]&&m==mImpMes[1]?"selected":""}>${MESES[m]} ${y}</option>`).join("")}</select></div>
+ <div><label>Tipo por defecto</label><select id="mi_tipo" onchange="mImpTipoSet(this.value)"><option value="M" ${mImpTipo=="M"?"selected":""}>Mensual</option><option value="S" ${mImpTipo=="S"?"selected":""}>Semestral</option></select></div></div>
+ <label class="pri mfile">📷 Foto / archivo<input type="file" hidden accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" onchange="mantImpFile(this.files[0])"></label>
+ <div id="mi_est" class="mu" style="font-size:12px;margin-top:6px"></div>
+ <label>Programa reconocido · una línea por día (AAAA-MM-DD: posición tipo, …)</label>
+ <textarea id="mi_txt" rows="10" style="font-family:ui-monospace,monospace;font-size:13px" oninput="mTxtSet(this.value)" placeholder="2026-11-03: 502 M, 504 M, 528 S">${esc(mTxt)}</textarea>
+ <div id="mi_prev" class="mu" style="font-size:12px;margin-top:4px"></div>
+ <button class="pri" style="margin-top:10px;width:100%" onclick="mantImpGuarda()">Guardar en el calendario</button>`;
+ $("#sheet").style.display="flex";mPrev()};
+window.mantImpMes=v=>{const[y,m]=v.split("-").map(Number);mImpMes=[y,m]};
+window.mImpTipoSet=v=>{mImpTipo=v};
+window.mTxtSet=v=>{mTxt=v;mPrev()};
+function mPrev(){const e=$("#mi_prev");if(!e)return;const{filas,mal}=canonico(mTxt);const dias=new Set(filas.map(x=>x.fecha)).size;
+ e.innerHTML=filas.length?`${filas.length} mantenimientos en ${dias} día${dias>1?"s":""}${mal.length?` · <span style="color:#d32f2f">líneas sin fecha válida: ${mal.join(", ")}</span>`:""}`:(mal.length?`<span style="color:#d32f2f">Formato: AAAA-MM-DD: 502 M, 504 S</span>`:"")}
+window.mantImpFile=async file=>{if(!file||mOcup)return;mOcup=true;const st=$("#mi_est");const set=t=>{if(st)st.textContent=t};
+ try{let txt="";const n=file.name.toLowerCase();
+  if(/^image\//.test(file.type)){set("Leyendo la foto… (la primera vez descarga el lector, puede tardar)");txt=await textoImagen(file,p=>set(`Leyendo la foto… ${p}%`))}
+  else if(n.endsWith(".pdf")){set("Leyendo PDF…");txt=await textoPdf(file)}
+  else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");txt=await textoExcel(file)}
+  else txt=await file.text();
+  const r=analiza(txt,mImpMes[0],mImpMes[1],mImpTipo);
+  mTxt=r.txt;const t=$("#mi_txt");if(t)t.value=mTxt;mPrev();
+  set(r.txt?`Leído «${file.name}». Revisa y corrige las líneas antes de guardar.${r.sueltas?` ${r.sueltas} posición(es) sin fecha asociada se han ignorado.`:""}`:
+   `No he encontrado fechas con posiciones en «${file.name}». Escribe el programa a mano en el cuadro o prueba con una foto más nítida y recta.`);
+  window._mantOCR=txt}
+ catch(e){set("Error al leer el archivo: "+(e.message||e))}finally{mOcup=false}};
+window.mantImpGuarda=async()=>{const{filas,mal}=canonico(mTxt);if(!filas.length){msg("No hay mantenimientos que guardar");return}
+ if(mal.length&&!confirm(`Hay ${mal.length} línea(s) sin fecha válida que se ignorarán. ¿Guardar el resto?`))return;
+ await guarda(filas);closeSheet();mTxt="";const f=filas.map(x=>x.fecha).sort()[0];const[y,m]=f.split("-").map(Number);mMes=[y,m-1];mSel=f;vMant()};
+async function guarda(filas){const r=await sb.from("mantenimientos").upsert(filas,{onConflict:"fecha,pos,tipo",ignoreDuplicates:true}).select();
+ if(r.error){msg("No se pudo guardar: "+(r.error.message||"sin permiso"));return false}await mantCarga(true);msg(`${filas.length} mantenimiento${filas.length>1?"s":""} en el calendario`);return true}
+
+/* ---------- integración: pestaña, inicio ---------- */
+const IC_MANT=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="m9 15 2 2 4-4"/></svg>`;
+(function(){const o=render;render=function(){const esM=view=="mant";if(esM)view="dash";const r=o.apply(this,arguments);if(esM){view="mant";vMant()}
+ const nav=document.getElementById("nav");if(nav&&typeof user!="undefined"&&user&&!nav.querySelector("[data-mant]")){
+  const b=document.createElement("button");b.dataset.mant="1";b.className=view=="mant"?"on":"";b.innerHTML=`<span>${IC_MANT}</span>Mant.`;b.onclick=()=>go("mant");
+  const ref=[...nav.children].find(x=>/Planos|Guía/.test(x.textContent));nav.insertBefore(b,ref||null)}
+ if(esM&&nav)[...nav.children].forEach(x=>{if(!x.dataset.mant)x.classList.remove("on")});
+ if(view=="dash")dashMant();return r}})();
+function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.getElementById("dmant");const l=delDia(hoy());
+ const html=l.length?`<div class="mhoyt">🔧 Mantenimiento preventivo hoy</div><div class="mdchips">${l.map(x=>chip(x,true)).join("")}</div><div class="mu" style="font-size:12px;margin-top:6px">${l.filter(x=>x.estado!="hecho").length} pendiente(s) · toca para abrir el calendario</div>`
+  :`<div class="mhoyt" style="color:var(--mu)">🔧 Sin mantenimiento preventivo hoy</div>`;
+ if(old){old.innerHTML=html;return}const d=document.createElement("div");d.id="dmant";d.className="card mhoy";d.style.cursor="pointer";d.onclick=()=>go("mant");d.innerHTML=html;
+ const app=document.getElementById("app");const g=app&&app.querySelector(".grid");if(g)g.insertAdjacentElement("afterend",d);else if(app)app.prepend(d)};
+ if(mCarg)pinta();else mantCarga().then(pinta)}
+(function(){const st=document.createElement("style");st.textContent=`
+.mley{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin-top:8px}
+.mchip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;font-size:12px;border:1.5px solid var(--pr);color:var(--pr);background:color-mix(in srgb,var(--pr) 10%,transparent)}
+.mchip i{font-style:normal;font-weight:800;font-size:10px;opacity:.85}.mchip.s{border-color:#ef6c00;color:#ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}
+.mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
+.mhoy{border:2px solid #2e9e44}.mhoyt{font-weight:700;color:#2e9e44;font-size:15px}.mdchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mfila{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--bd)}.mfila .mfinfo{flex:1;min-width:0;font-size:14px}.mfila .mfinfo .mu{font-size:12px}
+.mbtn{width:auto!important;margin:0!important;padding:8px 12px!important;font-size:13px}.mdel{width:auto!important;margin:0!important;padding:8px 10px!important;color:#d32f2f!important;border-color:#d32f2f!important}
+.mnav{align-items:center;justify-content:space-between}.mnav button{width:auto!important;margin:0!important;padding:6px 16px!important;font-size:18px}
+.mcal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.mcab{text-align:center;font-size:11px;font-weight:700;color:var(--mu);padding:2px 0}
+.mdia{min-height:62px;border:1px solid var(--bd);border-radius:8px;background:var(--card);padding:2px;display:flex;flex-direction:column;align-items:stretch;gap:1px;margin:0;width:auto;color:var(--tx);font:inherit;cursor:pointer;overflow:hidden}
+.mdia .mnum{font-size:11px;font-weight:700;text-align:left;padding-left:2px}.mdia.hoy{border:2px solid #2e9e44}.mdia.hoy .mnum{color:#2e9e44}.mdia.sel{outline:2px solid var(--pr);outline-offset:-2px}
+.mdia.tiene{background:color-mix(in srgb,var(--pr) 6%,var(--card))}.mdia.todo{background:color-mix(in srgb,#2e9e44 8%,var(--card))}
+.mmini{font-size:9.5px;font-weight:700;border-radius:4px;padding:0 2px;color:#fff;background:var(--pr);line-height:1.35;white-space:nowrap;overflow:hidden}.mmini.s{background:#ef6c00}.mmini.ok{background:#2e9e44}.mmas{font-size:9.5px;color:var(--mu)}
+.mfile{display:flex!important;justify-content:center;align-items:center;margin-top:12px;padding:12px;border-radius:10px;cursor:pointer;font-weight:700}`;document.head.appendChild(st)})();
+})();
