@@ -6,7 +6,9 @@
 (function(){
 const MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const DIAS=["L","M","X","J","V","S","D"];
-let MANT=[],mCarg=false,mMes=null,mSel=null,mTxt="",mImpMes=null,mImpTipo="M",mOcup=false;
+let MANT=[],mCarg=false,mMes=null,mSel=null,mTxt="",mImpMes=null,mImpTipo="M",mOcup=false,mEvt="";
+/* Evento SGC de AENA del día elegido (o de hoy, o el más cercano con evento) */
+function evtDe(f){const c=x=>x.evento;let l=MANT.filter(x=>x.fecha==f&&c(x));if(!l.length)l=MANT.filter(x=>x.fecha==hoy()&&c(x));if(!l.length){const t=+new Date(f);l=MANT.filter(c).sort((a,b)=>Math.abs(+new Date(a.fecha)-t)-Math.abs(+new Date(b.fecha)-t))}return l.length?l[0].evento:""}
 const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const hoy=()=>iso(new Date());
 const fLarga=s=>{const[y,m,d]=s.split("-").map(Number);const f=new Date(y,m-1,d);return ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"][f.getDay()]+" "+d+" de "+MESES[m-1]};
@@ -34,7 +36,7 @@ function calHTML(){const[y,m]=mMes;const pri=new Date(y,m,1);const off=(pri.getD
 function vMant(){if(!mMes){const d=new Date();mMes=[d.getFullYear(),d.getMonth()]}if(!mSel)mSel=hoy();
  const h=hoy(),lh=delDia(h),ls=delDia(mSel);const pend=lh.filter(x=>x.estado!="hecho").length;
  const delMes=MANT.filter(x=>x.fecha.startsWith(mMes[0]+"-"+String(mMes[1]+1).padStart(2,"0")));
- $("#app").innerHTML=`<div class="card"><div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Mantenimiento preventivo</h3>${admin?`<button class="sec" style="width:auto;padding:6px 12px" onclick="mantImp()">📷 Importar</button>`:""}</div>
+ $("#app").innerHTML=`<div class="card"><div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Mantenimiento preventivo</h3><div class="mhdr">${admin?`<button class="sec" style="width:auto;padding:6px 12px" onclick="mantImp()">📷 Importar</button>`:""}${(()=>{const e=evtDe(mSel);return e?`<span class="mevt">Evento SGC <b>${esc(e)}</b></span>`:""})()}</div></div>
  <div class="mley"><span class="mchip m"><b>M</b></span> Mensual <span class="mchip s"><b>S</b></span> Semestral <span class="mchip m ok"><b>✔</b></span> Hecho</div></div>
  <div class="card mhoy"><div class="mhoyt">🔧 Hoy · ${fLarga(h)}</div>${lh.length?`<div class="mu" style="margin:2px 0 6px">${pend?`${pend} pendiente${pend>1?"s":""} de ${lh.length}`:"Todo hecho ✔"}</div>${lh.map(filaDia).join("")}`:`<div class="mu" style="margin-top:6px">${mCarg?"Sin mantenimientos programados para hoy.":"Cargando…"}</div>`}</div>
  <div class="card"><div class="row mnav" style="flex-wrap:nowrap"><button class="sec" onclick="mantMes(-1)">‹</button><b>${MESES[mMes[1]][0].toUpperCase()+MESES[mMes[1]].slice(1)} ${mMes[0]}</b><button class="sec" onclick="mantMes(1)">›</button></div>
@@ -151,6 +153,7 @@ window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");
  <div><label>Tipo por defecto</label><select id="mi_tipo" onchange="mImpTipoSet(this.value)"><option value="M" ${mImpTipo=="M"?"selected":""}>Mensual</option><option value="S" ${mImpTipo=="S"?"selected":""}>Semestral</option></select></div></div>
  <label class="pri mfile">📷 Foto / archivo<input type="file" hidden accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" onchange="mantImpFile(this.files[0])"></label>
  <div id="mi_est" class="mu" style="font-size:12px;margin-top:6px"></div>
+ <label>Nº de evento de mantenimiento AENA (SGC)</label><input id="mi_evt" inputmode="numeric" placeholder="Ej. 127318" value="${esc(mEvt)}" oninput="mEvtSet(this.value)">
  <label>Programa reconocido · una línea por día (AAAA-MM-DD: posición tipo hora-hora (ref); …)</label>
  <textarea id="mi_txt" rows="10" style="font-family:ui-monospace,monospace;font-size:13px" oninput="mTxtSet(this.value)" placeholder="2026-10-26: T30 M 20:30-23:30 (E81); 386 M 13:00-16:00 (H15)">${esc(mTxt)}</textarea>
  <div id="mi_prev" class="mu" style="font-size:12px;margin-top:4px"></div>
@@ -158,6 +161,7 @@ window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");
  $("#sheet").style.display="flex";mPrev()};
 window.mantImpMes=v=>{const[y,m]=v.split("-").map(Number);mImpMes=[y,m]};
 window.mImpTipoSet=v=>{mImpTipo=v};
+window.mEvtSet=v=>{mEvt=String(v||"").replace(/\D/g,"")};
 window.mTxtSet=v=>{mTxt=v;mPrev()};
 function mPrev(){const e=$("#mi_prev");if(!e)return;const{filas,mal}=canonico(mTxt);const dias=new Set(filas.map(x=>x.fecha)).size;
  e.innerHTML=filas.length?`${filas.length} mantenimientos en ${dias} día${dias>1?"s":""}${mal.length?` · <span style="color:#d32f2f">líneas sin fecha válida: ${mal.join(", ")}</span>`:""}`:(mal.length?`<span style="color:#d32f2f">Formato: AAAA-MM-DD: T30 M 20:30-23:30 (E81); 386 S</span>`:"")}
@@ -170,12 +174,13 @@ window.mantImpFile=async file=>{if(!file||mOcup)return;mOcup=true;const st=$("#m
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");txt=await textoExcel(file)}
   else txt=await file.text();
   const r=(geo&&geo.txt)?geo:analiza(txt,mImpMes[0],mImpMes[1],mImpTipo);
+  const ev=/S\s*G\s*[C(]\W{0,3}(\d[\d\s]{3,8}\d)/i.exec(NORM(txt))||/EVENTO\W{0,3}(\d[\d\s]{3,8}\d)/i.exec(NORM(txt));if(ev){mEvt=ev[1].replace(/\s/g,"");const e=$("#mi_evt");if(e)e.value=mEvt}
   mTxt=r.txt;const t=$("#mi_txt");if(t)t.value=mTxt;mPrev();
   set(r.txt?`Leído «${file.name}». Revisa y corrige las líneas antes de guardar.${r.sueltas?` ${r.sueltas} posición(es) sin fecha asociada se han ignorado.`:""}`:
    `No he encontrado fechas con posiciones en «${file.name}». Escribe el programa a mano en el cuadro o prueba con una foto más nítida y recta.`);
   window._mantOCR=txt}
  catch(e){set("Error al leer el archivo: "+(e.message||e))}finally{mOcup=false}};
-window.mantImpGuarda=async()=>{const{filas,mal}=canonico(mTxt);if(!filas.length){msg("No hay mantenimientos que guardar");return}
+window.mantImpGuarda=async()=>{const{filas,mal}=canonico(mTxt);if(mEvt)filas.forEach(x=>x.evento=mEvt);if(!filas.length){msg("No hay mantenimientos que guardar");return}
  if(mal.length&&!confirm(`Hay ${mal.length} línea(s) sin fecha válida que se ignorarán. ¿Guardar el resto?`))return;
  await guarda(filas);closeSheet();mTxt="";const f=filas.map(x=>x.fecha).sort()[0];const[y,m]=f.split("-").map(Number);mMes=[y,m-1];mSel=f;vMant()};
 async function guarda(filas){const r=await sb.from("mantenimientos").upsert(filas,{onConflict:"fecha,pos,tipo",ignoreDuplicates:true}).select();
@@ -210,5 +215,6 @@ function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.g
 .mdia.tiene{background:color-mix(in srgb,var(--pr) 6%,var(--card))}.mdia.todo{background:color-mix(in srgb,#2e9e44 8%,var(--card))}
 .mmini{font-size:9.5px;font-weight:700;border-radius:4px;padding:0 2px;color:#fff;background:var(--pr);line-height:1.35;white-space:nowrap;overflow:hidden}.mmini.s{background:#ef6c00}.mmini.ok{background:#2e9e44}.mmas{font-size:9.5px;color:var(--mu)}
 .mhora{font-size:12px;color:var(--mu);margin-top:1px}.mnota{font-size:12px;font-weight:700;color:#d32f2f;margin-top:2px}
+.mhdr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}.mevt{font-size:12px;font-weight:600;color:var(--mu);white-space:nowrap}.mevt b{color:var(--tx);font-size:14px;letter-spacing:.5px}
 .mfile{display:flex!important;justify-content:center;align-items:center;margin-top:12px;padding:12px;border-radius:10px;cursor:pointer;font-weight:700}`;document.head.appendChild(st)})();
 })();
