@@ -582,6 +582,12 @@ const GUIA={
   AAP:{n:"AAP",s:[],v:"No hay planos AAP en la documentación. Carga el esquema para completar esta guía."}},
  cierre:["Probar todos los movimientos en manual y en servicio.","Comprobar que ningún LED de seguridad queda fuera de su estado de reposo.","Retirar bloqueos y etiquetas, quitar puentes.","Registrar horas, actuación y observaciones en la OT."]
 };
+/* Pasos descriptivos (qué hay, entradas, posiciones, LED en reposo) → plegados en «Elementos y referencias»; solo se numeran los pasos de actuación */
+const G_INFO=/^(QUÉ HAY|ENTRADAS EN|POSICIONES|LED EN REPOSO|CÓMO FUNCIONA)\b/i;
+function gEsInfo(p){return G_INFO.test(String(p||"").trim())}
+function gInfoTxt(p){return String(p||"").trim()}
+(function(){const st=document.createElement("style");st.textContent=`.gelem{margin-top:8px;border:1px solid rgba(160,120,255,.35);border-radius:10px;padding:6px 10px}.gelem summary{cursor:pointer;font-size:13px;font-weight:600;opacity:.85}
+.gelit{display:flex;gap:8px;align-items:flex-start;font-size:13px;padding:6px 0;border-top:1px solid rgba(255,255,255,.08)}.gelit span{flex:1}`;document.head.appendChild(st)})();
 let gTipo="",gOT="",gChk={},gSyncOT="";
 function gOTs(){return inc.filter(i=>i.estado=="abierta")}
 function vTec(){
@@ -601,7 +607,10 @@ function vTec(){
  if(T.v)h+=`<div class="card mu">${esc(T.v)}</div>`;
  T.s.forEach((s,si)=>{const k=gTipo+si;const c=gChk[k]||[];const hechos=c.filter(Boolean).length;
   h+=det(`${esc(s.t)} <span class="mu" style="font-weight:400">(${hechos}/${s.p.length})</span>`,
-  `${s.a?`<div class="gav">⚠️ ${esc(s.a)}</div>`:""}<div class="gst">${s.p.map((p,pi)=>`<label class="gpaso"><input type="checkbox" ${c[pi]?"checked":""} onchange="gMarca('${k}',${pi},this.checked)"><span><b>${pi+1}.</b> ${esc(p)}</span>${s.g&&s.g[pi]?`<button class="gpl" aria-label="Ver plano página ${s.g[pi]}" onclick="event.preventDefault();event.stopPropagation();gPlano('${gTipo}',${s.g[pi]})">${IC('plans')}<small>${s.g[pi]}</small></button>`:""}</label>`).join("")}</div>
+  `${s.a?`<div class="gav">⚠️ ${esc(s.a)}</div>`:""}${(()=>{const pl=pi=>s.g&&s.g[pi]?`<button class="gpl" aria-label="Ver plano página ${s.g[pi]}" onclick="event.preventDefault();event.stopPropagation();gPlano('${gTipo}',${s.g[pi]})">${IC('plans')}<small>${s.g[pi]}</small></button>`:"";
+   const inf=[],acc=[];s.p.forEach((p,pi)=>(gEsInfo(p)?inf:acc).push(pi));let n=0;
+   return `<div class="gst">${acc.map(pi=>`<label class="gpaso"><input type="checkbox" ${c[pi]?"checked":""} onchange="gMarca('${k}',${pi},this.checked)"><span><b>${++n}.</b> ${esc(s.p[pi])}</span>${pl(pi)}</label>`).join("")}</div>`+
+   (inf.length?`<details class="gelem"><summary>Elementos y referencias (${inf.length})</summary>${inf.map(pi=>`<div class="gelit"><span>${esc(gInfoTxt(s.p[pi]))}</span>${pl(pi)}</div>`).join("")}</details>`:"")})()}
   <div class="mu" style="font-size:12px;margin:6px 0">Planos: ${esc(s.r)}</div>
   <button class="sec" style="width:100%" onclick="gCopia('${gTipo}',${si})">Pasar a «Actuación guiada» de la OT</button>`,gAbierto.has(k)?"open":"",k)});
  if(gTipo=="PAS"){
