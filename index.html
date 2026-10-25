@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v27"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v28"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -3041,4 +3041,8 @@ const plegOT=new Set(),anaAbOT=new Set();
 /* ===== v27: en Seguimiento OT la «Actuación guiada» (actuación más eficaz copiada a la OT) aparece SIEMPRE plegada al entrar;
  si se abre a mano sigue abierta mientras se está en la pantalla (aunque se refresque), y se vuelve a plegar al salir y volver. ===== */
 (function(){const o=go;go=function(v,f){if(v=="track"&&view!="track")guiAb.clear();return o(v,f)}})();
+/* ===== v28: en Seguimiento OT (modo Administrador) el botón «Eliminar» pasa a icono de papelera ===== */
+(function(){const o=card;card=function(i){let h=o(i);if(view!="track"||!admin)return h;
+ return h.replace(`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`,`<button class="sec gwr gdel" title="Eliminar OT" aria-label="Eliminar OT ${esc(i.orden||"")}" onclick="borrar('${i.id}')">${IC('trash')}</button>`)}})();
+(function(){const st=document.createElement("style");st.textContent=".gdel{color:#c62828!important;border-color:#e57373!important}";document.head.appendChild(st)})();
 </script></body></html>
