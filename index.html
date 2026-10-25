@@ -2628,7 +2628,10 @@ function elHTML(tag,corto){const z=elZona(tag),R=elRutas(tag);
  return h.slice(0,e+6)+`<div class="elus">${R.elem.map(t=>elHTML(t)).join("")}</div>`+h.slice(e+6)}})();
 function elPasos(){if(view!="tec")return;document.querySelectorAll("#app details.gd .gst > label.gpaso > span:not([data-u])").forEach(sp=>{sp.dataset.u="1";
  const tags=[...new Set((sp.textContent.toUpperCase().match(ANA_TAG)||[]).map(t=>t.replace(/'+$/,"")))].filter(t=>elZona(t)).slice(0,6);if(!tags.length)return;
- const d=document.createElement("div");d.className="elus";d.innerHTML=tags.map(t=>elHTML(t,true)).join("");sp.appendChild(d)})}
+ const d=document.createElement("details");d.className="elusd";
+ d.innerHTML=`<summary onclick="event.preventDefault();event.stopPropagation();this.parentNode.open=!this.parentNode.open">📍 Elementos (${tags.length}) · ${tags.map(esc).join(", ")}</summary><div class="elus">${tags.map(t=>elHTML(t,true)).join("")}</div>`;
+ d.addEventListener("click",e=>{if(e.target.closest("summary"))return;e.stopPropagation()});sp.appendChild(d)})}
+(function(){const st=document.createElement("style");st.textContent=`.elusd{margin-top:6px}.elusd>summary{cursor:pointer;font-size:12px;font-weight:600;opacity:.8;list-style:none}.elusd>summary::-webkit-details-marker{display:none}.elusd>summary::before{content:"▸ "}.elusd[open]>summary::before{content:"▾ "}`;document.head.appendChild(st)})();
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);elPasos();return r}})();
 new MutationObserver(elPasos).observe(document.body,{childList:true,subtree:true});
 /* ===== v9: AAA · actuación más eficaz (memorizada): cerrar la puerta del carro y ajuste del FC del carro + cierre de puerta ===== */
