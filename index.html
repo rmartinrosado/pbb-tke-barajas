@@ -2725,7 +2725,7 @@ function gOrdena(){if(view!="tec")return;const i=inc.find(x=>x.id==gOT);const R=
  const sorted=[...all].sort((a,b)=>pos(a.dataset.k)-pos(b.dataset.k));
  const top=sorted[0];if(pos(top.dataset.k)==999)return;
  const anc=document.getElementById("anag")||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
- if(anc&&anc.nextElementSibling!==top)anc.insertAdjacentElement("afterend",top);
+ if(anc){if(anc.id=="anag"){if(anc.previousElementSibling!==top)anc.insertAdjacentElement("beforebegin",top)}else if(anc.nextElementSibling!==top)anc.insertAdjacentElement("afterend",top)}
  top.classList.add("gef");if(!top.dataset.ef){top.dataset.ef=1;const sm=top.querySelector("summary");if(sm)sm.insertAdjacentHTML("afterbegin",`<span class="gefb">⭐ Actuación más eficaz</span><br>`)}
  const rest=sorted.slice(1),first=all.filter(d=>d!==top)[0];if(!first)return;
  const mk=document.createComment("g");first.parentNode.insertBefore(mk,first);rest.forEach(d=>mk.parentNode.insertBefore(d,mk));mk.remove()}
@@ -3074,4 +3074,5 @@ const plegOT=new Set(),anaAbOT=new Set();
 (function(){const o=card;card=function(i){let h=o(i);if(!admin)return h;
  return h.replace(`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`,`<button class="sec gwr gotdel" title="Eliminar OT" aria-label="Eliminar OT ${esc(i.orden||"")}" onclick="borrar('${i.id}')">${IC('trash')}</button>`)}})();
 (function(){const st=document.createElement("style");st.textContent=".cacts .gotdel{position:static!important;width:46px!important;height:42px;display:flex;align-items:center;justify-content:center;padding:0;color:#ff6b6b!important;border-color:#ff6b6b!important}.gotdel svg{width:22px;height:22px}";document.head.appendChild(st)})();
+/* Orden en Guía: la «Actuación más eficaz» va ANTES del «Análisis de OT» (ver gOrdena) */
 </script></body></html>
