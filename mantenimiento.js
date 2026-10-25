@@ -81,11 +81,11 @@ function posLibres(txt,tipoDef){const out=[];String(txt||"").toUpperCase().split
  if(!m)return;const pos=m[1].replace(/\s+/g,"");const t=m[2]?(m[2][0]=="S"?"S":"M"):tipoDef;if(!out.some(x=>x.pos==pos&&x.tipo==t))out.push({pos,tipo:t})});return out}
 const NORM=t=>String(t||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 /* Línea tipo «Inop SIN AVO posición T30 (E81) 20:30 LT a 23:30 LT [SIN MOVER PASARELA]» */
-function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I");const m=/POSICI[O0E]?N\s*[:.]?\s*(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
+function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I");const m=/POSICI[O0E6]?N\s*[:.]?\s*(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
  const pos=m[1].replace(/\s+/g,"");const resto=U.slice(m.index+m[0].length);const r=/\(([^)]{1,20})\)/.exec(resto);
  const h=/(\d{1,2})\s*[:.,\-]?\s*(\d{2})\s*(?:L\s*[TI])?\s*(?:A|-|HASTA)\s*(\d{1,2})\s*[:.,\-]?\s*(\d{2})/.exec(resto);
- let ps=pos;const rf=r?r[1].trim():"";if(/^E\d/i.test(rf)&&!/^T/.test(ps)){if(/^1\d\d$/.test(ps))ps="T"+ps.slice(1);else if(/^\d{1,2}$/.test(ps))ps="T"+ps}
- return {pos:ps,ref:r?r[1].trim():null,hora_ini:h?h[1].padStart(2,"0")+":"+h[2]:null,hora_fin:h?h[3].padStart(2,"0")+":"+h[4]:null,notas:/SIN\s*MOVER/.test(resto)?"SIN MOVER PASARELA":null}}
+ let ps=pos;const rf=r?r[1].trim().replace(/£/g,"E").replace(/^([A-Z])\s*[I|L]\s*(\d)/,"$11$2").replace(/^([A-Z])\s+(\d)/,"$1$2"):"";if(/^E\d/i.test(rf)&&!/^T/.test(ps)){if(/^1\d\d$/.test(ps))ps="T"+ps.slice(1);else if(/^\d{1,2}$/.test(ps))ps="T"+ps}
+ return {pos:ps,ref:rf||null,hora_ini:h?h[1].padStart(2,"0")+":"+h[2]:null,hora_fin:h?h[3].padStart(2,"0")+":"+h[4]:null,notas:/SIN\s*MOVER/.test(resto)?"SIN MOVER PASARELA":null}}
 const tipoCab=l=>{const U=NORM(l);if(/PREVENTIV/.test(U))return null;return /MANTENIMIENTOS?\W*SEMESTRAL|^\W*SEMESTRAL/.test(U)?"S":/MANTENIMIENTOS?\W*MENSUAL|^\W*MENSUAL/.test(U)?"M":null};
 function añade(por,f,it){if(!por.has(f))por.set(f,[]);const a=por.get(f);if(!a.some(x=>x.pos==it.pos&&x.tipo==it.tipo))a.push(it)}
 /* Texto en orden de lectura (PDF, Excel, CSV o foto sin geometría útil) */
@@ -119,7 +119,7 @@ function imgCanvas(file,giro){return new Promise((res,rej)=>{const u=URL.createO
  x.translate(c.width/2,c.height/2);x.rotate(giro*Math.PI/180);x.drawImage(im,-w/2,-h/2,w,h);URL.revokeObjectURL(u);res(c)};im.onerror=rej;im.src=u})}
 async function textoImagen(file,prog){await carga("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js",()=>window.Tesseract);
  const w=await Tesseract.createWorker("spa",1,{logger:m=>{if(m.status=="recognizing text")prog(Math.round(m.progress*100))}});let mejor=null;
- try{for(const g of [0,90,270,180]){prog(0,g);const c=await imgCanvas(file,g);const r=await w.recognize(c);const n=(NORM(r.data.text).match(/POSICI[O0E]?N/g)||[]).length;
+ try{for(const g of [0,90,270,180]){prog(0,g);const c=await imgCanvas(file,g);const r=await w.recognize(c);const n=(NORM(r.data.text).match(/POSICI[O0E6]?N/g)||[]).length;
    if(!mejor||n>mejor.n)mejor={n,data:r.data,g};if(n>=3)break}}finally{await w.terminate()}
  return mejor?mejor.data:{text:"",lines:[]}}
 async function textoPdf(file){if(typeof cargaLib=="function")await cargaLib();const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;let out=[];
