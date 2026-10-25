@@ -3075,4 +3075,11 @@ const plegOT=new Set(),anaAbOT=new Set();
  return h.replace(`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`,`<button class="sec gwr gotdel" title="Eliminar OT" aria-label="Eliminar OT ${esc(i.orden||"")}" onclick="borrar('${i.id}')">${IC('trash')}</button>`)}})();
 (function(){const st=document.createElement("style");st.textContent=".cacts .gotdel{position:static!important;width:46px!important;height:42px;display:flex;align-items:center;justify-content:center;padding:0;color:#ff6b6b!important;border-color:#ff6b6b!important}.gotdel svg{width:22px;height:22px}";document.head.appendChild(st)})();
 /* Orden en Guía: la «Actuación más eficaz» va ANTES del «Análisis de OT» (ver gOrdena) */
+/* ===== Planos por posición: solo 504, 507 y 508 usan sus planos propios (barreras ópticas SICK L41); el resto, RCS_PLANOS
+ (antiatrapamientos con finales de carrera mecánicos IT-S3'/IT-S3'' → relés E-K247/E-K248). El elemento de seguridad se nombra según la posición de la OT. ===== */
+function segPosFix(x,pos){if(!x||x[0]!="E-A9")return x;pos=String(pos||"");const op=["504","507","508"].includes(pos);
+ if(x[1]=="5.1")return op?["E-A9","5.1","5.2","IT-B1","Barrera óptica túnel interior izquierda (PBB "+pos+")"]:["E-A9","5.1","5.2","IT-S3' / IT-S3'' (E-K247 / E-K248)","Antiatrapamiento túnel interior A-B (finales de carrera)"];
+ if(x[1]=="2.1")return pos=="504"?["E-A9","2.1","2.2","MT-B1","Barrera óptica túnel medio izquierda (PBB 504)"]:["E-A9","2.1","2.2","MT-S3' / MT-S3'' (E-K247A / E-K248A)","Antiatrapamiento túnel medio B-C (finales de carrera)"];
+ if((x[1]=="6.1"&&!op)||(x[1]=="8.1"&&pos!="504"))return null;return x}
+(function(){const o=segOT;segOT=function(i){const r=o(i);if(!r||!i||!r.sen)return r;r.sen=r.sen.map(x=>segPosFix(x,i.pos)).filter(Boolean);return r}})();
 </script></body></html>
