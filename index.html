@@ -77,7 +77,7 @@ const IC=k=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke=
 function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||admin))||(view=="tec"&&!(tecnico||admin)))view="dash";
  $("#modo").classList.toggle("on",tecnico);$("#mo").classList.toggle("on",!tecnico&&!admin);$("#adm").classList.toggle("on",admin);
  const tabs=[["dash",IC('home'),"Inicio"],["new",IC('plus'),"Nueva"],["track",IC('list'),"Seguimiento OT"]];if(tecnico||admin)tabs.push(["plans",IC('plans'),"Planos"]);
- if(tecnico||admin)tabs.push(["tec",IC('tool'),"Técnico"]);
+ if(tecnico||admin)tabs.push(["tec",IC('tool'),"Guía"]);
  $("#nav").innerHTML=tabs.map(t=>`<button class="${view==t[0]?"on":""}" onclick="go('${t[0]}')" ${t[0]=="plans"&&!admin?'disabled style="opacity:.35;filter:grayscale(1)"':""}><span>${t[1]}</span>${t[2]}</button>`).join("");
  ({dash:vDash,new:vNew,track:vTrack,plans:vPlans,tec:vTec})[view]();
 }
