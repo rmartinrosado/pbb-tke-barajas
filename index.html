@@ -563,7 +563,7 @@ const GUIA={
 "Inversor P-K51/2 mandado por P-A1 «brazo autonivelador adelante / atrás». Bumper del brazo C-B27/C-B28 (E-A10 módulo 1, LED 1) debe estar encendido.",
 "Sustitución: mismo modelo SICK 1040763 IME12-04BPSZC0K. Ajustar distancia, probar ciclo arriba → neutral → abajo y comprobar LED en P-A5. Caso registrado: PBB 528 · PAS · orden 600500 (25/10/2026)."],r:"RCS pág. 35, 86 · PBB 504 pág. 35, 86"},
    {t:"Capota no despliega / no recoge",g:[26, 47, 59, 26],p:["E-A0 disyuntor capota apagado → E-Q4 (izq) / E-Q4.1 (dcha), 2,15 A.","Inversores E-K41/42 (izq) y E-K43/44 (dcha), órdenes desde E-A1 OUT12-15.","FC capota C-S15/C-S16 (E-A2 DIN12/13): encendido = capota echada.","Motores C-M4 / C-M4.1 (0,5 kW)."],r:"pág. 26, 47, 55, 59"},
-   {t:"Portón enrollable",g:[27, 68],p:["E-Q8 (1,1 A) → E-K81/2 (E-A1 OUT31/32 subir/bajar) → motor C-M6.","Sensor portón abajo C-S9 (E-A8). Si falla, la PBB no rearma."],r:"pág. 27, 57, 68"},
+   {t:"Portón enrollable · bloqueo de traslación",g:[27, 68, 68, 68],p:["E-Q8 (1,1 A) → E-K81/2 (E-A1 OUT31/32 subir/bajar) → motor C-M6.","Sensor portón abajo C-S9 (E-A8). Si falla, la PBB no rearma.","BLOQUEO DE LA PAS: con el portón arriba la pasarela queda bloqueada. Antes de una traslación hay que BAJAR el portón para quitar el bloqueo. La llave de bypass NO elimina este bloqueo.","Solo para OT de portón: si el portón está COMPROBADO abajo y cerrado y C-S9 no lo detecta → puente provisional E-A8 1.1–1.2 y revisar sensor C-S9 (distancia, soporte, cable)."],r:"pág. 27, 57, 68"},
    {t:"Bloqueada por equipos de servicio (A/A, 400 Hz, carro)",g:[58, 12, 60, 11],p:["E-A2 en reposo deben estar apagados: bloqueo máquina A/A (DIN08), carro A/A (DIN09), convertidor en servicio (DIN10), 90 % conector (DIN11).","Carro PCAir: final de carrera E-S100.","Seta AO (E-A3 DIN01) / bypass AO (DIN02).","Equipo parado y bloqueo activo → revisar manguera CBTH-X61 ↔ E-X61 y el contacto en el equipo."],r:"pág. 11-12, 58-60"},
    {t:"Zapata / bordes / bumpers",g:[45, 41, 92],p:["Zapata C-B4 → Gelbau P-U5 → E-A10 DIN08. Ver LEDs de P-U5 y cable CP-W14.","Bordes ruedas T-B5/T-B6 → E-U5.","Bumpers brazo y cabina C-B27…C-B30 → E-A10 DIN01/02."],r:"pág. 41, 45, 92"},
    {t:"Iluminación, enchufes, caldeos, lunetas",g:[19, 23, 21, 18],p:["Interior: E-Q10 + E-K10 / E-K18. Exterior/cabina: E-Q10.1. Focos: E-Q15.1 + E-K15.","Enchufes sin tensión → diferencial E-Q13 (30 mA): buscar derivación antes de rearmar.","Caldeo: E-Q12 + E-K60, termostato E-B4. Lunetas: E-Q17.1 + E-K17.","Cae todo el monofásico → E-Q150 o E-K0.1."],r:"pág. 18-28"},
@@ -2882,8 +2882,14 @@ function infActuacion(k){const t=k.replace(/\d+$/,""),si=+k.slice(t.length);cons
  (solo los puentes permitidos de la tabla PUENTE, nunca setas, bordes, zapata, límites…), con sus condiciones, para mover la pasarela. ===== */
 function puKey(mod,S){if(S.k&&S.l)return `${mod}|${S.k}|${S.l}`;const m=/^(\d+)\.(\d)/.exec(S.led||"");if(!m)return null;const a=+m[1],c=+m[2],k=Math.ceil(a/2);
  const M=PLC.find(x=>x.id==mod);if((M&&M.t=="SDI")||/^E-A(8|9|10)$/.test(mod))return `${mod}|${k}|${a-2*k+2}`;return `${mod}|${k}|${(c==1?1:3)+(a%2?0:1)}`}
+/* v-portón: un puente de seguridad solo se propone si la OT nombra ESE elemento (no por palabras genéricas como «sensor»).
+ El sensor del portón C-S9 solo aparece en OT de portón: el portón bajado quita el bloqueo de traslación de la PAS y la llave de bypass no lo elimina. */
+const PU_REQ={"E-A8|1|1":/porton|persiana|enrollable|c-?s9/,"E-A9|3|1":/antiatrap|atrapamiento|barrera optica/,"E-A9|3|2":/antiatrap|atrapamiento|barrera optica/,
+ "E-A9|1|2":/antiatrap|atrapamiento|barrera optica/,"E-A9|4|2":/antiatrap|atrapamiento|barrera optica/,"E-A10|2|2":/puerta (de )?servicio|escalera de servicio|ss-?b15/,
+ "E-A3|3|2":/freno manual|desfrenad|palanca de freno|t-?s6/,"E-A3|3|4":/freno manual|desfrenad|palanca de freno|t-?s8/};
 function puentesOT(i){if(!i||i.estado!="abierta")return [];const R=anaOT(i);if(!R)return [];const pos=String(i.pos),out=[],vis=new Set();
- R.rel.forEach(x=>{const key=puKey(x.mod,x.S);if(!key||vis.has(key)||!PUENTE[key])return;const t=PUENTE[key];
+ const txt=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
+ R.rel.forEach(x=>{const key=puKey(x.mod,x.S);if(!key||vis.has(key)||!PUENTE[key])return;if(PU_REQ[key]&&!PU_REQ[key].test(txt))return;const t=PUENTE[key];
   if(/^Solo 504\/507\/508/.test(t)&&!["504","507","508"].includes(pos))return;if(/^Solo 504 /.test(t)&&pos!="504")return;
   vis.add(key);const[id,k,l]=key.split("|");const M=PLC.find(m=>m.id==id);const L=M&&M.m[k-1]&&M.m[k-1][l-1];const b=M?pBorna(M,+k,+l):null;
   out.push({key,id,k,l,t,nom:L?L[0]:x.S.t,b,f:M?M.f[k-1]:null,suelta:/no puentear/i.test(t)})});return out}
