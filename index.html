@@ -1973,7 +1973,7 @@ function acGuarda(id,cerrarOT){const i=inc.find(x=>x.id==id);if(!i)return;
 /* ===== v63: herramientas de administrador en la cabecera (fija al hacer scroll) ===== */
 (function(){const st=document.createElement("style");st.textContent=`header{position:-webkit-sticky!important;position:sticky!important;top:0!important}.madm{display:flex;gap:6px;width:100%;margin-top:6px}.madm button{flex:1;min-width:0;font:inherit;font-size:12px;font-weight:600;line-height:1.2;padding:7px 4px;border:1px solid var(--pr);border-radius:8px;background:transparent;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.madm button:active{background:var(--pr);color:#fff}`;document.head.appendChild(st)})();
 (function(){const ob=barra;barra=function(){ob();const b=document.getElementById("mbar");if(!b||!user||!admin||b.style.display=="none")return;
- const d=document.createElement("div");d.className="madm";d.innerHTML=`<button type="button" onclick="addPos()">＋ Posición PBB</button><button type="button" onclick="gesTec()">Técnicos</button><button type="button" onclick="pedirExport()">Exportar CSV</button>`;b.appendChild(d)}})();
+ const d=document.createElement("div");d.className="madm";d.innerHTML=`<button type="button" onclick="addPos()">＋ Posición PBB</button><button type="button" onclick="gesTec()">Técnicos</button><button type="button" onclick="pedirExport()">Exportar CSV</button><button type="button" class="madmref" title="Cargar la última versión de la app" onclick="refrescaApp()">↻ Actualizar</button>`;b.appendChild(d)}})();
 try{barra()}catch(e){}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v63"}})();
 /* ===== v64: guía de campo · Cámaras RCS (RCS PLANOS folios 25, 93-95) =====
@@ -2490,7 +2490,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v31"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v32"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -3120,4 +3120,20 @@ function segPosFix(x,pos){if(!x||x[0]!="E-A9")return x;pos=String(pos||"");const
  if((x[1]=="6.1"&&!op)||(x[1]=="8.1"&&pos!="504"))return null;return x}
 (function(){const o=segOT;segOT=function(i){const r=o(i);if(!r||!i||!r.sen)return r;r.sen=r.sen.map(x=>segPosFix(x,i.pos)).filter(Boolean);return r}})();
 (function(){const st=document.createElement("style");st.textContent=`#nav .navstar span{color:#2e9e44!important;animation:navstar 2s ease-in-out infinite}@keyframes navstar{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.85)}}`;document.head.appendChild(st)})();
+/* ===== Administrador: «↻ Actualizar» borra la memoria caché de la PWA y recarga la última versión de GitHub
+ sin volver a pedir la contraseña de administrador (la sesión de Supabase se conserva; el modo admin se restaura
+ solo si el perfil sigue teniendo rol admin y la recarga se hizo desde este botón hace menos de 2 minutos). ===== */
+async function refrescaApp(){if(!admin){msg("Solo en modo administrador");return}
+ msg("Cargando la última versión…");
+ try{localStorage.setItem("pbb_reAdm",String(Date.now()))}catch(e){}
+ try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
+ try{if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.update().catch(()=>{})))}}catch(e){}
+ location.replace(location.pathname+"?v="+Date.now())}
+(function(){const o=render;render=function(){let t=0;try{t=+localStorage.getItem("pbb_reAdm")||0}catch(e){}
+ if(t&&Date.now()-t>=120000){try{localStorage.removeItem("pbb_reAdm")}catch(e){}t=0}
+ if(t&&typeof user!="undefined"&&user&&rol=="admin"){try{localStorage.removeItem("pbb_reAdm")}catch(e){}
+  if(!admin){admin=true;tecnico=false;view="dash";filtro="todas";ptxt="";
+   try{if(location.search)history.replaceState(null,"",location.pathname)}catch(e){}setTimeout(()=>msg("App actualizada · modo Administrador"),300)}}
+ return o.apply(this,arguments)}})();
+(function(){const st=document.createElement("style");st.textContent=`.madm .madmref{border-color:#2e9e44!important;color:#2e9e44!important;flex:0 0 auto;padding:7px 10px}`;document.head.appendChild(st)})();
 </script></body></html>
