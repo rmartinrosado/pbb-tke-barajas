@@ -96,7 +96,7 @@ function vDash(){
  const ab=inc.filter(i=>i.estado=="abierta"),ce=inc.length-ab.length;
  $("#app").innerHTML=`<div class="grid"><div class="card kpi"><b>${ab.length}</b>OT abiertas</div><div class="card kpi"><b>${ce}</b>OT cerradas</div></div>
  <div class="grid" style="margin-bottom:10px"><button class="btn" onclick="go('new')"><span>${IC('plus')}</span>Registrar OT</button>
- <button class="btn" onclick="resTec()" ${tecnico||admin?"":"disabled"}><span>${IC('ia')}</span>Resolución Claude</button>
+ <button class="btn" onclick="resTec()" ${tecnico||admin?"":"disabled"} aria-label="Resolución Claude" style="justify-content:center"><img src="claude-wordmark.png" alt="Claude" style="height:34px;max-width:100%;background:#fff;border-radius:8px;padding:6px 10px;display:block"></button>
  <button class="btn" onclick="go('track','todas')"><span>${IC('list')}</span>Seguimiento OT</button>
  <button class="btn" onclick="go('plans')" ${tecnico||admin?"":"disabled"}><span>${IC('plans')}</span>Planos y esquemas</button></div>
  <h3 style="margin:18px 2px 8px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)">Órdenes de Trabajo Abiertas</h3>${ab.map(card).join("")||'<div class="card mu">Sin averías abiertas.</div>'}`;
