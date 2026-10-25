@@ -76,9 +76,9 @@ P.plc='M4.5 2.5h15a2.5 2.5 0 0 1 2.5 2.5v14a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 
 const IC=k=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${P[k]}"/></svg>`;
 function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||admin))||(view=="tec"&&!(tecnico||admin)))view="dash";
  $("#modo").classList.toggle("on",tecnico);$("#mo").classList.toggle("on",!tecnico&&!admin);$("#adm").classList.toggle("on",admin);
- const tabs=[["dash",IC('home'),"Inicio"],["new",IC('plus'),"Nueva"],["track",IC('list'),"Seguimiento OT"]];if(tecnico||admin)tabs.push(["plans",IC('plans'),"Planos"]);
+ const tabs=[["dash",IC('home'),"Inicio"],["new",IC('plus'),"Nueva"],["track",`<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M9.5 3l1.9 5.4L17 10.3l-5.6 1.9L9.5 17.6l-1.9-5.4L2 10.3l5.6-1.9z"/><path d="M18 13.5l1.1 3 3 1.1-3 1.1-1.1 3-1.1-3-3-1.1 3-1.1z"/></svg>`,"Seguimiento OT"]];if(tecnico||admin)tabs.push(["plans",IC('plans'),"Planos"]);
  if(tecnico||admin)tabs.push(["tec",IC('tool'),"Guía"]);
- $("#nav").innerHTML=tabs.map(t=>`<button class="${view==t[0]?"on":""}" onclick="go('${t[0]}')" ${t[0]=="plans"&&!admin?'disabled style="opacity:.35;filter:grayscale(1)"':""}><span>${t[1]}</span>${t[2]}</button>`).join("");
+ $("#nav").innerHTML=tabs.map(t=>`<button class="${view==t[0]?"on":""}${t[0]=="track"?" navstar":""}" onclick="go('${t[0]}')" ${t[0]=="plans"&&!admin?'disabled style="opacity:.35;filter:grayscale(1)"':""}><span>${t[1]}</span>${t[2]}</button>`).join("");
  ({dash:vDash,new:vNew,track:vTrack,plans:vPlans,tec:vTec})[view]();
 }
 function card(i){
@@ -3082,4 +3082,5 @@ function segPosFix(x,pos){if(!x||x[0]!="E-A9")return x;pos=String(pos||"");const
  if(x[1]=="2.1")return pos=="504"?["E-A9","2.1","2.2","MT-B1","Barrera óptica túnel medio izquierda (PBB 504)"]:["E-A9","2.1","2.2","MT-S3' / MT-S3'' (E-K247A / E-K248A)","Antiatrapamiento túnel medio B-C (finales de carrera)"];
  if((x[1]=="6.1"&&!op)||(x[1]=="8.1"&&pos!="504"))return null;return x}
 (function(){const o=segOT;segOT=function(i){const r=o(i);if(!r||!i||!r.sen)return r;r.sen=r.sen.map(x=>segPosFix(x,i.pos)).filter(Boolean);return r}})();
+(function(){const st=document.createElement("style");st.textContent=`#nav .navstar span{color:#2e9e44!important;animation:navstar 2s ease-in-out infinite}@keyframes navstar{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.85)}}`;document.head.appendChild(st)})();
 </script></body></html>
