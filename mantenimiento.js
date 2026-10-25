@@ -10,7 +10,8 @@ let MANT=[],mCarg=false,mMes=null,mSel=null,mTxt="",mImpMes=null,mImpTipo="M",mO
 const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const hoy=()=>iso(new Date());
 const fLarga=s=>{const[y,m,d]=s.split("-").map(Number);const f=new Date(y,m-1,d);return ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"][f.getDay()]+" "+d+" de "+MESES[m-1]};
-const delDia=s=>MANT.filter(x=>x.fecha==s).sort((a,b)=>String(a.pos).localeCompare(String(b.pos),undefined,{numeric:true})||a.tipo.localeCompare(b.tipo));
+const hk=h=>{if(!h)return 9999;const[a,b]=String(h).split(":").map(Number);return a*60+(b||0)};
+const delDia=s=>MANT.filter(x=>x.fecha==s).sort((a,b)=>a.tipo.localeCompare(b.tipo)||hk(a.hora_ini)-hk(b.hora_ini)||String(a.pos).localeCompare(String(b.pos),undefined,{numeric:true}));
 const puede=()=>typeof user!="undefined"&&user&&(tecnico||admin);
 
 async function mantCarga(forzar){if(mCarg&&!forzar)return;if(typeof sb=="undefined"||!sb||typeof user=="undefined"||!user)return;
@@ -23,7 +24,7 @@ window.mantCarga=mantCarga;
 function chip(x,grande){const ok=x.estado=="hecho";
  return `<span class="mchip ${x.tipo=="S"?"s":"m"} ${ok?"ok":""} ${grande?"g":""}"><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":""}</span>`}
 function filaDia(x){const ok=x.estado=="hecho";
- return `<div class="mfila ${ok?"ok":""}">${chip(x,true)}<div class="mfinfo"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":"Mensual"}${ok?`<div class="mu">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${x.hecho_at?" · "+new Date(x.hecho_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}</div>`:`<div class="mu">Pendiente</div>`}</div>
+ return `<div class="mfila ${ok?"ok":""}">${chip(x,true)}<div class="mfinfo"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}${ok?`<div class="mu">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${x.hecho_at?" · "+new Date(x.hecho_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}</div>`:`<div class="mu">Pendiente</div>`}</div>
  ${puede()?`<button class="${ok?"sec":"pri"} mbtn" onclick="mantHecho('${x.id}',${ok?0:1})">${ok?"Deshacer":"✔ Hecho"}</button>`:""}${admin?`<button class="sec mdel" aria-label="Borrar" onclick="mantBorra('${x.id}')">✕</button>`:""}</div>`}
 function calHTML(){const[y,m]=mMes;const pri=new Date(y,m,1);const off=(pri.getDay()+6)%7;const nd=new Date(y,m+1,0).getDate();const h=hoy();
  let c=DIAS.map(d=>`<div class="mcab">${d}</div>`).join("");for(let k=0;k<off;k++)c+=`<div></div>`;
@@ -56,7 +57,7 @@ window.mantBorraMes=async()=>{const[y,m]=mMes;const a=iso(new Date(y,m,1)),b=iso
  if(!confirm(`¿Borrar TODOS los mantenimientos de ${MESES[m]} ${y}?`))return;const r=await sb.from("mantenimientos").delete().gte("fecha",a).lte("fecha",b).select();
  if(r.error){msg("No se pudo borrar");return}await mantCarga(true);msg(`${(r.data||[]).length} mantenimientos borrados`);vMant()};
 window.mantManual=async()=>{const f=$("#ma_f").value,t=$("#ma_t").value,p=$("#ma_p").value;if(!f||!p.trim()){msg("Indica fecha y posiciones");return}
- const filas=posDeTexto(p,t).map(x=>({fecha:f,pos:x.pos,tipo:x.tipo,origen:"manual"}));if(!filas.length){msg("No reconozco ninguna posición dada de alta");return}
+ const filas=posLibres(p,t).map(x=>({fecha:f,pos:x.pos,tipo:x.tipo,origen:"manual"}));if(!filas.length){msg("No reconozco ninguna posición");return}
  await guarda(filas);mSel=f;vMant()};
 
 /* ---------- reconocimiento de posiciones y fechas ---------- */
@@ -75,18 +76,52 @@ function fechaDe(linea,y0,m0){const U=linea.toUpperCase().normalize("NFD").repla
  if((m=/\b(LUNES|MARTES|MIERCOLES|JUEVES|VIERNES|SABADO|DOMINGO|LUN|MAR|MIE|JUE|VIE|SAB|DOM)\.?\s*(\d{1,2})\b/.exec(U))){const d=+m[2];if(d>=1&&d<=31)return {f:iso(new Date(y0,m0,d)),q:m[0]}}
  if((m=/^\s*(?:DIA\s*)?(\d{1,2})\s*[:\-\|\.]/.exec(U))){const d=+m[1];if(d>=1&&d<=31)return {f:iso(new Date(y0,m0,d)),q:m[0]}}
  return null}
-function analiza(texto,y0,m0,tipoDef){const por=new Map();let cur=null,sueltas=0;
- String(texto||"").split(/\r?\n/).forEach(l0=>{let l=l0.replace(/[;\t]/g," , ");const fd=fechaDe(l,y0,m0);if(fd){cur=fd.f;l=l.replace(fd.q," ")}
-  const ps=posDeTexto(l,tipoDef);if(!ps.length)return;if(!cur){sueltas+=ps.length;return}
-  if(!por.has(cur))por.set(cur,[]);const a=por.get(cur);ps.forEach(p=>{if(!a.some(x=>x.pos==p.pos&&x.tipo==p.tipo))a.push(p)})});
- const lin=[...por.keys()].sort().map(f=>`${f}: ${por.get(f).map(x=>x.pos+" "+x.tipo).join(", ")}`);return {txt:lin.join("\n"),sueltas}}
+/* Posiciones libres (alta manual): «502, T30, 576/577 S» */
+function posLibres(txt,tipoDef){const out=[];String(txt||"").toUpperCase().split(/[,;\n]+/).forEach(it=>{const m=/^\s*(T?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\d{1,3}[A-Z]?)*)\s*(?:[\(\-]?\s*(MENSUAL|SEMESTRAL|M|S)\b)?/.exec(it);
+ if(!m)return;const pos=m[1].replace(/\s+/g,"");const t=m[2]?(m[2][0]=="S"?"S":"M"):tipoDef;if(!out.some(x=>x.pos==pos&&x.tipo==t))out.push({pos,tipo:t})});return out}
+const NORM=t=>String(t||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+/* Línea tipo «Inop SIN AVO posición T30 (E81) 20:30 LT a 23:30 LT [SIN MOVER PASARELA]» */
+function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I");const m=/POSICI[O0E]?N\s*[:.]?\s*(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
+ const pos=m[1].replace(/\s+/g,"");const resto=U.slice(m.index+m[0].length);const r=/\(([^)]{1,20})\)/.exec(resto);
+ const h=/(\d{1,2})\s*[:.,\-]?\s*(\d{2})\s*(?:L\s*[TI])?\s*(?:A|-|HASTA)\s*(\d{1,2})\s*[:.,\-]?\s*(\d{2})/.exec(resto);
+ let ps=pos;const rf=r?r[1].trim():"";if(/^E\d/i.test(rf)&&!/^T/.test(ps)){if(/^1\d\d$/.test(ps))ps="T"+ps.slice(1);else if(/^\d{1,2}$/.test(ps))ps="T"+ps}
+ return {pos:ps,ref:r?r[1].trim():null,hora_ini:h?h[1].padStart(2,"0")+":"+h[2]:null,hora_fin:h?h[3].padStart(2,"0")+":"+h[4]:null,notas:/SIN\s*MOVER/.test(resto)?"SIN MOVER PASARELA":null}}
+const tipoCab=l=>{const U=NORM(l);if(/PREVENTIV/.test(U))return null;return /MANTENIMIENTOS?\W*SEMESTRAL|^\W*SEMESTRAL/.test(U)?"S":/MANTENIMIENTOS?\W*MENSUAL|^\W*MENSUAL/.test(U)?"M":null};
+function añade(por,f,it){if(!por.has(f))por.set(f,[]);const a=por.get(f);if(!a.some(x=>x.pos==it.pos&&x.tipo==it.tipo))a.push(it)}
+/* Texto en orden de lectura (PDF, Excel, CSV o foto sin geometría útil) */
+function analiza(texto,y0,m0,tipoDef){const por=new Map();let cur=null,tipo=tipoDef,sueltas=0,buf=[],ult=null;
+ String(texto||"").split(/\r?\n/).forEach(l0=>{let l=l0.replace(/[;\t]/g," , ");const tc=tipoCab(l);if(tc=="M"&&buf.length==0)cur=null;if(tc)tipo=tc;
+  const fd=fechaDe(l,y0,m0);if(fd){cur=fd.f;l=l.replace(fd.q," ");buf.forEach(p=>añade(por,cur,p));buf=[]}
+  const it=itemLinea(l);if(!it&&ult&&/MOVER\s*PASARELA/.test(NORM(l))){ult.notas="SIN MOVER PASARELA";return}
+  const ps=it?[Object.assign(it,{tipo})]:posDeTexto(l,tipo);if(!ps.length)return;ult=ps[ps.length-1];if(!cur){buf.push(...ps);return}ps.forEach(p=>añade(por,cur,p))});
+ sueltas=buf.length;return {txt:aTexto(por),sueltas}}
+/* Foto: usa la posición de cada línea en la imagen. Cada día empieza en «Mantenimientos MENSUALES»; la fecha (columna izquierda)
+ cae dentro de la franja vertical de su día; el tipo es la última cabecera MENSUALES/SEMESTRALES por encima de la línea. */
+function analizaGeo(lines,y0,m0,tipoDef){const L=lines.map(l=>({t:l.text,y:(l.bbox.y0+l.bbox.y1)/2,x:l.bbox.x0})).sort((a,b)=>a.y-b.y);
+ const cabM=L.filter(l=>tipoCab(l.t)=="M"),cabs=L.filter(l=>tipoCab(l.t));if(cabM.length<2)return null;
+ const blo=y=>{let k=-1;cabM.forEach((c,i)=>{if(y>=c.y-4)k=i});return k};
+ const hx=cabM.map(c=>c.x).sort((a,b)=>a-b)[cabM.length>>1];const fechas=new Map(),dx=new Map();
+ L.forEach(l=>{const fd=fechaDe(l.t,y0,m0);if(fd&&!itemLinea(l.t)){const k=blo(l.y);const d=Math.abs(l.x-hx);if(k>=0&&(!fechas.has(k)||d<dx.get(k))){fechas.set(k,fd.f);dx.set(k,d)}}});
+ if(!fechas.size)return null;const por=new Map();let sueltas=0;
+ let ult=null;L.forEach(l=>{const it=itemLinea(l.t);if(!it){if(ult&&/MOVER\s*PASARELA/.test(NORM(l.t)))ult.notas="SIN MOVER PASARELA";return}ult=it;const k=blo(l.y);const f=fechas.get(k);if(!f){sueltas++;return}
+  let tipo=tipoDef;cabs.forEach(c=>{if(c.y<=l.y)tipo=tipoCab(c.t)});añade(por,f,Object.assign(it,{tipo}))});
+ return {txt:aTexto(por),sueltas}}
+function itTxt(x){return `${x.pos} ${x.tipo}${x.hora_ini?` ${x.hora_ini}-${x.hora_fin||""}`:""}${x.ref?` (${x.ref})`:""}${x.notas?` ${x.notas}`:""}`}
+function aTexto(por){return [...por.keys()].sort().map(f=>`${f}: ${por.get(f).map(itTxt).join("; ")}`).join("\n")}
 function canonico(txt){const filas=[],mal=[];String(txt||"").split(/\r?\n/).forEach((l,i)=>{if(!l.trim())return;const m=/^\s*(\d{4}-\d{2}-\d{2})\s*[:|]\s*(.*)$/.exec(l);
-  if(!m){mal.push(i+1);return}posDeTexto(m[2],"M").forEach(p=>filas.push({fecha:m[1],pos:p.pos,tipo:p.tipo,origen:"importado"}))});return {filas,mal}}
-
+  if(!m){mal.push(i+1);return}const items=m[2].includes(";")||/\d{1,2}:\d{2}/.test(m[2])?m[2].split(";"):m[2].split(",");
+  items.forEach(it=>{const k=/^\s*(T?\d{1,3}[A-Z]?(?:[\/\-]T?\d{1,3}[A-Z]?)*)\s*(M|S)?\b\s*(?:(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})?)?\s*(?:\(([^)]*)\))?\s*(.*)$/i.exec(it);if(!k)return;
+   filas.push({fecha:m[1],pos:k[1].toUpperCase(),tipo:(k[2]||"M").toUpperCase(),hora_ini:k[3]||null,hora_fin:k[4]||null,ref:k[5]?k[5].trim():null,notas:k[6]&&k[6].trim()?k[6].trim():null,origen:"importado"})})});return {filas,mal}}
 /* ---------- lectura de archivos ---------- */
 function carga(src,ok){return new Promise((res,rej)=>{if(ok()){res();return}const s=document.createElement("script");s.src=src;s.onload=()=>res();s.onerror=()=>rej(new Error("No se pudo cargar "+src));document.head.appendChild(s)})}
+function imgCanvas(file,giro){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const im=new Image();im.onload=()=>{const k=Math.min(1,2600/Math.max(im.width,im.height));
+ const w=Math.round(im.width*k),h=Math.round(im.height*k);const c=document.createElement("canvas");const r=giro%180!=0;c.width=r?h:w;c.height=r?w:h;const x=c.getContext("2d");
+ x.translate(c.width/2,c.height/2);x.rotate(giro*Math.PI/180);x.drawImage(im,-w/2,-h/2,w,h);URL.revokeObjectURL(u);res(c)};im.onerror=rej;im.src=u})}
 async function textoImagen(file,prog){await carga("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js",()=>window.Tesseract);
- const r=await Tesseract.recognize(file,"spa",{logger:m=>{if(m.status=="recognizing text")prog(Math.round(m.progress*100))}});return r.data.text}
+ const w=await Tesseract.createWorker("spa",1,{logger:m=>{if(m.status=="recognizing text")prog(Math.round(m.progress*100))}});let mejor=null;
+ try{for(const g of [0,90,270,180]){prog(0,g);const c=await imgCanvas(file,g);const r=await w.recognize(c);const n=(NORM(r.data.text).match(/POSICI[O0E]?N/g)||[]).length;
+   if(!mejor||n>mejor.n)mejor={n,data:r.data,g};if(n>=3)break}}finally{await w.terminate()}
+ return mejor?mejor.data:{text:"",lines:[]}}
 async function textoPdf(file){if(typeof cargaLib=="function")await cargaLib();const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;let out=[];
  for(let p=1;p<=pdf.numPages;p++){const tc=await (await pdf.getPage(p)).getTextContent();const filas=new Map();
   tc.items.forEach(it=>{const y=Math.round(it.transform[5]/3);if(!filas.has(y))filas.set(y,[]);filas.get(y).push([it.transform[4],it.str])});
@@ -96,6 +131,7 @@ async function textoExcel(file){await carga("https://cdnjs.cloudflare.com/ajax/l
  return wb.SheetNames.map(n=>XLSX.utils.sheet_to_csv(wb.Sheets[n],{dateNF:"yyyy-mm-dd"})).join("\n").replace(/,/g," , ")}
 
 /* ---------- importar (admin) ---------- */
+window._mantTest={analiza,analizaGeo,canonico};
 window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");return}if(!mImpMes)mImpMes=[...mMes];
  const op=[];for(let k=-1;k<13;k++){const d=new Date(new Date().getFullYear(),new Date().getMonth()+k,1);op.push([d.getFullYear(),d.getMonth()])}
  $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Importar programa de mantenimiento</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>
@@ -104,8 +140,8 @@ window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");
  <div><label>Tipo por defecto</label><select id="mi_tipo" onchange="mImpTipoSet(this.value)"><option value="M" ${mImpTipo=="M"?"selected":""}>Mensual</option><option value="S" ${mImpTipo=="S"?"selected":""}>Semestral</option></select></div></div>
  <label class="pri mfile">📷 Foto / archivo<input type="file" hidden accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" onchange="mantImpFile(this.files[0])"></label>
  <div id="mi_est" class="mu" style="font-size:12px;margin-top:6px"></div>
- <label>Programa reconocido · una línea por día (AAAA-MM-DD: posición tipo, …)</label>
- <textarea id="mi_txt" rows="10" style="font-family:ui-monospace,monospace;font-size:13px" oninput="mTxtSet(this.value)" placeholder="2026-11-03: 502 M, 504 M, 528 S">${esc(mTxt)}</textarea>
+ <label>Programa reconocido · una línea por día (AAAA-MM-DD: posición tipo hora-hora (ref); …)</label>
+ <textarea id="mi_txt" rows="10" style="font-family:ui-monospace,monospace;font-size:13px" oninput="mTxtSet(this.value)" placeholder="2026-10-26: T30 M 20:30-23:30 (E81); 386 M 13:00-16:00 (H15)">${esc(mTxt)}</textarea>
  <div id="mi_prev" class="mu" style="font-size:12px;margin-top:4px"></div>
  <button class="pri" style="margin-top:10px;width:100%" onclick="mantImpGuarda()">Guardar en el calendario</button>`;
  $("#sheet").style.display="flex";mPrev()};
@@ -113,14 +149,16 @@ window.mantImpMes=v=>{const[y,m]=v.split("-").map(Number);mImpMes=[y,m]};
 window.mImpTipoSet=v=>{mImpTipo=v};
 window.mTxtSet=v=>{mTxt=v;mPrev()};
 function mPrev(){const e=$("#mi_prev");if(!e)return;const{filas,mal}=canonico(mTxt);const dias=new Set(filas.map(x=>x.fecha)).size;
- e.innerHTML=filas.length?`${filas.length} mantenimientos en ${dias} día${dias>1?"s":""}${mal.length?` · <span style="color:#d32f2f">líneas sin fecha válida: ${mal.join(", ")}</span>`:""}`:(mal.length?`<span style="color:#d32f2f">Formato: AAAA-MM-DD: 502 M, 504 S</span>`:"")}
+ e.innerHTML=filas.length?`${filas.length} mantenimientos en ${dias} día${dias>1?"s":""}${mal.length?` · <span style="color:#d32f2f">líneas sin fecha válida: ${mal.join(", ")}</span>`:""}`:(mal.length?`<span style="color:#d32f2f">Formato: AAAA-MM-DD: T30 M 20:30-23:30 (E81); 386 S</span>`:"")}
 window.mantImpFile=async file=>{if(!file||mOcup)return;mOcup=true;const st=$("#mi_est");const set=t=>{if(st)st.textContent=t};
  try{let txt="";const n=file.name.toLowerCase();
-  if(/^image\//.test(file.type)){set("Leyendo la foto… (la primera vez descarga el lector, puede tardar)");txt=await textoImagen(file,p=>set(`Leyendo la foto… ${p}%`))}
+  let geo=null;
+  if(/^image\//.test(file.type)){set("Leyendo la foto… (la primera vez descarga el lector, puede tardar)");const d=await textoImagen(file,(p,g)=>set(g!==undefined&&g?`Girando la foto ${g}° y leyendo…`:`Leyendo la foto… ${p}%`));txt=d.text;
+   geo=d.lines&&d.lines.length?analizaGeo(d.lines,mImpMes[0],mImpMes[1],mImpTipo):null}
   else if(n.endsWith(".pdf")){set("Leyendo PDF…");txt=await textoPdf(file)}
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");txt=await textoExcel(file)}
   else txt=await file.text();
-  const r=analiza(txt,mImpMes[0],mImpMes[1],mImpTipo);
+  const r=(geo&&geo.txt)?geo:analiza(txt,mImpMes[0],mImpMes[1],mImpTipo);
   mTxt=r.txt;const t=$("#mi_txt");if(t)t.value=mTxt;mPrev();
   set(r.txt?`Leído «${file.name}». Revisa y corrige las líneas antes de guardar.${r.sueltas?` ${r.sueltas} posición(es) sin fecha asociada se han ignorado.`:""}`:
    `No he encontrado fechas con posiciones en «${file.name}». Escribe el programa a mano en el cuadro o prueba con una foto más nítida y recta.`);
@@ -160,5 +198,6 @@ function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.g
 .mdia .mnum{font-size:11px;font-weight:700;text-align:left;padding-left:2px}.mdia.hoy{border:2px solid #2e9e44}.mdia.hoy .mnum{color:#2e9e44}.mdia.sel{outline:2px solid var(--pr);outline-offset:-2px}
 .mdia.tiene{background:color-mix(in srgb,var(--pr) 6%,var(--card))}.mdia.todo{background:color-mix(in srgb,#2e9e44 8%,var(--card))}
 .mmini{font-size:9.5px;font-weight:700;border-radius:4px;padding:0 2px;color:#fff;background:var(--pr);line-height:1.35;white-space:nowrap;overflow:hidden}.mmini.s{background:#ef6c00}.mmini.ok{background:#2e9e44}.mmas{font-size:9.5px;color:var(--mu)}
+.mhora{font-size:12px;color:var(--mu);margin-top:1px}.mnota{font-size:12px;font-weight:700;color:#d32f2f;margin-top:2px}
 .mfile{display:flex!important;justify-content:center;align-items:center;margin-top:12px;padding:12px;border-radius:10px;cursor:pointer;font-weight:700}`;document.head.appendChild(st)})();
 })();
