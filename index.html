@@ -2731,7 +2731,7 @@ function gOrdena(){if(view!="tec")return;const i=inc.find(x=>x.id==gOT);const R=
  const mk=document.createComment("g");first.parentNode.insertBefore(mk,first);rest.forEach(d=>mk.parentNode.insertBefore(d,mk));mk.remove()}
 (function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);gOrdena();return r}})();
 /* ===== v13: botón «varita mágica» junto al polímetro: abre directamente la actuación más eficaz de la OT ===== */
-const IC_VARITA=`<svg width="26" height="26" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21 14.5 9.5"/><path d="m12.5 7.5 4 4" stroke-width="2.6"/><path d="M17.5 2.5v4M15.5 4.5h4M20.5 9.5v3M19 11h3M9.5 3v2.5M8.25 4.25h2.5"/></svg>`;
+const IC_VARITA=`<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M9.5 3l1.9 5.4L17 10.3l-5.6 1.9L9.5 17.6l-1.9-5.4L2 10.3l5.6-1.9z"/><path d="M18 13.5l1.1 3 3 1.1-3 1.1-1.1 3-1.1-3-3-1.1 3-1.1z"/></svg>`;
 function varita(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;
  const R=anaOT(i);if(R&&R.guia&&R.guia.length){anaGuia(R.guia[0].si);return}
  gTipo=[i.tipo,...(i.equipos||[])].find(t=>GUIA.tipos[t])||"PAS";go("tec");msg("Sin actuación clara para esta descripción: se abre la guía de campo");
@@ -2740,7 +2740,7 @@ function varita(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;if(typeof 
  const b=`<button class="sec gwr gvar" title="Actuación más eficaz" aria-label="Ir a la actuación más eficaz de esta OT" onclick="varita('${i.id}')">${IC_VARITA}</button>`;
  const re=new RegExp(`(<button class="sec gwr"[^>]*onclick="insOT\\('${i.id}'\\)">[\\s\\S]*?</button>)`);
  return h.replace('<span class="cacr">','<span class="cacr">'+b)}})();
-(function(){const st=document.createElement("style");st.textContent=".gvar{color:#ef6c00!important;border-color:#ef6c00!important}";document.head.appendChild(st)})();
+(function(){const st=document.createElement("style");st.textContent=".gvar{color:#2e9e44!important;border-color:#2e9e44!important;background:color-mix(in srgb,#2e9e44 12%,transparent)!important}";document.head.appendChild(st)})();
 /* ===== v14: «Seguridad antes de intervenir» siempre justo después de la caja «Guía de campo», como paso prioritario ===== */
 (function(){const st=document.createElement("style");st.textContent=`.gsegb{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#c62828;border-radius:999px;padding:2px 8px;margin-bottom:4px}`;document.head.appendChild(st)})();
 function gSegPrimero(){if(view!="tec")return;const seg=document.querySelector('#app details.gd[data-k="SEG"]');
@@ -2757,7 +2757,7 @@ function gSegPara(){document.querySelectorAll("details.gd.gpar").forEach(d=>d.cl
 ["wheel","touchmove"].forEach(e=>addEventListener(e,gSegPara,{passive:true,capture:true}));
 addEventListener("keydown",e=>{if(/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End| )$/.test(e.key))gSegPara()},{capture:true});
 /* ===== v16: varita mágica la primera de los iconos, más grande y parpadeando ===== */
-(function(){const st=document.createElement("style");st.textContent=`@keyframes gvarpar{0%,100%{background:var(--card);color:#ef6c00;box-shadow:0 0 0 0 #ef6c0000}50%{background:#ef6c00;color:#fff;box-shadow:0 0 0 4px #ef6c0055}}
+(function(){const st=document.createElement("style");st.textContent=`@keyframes gvarpar{0%,100%{background:var(--card);color:#2e9e44;box-shadow:0 0 0 0 #2e9e4400}50%{background:#2e9e44;color:#fff;box-shadow:0 0 0 4px #2e9e4455}}
 .cacr .gvar{animation:gvarpar 2s ease-in-out infinite}`;document.head.appendChild(st)})();
 /* ===== v18: botón impresora junto a «Actuación más eficaz»: informe paso a paso para el técnico (polímetro, seguridad,
  recorrido completo de cada elemento con bornas y mangueras, y medidas esperadas por bloque). Sin pasos repetidos. ===== */
