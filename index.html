@@ -2433,7 +2433,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v25"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v26"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -2703,7 +2703,7 @@ function gOrdena(){if(view!="tec")return;const i=inc.find(x=>x.id==gOT);const R=
  const top=sorted[0];if(pos(top.dataset.k)==999)return;
  const anc=document.getElementById("anag")||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
  if(anc&&anc.nextElementSibling!==top)anc.insertAdjacentElement("afterend",top);
- top.classList.add("gef");if(!top.dataset.ef){top.dataset.ef=1;top.open=true;const sm=top.querySelector("summary");if(sm)sm.insertAdjacentHTML("afterbegin",`<span class="gefb">⭐ Actuación más eficaz</span><br>`)}
+ top.classList.add("gef");if(!top.dataset.ef){top.dataset.ef=1;const sm=top.querySelector("summary");if(sm)sm.insertAdjacentHTML("afterbegin",`<span class="gefb">⭐ Actuación más eficaz</span><br>`)}
  const rest=sorted.slice(1),first=all.filter(d=>d!==top)[0];if(!first)return;
  const mk=document.createComment("g");first.parentNode.insertBefore(mk,first);rest.forEach(d=>mk.parentNode.insertBefore(d,mk));mk.remove()}
 (function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);gOrdena();return r}})();
@@ -2728,7 +2728,7 @@ function gSegPrimero(){if(view!="tec")return;const seg=document.querySelector('#
 new MutationObserver(()=>{const seg=document.querySelector('#app details.gd[data-k="SEG"]');if(!seg)return;const p=seg.previousElementSibling;if(!p||!/Guía de campo/.test((p.querySelector&&p.querySelector("h3")||{}).textContent||""))gSegPrimero()}).observe(document.getElementById("app"),{childList:true});
 /* ===== v15: la caja de Seguridad parpadea hasta que el usuario hace scroll ===== */
 (function(){const st=document.createElement("style");st.textContent=`@keyframes gsegpar{0%,100%{background:var(--card);box-shadow:0 0 0 0 #c6282800}50%{background:#fde2e2;box-shadow:0 0 0 4px #c6282855}}
-@keyframes gsegw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.15;transform:scale(1.15)}}.gsegw{display:inline-block}details.gd.gseg.gpar .gsegw{animation:gsegw 1s ease-in-out infinite}`;document.head.appendChild(st)})();
+@keyframes gsegw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.15;transform:scale(1.15)}}.gsegw{display:inline-block}details.gd.gseg.gpar .gsegw{animation:gsegw 2s ease-in-out infinite}`;document.head.appendChild(st)})();
 function gSegPara(){document.querySelectorAll("details.gd.gpar").forEach(d=>d.classList.remove("gpar"))}
 (function(){const o=gSegPrimero;gSegPrimero=function(){o();const seg=document.querySelector('#app details.gd[data-k="SEG"]');if(seg&&!seg.dataset.par){seg.dataset.par=1;seg.classList.add("gpar")}}})();
 ["wheel","touchmove"].forEach(e=>addEventListener(e,gSegPara,{passive:true,capture:true}));
@@ -3021,11 +3021,21 @@ function segQuita(k){const i=inc.find(x=>x.id==gOT);if(!i)return;i.segEl=[].conc
  después «Seguridad antes de intervenir». La varita lleva a ella. La caja roja parpadea cada 2 s. ===== */
 gSegPrimero=function(){if(view!="tec")return;const c=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));if(!c)return;
  const red=document.getElementById("gsegl")||document.getElementById("gpte");const seg=document.querySelector('#app details.gd[data-k="SEG"]');
- if(red&&c.nextElementSibling!==red)c.insertAdjacentElement("afterend",red);const anc=red||c;
- if(seg){if(anc.nextElementSibling!==seg)anc.insertAdjacentElement("afterend",seg);seg.classList.add("gseg");
+ if(seg&&c.nextElementSibling!==seg)c.insertAdjacentElement("afterend",seg);const anc=seg||c;
+ if(red&&anc.nextElementSibling!==red)anc.insertAdjacentElement("afterend",red);
+ if(seg){seg.classList.add("gseg");
   if(!seg.dataset.pr){seg.dataset.pr=1;const t=seg.querySelector("summary b");if(t&&t.innerHTML.includes("⚠️"))t.innerHTML=t.innerHTML.replace("⚠️",`<span class="gsegw">⚠️</span>`)}
   if(!seg.dataset.par){seg.dataset.par=1;seg.classList.add("gpar")}}};
 (function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);gSegPrimero();return r}})();
 (function(){const st=document.createElement("style");st.textContent=`@keyframes pupar{0%,100%{box-shadow:0 0 0 0 #c6282800;border-color:#c62828}50%{box-shadow:0 0 0 5px #c6282866;border-color:#ff5252;background:color-mix(in srgb,#c62828 14%,var(--card))}}
 .card.pucard{animation:pupar 2s ease-in-out infinite}`;document.head.appendChild(st)})();
+/* ===== v26: «Análisis de la OT» con el mismo formato que «Actuación más eficaz» (recuadro naranja + etiqueta ⭐);
+ las dos cajas aparecen PLEGADAS al entrar en una OT (la varita sigue abriendo la que corresponde). ===== */
+(function(){const st=document.createElement("style");st.textContent=`#anag.gefan{border:2px solid #ef6c00}#anag.gefan details.anap{border:0;background:none;padding:0;margin:0}`;document.head.appendChild(st)})();
+const plegOT=new Set(),anaAbOT=new Set();
+(function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);const a=document.getElementById("anag");
+ if(a){a.classList.add("gefan");const d=a.querySelector("details.anap");if(d){const sm=d.querySelector("summary");if(sm&&!sm.querySelector(".gefb"))sm.insertAdjacentHTML("afterbegin",`<span class="gefb">⭐ Análisis de OT</span><br>`);
+  d.open=anaAbOT.has(gOT);d.ontoggle=()=>{d.open?anaAbOT.add(gOT):anaAbOT.delete(gOT)}}}
+ const g=document.querySelector("#app details.gd.gef");if(g&&!plegOT.has(gOT)){g.open=false;if(typeof gAbierto!="undefined")gAbierto.delete(g.dataset.k)}
+ if(gOT)plegOT.add(gOT);return r}})();
 </script></body></html>
