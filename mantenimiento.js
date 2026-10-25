@@ -81,12 +81,12 @@ function posLibres(txt,tipoDef){const out=[];String(txt||"").toUpperCase().split
  if(!m)return;const pos=m[1].replace(/\s+/g,"");const t=m[2]?(m[2][0]=="S"?"S":"M"):tipoDef;if(!out.some(x=>x.pos==pos&&x.tipo==t))out.push({pos,tipo:t})});return out}
 const NORM=t=>String(t||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 /* Línea tipo «Inop SIN AVO posición T30 (E81) 20:30 LT a 23:30 LT [SIN MOVER PASARELA]» */
-function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I");const m=/POSICI[O0E6]?N\s*[:.]?\s*(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
+function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I");const m=/POSICI[O0E6]?N\W{0,3}(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
  const pos=m[1].replace(/\s+/g,"");const resto=U.slice(m.index+m[0].length);const r=/\(([^)]{1,20})\)/.exec(resto);
  const h=/(\d{1,2})\s*[:.,\-]?\s*(\d{2})\s*(?:L\s*[TI])?\s*(?:A|-|HASTA)\s*(\d{1,2})\s*[:.,\-]?\s*(\d{2})/.exec(resto);
- let ps=pos;const rf=r?r[1].trim().replace(/£/g,"E").replace(/^([A-Z])\s*[I|L]\s*(\d)/,"$11$2").replace(/^([A-Z])\s+(\d)/,"$1$2"):"";if(/^E\d/i.test(rf)&&!/^T/.test(ps)){if(/^1\d\d$/.test(ps))ps="T"+ps.slice(1);else if(/^\d{1,2}$/.test(ps))ps="T"+ps}
+ let ps=pos;const rf=r?r[1].trim().replace(/£/g,"E").replace(/\$/g,"S").replace(/^([A-Z])\s*[I|L]\s*(\d)/,"$11$2").replace(/^([A-Z])\s+(\d)/,"$1$2"):"";if(/^[B-E]\d/i.test(rf)&&!/^T/.test(ps)){if(/^1\d\d$/.test(ps))ps="T"+ps.slice(1);else if(/^\d{1,2}$/.test(ps))ps="T"+ps}
  return {pos:ps,ref:rf||null,hora_ini:h?h[1].padStart(2,"0")+":"+h[2]:null,hora_fin:h?h[3].padStart(2,"0")+":"+h[4]:null,notas:/SIN\s*MOVER/.test(resto)?"SIN MOVER PASARELA":null}}
-const tipoCab=l=>{const U=NORM(l);if(/PREVENTIV/.test(U))return null;return /MANTENIMIENTOS?\W*SEMESTRAL|^\W*SEMESTRAL/.test(U)?"S":/MANTENIMIENTOS?\W*MENSUAL|^\W*MENSUAL/.test(U)?"M":null};
+const tipoCab=l=>{const U=NORM(l);if(/PREVENTIV|POSICI/.test(U))return null;return /SEMESTRAL/.test(U)?"S":/MENSUAL/.test(U)?"M":null};
 function añade(por,f,it){if(!por.has(f))por.set(f,[]);const a=por.get(f);if(!a.some(x=>x.pos==it.pos&&x.tipo==it.tipo))a.push(it)}
 /* Texto en orden de lectura (PDF, Excel, CSV o foto sin geometría útil) */
 function analiza(texto,y0,m0,tipoDef){const por=new Map();let cur=null,tipo=tipoDef,sueltas=0,buf=[],ult=null;
@@ -98,14 +98,25 @@ function analiza(texto,y0,m0,tipoDef){const por=new Map();let cur=null,tipo=tipo
 /* Foto: usa la posición de cada línea en la imagen. Cada día empieza en «Mantenimientos MENSUALES»; la fecha (columna izquierda)
  cae dentro de la franja vertical de su día; el tipo es la última cabecera MENSUALES/SEMESTRALES por encima de la línea. */
 function analizaGeo(lines,y0,m0,tipoDef){const L=lines.map(l=>({t:l.text,y:(l.bbox.y0+l.bbox.y1)/2,x:l.bbox.x0})).sort((a,b)=>a.y-b.y);
- const cabM=L.filter(l=>tipoCab(l.t)=="M"),cabs=L.filter(l=>tipoCab(l.t));if(cabM.length<2)return null;
- const blo=y=>{let k=-1;cabM.forEach((c,i)=>{if(y>=c.y-4)k=i});return k};
- const hx=cabM.map(c=>c.x).sort((a,b)=>a-b)[cabM.length>>1];const fechas=new Map(),dx=new Map();
- L.forEach(l=>{const fd=fechaDe(l.t,y0,m0);if(fd&&!itemLinea(l.t)){const k=blo(l.y);const d=Math.abs(l.x-hx);if(k>=0&&(!fechas.has(k)||d<dx.get(k))){fechas.set(k,fd.f);dx.set(k,d)}}});
- if(!fechas.size)return null;const por=new Map();let sueltas=0;
- let ult=null;L.forEach(l=>{const it=itemLinea(l.t);if(!it){if(ult&&/MOVER\s*PASARELA/.test(NORM(l.t)))ult.notas="SIN MOVER PASARELA";return}ult=it;const k=blo(l.y);const f=fechas.get(k);if(!f){sueltas++;return}
-  let tipo=tipoDef;cabs.forEach(c=>{if(c.y<=l.y)tipo=tipoCab(c.t)});añade(por,f,Object.assign(it,{tipo}))});
- return {txt:aTexto(por),sueltas}}
+ const cabs=L.filter(l=>tipoCab(l.t));const its=L.filter(l=>itemLinea(l.t));if(!its.length)return null;
+ /* fechas de la columna izquierda (la más cercana en x a la columna de cabeceras/posiciones) */
+ const ix=its.map(l=>l.x).sort((a,b)=>a-b)[its.length>>1];
+ let F=L.map(l=>{const fd=itemLinea(l.t)?null:fechaDe(l.t,y0,m0);return fd?{f:fd.f,y:l.y,x:l.x}:null}).filter(Boolean).filter(d=>d.x<ix);
+ if(!F.length)return null;const fx=F.map(d=>d.x).sort((a,b)=>a-b)[F.length>>1];F=F.filter(d=>Math.abs(d.x-fx)<Math.max(120,Math.abs(ix-fx)*.6));
+ const vistos=new Set();F=F.filter(d=>!vistos.has(d.f)&&vistos.add(d.f)).sort((a,b)=>a.y-b.y);if(!F.length)return null;
+ /* límites de día: cada «MENSUALES» y cada «SEMESTRALES» que sigue a otro «SEMESTRALES»; si entre dos fechas no hay límite, se parte a mitad */
+ let B=cabs.filter((c,i)=>tipoCab(c.t)=="M"||(i>0&&tipoCab(cabs[i-1].t)=="S")).map(c=>c.y-4);
+ for(let k=0;k+1<F.length;k++){if(!B.some(b=>b>F[k].y&&b<F[k+1].y))B.push((F[k].y+F[k+1].y)/2)}B.sort((a,b)=>a-b);
+ const tramo=y=>{let k=0;B.forEach((b,i)=>{if(y>=b)k=i+1});return k};
+ const fT=new Map();F.forEach(d=>{const k=tramo(d.y);if(!fT.has(k))fT.set(k,d.f)});
+ const sig=(f,n)=>{const[a,b,c]=f.split("-").map(Number);return iso(new Date(a,b-1,c+n))};
+ for(let k=0;k<=B.length;k++){if(fT.has(k))continue;for(let q=k-1;q>=0;q--)if(fT.has(q)){const hay=L.some(l=>tramo(l.y)==k&&itemLinea(l.t));if(hay)fT.set(k,sig(fT.get(q),k-q));break}}
+ const fechaY=y=>{const k=tramo(y);if(fT.has(k))return fT.get(k);let m=null,md=1e9;F.forEach(d=>{const dd=Math.abs(d.y-y);if(dd<md){md=dd;m=d.f}});return m};
+ const por=new Map();let ult=null;
+ L.forEach(l=>{const it=itemLinea(l.t);if(!it){if(ult&&/MOVER\s*PASARELA/.test(NORM(l.t)))ult.notas="SIN MOVER PASARELA";return}ult=it;
+  const f=fechaY(l.y);const k=tramo(l.y);let tipo=tipoDef;cabs.forEach(c=>{if(c.y<=l.y&&tramo(c.y+4)==k)tipo=tipoCab(c.t)});
+  añade(por,f,Object.assign(it,{tipo}))});
+ return {txt:aTexto(por),sueltas:0}}
 function itTxt(x){return `${x.pos} ${x.tipo}${x.hora_ini?` ${x.hora_ini}-${x.hora_fin||""}`:""}${x.ref?` (${x.ref})`:""}${x.notas?` ${x.notas}`:""}`}
 function aTexto(por){return [...por.keys()].sort().map(f=>`${f}: ${por.get(f).map(itTxt).join("; ")}`).join("\n")}
 function canonico(txt){const filas=[],mal=[];String(txt||"").split(/\r?\n/).forEach((l,i)=>{if(!l.trim())return;const m=/^\s*(\d{4}-\d{2}-\d{2})\s*[:|]\s*(.*)$/.exec(l);
