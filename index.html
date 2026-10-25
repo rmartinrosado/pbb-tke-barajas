@@ -71,7 +71,7 @@ const hoy=()=>new Date().toISOString().slice(0,10);
 const ahora=()=>{const d=new Date();return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
 function toggleModo(){admin=false;closeSheet();if(!tecnico){render();pedirTec();return}setO();return;view="dash";filtro="todas";ptxt="";render();scrollTo(0,0)}
 function go(v,f){view=v;if(f)filtro=f;render();scrollTo(0,0)}
-const P={home:'M3 11l9-8 9 8v10H3z',plus:'M12 5v14M5 12h14',list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',plans:'M4 4h16v16H4zM4 9h16M9 9v11',mult:'M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM8.5 4.5h7v4h-7zM12 11a3 3 0 1 0 0 6a3 3 0 1 0 0-6M12 14l1.6-1.6M9 20h.01M15 20h.01',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.2-.5-.5-2.2z',check:'M5 12l5 5 9-10'};
+const P={home:'M3 11l9-8 9 8v10H3z',plus:'M12 5v14M5 12h14',list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',plans:'M4 4h16v16H4zM4 9h16M9 9v11',mult:'M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM8.5 4.5h7v4h-7zM12 11a3 3 0 1 0 0 6a3 3 0 1 0 0-6M12 14l1.6-1.6M9 20h.01M15 20h.01',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.2-.5-.5-2.2z',check:'M5 12l5 5 9-10',ia:'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z'};
 P.plc='M4.5 2.5h15a2.5 2.5 0 0 1 2.5 2.5v14a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 19V5a2.5 2.5 0 0 1 2.5-2.5zM5 5.5h14v7.5H5zM7 11.3V7.2h1.3a1.05 1.05 0 0 1 0 2.1H7M10.6 7.2v4.1h1.8M17.2 7.7a2 2 0 1 0 0 3.1M5 15.8h3.4v2.7H5zM10.3 15.8h3.4v2.7h-3.4zM15.6 15.8H19v2.7h-3.4z';
 const IC=k=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${P[k]}"/></svg>`;
 function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||admin))||(view=="tec"&&!(tecnico||admin)))view="dash";
@@ -96,7 +96,7 @@ function vDash(){
  const ab=inc.filter(i=>i.estado=="abierta"),ce=inc.length-ab.length;
  $("#app").innerHTML=`<div class="grid"><div class="card kpi"><b>${ab.length}</b>OT abiertas</div><div class="card kpi"><b>${ce}</b>OT cerradas</div></div>
  <div class="grid" style="margin-bottom:10px"><button class="btn" onclick="go('new')"><span>${IC('plus')}</span>Registrar OT</button>
- <button class="btn" onclick="resTec()" ${tecnico||admin?"":"disabled"}><span>${IC('check')}</span>Resolución OT</button>
+ <button class="btn" onclick="resTec()" ${tecnico||admin?"":"disabled"}><span>${IC('ia')}</span>Resolución Claude</button>
  <button class="btn" onclick="go('track','todas')"><span>${IC('list')}</span>Seguimiento OT</button>
  <button class="btn" onclick="go('plans')" ${tecnico||admin?"":"disabled"}><span>${IC('plans')}</span>Planos y esquemas</button></div>
  <h3 style="margin:18px 2px 8px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)">Órdenes de Trabajo Abiertas</h3>${ab.map(card).join("")||'<div class="card mu">Sin averías abiertas.</div>'}`;
@@ -336,7 +336,7 @@ function cab(){const h=document.querySelector("header small");if(h&&user)h.textC
 function barra(){const bs=document.getElementById("bsal");if(bs)bs.style.display=user?"block":"none";const b=document.getElementById("mbar");if(!b)return;b.style.display=user?"flex":"none";if(!user)return;
  const m=admin?"a":tecnico?"t":"o";
  const N={a:"Administrador",o:"Operador",t:"Técnico"};
- const O={a:["Editar y eliminar","Añadir posición PBB","Exportar CSV","Registrar OT","Resolución OT","Seguimiento OT","Planos","Técnico"],o:["Registrar OT","Resolución OT","Seguimiento OT"],t:["Registrar OT","Resolución OT","Seguimiento OT","Planos","Técnico"]};
+ const O={a:["Editar y eliminar","Añadir posición PBB","Exportar CSV","Registrar OT","Resolución Claude","Seguimiento OT","Planos","Técnico"],o:["Registrar OT","Resolución Claude","Seguimiento OT"],t:["Registrar OT","Resolución Claude","Seguimiento OT","Planos","Técnico"]};
  let tu="";if(m=="o")tu=`<button type="button" class="mopt ${turno?"":"warn"}" onclick="pedirTurnoO()">${turno?"Turno "+turno+" ▾":"Cargar turno"}</button>`;else if(m=="t"&&turno)tu=`<span class="mopt">Turno ${turno}</span>`;
  b.innerHTML=`<span class="mmode ${m}">${N[m]}</span>`+tu+O[m].map(x=>`<span class="mopt">${x}</span>`).join("")}
 function pedirTurnoO(){$("#sheetc").innerHTML=`<h3 style="margin:0">Cargar turno</h3><label>Selecciona tu turno</label><div class="grid" style="grid-template-columns:1fr 1fr 1fr">${["Mañana","Tarde","Noche"].map(t=>`<button class="btn" style="justify-content:center;padding:14px 4px" onclick="selTurnoO('${t}')">${t}</button>`).join("")}</div><button class="sec" style="width:100%;margin-top:12px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"}
