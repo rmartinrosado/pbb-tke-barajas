@@ -22,7 +22,7 @@ const mTAb=new Set();
 window.mantTT=(k,o)=>{o?mTAb.add(k):mTAb.delete(k)};
 const listaTerm=l=>{const g=[];l.forEach(x=>{const t=termMant(x.pos);let e=g.find(z=>z.t==t);if(!e)g.push(e={t,l:[]});e.l.push(x)});
  const f=(l[0]&&l[0].fecha)||"";
- return g.map(e=>{const k=f+"|"+e.t;const pen=e.l.filter(x=>x.estado!="hecho").length;
+ return g.map(e=>{const k=f+"|"+e.t;const pen=e.l.filter(x=>x.estado=="pendiente").length;
   return `<details class="mtgrp" ${mTAb.has(k)?"open":""} ontoggle="mantTT('${k}',this.open)"><summary><span class="mtnom">${esc(e.t)}</span><span class="mtpos">${e.l.map(x=>chip(x)).join("")}</span><span class="mtpen">${pen?pen+" pend.":"✔"}</span></summary>${e.l.map(filaDia).join("")}</details>`}).join("")};
 const puede=()=>typeof user!="undefined"&&user&&(tecnico||admin);
 
@@ -33,11 +33,11 @@ async function mantCarga(forzar){if(mCarg&&!forzar)return;if(typeof sb=="undefin
 window.mantCarga=mantCarga;
 
 /* ---------- vista principal ---------- */
-function chip(x,grande){const ok=x.estado=="hecho";
- return `<span class="mchip ${x.tipo=="S"?"s":"m"} ${ok?"ok":""} ${grande?"g":""}"><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":""}</span>`}
+function chip(x,grande){const ok=x.estado=="hecho",cx=x.estado=="cancelado";
+ return `<span class="mchip ${x.tipo=="S"?"s":"m"} ${ok?"ok":""} ${cx?"cx":""} ${grande?"g":""}"><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":cx?"✕":""}</span>`}
 /* v40: cada posición del día es una caja desplegable con «Incidencias anteriores» (OT del mes previo en esa posición)
  y «Trabajos realizados» (cuaderno de notas del mantenimiento). Al guardar las notas la caja se pliega. */
-window.mAltaAb=false;
+window.mAltaAb=false;window.mNoReAb=false;
 const mAb=new Set(),mCerr=new Set(),mBorr={};
 const abierta=x=>mAb.has(x.id);/* v48: todo plegado por defecto */
 function incPrevias(x){if(typeof inc=="undefined"||!Array.isArray(inc))return [];const[y,m,d]=x.fecha.split("-").map(Number);const desde=iso(new Date(y,m-2,d));
@@ -49,9 +49,9 @@ function cajaTrab(x){const v=x.id in mBorr?mBorr[x.id]:(x.trabajos||"");
  return `<div class="msec"><div class="msect">📝 Trabajos realizados${x.trabajos_at?` <span>${esc(x.trabajos_por||"")} · ${new Date(x.trabajos_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>`:""}</div>
  ${puede()?`<textarea class="mtrab" rows="5" placeholder="Anota los trabajos efectuados en el mantenimiento de hoy…" oninput="mantBorr('${x.id}',this.value)">${esc(v)}</textarea><button class="pri" style="margin-top:8px;width:100%" onclick="mantTrab('${x.id}')">💾 Guardar trabajos</button>`
  :`<div class="mnotas">${x.trabajos?esc(x.trabajos):'<span class="mu">Sin anotaciones.</span>'}</div>`}</div>`}
-function filaDia(x){const ok=x.estado=="hecho";const ab=abierta(x);
- return `<div class="mcaja ${ab?"ab":""}"><div class="mfila ${ok?"ok":""}">${chip(x,true)}<div class="mfinfo" onclick="mantTog('${x.id}')" style="cursor:pointer"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}${ok?`<div class="mu">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${x.hecho_at?" · "+new Date(x.hecho_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}</div>`:`<div class="mu">Pendiente</div>`}<div class="mtog">${ab?"▲ Plegar":`▼ ${x.trabajos?"📝 Trabajos anotados · ":""}Ver incidencias y trabajos`}</div></div>
- ${puede()?`<button class="${ok?"sec":"pri"} mbtn" onclick="mantHecho('${x.id}',${ok?0:1})">${ok?"Deshacer":"✔ Hecho"}</button>`:""}${admin?`<button class="sec mdel" aria-label="Borrar" onclick="mantBorra('${x.id}')">✕</button>`:""}</div>
+function filaDia(x){const ok=x.estado=="hecho",cx=x.estado=="cancelado";const ab=abierta(x);
+ return `<div class="mcaja ${ab?"ab":""}"><div class="mfila ${ok?"ok":""} ${cx?"cx":""}">${chip(x,true)}<div class="mfinfo" onclick="mantTog('${x.id}')" style="cursor:pointer"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}${ok?`<div class="mu">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${x.hecho_at?" · "+new Date(x.hecho_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}</div>`:cx?`<div class="mcxt">✕ No realizada${x.tecnico?" · "+esc(x.tecnico):""}${x.hecho_at?" · "+new Date(x.hecho_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}</div>`:`<div class="mu">Pendiente</div>`}${puede()&&!ok?`<label class="mcanc" onclick="event.stopPropagation()"><input type="checkbox" ${cx?"checked":""} onchange="mantCanc('${x.id}',this.checked)"> Cancelado por Operaciones</label>`:""}<div class="mtog">${ab?"▲ Plegar":`▼ ${x.trabajos?"📝 Trabajos anotados · ":""}Ver incidencias y trabajos`}</div></div>
+ ${puede()&&!cx?`<button class="${ok?"sec":"pri"} mbtn" onclick="mantHecho('${x.id}',${ok?0:1})">${ok?"Deshacer":"✔ Hecho"}</button>`:""}${admin?`<button class="sec mdel" aria-label="Borrar" onclick="mantBorra('${x.id}')">✕</button>`:""}</div>
  ${ab?`<div class="mcuerpo">${cajaInc(x)}${cajaTrab(x)}</div>`:""}</div>`}
 window.mantTog=id=>{const x=MANT.find(z=>z.id==id);if(!x)return;if(abierta(x)){mAb.delete(id);mCerr.add(id)}else{mCerr.delete(id);mAb.add(id)}vMant()};
 window.mantBorr=(id,v)=>{mBorr[id]=v};
@@ -62,19 +62,19 @@ window.mantTrab=async id=>{const v=(id in mBorr?mBorr[id]:"").trim();const x=MAN
  delete mBorr[id];mAb.delete(id);mCerr.add(id);msg("Trabajos guardados ✔");vMant()};
 function calHTML(){const[y,m]=mMes;const pri=new Date(y,m,1);const off=(pri.getDay()+6)%7;const nd=new Date(y,m+1,0).getDate();const h=hoy();
  let c=DIAS.map(d=>`<div class="mcab">${d}</div>`).join("");for(let k=0;k<off;k++)c+=`<div></div>`;
- for(let d=1;d<=nd;d++){const s=iso(new Date(y,m,d));const l=delDia(s);const pend=l.filter(x=>x.estado!="hecho").length;
-  c+=`<button class="mdia ${s==h?"hoy":""} ${s==mSel?"sel":""} ${l.length?(pend?"tiene":"todo"):""}" onclick="mantDia('${s}')"><span class="mnum">${d}</span>${l.map(x=>`<span class="mmini ${x.tipo=="S"?"s":"m"} ${x.estado=="hecho"?"ok":""}">${esc(String(x.pos))}</span>`).join("")}</button>`}
+ for(let d=1;d<=nd;d++){const s=iso(new Date(y,m,d));const l=delDia(s);const pend=l.filter(x=>x.estado=="pendiente").length;
+  c+=`<button class="mdia ${s==h?"hoy":""} ${s==mSel?"sel":""} ${l.length?(pend?"tiene":"todo"):""}" onclick="mantDia('${s}')"><span class="mnum">${d}</span>${l.map(x=>`<span class="mmini ${x.tipo=="S"?"s":"m"} ${x.estado=="hecho"?"ok":x.estado=="cancelado"?"cx":""}">${esc(String(x.pos))}</span>`).join("")}</button>`}
  return `<div class="mcal">${c}</div>`}
 function vMant(){if(!mMes){const d=new Date();mMes=[d.getFullYear(),d.getMonth()]}if(!mSel)mSel=hoy();
- const h=hoy(),lh=delDia(h),ls=delDia(mSel);const pend=lh.filter(x=>x.estado!="hecho").length;
- const delMes=MANT.filter(x=>x.fecha.startsWith(mMes[0]+"-"+String(mMes[1]+1).padStart(2,"0")));
+ const h=hoy(),lh=delDia(h),ls=delDia(mSel);const pend=lh.filter(x=>x.estado=="pendiente").length;
+ const delMes=MANT.filter(x=>x.fecha.startsWith(mMes[0]+"-"+String(mMes[1]+1).padStart(2,"0")));const noRe=delMes.filter(x=>x.estado=="cancelado").sort((a,b)=>a.fecha.localeCompare(b.fecha)||tOrd(a)-tOrd(b));
  $("#app").innerHTML=`<div class="card"><div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Mantenimiento preventivo</h3><div class="mhdr">${admin?`<button class="sec" style="width:auto;padding:6px 12px" onclick="mantImp()">📷 Importar</button>`:""}${(()=>{const e=evtDe(mSel);return e?`<span class="mevt">Evento SGC <b>${esc(e)}</b></span>`:""})()}</div></div>
- <div class="mley"><span class="mchip m"><b>M</b></span> Mensual <span class="mchip s"><b>S</b></span> Semestral <span class="mchip m ok"><b>✔</b></span> Hecho</div></div>
+ <div class="mley"><span class="mchip m"><b>M</b></span> Mensual <span class="mchip s"><b>S</b></span> Semestral <span class="mchip m ok"><b>✔</b></span> Hecho <span class="mchip m cx"><b>✕</b></span> Cancelado</div></div>
  <div class="card mhoy"><div class="mhoyt">🔧 Hoy · ${fLarga(h)}</div>${lh.length?`<div class="mu" style="margin:2px 0 6px">${pend?`${pend} pendiente${pend>1?"s":""} de ${lh.length}`:"Todo hecho ✔"}</div>${listaTerm(lh)}`:`<div class="mu" style="margin-top:6px">${mCarg?"Sin mantenimientos programados para hoy.":"Cargando…"}</div>`}</div>
  <div class="card"><div class="row mnav" style="flex-wrap:nowrap"><button class="sec" onclick="mantMes(-1)">‹</button><b>${MESES[mMes[1]][0].toUpperCase()+MESES[mMes[1]].slice(1)} ${mMes[0]}</b><button class="sec" onclick="mantMes(1)">›</button></div>
  <div class="mu" style="font-size:12px;margin:4px 0 6px">${delMes.length} mantenimiento${delMes.length==1?"":"s"} este mes · toca un día para ver sus posiciones</div>${calHTML()}</div>
  ${mSel!=h?`<div class="card"><div class="mhoyt" style="color:var(--tx)">📅 ${fLarga(mSel)}</div>${ls.length?listaTerm(ls):`<div class="mu" style="margin-top:6px">Sin mantenimientos este día.</div>`}</div>`:""}
- ${admin?`<details class="card malta" ${mAltaAb?"open":""} ontoggle="mAltaAb=this.open"><summary><b>Alta manual forzada</b></summary><div class="mu" style="font-size:12px;margin-top:6px">Posiciones separadas por comas; añade M o S detrás si es distinto del tipo elegido (ej. 502, 504 S).</div>
+ ${admin?`<details class="card malta" ${mAltaAb?"open":""} ontoggle="mAltaAb=this.open"><summary><b>Alta manual forzada</b>${noRe.length?` <span class="mnoren">${noRe.length} no realizada${noRe.length>1?"s":""}</span>`:""}</summary>${noRe.length?`<details class="mnore" ${mNoReAb?"open":""} ontoggle="mNoReAb=this.open"><summary>✕ No realizadas en ${MESES[mMes[1]]} ${mMes[0]} · cancelado por Operaciones (${noRe.length})</summary><div class="mu" style="font-size:12px;margin:4px 0">Pendientes de nueva programación por el SGC.</div>${noRe.map(x=>`<div class="mnorf">${chip(x)}<div class="mnori"><b>${fCorta(x.fecha)}</b>${x.hora_ini?` · ${esc(x.hora_ini)}${x.hora_fin?"–"+esc(x.hora_fin):""}`:""}${x.ref?` · ${esc(x.ref)}`:""}<br><span class="mu">${esc(x.tecnico||"")}</span></div><button class="sec mrep" onclick="mantRepro('${x.id}')">Reprogramar</button></div>`).join("")}</details>`:""}<div class="mu" style="font-size:12px;margin-top:6px">Posiciones separadas por comas; añade M o S detrás si es distinto del tipo elegido (ej. 502, 504 S).</div>
   <div class="grid" style="margin-top:6px"><div><label>Fecha</label><input id="ma_f" type="date" value="${mSel}"></div><div><label>Tipo</label><select id="ma_t"><option value="M">Mensual</option><option value="S">Semestral</option></select></div></div>
   <label>Posiciones</label><input id="ma_p" inputmode="numeric" placeholder="Ej. 502, 504, 528 S"><button class="pri" style="margin-top:10px;width:100%" onclick="mantManual()">Añadir al calendario</button>
   ${delMes.length?`<button class="sec" style="margin-top:8px;width:100%;color:#d32f2f;border-color:#d32f2f" onclick="mantBorraMes()">🗑 Borrar todo ${MESES[mMes[1]]} ${mMes[0]}</button>`:""}</details>`:""}`;
@@ -85,6 +85,11 @@ window.mantDia=s=>{mSel=s;vMant();setTimeout(()=>{const c=[...document.querySele
 window.mantHecho=async(id,hecho)=>{const t=(typeof tecNombre!="undefined"&&tecNombre)||(user&&user.email)||"";
  const r=await sb.from("mantenimientos").update(hecho?{estado:"hecho",tecnico:t,hecho_at:new Date().toISOString()}:{estado:"pendiente",tecnico:null,hecho_at:null}).eq("id",id).select();
  if(r.error||!r.data||!r.data.length){msg("No se pudo guardar (sin permiso)");return}const k=MANT.findIndex(x=>x.id==id);if(k>=0)MANT[k]=r.data[0];msg(hecho?"Mantenimiento hecho ✔":"Marcado como pendiente");vMant()};
+window.mantCanc=async(id,on)=>{const t=(typeof tecNombre!="undefined"&&tecNombre)||(user&&user.email)||"";
+ const r=await sb.from("mantenimientos").update(on?{estado:"cancelado",tecnico:t,hecho_at:new Date().toISOString()}:{estado:"pendiente",tecnico:null,hecho_at:null}).eq("id",id).select();
+ if(r.error||!r.data||!r.data.length){msg("No se pudo guardar (sin permiso)");vMant();return}const k=MANT.findIndex(x=>x.id==id);if(k>=0)MANT[k]=r.data[0];msg(on?"Cancelado por Operaciones: pasa a no realizadas del mes":"Vuelve a pendiente");vMant()};
+/* reprogramar una no realizada: rellena el alta forzada con su posición y tipo */
+window.mantRepro=id=>{const x=MANT.find(z=>z.id==id);if(!x)return;$("#ma_t").value=x.tipo;$("#ma_p").value=String(x.pos);const f=$("#ma_f");f.focus();f.scrollIntoView({block:"center",behavior:"smooth"});msg("Elige la nueva fecha que dé el SGC y pulsa «Añadir al calendario»")};
 window.mantBorra=async id=>{if(!confirm("¿Borrar este mantenimiento del calendario?"))return;const r=await sb.from("mantenimientos").delete().eq("id",id).select();
  if(r.error||!r.data||!r.data.length){msg("No se pudo borrar");return}MANT=MANT.filter(x=>x.id!=id);vMant()};
 window.mantBorraMes=async()=>{const[y,m]=mMes;const a=iso(new Date(y,m,1)),b=iso(new Date(y,m+1,0));
@@ -235,7 +240,7 @@ function colsTerm(l){const ORD=["T4","T4S","T123"],g={};l.forEach(x=>{const t=te
  const num=v=>String(v.pos).replace(/^T/i,"");
  return `<div class="mcols" style="grid-template-columns:repeat(${ts.length},minmax(0,1fr))">${ts.map(t=>`<div class="mcol"><div class="mcolt">${esc(t)}</div>${g[t].sort((a,b)=>num(a).localeCompare(num(b),undefined,{numeric:true})||a.tipo.localeCompare(b.tipo)).map(x=>chip(x)).join("")}</div>`).join("")}</div>`}
 function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.getElementById("dmant");const l=delDia(hoy());
- const html=l.length?`<div class="mhoyt">🔧 Mantenimiento preventivo hoy <span class="mhoyn">${l.filter(x=>x.estado!="hecho").length} pendiente(s) ›</span></div>${colsTerm(l)}`
+ const html=l.length?`<div class="mhoyt">🔧 Mantenimiento preventivo hoy <span class="mhoyn">${l.filter(x=>x.estado=="pendiente").length} pendiente(s) ›</span></div>${colsTerm(l)}`
   :`<div class="mhoyt" style="color:var(--mu)">🔧 Sin mantenimiento preventivo hoy</div>`;
  if(old){old.innerHTML=html;return}const d=document.createElement("div");d.id="dmant";d.className="card mhoy";d.style.cursor="pointer";d.onclick=()=>go("mant");d.innerHTML=html;
  const app=document.getElementById("app");const g=app&&app.querySelector(".grid");if(g)g.insertAdjacentElement("afterend",d);else if(app)app.prepend(d)};
@@ -245,6 +250,10 @@ function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.g
 .mchip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;font-size:12px;border:1.5px solid var(--pr);color:var(--pr);background:color-mix(in srgb,var(--pr) 10%,transparent)}
 .mchip i{font-style:normal;font-weight:800;font-size:10px;opacity:.85}.mchip.s{border-color:#ef6c00;color:#ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
+.mchip.cx{border-color:#9e9e9e;color:#757575;background:color-mix(in srgb,#9e9e9e 12%,transparent);text-decoration:line-through}.mmini.cx{background:#9e9e9e;text-decoration:line-through}
+.mfila.cx{opacity:.8}.mcxt{color:#757575;font-weight:600;font-size:13px}.mcanc{display:flex;align-items:center;gap:6px;font-size:13px;margin-top:4px;color:var(--tx);cursor:pointer}.mcanc input{width:18px;height:18px;margin:0;accent-color:#757575}
+.mnoren{font-size:11px;font-weight:700;color:#fff;background:#9e9e9e;border-radius:999px;padding:1px 8px;margin-left:6px}
+.mnore{margin:8px 0;border:1.5px solid #9e9e9e;border-radius:10px;padding:6px 10px}.mnore>summary{cursor:pointer;font-weight:700;font-size:13px;color:#616161}.mnorf{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--bd)}.mnori{flex:1;min-width:0;font-size:13px}.mrep{width:auto;margin:0;padding:6px 10px;font-size:13px}
 .malta>summary{cursor:pointer;list-style:none}.malta>summary::-webkit-details-marker{display:none}.malta>summary::before{content:"▸ ";color:var(--pr)}.malta[open]>summary::before{content:"▾ "}
 .mtgrp{border-top:1px solid var(--bd)}.mtgrp>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 0;flex-wrap:nowrap}.mtgrp>summary::-webkit-details-marker{display:none}
 .mtgrp>summary::before{content:"▸";color:var(--pr);font-size:13px;flex:none}.mtgrp[open]>summary::before{content:"▾"}
