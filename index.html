@@ -3223,4 +3223,16 @@ Analiza la actuación y las observaciones con la documentación del proyecto PBB
  b.onclick=()=>resClaude(id);
  const can=[...sc.querySelectorAll("button")].filter(x=>/^\s*Cancelar\s*$/.test(x.textContent)).pop();
  if(can)can.insertAdjacentElement("afterend",b);else sc.appendChild(b);return r}})();
+
+/* ===== v52: papelera de la Actuación junto al botón «Actuación guiada» (a su derecha) ===== */
+(function(){const o=card;card=function(i){let h=o(i);if(!(tecnico||admin)||!i.act)return h;
+ const del=`<div class="gblqf"><button class="sec gbdel" title="Borrar actuación" aria-label="Borrar actuación" onclick="delAct('${i.id}')">${IC('trash')}</button></div>`;
+ const blq=`<div class="gblq"><div class="mu" style="white-space:pre-wrap"><b>Actuación:</b> ${esc(i.act)}</div>${del}</div>`;
+ if(h.indexOf(blq)<0)return h;h=h.replace(blq,`<div class="mu" style="white-space:pre-wrap"><b>Actuación:</b> ${esc(i.act)}</div>`);
+ const btn=`<button class="sec gbdel actdel" title="Borrar actuación" aria-label="Borrar actuación" onclick="delAct('${i.id}')">${IC('trash')}</button>`;
+ const k=h.indexOf('<div class="gfrow">');if(k<0)return h;const e=k+'<div class="gfrow">'.length;
+const det=h.slice(e).startsWith('<details')?h.indexOf('</details>',e)+'</details>'.length:e;
+ return h.slice(0,det)+btn+h.slice(det)}})();
+(function(){const st=document.createElement("style");st.textContent=`.gfrow{display:flex;align-items:flex-start;gap:8px}.gfrow>details{flex:0 1 auto;min-width:0}.gfrow>.actdel{flex:none;height:38px;margin:0}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v52"}})();
 </script></body></html>
