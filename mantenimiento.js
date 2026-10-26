@@ -56,7 +56,7 @@ window.mantTrab=async id=>{const v=(id in mBorr?mBorr[id]:"").trim();const x=MAN
 function calHTML(){const[y,m]=mMes;const pri=new Date(y,m,1);const off=(pri.getDay()+6)%7;const nd=new Date(y,m+1,0).getDate();const h=hoy();
  let c=DIAS.map(d=>`<div class="mcab">${d}</div>`).join("");for(let k=0;k<off;k++)c+=`<div></div>`;
  for(let d=1;d<=nd;d++){const s=iso(new Date(y,m,d));const l=delDia(s);const pend=l.filter(x=>x.estado!="hecho").length;
-  c+=`<button class="mdia ${s==h?"hoy":""} ${s==mSel?"sel":""} ${l.length?(pend?"tiene":"todo"):""}" onclick="mantDia('${s}')"><span class="mnum">${d}</span>${l.slice(0,3).map(x=>`<span class="mmini ${x.tipo=="S"?"s":"m"} ${x.estado=="hecho"?"ok":""}">${esc(String(x.pos))}</span>`).join("")}${l.length>3?`<span class="mmas">+${l.length-3}</span>`:""}</button>`}
+  c+=`<button class="mdia ${s==h?"hoy":""} ${s==mSel?"sel":""} ${l.length?(pend?"tiene":"todo"):""}" onclick="mantDia('${s}')"><span class="mnum">${d}</span>${l.map(x=>`<span class="mmini ${x.tipo=="S"?"s":"m"} ${x.estado=="hecho"?"ok":""}">${esc(String(x.pos))}</span>`).join("")}</button>`}
  return `<div class="mcal">${c}</div>`}
 function vMant(){if(!mMes){const d=new Date();mMes=[d.getFullYear(),d.getMonth()]}if(!mSel)mSel=hoy();
  const h=hoy(),lh=delDia(h),ls=delDia(mSel);const pend=lh.filter(x=>x.estado!="hecho").length;
@@ -247,10 +247,10 @@ function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.g
 .mbtn{width:auto!important;margin:0!important;padding:8px 12px!important;font-size:13px}.mdel{width:auto!important;margin:0!important;padding:8px 10px!important;color:#d32f2f!important;border-color:#d32f2f!important}
 .mnav{align-items:center;justify-content:space-between}.mnav button{width:auto!important;margin:0!important;padding:6px 16px!important;font-size:18px}
 .mcal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.mcab{text-align:center;font-size:11px;font-weight:700;color:var(--mu);padding:2px 0}
-.mdia{min-height:62px;border:1px solid var(--bd);border-radius:8px;background:var(--card);padding:2px;display:flex;flex-direction:column;align-items:stretch;gap:1px;margin:0;width:auto;color:var(--tx);font:inherit;cursor:pointer;overflow:hidden}
+.mdia{min-height:62px;min-width:0;border:1px solid var(--bd);border-radius:8px;background:var(--card);padding:2px;display:flex;flex-direction:column;align-items:stretch;gap:1px;margin:0;width:auto;color:var(--tx);font:inherit;cursor:pointer;overflow:hidden}
 .mdia .mnum{font-size:11px;font-weight:700;text-align:left;padding-left:2px}.mdia.hoy{border:2px solid #2e9e44}.mdia.hoy .mnum{color:#2e9e44}.mdia.sel{outline:2px solid var(--pr);outline-offset:-2px}
 .mdia.tiene{background:color-mix(in srgb,var(--pr) 6%,var(--card))}.mdia.todo{background:color-mix(in srgb,#2e9e44 8%,var(--card))}
-.mmini{font-size:9.5px;font-weight:700;border-radius:4px;padding:0 2px;color:#fff;background:var(--pr);line-height:1.35;white-space:nowrap;overflow:hidden}.mmini.s{background:#ef6c00}.mmini.ok{background:#2e9e44}.mmas{font-size:9.5px;color:var(--mu)}
+.mmini{font-size:8.5px;font-weight:700;border-radius:3px;padding:0 1px;text-align:center;letter-spacing:-.2px;color:#fff;background:var(--pr);line-height:1.35;white-space:nowrap;overflow:hidden}.mmini.s{background:#ef6c00}.mmini.ok{background:#2e9e44}.mmas{font-size:9.5px;color:var(--mu)}
 .mhora{font-size:12px;color:var(--mu);margin-top:1px}.mnota{font-size:12px;font-weight:700;color:#d32f2f;margin-top:2px}
 .mhdr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}.mevt{font-size:12px;font-weight:600;color:var(--mu);white-space:nowrap}.mevt b{color:var(--tx);font-size:14px;letter-spacing:.5px}
 .mcaja{border-top:1px solid var(--bd)}.mcaja .mfila{border-top:none;padding:12px 0}.mcaja.ab{background:color-mix(in srgb,var(--pr) 3%,transparent);margin:0 -12px;padding:0 12px 12px;border-radius:10px}
