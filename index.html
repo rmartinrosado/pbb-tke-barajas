@@ -108,7 +108,7 @@ function vNew(){ultTipo="PAS";
  <label>Número de orden (CGA)</label><div style="display:flex;align-items:stretch"><span id="pf_v" style="display:flex;align-items:center;padding:0 12px;background:var(--pr);color:var(--prt);border-radius:6px 0 0 6px;font-weight:700;letter-spacing:1px">${pref}</span><div style="display:flex;flex-direction:column;width:38px"><button type="button" onclick="cambiaPref(1)" aria-label="Subir" style="flex:1;background:var(--pr);color:var(--prt);border:0;border-left:1px solid #fff5;border-bottom:1px solid #fff5;font-size:12px;padding:0">▲</button><button type="button" onclick="cambiaPref(-1)" aria-label="Bajar" style="flex:1;background:var(--pr);color:var(--prt);border:0;border-left:1px solid #fff5;font-size:12px;padding:0">▼</button></div><input id="f_ord" inputmode="numeric" maxlength="3" placeholder="000" oninput="this.value=this.value.replace(/[^0-9]/g,'')" style="border-radius:0 6px 6px 0;letter-spacing:3px;font-weight:600"></div><div class="mu" style="margin-top:4px">Introduce solo los 3 últimos dígitos</div>
  <label>Reportado por</label><select id="f_rep" onchange="$('#f_otro').classList.toggle('hide',this.value!='Otro')"><option>CGA</option><option>Responsable Turno</option><option>Otro</option></select>
  <input id="f_otro" class="hide" style="margin-top:6px" placeholder="¿Quién?">
- <label>Descripción de los Trabajos / Actuación</label><textarea id="f_desc" rows="3"></textarea>
+ <label>Descripción de la incidencia</label><textarea id="f_desc" rows="3"></textarea>
  <label>Hora de inicio</label><input id="f_hi" type="time" value="${ahora()}">
  <button class="pri" style="margin-top:14px" onclick="guardar()">Guardar incidencia</button></div>`;
 }
@@ -3251,4 +3251,5 @@ function otEsPAS(i){if(!i)return false;if([i.tipo,...(i.equipos||[])].includes("
 (function(){const o=puentesOT;puentesOT=function(i){return otEsPAS(i)?o(i):[]}})();
 (function(){const o=segOT;segOT=function(i){return otEsPAS(i)?o(i):null}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v54"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v55"}})();
 </script></body></html>
