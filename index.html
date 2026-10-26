@@ -864,7 +864,7 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v48"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v49"}})();
 iniciar();
 /* ===== v37: inspección cable a cable (rutas de medida desde RCS_PLANOS) =====
  Cada paso: p = punto de medida, e = valor esperado, x = qué falla si no se cumple, f = folio RCS_PLANOS. */
@@ -1076,7 +1076,7 @@ function pMuestra(blob,nom){const url=URL.createObjectURL(blob);const file=new F
  <button class="sec" id="p_x" style="width:100%">Cerrar</button></div>`;document.body.appendChild(o);
  const sh=o.querySelector("#p_sh");if(sh)sh.onclick=async()=>{try{await navigator.share({files:[file],title:"Inspección cable a cable"})}catch(e){}};
  o.querySelector("#p_x").onclick=()=>{o.remove();setTimeout(()=>URL.revokeObjectURL(url),6e4)}}
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v48"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v49"}})();
 
 /* ===== v40: inspección cable a cable para todos los módulos PLC (E-A0…E-A10, P-A0…P-A6) + autoselección desde la OT ===== */
 const INS_E=["E-A0","E-A1","E-A2","E-A3","E-A4","E-A5","E-A6","E-A7","E-A8","E-A9","E-A10"],INS_P=["P-A0","P-A1","P-A2","P-A3","P-A4","P-A5","P-A6"];
@@ -1159,7 +1159,7 @@ function gInsHTML(){gIAuto();const R=RUTAS[gIMod]||RUTAS["E-A9"];
  <button class="pri" style="width:100%;margin-top:8px" onclick="gIPdf()">📄 Generar PDF A4 · Inspección cable a cable</button>`;
  return h}
 (function(){const st=document.createElement("style");st.textContent=`.gmods button.vac{opacity:.45}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v48"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v49"}})();
 
 /* ===== v41: llave en las OT abiertas de Inicio → solo la inspección cable a cable de esa OT ===== */
 const gNorm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
@@ -1189,18 +1189,18 @@ function insCierra(){const o=document.querySelector(".insov");if(o)o.remove();do
 (function(){const st=document.createElement("style");st.textContent=`.cbad{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.gwr{width:46px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;border-color:var(--pr);color:var(--pr)}.gwr svg{width:22px;height:22px}
 .insov{position:fixed;inset:0;z-index:35;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .insh{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;background:var(--card);border-bottom:2px solid var(--pr)}.insh button{width:auto;padding:8px 14px;white-space:nowrap}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v48"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v49"}})();
 
 /* ===== v44: botones de la tarjeta OT: en Inicio sin FOTO PLC / multímetro / Cerrar; en Seguimiento a la derecha junto a Editar ===== */
 (function(){const st=document.createElement("style");st.textContent=`.gfrow{min-height:0!important}.cacts{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}.cacl,.cacr{display:flex;align-items:center;gap:8px}.cacl button,.cacr button{width:auto;margin:0}.cacr{margin-left:auto}.gfb2{display:flex;align-items:center;gap:6px;height:42px;padding:0 12px;font-weight:700;color:var(--tx)}.gfb2 svg{width:18px;height:18px}.gdl2{width:44px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;color:#ff6b6b;border-color:#ff6b6b}.gdl2 svg{width:20px;height:20px}.cacr .gwr{height:42px;width:46px}.cacr .gdl2{width:44px}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v48"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v49"}})();
 
 /* ===== v47: la barra de modo y opciones solo se ve con la cuenta rmartinrosado@gmail.com o el técnico RAUL MARTIN ===== */
 function verBarra(){return !!user&&((user.email||"").toLowerCase()=="rmartinrosado@gmail.com"||/^RA[UÚ]L\b/i.test(tecNombre||""))}
 (function(){const ob=barra;barra=function(){ob();const b=document.getElementById("mbar");if(!b||!user||verBarra())return;
  /* v48: resto de técnicos: solo turno y nombre */
  if(turno||tecNombre){b.style.display="flex";b.innerHTML=`<div class="mrow1">${turno?`<span class="mopt">Turno ${esc(turno)}</span>`:""}${tecNombre?`<span class="mopt">${esc(tecNombre)}</span>`:""}</div>`}else b.style.display="none"}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v48"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v49"}})();
 try{barra()}catch(e){}
 
 /* ===== v49: ubicación física de cada punto de la inspección cable a cable =====
@@ -2491,7 +2491,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v48"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v49"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -3170,4 +3170,14 @@ function bqBorra(){bqOT="";const e=$("#bq");if(e){e.value="";e.focus()}bqAplica(
 .bqbox input{flex:1;min-width:0;border:0!important;background:transparent!important;font-size:18px;font-weight:600;padding:10px 4px;outline:none;box-shadow:none!important}.bqbox input::-webkit-search-cancel-button{display:none}
 .bqlupa{font-size:18px}.bqx{width:auto!important;margin:0!important;padding:6px 10px!important;border:0!important;background:transparent!important;color:var(--mu)!important;font-size:18px;visibility:hidden}.bqres{font-size:12px;margin-top:4px;min-height:14px}`;document.head.appendChild(st)})();
 </script>
-<script src="mantenimiento.js?v=48"></script><script src="importar-ot.js?v=44"></script></body></html>
+<script src="mantenimiento.js?v=48"></script><script src="importar-ot.js?v=44"></script>
+<script>/* ===== v49: botones de la tarjeta OT en una sola línea (Editar, borrar, varita, polímetro, PLC, FOTO PLC) ===== */
+(function(){const st=document.createElement("style");st.textContent=`.cacts{flex-wrap:nowrap!important;gap:5px!important}
+.cacl,.cacr{flex-wrap:nowrap!important;gap:5px!important;min-width:0}.cacr{margin-left:auto}
+.cacts button{height:38px!important;margin:0!important;flex:none}
+.cacts .gwr,.cacts .gotdel,.cacts .gdl2{width:38px!important;height:38px!important;padding:0!important}
+.cacts .gwr svg,.cacts .gotdel svg,.cacts .gdl2 svg{width:20px!important;height:20px!important}.cacts .gplc svg{width:22px!important;height:22px!important}
+.cacl>button.sec:not(.gwr):not(.gotdel){padding:0 9px!important;font-size:14px}
+.cacts .gfb2{padding:0 8px!important;gap:4px!important;font-size:12px!important;white-space:nowrap}.cacts .gfb2 svg{width:16px!important;height:16px!important}
+@media(max-width:374px){.cacts,.cacl,.cacr{gap:3px!important}.cacts .gwr,.cacts .gotdel,.cacts .gdl2{width:34px!important}.cacts .gfb2{font-size:10.5px!important;padding:0 5px!important}.cacl>button.sec:not(.gwr):not(.gotdel){padding:0 6px!important;font-size:13px}}`;document.head.appendChild(st)})();
+</script></body></html>
