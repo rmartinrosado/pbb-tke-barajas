@@ -51,7 +51,7 @@ const SOS_AL=[
 const tess=()=>window.Tesseract?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";s.onload=ok;s.onerror=ko;document.head.appendChild(s)});
 const lista=()=>{const P=(typeof POS!="undefined"&&Array.isArray(POS))?POS:[];return P.map(p=>`<option value="${esc(String(p))}">`).join("")};
 window.sosRap=function(){foto=null;fotoURL="";
- $("#sheetc").innerHTML=`<div class="sosrh"><img src="sos.png" alt=""><div><h3 style="margin:0">SOS · Primera actuación en campo</h3><div class="mu" style="font-size:12px">Posición y alarma activada (o foto de la Magelis). Se muestra solo el puente provisional.</div></div></div>
+ $("#sheetc").innerHTML=`<div class="sosrh"><img src="sos.png" alt=""><div><h3 style="margin:0">SOS - ACTUACIÓN DIRECTA</h3><div class="mu" style="font-size:12px">Posición y alarma activada (o foto de la Magelis). Se muestra solo el puente provisional.</div></div></div>
  <label>Posición PBB</label><input id="sr_p" list="sr_pl" inputmode="numeric" placeholder="Ej. 544" autocomplete="off"><datalist id="sr_pl">${lista()}</datalist>
  <label>Alarma activada</label><select id="sr_a"><option value="">— Elige la alarma de la Magelis —</option>${SOS_AL.map(([g,l])=>`<optgroup label="${g}">${l.map(([n,v])=>`<option value="${esc(v)}">${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
  <details class="srtx"><summary class="mu">Escribir la alarma a mano (opcional)</summary><textarea id="sr_t" rows="2" placeholder="Ej. ZAPATA ACTIVADA · LÍMITE EXTENSIÓN"></textarea></details>
