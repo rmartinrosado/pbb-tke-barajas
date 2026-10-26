@@ -70,8 +70,8 @@ window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpp
  res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos)}</b></div>${S?`<div class="card pucard">${segHTML(ot,S)}</div>`:""}${P.length?`<div class="card pucard">${puenteHTML(ot,P)}</div>`:""}${leido}`;
  res.scrollIntoView({block:"start",behavior:"smooth"})};
 const st=document.createElement("style");st.textContent=`.grid.sosgrid{grid-template-columns:1fr 1fr 74px!important;align-items:stretch}
-.sosk{display:flex!important;align-items:center;justify-content:center;padding:6px!important;margin:0!important;width:auto!important;background:var(--card,#fff);border:1px solid var(--bd,#e3dbec);cursor:pointer}
-.sosk img{width:58px;height:58px;border-radius:50%;animation:sosparp 2s ease-in-out infinite;filter:drop-shadow(0 2px 4px rgba(198,40,40,.4))}
+.sosk{display:flex!important;align-items:center;justify-content:center;align-self:stretch;box-sizing:border-box;padding:6px!important;margin:0 0 10px!important;width:auto!important;height:auto!important;background:var(--card,#fff)!important;border:1px solid var(--bd,#e3dbec)!important;border-top:3px solid var(--ac)!important;border-radius:12px!important;cursor:pointer}
+.sosk img{width:54px;height:54px;border-radius:50%;animation:sosparp 2s ease-in-out infinite;filter:drop-shadow(0 2px 4px rgba(198,40,40,.4))}
 .sosrh{display:flex;gap:10px;align-items:center;margin-bottom:6px}.sosrh img{width:44px;height:44px;flex:none}
 .srfoto{display:block;text-align:center;padding:12px;margin-top:4px;cursor:pointer}.srtx{margin-top:8px}.srtx summary{cursor:pointer;font-size:13px}`;document.head.appendChild(st);
 })();
