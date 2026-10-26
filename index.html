@@ -864,7 +864,7 @@ addEventListener("resize",gAltoCab);addEventListener("orientationchange",()=>set
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k=="COT"&&d.open){gAltoCab();gPintaCot()}},true);
 /* Si otro técnico sube la foto a la OT, se actualiza en la caja de cotejo */
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 iniciar();
 /* ===== v37: inspección cable a cable (rutas de medida desde RCS_PLANOS) =====
  Cada paso: p = punto de medida, e = valor esperado, x = qué falla si no se cumple, f = folio RCS_PLANOS. */
@@ -1076,7 +1076,7 @@ function pMuestra(blob,nom){const url=URL.createObjectURL(blob);const file=new F
  <button class="sec" id="p_x" style="width:100%">Cerrar</button></div>`;document.body.appendChild(o);
  const sh=o.querySelector("#p_sh");if(sh)sh.onclick=async()=>{try{await navigator.share({files:[file],title:"Inspección cable a cable"})}catch(e){}};
  o.querySelector("#p_x").onclick=()=>{o.remove();setTimeout(()=>URL.revokeObjectURL(url),6e4)}}
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 
 /* ===== v40: inspección cable a cable para todos los módulos PLC (E-A0…E-A10, P-A0…P-A6) + autoselección desde la OT ===== */
 const INS_E=["E-A0","E-A1","E-A2","E-A3","E-A4","E-A5","E-A6","E-A7","E-A8","E-A9","E-A10"],INS_P=["P-A0","P-A1","P-A2","P-A3","P-A4","P-A5","P-A6"];
@@ -1159,7 +1159,7 @@ function gInsHTML(){gIAuto();const R=RUTAS[gIMod]||RUTAS["E-A9"];
  <button class="pri" style="width:100%;margin-top:8px" onclick="gIPdf()">📄 Generar PDF A4 · Inspección cable a cable</button>`;
  return h}
 (function(){const st=document.createElement("style");st.textContent=`.gmods button.vac{opacity:.45}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 
 /* ===== v41: llave en las OT abiertas de Inicio → solo la inspección cable a cable de esa OT ===== */
 const gNorm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
@@ -1189,18 +1189,18 @@ function insCierra(){const o=document.querySelector(".insov");if(o)o.remove();do
 (function(){const st=document.createElement("style");st.textContent=`.cbad{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.gwr{width:46px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;border-color:var(--pr);color:var(--pr)}.gwr svg{width:22px;height:22px}
 .insov{position:fixed;inset:0;z-index:35;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .insh{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;background:var(--card);border-bottom:2px solid var(--pr)}.insh button{width:auto;padding:8px 14px;white-space:nowrap}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 
 /* ===== v44: botones de la tarjeta OT: en Inicio sin FOTO PLC / multímetro / Cerrar; en Seguimiento a la derecha junto a Editar ===== */
 (function(){const st=document.createElement("style");st.textContent=`.gfrow{min-height:0!important}.cacts{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}.cacl,.cacr{display:flex;align-items:center;gap:8px}.cacl button,.cacr button{width:auto;margin:0}.cacr{margin-left:auto}.gfb2{display:flex;align-items:center;gap:6px;height:42px;padding:0 12px;font-weight:700;color:var(--tx)}.gfb2 svg{width:18px;height:18px}.gdl2{width:44px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;color:#ff6b6b;border-color:#ff6b6b}.gdl2 svg{width:20px;height:20px}.cacr .gwr{height:42px;width:46px}.cacr .gdl2{width:44px}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 
 /* ===== v47: la barra de modo y opciones solo se ve con la cuenta rmartinrosado@gmail.com o el técnico RAUL MARTIN ===== */
 function verBarra(){return !!user&&((user.email||"").toLowerCase()=="rmartinrosado@gmail.com"||/^RA[UÚ]L\b/i.test(tecNombre||""))}
 (function(){const ob=barra;barra=function(){ob();const b=document.getElementById("mbar");if(!b||!user||verBarra())return;
  /* v48: resto de técnicos: solo turno y nombre */
  if(turno||tecNombre){b.style.display="flex";b.innerHTML=`<div class="mrow1">${turno?`<span class="mopt">Turno ${esc(turno)}</span>`:""}${tecNombre?`<span class="mopt">${esc(tecNombre)}</span>`:""}</div>`}else b.style.display="none"}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 try{barra()}catch(e){}
 
 /* ===== v49: ubicación física de cada punto de la inspección cable a cable =====
@@ -1231,7 +1231,7 @@ function gUbiHTML(q){const zs=gUbiZ(q);const cab=gUbiCab(q);
 function gRecorridoHTML(S){const seq=[];S.p.forEach(q=>gUbiZ(q).forEach(k=>{if(seq[seq.length-1]!=k)seq.push(k)}));
  return `<div class="grec"><b>Recorrido:</b> ${seq.map(k=>`<span class="gubc" style="--uk:${UBI[k].k}">${esc(UBI[k].c)}</span>`).join(" → ")}</div>`}
 (function(){const st=document.createElement("style");st.textContent=`.gubi{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:3px 0 2px}.gubc{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;color:var(--uk);border:1px solid var(--uk);background:color-mix(in srgb,var(--uk) 10%,transparent);white-space:nowrap}.gubn{font-size:11px;opacity:.75;flex-basis:100%}.grec{font-size:12px;margin:6px 0;display:flex;flex-wrap:wrap;gap:4px;align-items:center}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 
 /* ===== v50: conexiones intermedias en el PDF (elemento → bornas / regleteros → cable, hilo, manguera → ubicación) =====
  Rutas detalladas (★): se toman de los propios puntos de medida. Rutas básicas: lectura automática del folio RCS_PLANOS
@@ -1386,7 +1386,7 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);
  pPie(d);
  const nom=pT(`Inspeccion_cable_a_cable_${ot&&ot.orden?ot.orden+"_":""}${gIMod}_${S.id}.pdf`).replace(/\s+/g,"_");
  pMuestra(d.output("blob"),nom)}
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 
 /* ===== v51: rutas cable a cable REALES trazadas de RCS_PLANOS (cableado.js) =====
  Cada punto lleva: borna o elemento, tipo de cable (hilo de armario con sección y color, o manguera con su designación),
@@ -2491,7 +2491,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  const l=$("#r_l"),c=$("#r_c");if(!l||!c||l.type!="hidden")return;
  const mk=(el,t,v)=>{const lb=document.createElement("label");lb.textContent=t;el.type="time";el.value=v;el.before(lb)};
  mk(l,"Hora de llegada",i.hLle||"");mk(c,"Hora final de cierre",ahora())}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v50"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 /* ===== v94: horas obligatorias y en orden al cerrar; cuenta atrás de llegada con alarma sonora ===== */
 const hMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
 const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite paso de medianoche) */
@@ -3200,4 +3200,27 @@ const PAS_CA_SI=GUIA.tipos.PAS.s.push({t:"PAS bloqueada por carro de aire (A/A)"
  if(!r.mods.includes("E-A2"))r.mods.unshift("E-A2");else r.mods=["E-A2"].concat(r.mods.filter(m=>m!="E-A2"));
  r.elem=["E-S100","E-X61"].concat(r.elem.filter(t=>!/^(E-S100|E-X61|C-S9|C-M6|E-Q8|E-K8[12])/.test(t)));
  return r}})();
+</script><script>
+/* ===== v51: botón Claude abajo en «Resolución»: copia Actuación + Observaciones (con los datos de la OT) y abre el proyecto PBB TKE ===== */
+function resClaude(id){const i=inc.find(x=>x.id==id);if(!i)return;
+ const a=($("#r_a")||{}).value||"",o=($("#r_o")||{}).value||"";
+ i.act=a.trim();i.obs=o.trim();sv("pbb_inc",inc);/* se guarda como borrador; la OT sigue abierta */
+ const pr=`Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden||"-"}.
+Descripción de la OT: ${i.desc||"(sin descripción)"}${i.def?`\nDefinición de la avería: ${i.def}`:""}${i.com?`\nComentario: ${i.com}`:""}
+Horas: inicio ${i.hIni||"-"} · llegada ${($("#r_l")||{}).value||i.hLle||"-"}
+Actuación realizada hasta ahora:
+${i.act||"(sin actuación)"}
+Observaciones:
+${i.obs||"(sin observaciones)"}
+Analiza la actuación y las observaciones con la documentación del proyecto PBB TKE (planos, guía de averías y procedimientos). Necesito el diagnóstico y los pasos para resolver la avería. Empieza con un apartado «Siguiente actuación en campo» con pasos numerados, breves y claros.`;
+ try{navigator.clipboard.writeText(pr).catch(()=>{})}catch(e){}
+ const U=CLAUDE_PROJ;const w=window.open(U,"_blank");if(!w){const l=document.createElement("a");l.href=U;l.target="_blank";l.rel="noopener";document.body.appendChild(l);l.click();l.remove()}
+ msg("Texto copiado: pégalo en el chat del proyecto PBB TKE")}
+(function(){const o=resolver;resolver=function(id){const r=o.apply(this,arguments);const sc=$("#sheetc");if(!sc||!$("#r_a")||$("#r_cl"))return r;
+ const b=document.createElement("button");b.id="r_cl";b.type="button";b.className="btn";b.setAttribute("aria-label","Analizar con Claude");
+ b.style.cssText="justify-content:center;width:100%;margin-top:10px;flex-direction:column;gap:4px";
+ b.innerHTML=`<img src="claude-wordmark.png" alt="Claude" style="height:34px;max-width:100%;background:#fff;border-radius:8px;padding:6px 10px;display:block"><span class="mu" style="font-size:12px">Copia Actuación y Observaciones y abre el proyecto PBB TKE</span>`;
+ b.onclick=()=>resClaude(id);
+ const can=[...sc.querySelectorAll("button")].filter(x=>/^\s*Cancelar\s*$/.test(x.textContent)).pop();
+ if(can)can.insertAdjacentElement("afterend",b);else sc.appendChild(b);return r}})();
 </script></body></html>
