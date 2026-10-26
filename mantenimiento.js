@@ -215,8 +215,16 @@ const IC_MANT=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strok
   const ref=[...nav.children].find(x=>/Planos|Guía/.test(x.textContent));nav.insertBefore(b,ref||null)}
  if(esM&&nav)[...nav.children].forEach(x=>{if(!x.dataset.mant)x.classList.remove("on")});
  if(view=="dash")dashMant();return r}})();
+/* v46: caja compacta de Inicio: PBB del día en columnas por terminal (T4, T4S, T123), ordenadas por número */
+function termMant(pos){const P=String(pos||"").toUpperCase().trim(),a=P.split(/[\/\s-]+/)[0];
+ const M=(typeof PTERM!="undefined"&&PTERM)||{};if(M[P])return M[P];if(M[a])return M[a];if(/^T\d/.test(a))return "T123";
+ return typeof termDe=="function"?termDe(a):"T4S"}
+function colsTerm(l){const ORD=["T4","T4S","T123"],g={};l.forEach(x=>{const t=termMant(x.pos);(g[t]=g[t]||[]).push(x)});
+ const ts=Object.keys(g).sort((a,b)=>(ORD.indexOf(a)+1||9)-(ORD.indexOf(b)+1||9));
+ const num=v=>String(v.pos).replace(/^T/i,"");
+ return `<div class="mcols" style="grid-template-columns:repeat(${ts.length},minmax(0,1fr))">${ts.map(t=>`<div class="mcol"><div class="mcolt">${esc(t)}</div>${g[t].sort((a,b)=>num(a).localeCompare(num(b),undefined,{numeric:true})||a.tipo.localeCompare(b.tipo)).map(x=>chip(x)).join("")}</div>`).join("")}</div>`}
 function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.getElementById("dmant");const l=delDia(hoy());
- const html=l.length?`<div class="mhoyt">🔧 Mantenimiento preventivo hoy</div><div class="mdchips">${l.map(x=>chip(x,true)).join("")}</div><div class="mu" style="font-size:12px;margin-top:6px">${l.filter(x=>x.estado!="hecho").length} pendiente(s) · toca para abrir el calendario</div>`
+ const html=l.length?`<div class="mhoyt">🔧 Mantenimiento preventivo hoy <span class="mhoyn">${l.filter(x=>x.estado!="hecho").length} pendiente(s) ›</span></div>${colsTerm(l)}`
   :`<div class="mhoyt" style="color:var(--mu)">🔧 Sin mantenimiento preventivo hoy</div>`;
  if(old){old.innerHTML=html;return}const d=document.createElement("div");d.id="dmant";d.className="card mhoy";d.style.cursor="pointer";d.onclick=()=>go("mant");d.innerHTML=html;
  const app=document.getElementById("app");const g=app&&app.querySelector(".grid");if(g)g.insertAdjacentElement("afterend",d);else if(app)app.prepend(d)};
@@ -226,7 +234,10 @@ function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.g
 .mchip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;font-size:12px;border:1.5px solid var(--pr);color:var(--pr);background:color-mix(in srgb,var(--pr) 10%,transparent)}
 .mchip i{font-style:normal;font-weight:800;font-size:10px;opacity:.85}.mchip.s{border-color:#ef6c00;color:#ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
-.mhoy{border:2px solid #2e9e44}.mhoyt{font-weight:700;color:#2e9e44;font-size:15px}.mdchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mhoy{border:2px solid #2e9e44;padding:8px 10px!important}.mhoyt{font-weight:700;color:#2e9e44;font-size:12.5px;display:flex;align-items:baseline;gap:6px}
+.mhoyn{margin-left:auto;font-weight:500;font-size:11px;color:var(--mu);white-space:nowrap}
+.mcols{display:grid;gap:6px;margin-top:6px}.mcol{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;border-left:2px solid var(--bd);padding-left:6px}
+.mcolt{font-size:10.5px;font-weight:800;letter-spacing:.5px;color:var(--mu)}.mcol .mchip{font-size:11.5px;padding:1px 7px;max-width:100%;box-sizing:border-box}.mcol .mchip i{font-size:9px}.mdchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .mfila{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--bd)}.mfila .mfinfo{flex:1;min-width:0;font-size:14px}.mfila .mfinfo .mu{font-size:12px}
 .mbtn{width:auto!important;margin:0!important;padding:8px 12px!important;font-size:13px}.mdel{width:auto!important;margin:0!important;padding:8px 10px!important;color:#d32f2f!important;border-color:#d32f2f!important}
 .mnav{align-items:center;justify-content:space-between}.mnav button{width:auto!important;margin:0!important;padding:6px 16px!important;font-size:18px}
