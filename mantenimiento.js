@@ -37,6 +37,7 @@ function chip(x,grande){const ok=x.estado=="hecho";
  return `<span class="mchip ${x.tipo=="S"?"s":"m"} ${ok?"ok":""} ${grande?"g":""}"><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":""}</span>`}
 /* v40: cada posición del día es una caja desplegable con «Incidencias anteriores» (OT del mes previo en esa posición)
  y «Trabajos realizados» (cuaderno de notas del mantenimiento). Al guardar las notas la caja se pliega. */
+window.mAltaAb=false;
 const mAb=new Set(),mCerr=new Set(),mBorr={};
 const abierta=x=>mAb.has(x.id);/* v48: todo plegado por defecto */
 function incPrevias(x){if(typeof inc=="undefined"||!Array.isArray(inc))return [];const[y,m,d]=x.fecha.split("-").map(Number);const desde=iso(new Date(y,m-2,d));
@@ -73,10 +74,10 @@ function vMant(){if(!mMes){const d=new Date();mMes=[d.getFullYear(),d.getMonth()
  <div class="card"><div class="row mnav" style="flex-wrap:nowrap"><button class="sec" onclick="mantMes(-1)">‹</button><b>${MESES[mMes[1]][0].toUpperCase()+MESES[mMes[1]].slice(1)} ${mMes[0]}</b><button class="sec" onclick="mantMes(1)">›</button></div>
  <div class="mu" style="font-size:12px;margin:4px 0 6px">${delMes.length} mantenimiento${delMes.length==1?"":"s"} este mes · toca un día para ver sus posiciones</div>${calHTML()}</div>
  ${mSel!=h?`<div class="card"><div class="mhoyt" style="color:var(--tx)">📅 ${fLarga(mSel)}</div>${ls.length?listaTerm(ls):`<div class="mu" style="margin-top:6px">Sin mantenimientos este día.</div>`}</div>`:""}
- ${admin?`<div class="card"><b>Alta manual</b><div class="mu" style="font-size:12px">Posiciones separadas por comas; añade M o S detrás si es distinto del tipo elegido (ej. 502, 504 S).</div>
+ ${admin?`<details class="card malta" ${mAltaAb?"open":""} ontoggle="mAltaAb=this.open"><summary><b>Alta manual forzada</b></summary><div class="mu" style="font-size:12px;margin-top:6px">Posiciones separadas por comas; añade M o S detrás si es distinto del tipo elegido (ej. 502, 504 S).</div>
   <div class="grid" style="margin-top:6px"><div><label>Fecha</label><input id="ma_f" type="date" value="${mSel}"></div><div><label>Tipo</label><select id="ma_t"><option value="M">Mensual</option><option value="S">Semestral</option></select></div></div>
   <label>Posiciones</label><input id="ma_p" inputmode="numeric" placeholder="Ej. 502, 504, 528 S"><button class="pri" style="margin-top:10px;width:100%" onclick="mantManual()">Añadir al calendario</button>
-  ${delMes.length?`<button class="sec" style="margin-top:8px;width:100%;color:#d32f2f;border-color:#d32f2f" onclick="mantBorraMes()">🗑 Borrar todo ${MESES[mMes[1]]} ${mMes[0]}</button>`:""}</div>`:""}`;
+  ${delMes.length?`<button class="sec" style="margin-top:8px;width:100%;color:#d32f2f;border-color:#d32f2f" onclick="mantBorraMes()">🗑 Borrar todo ${MESES[mMes[1]]} ${mMes[0]}</button>`:""}</details>`:""}`;
  if(!mCarg)mantCarga().then(()=>{if(view=="mant")vMant()})}
 window.vMant=vMant;
 window.mantMes=d=>{let[y,m]=mMes;m+=d;if(m<0){m=11;y--}if(m>11){m=0;y++}mMes=[y,m];vMant()};
@@ -244,6 +245,7 @@ function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.g
 .mchip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;font-size:12px;border:1.5px solid var(--pr);color:var(--pr);background:color-mix(in srgb,var(--pr) 10%,transparent)}
 .mchip i{font-style:normal;font-weight:800;font-size:10px;opacity:.85}.mchip.s{border-color:#ef6c00;color:#ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
+.malta>summary{cursor:pointer;list-style:none}.malta>summary::-webkit-details-marker{display:none}.malta>summary::before{content:"▸ ";color:var(--pr)}.malta[open]>summary::before{content:"▾ "}
 .mtgrp{border-top:1px solid var(--bd)}.mtgrp>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 0;flex-wrap:nowrap}.mtgrp>summary::-webkit-details-marker{display:none}
 .mtgrp>summary::before{content:"▸";color:var(--pr);font-size:13px;flex:none}.mtgrp[open]>summary::before{content:"▾"}
 .mtnom{font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--mu);flex:none;min-width:34px}.mtpos{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:0}.mtpen{font-size:11px;color:var(--mu);flex:none}.mtgrp>.mcaja:first-of-type{border-top:none}
