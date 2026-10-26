@@ -17,7 +17,13 @@ const hk=h=>{if(!h)return 9999;const[a,b]=String(h).split(":").map(Number);retur
 const tOrd=x=>{const i=["T4","T4S","T123"].indexOf(termMant(x.pos));return i<0?9:i};
 const pNum=x=>String(x.pos).replace(/^T/i,"");
 const delDia=s=>MANT.filter(x=>x.fecha==s).sort((a,b)=>tOrd(a)-tOrd(b)||pNum(a).localeCompare(pNum(b),undefined,{numeric:true})||a.tipo.localeCompare(b.tipo)||hk(a.hora_ini)-hk(b.hora_ini));
-const listaTerm=l=>{let t0="";return l.map(x=>{const t=termMant(x.pos);const h=t!=t0?`<div class="mtsep">${esc(t)}</div>`:"";t0=t;return h+filaDia(x)}).join("")};
+/* v58: cada terminal es una caja plegada; en su línea se ven las posiciones (con M/S y ✔ si están hechas) */
+const mTAb=new Set();
+window.mantTT=(k,o)=>{o?mTAb.add(k):mTAb.delete(k)};
+const listaTerm=l=>{const g=[];l.forEach(x=>{const t=termMant(x.pos);let e=g.find(z=>z.t==t);if(!e)g.push(e={t,l:[]});e.l.push(x)});
+ const f=(l[0]&&l[0].fecha)||"";
+ return g.map(e=>{const k=f+"|"+e.t;const pen=e.l.filter(x=>x.estado!="hecho").length;
+  return `<details class="mtgrp" ${mTAb.has(k)?"open":""} ontoggle="mantTT('${k}',this.open)"><summary><span class="mtnom">${esc(e.t)}</span><span class="mtpos">${e.l.map(x=>chip(x)).join("")}</span><span class="mtpen">${pen?pen+" pend.":"✔"}</span></summary>${e.l.map(filaDia).join("")}</details>`}).join("")};
 const puede=()=>typeof user!="undefined"&&user&&(tecnico||admin);
 
 async function mantCarga(forzar){if(mCarg&&!forzar)return;if(typeof sb=="undefined"||!sb||typeof user=="undefined"||!user)return;
@@ -238,6 +244,9 @@ function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.g
 .mchip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;font-size:12px;border:1.5px solid var(--pr);color:var(--pr);background:color-mix(in srgb,var(--pr) 10%,transparent)}
 .mchip i{font-style:normal;font-weight:800;font-size:10px;opacity:.85}.mchip.s{border-color:#ef6c00;color:#ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
+.mtgrp{border-top:1px solid var(--bd)}.mtgrp>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 0;flex-wrap:nowrap}.mtgrp>summary::-webkit-details-marker{display:none}
+.mtgrp>summary::before{content:"▸";color:var(--pr);font-size:13px;flex:none}.mtgrp[open]>summary::before{content:"▾"}
+.mtnom{font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--mu);flex:none;min-width:34px}.mtpos{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:0}.mtpen{font-size:11px;color:var(--mu);flex:none}.mtgrp>.mcaja:first-of-type{border-top:none}
 .mtsep{font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--mu);padding:8px 0 2px;border-top:1px solid var(--bd)}.mtsep+.mcaja{border-top:none}
 .mhoy{border:2px solid #2e9e44;padding:8px 10px!important}.mhoyt{font-weight:700;color:#2e9e44;font-size:12.5px;display:flex;align-items:baseline;gap:6px}
 .mhoyn{margin-left:auto;font-weight:500;font-size:11px;color:var(--mu);white-space:nowrap}
