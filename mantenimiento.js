@@ -96,8 +96,10 @@ window.mantCanc=async(id,on)=>{const t=(typeof tecNombre!="undefined"&&tecNombre
 const reproDe=x=>MANT.filter(z=>z.id!=x.id&&(z.origen=="repro:"+x.id||(z.origen=="manual"&&z.estado=="pendiente"&&String(z.pos).toUpperCase()==String(x.pos).toUpperCase()&&z.tipo==x.tipo&&z.fecha>x.fecha&&z.fecha.slice(0,7)==x.fecha.slice(0,7))));
 window.mantDeshCanc=async id=>{const x=MANT.find(z=>z.id==id);if(!x)return;const cp=reproDe(x);
  if(!confirm(`¿Quitar PBB ${x.pos} (${fCorta(x.fecha)}) de no realizadas y volver a dejarla pendiente en su programación?${cp.length?`\n\nSe borrará también del calendario la reprogramación del ${cp.map(z=>fCorta(z.fecha)).join(", ")}.`:""}`))return;
- for(const z of cp){const r=await sb.from("mantenimientos").delete().eq("id",z.id).select();if(!r.error&&r.data&&r.data.length)MANT=MANT.filter(w=>w.id!=z.id)}
- mantCanc(id,false)};
+ for(const z of cp){const r=await sb.from("mantenimientos").delete().eq("id",z.id).select();
+  if(r.error||!r.data||!r.data.length){alert(`No se pudo borrar la reprogramación del ${fCorta(z.fecha)} (${r.error?r.error.message:"sin permiso: solo el administrador puede borrar del calendario"}). No se ha cambiado nada.`);await mantCarga(true);vMant();return}
+  MANT=MANT.filter(w=>w.id!=z.id)}
+ await mantCanc(id,false);await mantCarga(true);if(view=="mant")vMant();if(cp.length)msg(`Vuelve a pendiente y se ha borrado la reprogramación del ${cp.map(z=>fCorta(z.fecha)).join(", ")}`)};
 window.mantRepro=id=>{const x=MANT.find(z=>z.id==id);if(!x)return;window.mRepro={id:x.id,pos:x.pos,tipo:x.tipo,hora_ini:x.hora_ini,hora_fin:x.hora_fin,ref:x.ref};$("#ma_t").value=x.tipo;$("#ma_p").value=String(x.pos);const f=$("#ma_f");f.focus();f.scrollIntoView({block:"center",behavior:"smooth"});msg("Elige la nueva fecha que dé el SGC y pulsa «Añadir al calendario»")};
 window.mantBorra=async id=>{if(!confirm("¿Borrar este mantenimiento del calendario?"))return;const r=await sb.from("mantenimientos").delete().eq("id",id).select();
  if(r.error||!r.data||!r.data.length){msg("No se pudo borrar");return}MANT=MANT.filter(x=>x.id!=id);vMant()};
