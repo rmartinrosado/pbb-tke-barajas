@@ -3252,4 +3252,14 @@ function otEsPAS(i){if(!i)return false;if([i.tipo,...(i.equipos||[])].includes("
 (function(){const o=segOT;segOT=function(i){return otEsPAS(i)?o(i):null}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v54"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v55"}})();
+
+/* ===== v56: al entrar en la guía de una OT, las cajas de la guía de campo y la «Actuación más eficaz» quedan PLEGADAS
+   salvo que la descripción apunte claramente a una avería (actuación certera): entonces se abre solo esa caja. ===== */
+function gCertera(R){if(!R||!R.guia||!R.guia.length)return null;const a=R.guia[0].sc,b=R.guia[1]?R.guia[1].sc:0;return a>=9&&(!b||a>=b*1.35)?R.guia[0].si:null}
+const gCertVisto=new Set();
+(function(){const o=vTec;vTec=function(){const r=o.apply(this,arguments);if(!gOT)return r;const k=gOT+"|"+gTipo;if(gCertVisto.has(k))return r;gCertVisto.add(k);
+ const i=inc.find(x=>x.id==gOT);const R=i?anaOT(i):null;const si=R&&R.tipo==gTipo?gCertera(R):null;
+ document.querySelectorAll("#app details.gd[data-k]").forEach(d=>{if(!new RegExp("^"+gTipo+"\\d+$").test(d.dataset.k))return;const ab=si!=null&&d.dataset.k==gTipo+si;d.open=ab;ab?gAbierto.add(d.dataset.k):gAbierto.delete(d.dataset.k)});
+ return r}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v56"}})();
 </script></body></html>
