@@ -3235,4 +3235,8 @@ const det=h.slice(e).startsWith('<details')?h.indexOf('</details>',e)+'</details
  return h.slice(0,det)+btn+h.slice(det)}})();
 (function(){const st=document.createElement("style");st.textContent=`.gfrow{display:flex;align-items:flex-start;gap:8px}.gfrow>details{flex:0 1 auto;min-width:0}.gfrow>.actdel{flex:none;height:38px;margin:0}`;document.head.appendChild(st)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v52"}})();
+
+/* ===== v53: logo TKE desactivado temporalmente (para reactivarlo, borrar este bloque) ===== */
+(function(){const st=document.createElement("style");st.id="logoOff";st.textContent=`img.logo{display:none!important}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v53"}})();
 </script></body></html>
