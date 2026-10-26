@@ -13,7 +13,11 @@ const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+Stri
 const hoy=()=>iso(new Date());
 const fLarga=s=>{const[y,m,d]=s.split("-").map(Number);const f=new Date(y,m-1,d);return ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"][f.getDay()]+" "+d+" de "+MESES[m-1]};
 const hk=h=>{if(!h)return 9999;const[a,b]=String(h).split(":").map(Number);return a*60+(b||0)};
-const delDia=s=>MANT.filter(x=>x.fecha==s).sort((a,b)=>a.tipo.localeCompare(b.tipo)||hk(a.hora_ini)-hk(b.hora_ini)||String(a.pos).localeCompare(String(b.pos),undefined,{numeric:true}));
+/* v48: orden por terminal (T4, T4S, T123) y después por número de PBB */
+const tOrd=x=>{const i=["T4","T4S","T123"].indexOf(termMant(x.pos));return i<0?9:i};
+const pNum=x=>String(x.pos).replace(/^T/i,"");
+const delDia=s=>MANT.filter(x=>x.fecha==s).sort((a,b)=>tOrd(a)-tOrd(b)||pNum(a).localeCompare(pNum(b),undefined,{numeric:true})||a.tipo.localeCompare(b.tipo)||hk(a.hora_ini)-hk(b.hora_ini));
+const listaTerm=l=>{let t0="";return l.map(x=>{const t=termMant(x.pos);const h=t!=t0?`<div class="mtsep">${esc(t)}</div>`:"";t0=t;return h+filaDia(x)}).join("")};
 const puede=()=>typeof user!="undefined"&&user&&(tecnico||admin);
 
 async function mantCarga(forzar){if(mCarg&&!forzar)return;if(typeof sb=="undefined"||!sb||typeof user=="undefined"||!user)return;
@@ -28,7 +32,7 @@ function chip(x,grande){const ok=x.estado=="hecho";
 /* v40: cada posición del día es una caja desplegable con «Incidencias anteriores» (OT del mes previo en esa posición)
  y «Trabajos realizados» (cuaderno de notas del mantenimiento). Al guardar las notas la caja se pliega. */
 const mAb=new Set(),mCerr=new Set(),mBorr={};
-const abierta=x=>mAb.has(x.id)||(!mCerr.has(x.id)&&!x.trabajos&&x.fecha==hoy());
+const abierta=x=>mAb.has(x.id);/* v48: todo plegado por defecto */
 function incPrevias(x){if(typeof inc=="undefined"||!Array.isArray(inc))return [];const[y,m,d]=x.fecha.split("-").map(Number);const desde=iso(new Date(y,m-2,d));
  return inc.filter(i=>String(i.pos).toUpperCase()==String(x.pos).toUpperCase()&&(i.fecha||"")>=desde&&(i.fecha||"")<x.fecha).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""))}
 const fCorta=s=>{const[y,m,d]=String(s||"").split("-");return d?`${d}/${m}`:"–"};
@@ -59,10 +63,10 @@ function vMant(){if(!mMes){const d=new Date();mMes=[d.getFullYear(),d.getMonth()
  const delMes=MANT.filter(x=>x.fecha.startsWith(mMes[0]+"-"+String(mMes[1]+1).padStart(2,"0")));
  $("#app").innerHTML=`<div class="card"><div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Mantenimiento preventivo</h3><div class="mhdr">${admin?`<button class="sec" style="width:auto;padding:6px 12px" onclick="mantImp()">📷 Importar</button>`:""}${(()=>{const e=evtDe(mSel);return e?`<span class="mevt">Evento SGC <b>${esc(e)}</b></span>`:""})()}</div></div>
  <div class="mley"><span class="mchip m"><b>M</b></span> Mensual <span class="mchip s"><b>S</b></span> Semestral <span class="mchip m ok"><b>✔</b></span> Hecho</div></div>
- <div class="card mhoy"><div class="mhoyt">🔧 Hoy · ${fLarga(h)}</div>${lh.length?`<div class="mu" style="margin:2px 0 6px">${pend?`${pend} pendiente${pend>1?"s":""} de ${lh.length}`:"Todo hecho ✔"}</div>${lh.map(filaDia).join("")}`:`<div class="mu" style="margin-top:6px">${mCarg?"Sin mantenimientos programados para hoy.":"Cargando…"}</div>`}</div>
+ <div class="card mhoy"><div class="mhoyt">🔧 Hoy · ${fLarga(h)}</div>${lh.length?`<div class="mu" style="margin:2px 0 6px">${pend?`${pend} pendiente${pend>1?"s":""} de ${lh.length}`:"Todo hecho ✔"}</div>${listaTerm(lh)}`:`<div class="mu" style="margin-top:6px">${mCarg?"Sin mantenimientos programados para hoy.":"Cargando…"}</div>`}</div>
  <div class="card"><div class="row mnav" style="flex-wrap:nowrap"><button class="sec" onclick="mantMes(-1)">‹</button><b>${MESES[mMes[1]][0].toUpperCase()+MESES[mMes[1]].slice(1)} ${mMes[0]}</b><button class="sec" onclick="mantMes(1)">›</button></div>
  <div class="mu" style="font-size:12px;margin:4px 0 6px">${delMes.length} mantenimiento${delMes.length==1?"":"s"} este mes · toca un día para ver sus posiciones</div>${calHTML()}</div>
- ${mSel!=h?`<div class="card"><div class="mhoyt" style="color:var(--tx)">📅 ${fLarga(mSel)}</div>${ls.length?ls.map(filaDia).join(""):`<div class="mu" style="margin-top:6px">Sin mantenimientos este día.</div>`}</div>`:""}
+ ${mSel!=h?`<div class="card"><div class="mhoyt" style="color:var(--tx)">📅 ${fLarga(mSel)}</div>${ls.length?listaTerm(ls):`<div class="mu" style="margin-top:6px">Sin mantenimientos este día.</div>`}</div>`:""}
  ${admin?`<div class="card"><b>Alta manual</b><div class="mu" style="font-size:12px">Posiciones separadas por comas; añade M o S detrás si es distinto del tipo elegido (ej. 502, 504 S).</div>
   <div class="grid" style="margin-top:6px"><div><label>Fecha</label><input id="ma_f" type="date" value="${mSel}"></div><div><label>Tipo</label><select id="ma_t"><option value="M">Mensual</option><option value="S">Semestral</option></select></div></div>
   <label>Posiciones</label><input id="ma_p" inputmode="numeric" placeholder="Ej. 502, 504, 528 S"><button class="pri" style="margin-top:10px;width:100%" onclick="mantManual()">Añadir al calendario</button>
@@ -234,6 +238,7 @@ function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.g
 .mchip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;font-size:12px;border:1.5px solid var(--pr);color:var(--pr);background:color-mix(in srgb,var(--pr) 10%,transparent)}
 .mchip i{font-style:normal;font-weight:800;font-size:10px;opacity:.85}.mchip.s{border-color:#ef6c00;color:#ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
+.mtsep{font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--mu);padding:8px 0 2px;border-top:1px solid var(--bd)}.mtsep+.mcaja{border-top:none}
 .mhoy{border:2px solid #2e9e44;padding:8px 10px!important}.mhoyt{font-weight:700;color:#2e9e44;font-size:12.5px;display:flex;align-items:baseline;gap:6px}
 .mhoyn{margin-left:auto;font-weight:500;font-size:11px;color:var(--mu);white-space:nowrap}
 .mcols{display:grid;gap:6px;margin-top:6px}.mcol{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;border-left:2px solid var(--bd);padding-left:6px}
