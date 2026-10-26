@@ -217,7 +217,7 @@ const IC_MANT=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strok
  if(view=="dash")dashMant();return r}})();
 /* v46: caja compacta de Inicio: PBB del día en columnas por terminal (T4, T4S, T123), ordenadas por número */
 function termMant(pos){const P=String(pos||"").toUpperCase().trim(),a=P.split(/[\/\s-]+/)[0];
- const M=(typeof PTERM!="undefined"&&PTERM)||{};if(M[P])return M[P];if(M[a])return M[a];if(/^T\d/.test(a))return "T123";
+ const M=(typeof PTERM!="undefined"&&PTERM)||{};if(M[P])return M[P];if(M[a])return M[a];if(/^T\d/.test(a))return "T123";if(/^3\d/.test(a))return "T4";/* sin alta: 3xx = T4 */
  return typeof termDe=="function"?termDe(a):"T4S"}
 function colsTerm(l){const ORD=["T4","T4S","T123"],g={};l.forEach(x=>{const t=termMant(x.pos);(g[t]=g[t]||[]).push(x)});
  const ts=Object.keys(g).sort((a,b)=>(ORD.indexOf(a)+1||9)-(ORD.indexOf(b)+1||9));
