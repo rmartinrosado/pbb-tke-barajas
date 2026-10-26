@@ -3239,4 +3239,16 @@ const det=h.slice(e).startsWith('<details')?h.indexOf('</details>',e)+'</details
 /* ===== v53: logo TKE desactivado temporalmente (para reactivarlo, borrar este bloque) ===== */
 (function(){const st=document.createElement("style");st.id="logoOff";st.textContent=`img.logo{display:none!important}`;document.head.appendChild(st)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v53"}})();
+
+/* ===== v54: la guía de campo abre SIEMPRE con el tipo de la OT (y su plano: AAA → plano AAA/PCA, HZ → PDS 400, AAP → AAP, PAS → RCS PLANOS / PBB propio).
+   Antes, al entrar por el puente o las seguridades (varita), se quedaba el último tipo usado (PAS) y su plano. ===== */
+function gTipoOT(i){if(!i)return "PAS";return [i.tipo,...(i.equipos||[])].find(t=>GUIA.tipos[t])||"PAS"}
+function otEsPAS(i){if(!i)return false;if([i.tipo,...(i.equipos||[])].includes("PAS"))return true;
+ const t=(typeof segNorm=="function"?segNorm:(x=>x.toLowerCase()))([i.desc,i.def,i.com].filter(Boolean).join(" "));return /\b(pas|pasarela|pbb)\b[^.]*bloquead|bloquead[^.]*\b(pas|pasarela|pbb)\b/.test(t)}
+(function(){const o=puVa;puVa=function(id){gTipo=gTipoOT(inc.find(x=>x.id==id));return o(id)}})();
+(function(){const o=segVa;segVa=function(id){gTipo=gTipoOT(inc.find(x=>x.id==id));return o(id)}})();
+/* los puentes y seguridades de pasarela solo en OT de pasarela (PAS) o que digan que la pasarela está bloqueada */
+(function(){const o=puentesOT;puentesOT=function(i){return otEsPAS(i)?o(i):[]}})();
+(function(){const o=segOT;segOT=function(i){return otEsPAS(i)?o(i):null}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v54"}})();
 </script></body></html>
