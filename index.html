@@ -3768,11 +3768,14 @@ body{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
   const f=ca.querySelector(".gfb2");if(f){f.innerHTML=CAMPLC;f.classList.add("gcam","gwr");f.title="Foto PLC";f.setAttribute("aria-label","Foto PLC")}})}
  const o=render;render=function(){const r=o.apply(this,arguments);try{ajusta()}catch(e){}return r};
  new MutationObserver(()=>{try{ajusta()}catch(e){}}).observe(document.body,{childList:true,subtree:true})})();
-/* ===== v115: OT abierta con hora de inicio registrada → la tarjeta parpadea en verde ===== */
+/* ===== v115/v116: OT abierta con inicio → parpadeo verde; con llegada → parpadeo amarillo; cerrada → borde rojo fijo ===== */
 (function(){const st=document.createElement("style");st.textContent=`@keyframes otIniBlink{0%,100%{border-color:#22c55e;box-shadow:0 0 0 2px #22c55e,0 0 18px rgba(34,197,94,.55);background-color:rgba(34,197,94,.10)}50%{border-color:rgba(34,197,94,.25);box-shadow:0 0 0 1px rgba(34,197,94,.25),0 0 0 rgba(34,197,94,0);background-color:transparent}}
+@keyframes otLleBlink{0%,100%{border-color:#facc15;box-shadow:0 0 0 2px #facc15,0 0 18px rgba(250,204,21,.55);background-color:rgba(250,204,21,.10)}50%{border-color:rgba(250,204,21,.25);box-shadow:0 0 0 1px rgba(250,204,21,.25),0 0 0 rgba(250,204,21,0);background-color:transparent}}
 .card.otini{border:2px solid #22c55e;animation:otIniBlink 1.4s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){.card.otini{animation-duration:2.8s}}`;document.head.appendChild(st);
- const o=card;card=function(i){const h=o(i);if(i.estado!="abierta"||!i.hIni)return h;return h.replace('<div class="card','<div class="card otini')}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v115"}})();
+.card.otlle{border:2px solid #facc15;animation:otLleBlink 1.4s ease-in-out infinite}
+.card.otcer{border:2px solid #ef4444;animation:none}
+@media (prefers-reduced-motion:reduce){.card.otini,.card.otlle{animation-duration:2.8s}}`;document.head.appendChild(st);
+ const o=card;card=function(i){const h=o(i);const c=i.estado!="abierta"?"otcer":i.hLle?"otlle":i.hIni?"otini":"";return c?h.replace('<div class="card','<div class="card '+c):h}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v116"}})();
 </script>
 </body></html>
