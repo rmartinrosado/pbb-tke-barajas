@@ -3520,4 +3520,30 @@ function puAnalog(i){if(!i||i.estado!="abierta")return [];const txt=segNorm([i.d
  return h}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v86"}})();
 </script>
+<script>
+/* ===== v87: giro de ROTONDA en «Medidas analógicas» (folio 62, AIN04) =====
+ RCS PLANOS: AIN04 «POTENCIÓMETRO GIRO ROTONDA» R-R1, transmisor 4-20 mA (x1, x2, x3) en la rotonda → cable IT-W16 → IT-X62
+ → manguera EIT-W4 (6×0,75, malla a E-X62:7) → E-X62:5 → hilo 316 → E-A4 borna 1.4 (AI04) / 2.4 (-I4).
+ PBB 504/508: AIN04 = RESERVA; el giro de rotonda lo da el encoder Posital R-R10 (OCD-EM01B, Ethernet/IP) por red al switch E-V1:X12,
+ alimentado desde E-X62:1-2 por IT-X62:1-2 (EIT-W4) — folio 97.
+ · En el análisis, cada canal de E-A4 solo entra si la OT nombra su magnitud, y el nombrado va primero (antes «giro de rotonda» sacaba cabina). */
+(function(){const S=GUIA.tipos.PAS.s.find(x=>/^Medidas anal/.test(x.t));if(!S||S._rot)return;S._rot=1;
+ S.t="Medidas analógicas (E-A4) · altura (ultrasonido), extensión (láser), giro de cabina y giro de rotonda (potenciómetros)";
+ const ix=S.p.findIndex(x=>/^Lectura que salta/.test(x));const at=ix<0?S.p.length:ix;
+ S.p.splice(at,0,"POTENCIÓMETRO DE GIRO DE ROTONDA R-R1 (AIN04 · todas las posiciones menos 504/508): transmisor de 4-20 mA (bornas x1, x2, x3) en la rotonda → cable IT-W16 (3×0,75 apantallado) → caja IT-X62 → manguera EIT-W4 (6×0,75, malla a E-X62:7) → E-X62:5 → hilo 316 → E-A4 borna 1.4 (AI04) / 2.4 (-I4). Se alimenta desde E-X62:1-2 por IT-X62. Comprobar 24 V en IT-X62, 4-20 mA en E-X62:5 variando al girar la rotonda y el acoplamiento del potenciómetro al eje de giro. No confundir con los inductivos de giro CO-B1 / CO-B2 (E-A0 mód. 4 LED 3-4, cambian al girar) ni con el FC de rotonda CO-S1 (seguridad, E-A8 mód. 4 LED 1).",
+  "GIRO DE ROTONDA EN 504/508 (folio 97): AIN04 está en RESERVA. El giro lo mide el encoder Posital R-R10 (OCD-EM01B, Ethernet/IP) → cable ER-W1 → switch E-V1 puerto X12. Alimentación 24 V desde E-X62:1 / E-X62:2 por IT-X62:1-2 y manguera EIT-W4 (cable ITR-W2 al encoder). Sin medida: 24 V en el conector M12 del encoder, LED de enlace en E-V1:X12 y cable de red. No hay puente analógico para el encoder.");
+ S.g.splice(at,0,62,97)})();
+const AN_CH={1:/altura|ultrason/,2:/extensi|retracc|laser/,3:/cabina/,4:/rotonda/};
+(function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r._an||!i)return r;r._an=1;
+ const txt=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));const pos=String(i.pos||"");
+ const nom=Object.keys(AN_CH).filter(k=>AN_CH[k].test(txt)).map(Number);if(!nom.length||!r.rel.some(x=>x.mod=="E-A4"))return r;
+ const chOf=x=>x.mod=="E-A4"?+String(x.S.l):0;
+ let rel=r.rel.filter(x=>!chOf(x)||nom.includes(chOf(x)));
+ if(nom.includes(4)&&["504","508"].includes(pos))rel=rel.filter(x=>chOf(x)!=4);
+ /* si la OT nombra un canal y no está en la lista, se añade */
+ nom.forEach(ch=>{if(ch==4&&["504","508"].includes(pos))return;if(!rel.some(x=>chOf(x)==ch)){const S=(RUTAS["E-A4"].s||[]).find(s=>+s.l==ch);if(S)rel.push({mod:"E-A4",S,sc:1,tg:new Set()})}});
+ rel.sort((a,b)=>(chOf(b)&&nom.includes(chOf(b))?1:0)-(chOf(a)&&nom.includes(chOf(a))?1:0));
+ r.rel=rel.slice(0,10);r.mods=[...new Set(r.rel.map(x=>x.mod))];return r}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v87"}})();
+</script>
 </body></html>
