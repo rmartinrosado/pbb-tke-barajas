@@ -3692,4 +3692,17 @@ body{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
   return r}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v106"}})();
 </script>
+<script>
+/* ===== v107: tira de abajo. Los botones se reparten todo el ancho de la pantalla a partes iguales y el de Inicio
+ (el principal) lleva el icono más grande. ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+#nav{width:calc(100vw - 8px)!important;max-width:none!important}
+#nav button{flex:1 1 0!important;max-width:none!important;min-width:0!important;font-size:11px!important;margin:4px 2px!important}
+#nav button span svg{width:24px;height:24px}
+#nav button.ninicio{flex-grow:1.25!important;font-weight:700}
+#nav button.ninicio span svg{width:34px;height:34px;stroke-width:2}`;document.head.appendChild(st);
+ const o=render;render=function(){const r=o.apply(this,arguments);
+  try{document.querySelectorAll("#nav button").forEach(b=>{if(/go\('dash'\)/.test(b.getAttribute("onclick")||""))b.classList.add("ninicio")})}catch(e){}return r}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v107"}})();
+</script>
 </body></html>
