@@ -198,4 +198,35 @@ window.docsBorra=async id=>{const d=DOCS.find(x=>x.id==id);if(!d||!admin)return;
 .dcfrag mark{background:color-mix(in srgb,var(--ac) 35%,transparent);color:inherit;border-radius:3px;padding:0 1px}
 .dcreg textarea{margin-top:8px}
 .dcbot .dcic{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center}`;document.head.appendChild(st)})();
+
+/* ---------- v98: casos parecidos para el SOS (apoyo para resolver averías que se repiten en otra posición) ----------
+ Compara la descripción/alarma de la OT con el texto de cada caso (registro, notas, documento/PDF, OT asociada).
+ Puntúa códigos de componente (E-K81, C-H41…) y nº de alarma por encima de las palabras; la posición no cuenta. */
+const VACIAS=new Set("para pero como esta este esto estos estas desde hasta sobre entre cuando donde porque tiene tienen hace hacer hacia solo sola sido sera sean ser estan estado otra otro otras otros cada todo toda todos todas misma mismo muy mas menos tambien segun sino ante bajo aqui alli entonces luego despues antes ademas cual cuales quien pbb orden ordenes aviso avisos posicion pas aaa aap hz svga sigma cga turno tecnico averia averias favor".split(" "));
+const GENER=new Set("activada activado activo activa fallo falla alarma alarmas sensor sensores error estado senal desactivado desactivada funciona".split(" "));
+function tokensDe(t){const T=String(t||"");const out=new Map();const posSet=new Set((typeof POS!="undefined"?POS:[]).map(p=>String(p).toUpperCase()));
+ (T.toUpperCase().match(COD)||[]).forEach(c=>{if(!ESPLC.test(c))out.set(cmp(c),{w:3,q:c,cod:1})});
+ (T.match(/\b\d{3}\b/g)||[]).forEach(n=>{if(!posSet.has(n))out.set(n,{w:2,q:n,num:1})});
+ nrm(T).split(/[^a-z0-9]+/).forEach(w=>{if(w.length<4||/^\d+$/.test(w)||VACIAS.has(w))return;const r=RAIZ(w);if(!out.has(r))out.set(r,{w:GENER.has(w)?.5:1,q:w,raiz:r})});
+ return [...out.values()].slice(0,40)}
+window.casosParecidos=async function(texto,opt){opt=opt||{};if(!puede())return [];await docsCarga();if(!DOCS.length)return [];
+ const toks=tokensDe(texto);if(!toks.length)return [];
+ toks.forEach(t=>{if(t.raiz&&t.w>=1)t.alt=expande(t.q)});
+ const res=[];
+ for(const d of DOCS){if(opt.excluirOt&&String(d.ot_id)==String(opt.excluirOt))continue;
+  const all=camposDe(d).map(x=>x[1]).join(" · ");const N=nrm(all),C=cmp(all);let pts=0,fuerte=0;const hits=[];
+  for(const t of toks){let ok=false;
+   if(t.cod)ok=C.includes(cmp(t.q));else if(t.num)ok=new RegExp("\\b"+t.q+"\\b").test(N);else ok=new RegExp("\\b"+t.raiz.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).test(N);
+   if(ok){pts+=t.w;hits.push(t.q);if(t.w>=1)fuerte++;continue}
+   if(t.alt&&t.alt.length){const v=t.alt.find(a=>C.includes(cmp(a)));if(v){pts+=.5;hits.push(t.q+"→"+v)}}}
+  if(pts>=2.5&&fuerte>=2)res.push({d,pts,hits})}
+ return res.sort((a,b)=>b.pts-a.pts).slice(0,opt.max||3)};
+window.casosHTML=function(l,pos){if(!l||!l.length)return "";
+ return `<div class="card csos"><div class="csosh">📁 Casos parecidos <span class="mu">(${l.length})</span></div><div class="mu" style="font-size:12px;margin-bottom:4px">Averías ya resueltas con descripción similar${pos?`, en esta u otras posiciones (ahora PBB ${esc(String(pos))})`:""}. Úsalas de apoyo.</div>
+ ${l.map(({d,hits})=>{const r=d.registro||{};const mismo=pos&&String(d.pos||"")==String(pos);return `<div class="csosf"><div class="dctit" style="font-size:14px">${esc(d.titulo)}</div>
+ <div class="dcmeta">${d.pos?`<span class="tag">PBB ${esc(d.pos)}${mismo?" · misma":""}</span>`:""}${d.tipo?`<span class="tag">${esc(d.tipo)}</span>`:""}<span class="mu" style="font-size:12px">${fFecha(d.created_at).slice(0,10)}</span></div>
+ ${r.act?`<div class="dcnot"><b>Actuación:</b> ${esc(r.act.length>220?r.act.slice(0,220)+"…":r.act)}</div>`:d.notas?`<div class="dcnot">${esc(d.notas)}</div>`:""}
+ <div class="mu" style="font-size:11.5px;margin-top:3px">Coincide: ${esc(hits.slice(0,6).join(", "))}</div>
+ ${d.pdf_path?`<button class="sec" style="width:auto;margin:8px 0 0;padding:7px 12px;font-size:13px" onclick="docsPdf('${d.id}')">📄 Abrir PDF</button>`:""}</div>`}).join("")}</div>`};
+(function(){const st=document.createElement("style");st.textContent=`.csos{border:2px solid var(--ac)!important}.csosh{font-weight:700;font-size:15px;margin-bottom:2px}.csosf{border-top:1px solid var(--bd);padding:9px 0 4px}.csosf:first-of-type{border-top:0}`;document.head.appendChild(st)})();
 })();

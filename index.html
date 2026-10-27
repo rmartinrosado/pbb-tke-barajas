@@ -3350,7 +3350,7 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=1"></script><script src="sos.js?v=8"></script><script src="iconos.js?v=2"></script><script src="sim-brazo.js?v=2"></script><script>
+</script><script src="sistemas.js?v=1"></script><script src="sos.js?v=9"></script><script src="iconos.js?v=2"></script><script src="sim-brazo.js?v=2"></script><script>
 /* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
 function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
  msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
@@ -3583,7 +3583,7 @@ const POS_PROPIO=["504","507","508"];
 (function(){const o=puAnalog;puAnalog=function(i){const P=o(i);if(!i)return P;return POS_PROPIO.includes(String(i.pos))?P.filter(p=>p.an!=4):P}})();
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||!i||!POS_PROPIO.includes(String(i.pos)))return r;
  if(r.rel.some(x=>x.mod=="E-A4"&&+String(x.S.l)==4)){r.rel=r.rel.filter(x=>!(x.mod=="E-A4"&&+String(x.S.l)==4));r.mods=[...new Set(r.rel.map(x=>x.mod))]}return r}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v97"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v98"}})();
 </script>
-<script src="docs-claude.js?v=6"></script>
+<script src="docs-claude.js?v=7"></script>
 </body></html>

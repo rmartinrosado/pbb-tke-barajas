@@ -1,3 +1,4 @@
+/* v98: el SOS busca también casos parecidos en la carpeta Casos */
 /* ===== v67/v68: botón SOS en la tarjeta de OT (Seguimiento OT) =====
  Va debajo del indicador ABIERTA, a la derecha. Solo aparece si la OT tiene puente provisional
  (puentesOT) o indicación de seguridades/límite (segOT). Al pulsarlo abre la guía mostrando
@@ -25,12 +26,18 @@ const oV=vTec;vTec=function(){const r=oV.apply(this,arguments);const app=documen
  let bar=document.getElementById("sosbar");if(!bar){bar=document.createElement("div");bar.id="sosbar";bar.className="card sosbar"}
  bar.innerHTML=`<img src="sos.png" alt=""><div><b>PBB ${esc(String(i.pos))} · ${esc(i.tipo||"")} · ${esc(i.orden||"")}</b><div class="mu" style="font-size:12px">${esc(i.desc||"")}</div></div><button class="sec" onclick="sosSal()">Guía completa</button>`;
  app.prepend(bar);[se,pu].forEach(x=>{if(x)bar.after(x)});if(se&&pu)se.after(pu);
- app.classList.add("sosmode");return r};
+ app.classList.add("sosmode");sosCasos(i);return r};
+/* v98: casos parecidos de la carpeta Casos bajo la primera actuación */
+async function sosCasos(i){const txt=[i.desc,i.def,i.com,i.alarmas&&textoAl(i.alarmas)].filter(Boolean).join(" · ");if(typeof casosParecidos!="function"||!txt)return;
+ let l=[];try{l=await casosParecidos(txt,{excluirOt:i.id})}catch(e){return}
+ const app=document.getElementById("app");if(!sosOn||!app||gOT!=i.id)return;let c=document.getElementById("soscasos");if(c)c.remove();if(!l.length)return;
+ c=document.createElement("div");c.id="soscasos";c.innerHTML=casosHTML(l,i.pos);const last=document.getElementById("gpte")||document.getElementById("gsegl")||document.getElementById("sosbar");last.after(c)}
+const textoAl=a=>{try{return typeof a=="string"?a:JSON.stringify(a).replace(/[{}\[\]"]/g," ")}catch(e){return ""}};
 const st=document.createElement("style");st.textContent=`.sosw{display:flex;justify-content:flex-end;margin-top:8px}
 .sosmid{flex:1 1 0;min-width:0;display:flex;justify-content:center;align-items:center}.sosmid+.cacr{margin-left:0!important}
 .sosb{width:40px!important;height:40px;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important;border-radius:50%;cursor:pointer;flex:none}
 .sosb img{width:40px;height:40px;display:block;border-radius:50%;filter:drop-shadow(0 2px 4px rgba(198,40,40,.4));animation:sosparp 2s ease-in-out infinite}@keyframes sosparp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.92)}}.sosb:active img{transform:scale(.94)}
-#app.sosmode>*:not(#sosbar):not(#gpte):not(#gsegl){display:none!important}
+#app.sosmode>*:not(#sosbar):not(#gpte):not(#gsegl):not(#soscasos){display:none!important}
 .sosbar{display:flex;align-items:center;gap:10px;border:2px solid #c62828!important}.sosbar img{width:40px;height:40px;flex:none}.sosbar>div{flex:1;min-width:0}.sosbar button{width:auto;margin:0;padding:8px 10px;font-size:13px;flex:none}`;document.head.appendChild(st);
 })();
 /* ===== v71: SOS rápido en Inicio (junto a OT abiertas / OT cerradas) =====
@@ -61,6 +68,8 @@ window.sosRap=function(){foto=null;fotoURL="";
  <div id="sr_res"></div>
  <button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cerrar</button>`;
  $("#sheet").style.display="flex"};
+async function sosCasRap(txt,pos){const c=document.getElementById("sr_cas");if(!c||typeof casosParecidos!="function")return;c.innerHTML=`<div class="mu" style="margin-top:8px;font-size:12px">Buscando casos parecidos…</div>`;
+ let l=[];try{l=await casosParecidos(txt)}catch(e){}const c2=document.getElementById("sr_cas");if(!c2)return;c2.innerHTML=l.length?`<div style="margin-top:10px">${casosHTML(l,pos)}</div>`:""}
 window.sosFoto=function(inp){foto=inp.files&&inp.files[0]||null;if(fotoURL)URL.revokeObjectURL(fotoURL);fotoURL=foto?URL.createObjectURL(foto):"";
  $("#sr_pv").innerHTML=foto?`<img src="${fotoURL}" alt="Foto Magelis" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:8px;background:#000">`:""};
 window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpperCase(),res=$("#sr_res");
@@ -74,8 +83,8 @@ window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpp
  const ot={id:"sos_"+pos+"_"+txt.length,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:txt.replace(/\s+/g," "),def:"",com:"",obs:"",orden:"SOS",fecha:""};
  let P=[],S=null;try{P=puentesOT(ot)}catch(e){}try{S=segOT(ot)}catch(e){}
  const leido=`<details class="srtx" style="margin-top:8px"><summary class="mu">Texto analizado</summary><div class="mu" style="white-space:pre-wrap;font-size:12px">${esc(txt)}</div></details>`;
- if(!P.length&&!S){res.innerHTML=`<div class="gav" style="margin-top:10px">Esta alarma no tiene puente provisional en la PBB ${esc(pos)} (o no se ha reconocido). Elige otra de la lista, revisa la foto o usa la guía completa de la OT.</div>${leido}`;const d=document.querySelector(".srtx");if(d)d.open=true;return}
- res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos)}</b></div>${S?`<div class="card pucard">${segHTML(ot,S)}</div>`:""}${P.length?`<div class="card pucard">${puenteHTML(ot,P)}</div>`:""}${leido}`;
+ if(!P.length&&!S){res.innerHTML=`<div class="gav" style="margin-top:10px">Esta alarma no tiene puente provisional en la PBB ${esc(pos)} (o no se ha reconocido). Elige otra de la lista, revisa la foto o usa la guía completa de la OT.</div><div id="sr_cas"></div>${leido}`;const d=document.querySelector(".srtx");if(d)d.open=true;sosCasRap(txt,pos);return}
+ res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos)}</b></div>${S?`<div class="card pucard">${segHTML(ot,S)}</div>`:""}${P.length?`<div class="card pucard">${puenteHTML(ot,P)}</div>`:""}<div id="sr_cas"></div>${leido}`;sosCasRap(txt,pos);
  res.scrollIntoView({block:"start",behavior:"smooth"})};
 const st=document.createElement("style");st.textContent=`.grid.sosgrid{grid-template-columns:1fr 1fr 74px!important;align-items:stretch}
 .sosk{display:flex!important;align-items:center;justify-content:center;align-self:stretch;box-sizing:border-box;padding:6px!important;margin:0 0 10px!important;width:auto!important;height:auto!important;background:var(--card,#fff)!important;border:1px solid var(--bd,#e3dbec)!important;border-top:3px solid var(--ac)!important;border-radius:12px!important;cursor:pointer}
