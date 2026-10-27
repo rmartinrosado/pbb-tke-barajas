@@ -15,7 +15,11 @@ const oC=card;card=function(i){let h=oC(i);if(view!="track"||!tiene(i))return h;
 window.sosVa=function(id){const i=inc.find(x=>x.id==id);if(!i)return;sosOn=true;gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;
  if(typeof gTipoOT=="function")gTipo=gTipoOT(i);if(view!="tec")go("tec");else vTec();scrollTo(0,0)};
 window.sosSal=function(){sosOn=false;const a=document.getElementById("app");if(a)a.classList.remove("sosmode");vTec();scrollTo(0,0)};
-const oG=go;go=function(v,f){if(v!="tec")sosOn=false;return oG(v,f)};
+/* v120: al salir del SOS (Inicio u otra sección de la tira) se quita el modo SOS de #app; antes la clase sosmode
+ se quedaba puesta y ocultaba todo el contenido de Inicio. */
+const sosLimpia=()=>{sosOn=false;const a=document.getElementById("app");if(a)a.classList.remove("sosmode");["sosbar","soscasos"].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()})};
+const oG=go;go=function(v,f){if(v!="tec")sosLimpia();return oG(v,f)};
+const oR=render;render=function(){if(view!="tec")sosLimpia();return oR.apply(this,arguments)};
 const oV=vTec;vTec=function(){const r=oV.apply(this,arguments);const app=document.getElementById("app");if(!app)return r;
  if(!sosOn){app.classList.remove("sosmode");return r}
  const i=inc.find(x=>x.id==gOT);if(!tiene(i)){sosOn=false;app.classList.remove("sosmode");return r}
