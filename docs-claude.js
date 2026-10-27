@@ -117,13 +117,13 @@ function campoReg(r){r=r||{rep:"CGA",fecha:hoyISO()};const repSel=REPS.includes(
 const leeReg=()=>{const rep=$("#dr_rep").value=="Otro"?($("#dr_repo").value.trim()||"Otro"):$("#dr_rep").value;
  return {pos:$("#dr_pos").value.trim(),tipo:$("#dr_tipo").value,orden:$("#dr_ord").value.trim(),rep,fecha:$("#dr_f").value,desc:$("#dr_d").value.trim(),hIni:$("#dr_hi").value,hLle:$("#dr_hl").value,hCie:$("#dr_hc").value,act:$("#dr_a").value.trim(),obs:$("#dr_o").value.trim()}};
 window.docsNom=()=>{const e=$("#dr_nom");if(e)e.textContent=nomPdf(leeReg());
- const t=$("#dc_t");if(t&&t.dataset.auto=="1"){const r=leeReg();t.value=`PBB ${r.pos} · ${r.tipo} · Orden ${r.orden}${r.desc?" – "+r.desc.slice(0,60):""}`}};
+ const t=$("#dc_t");if(t&&t.dataset.auto=="1"){const r=leeReg();t.value=[r.pos?"PBB "+r.pos:"",r.tipo||"",r.orden?"Orden "+r.orden:""].filter(Boolean).join(" · ")+(r.desc?" – "+r.desc.slice(0,60):"")}};
 window.docsForm=(id,otId)=>{if(!puede())return;const d=id?DOCS.find(x=>x.id==id):null;dEdit=d?d.id:null;
  const o=otId&&typeof inc!="undefined"?inc.find(i=>String(i.id)==String(otId)):null;
  const v=k=>esc(d?(d[k]||""):"");
  const reg=(d&&d.registro)||regDeOT(o)||(d?{pos:d.pos,tipo:d.tipo,orden:d.orden,rep:"CGA",fecha:String(d.created_at||"").slice(0,10)}:null);
  $("#sheetc").innerHTML=`<h3 style="margin-top:0">${d?"Editar documento":"Guardar caso en PDF"}</h3>
- <label>OT asociada (rellena el registro)</label><select id="dc_ot" onchange="docsDeOT(this.value)"><option value="">— Sin OT —</option>${otsLista().map(i=>`<option value="${esc(String(i.id))}" ${String(d?d.ot_id:o?o.id:"")==String(i.id)?"selected":""}>PBB ${esc(String(i.pos))} · ${esc(i.tipo)} · ${esc(String(i.orden||""))} · ${esc(i.fecha||"")}${i.estado=="abierta"?" · abierta":""}</option>`).join("")}</select>
+ <label>OT asociada <span class="mu">(opcional · rellena el registro)</span></label><select id="dc_ot" onchange="docsDeOT(this.value)"><option value="">— Sin OT —</option>${otsLista().map(i=>`<option value="${esc(String(i.id))}" ${String(d?d.ot_id:o?o.id:"")==String(i.id)?"selected":""}>PBB ${esc(String(i.pos))} · ${esc(i.tipo)} · ${esc(String(i.orden||""))} · ${esc(i.fecha||"")}${i.estado=="abierta"?" · abierta":""}</option>`).join("")}</select>
  <div id="dc_regw">${campoReg(reg)}</div>
  <label>Título</label><input id="dc_t" value="${v("titulo")}" data-auto="${d?"0":"1"}" oninput="this.dataset.auto='0'" placeholder="PBB 579 · PAS · Orden 600600 – Sirena y portón">
  <label>PDF del caso${d&&d.pdf_path?" · ya hay uno guardado (elige otro solo para cambiarlo)":""}</label><input id="dc_f" type="file" accept="application/pdf,.pdf">
@@ -137,10 +137,8 @@ window.docsDeOT=otId=>{const o=(typeof inc!="undefined"?inc:[]).find(i=>String(i
  $("#dc_regw").innerHTML=campoReg(regDeOT(o));if(!$("#dc_n").value.trim()&&o.desc)$("#dc_n").value=o.desc;docsNom()};
 window.docsGuarda=async()=>{const b=$("#dc_g");const t=$("#dc_t").value.trim(),u=(dEdit&&(DOCS.find(x=>x.id==dEdit)||{}).url)||"",f=$("#dc_f").files[0];
  const prev=dEdit?DOCS.find(x=>x.id==dEdit):null;const reg=leeReg();const otId=$("#dc_ot").value||null;
- if(!reg.pos){msg("Indica la posición PBB");$("#dr_pos").focus();return}
- if(!reg.orden){msg("Indica el nº de orden CGA");$("#dr_ord").focus();return}
  if(reg.hIni&&reg.hLle&&reg.hLle<reg.hIni&&!confirm("La hora de llegada es anterior a la de inicio. ¿Guardar igualmente (cambio de día)?"))return;
- if(!t){msg("Pon un título");return}
+ if(!t){const tt=[reg.pos?"PBB "+reg.pos:"",reg.tipo||"",reg.orden?"Orden "+reg.orden:""].filter(Boolean).join(" · ")+(reg.desc?" – "+reg.desc.slice(0,60):"");if(!tt.trim()){msg("Pon un título o rellena algún dato del caso");$("#dc_t").focus();return}$("#dc_t").value=tt;return docsGuarda()}
  if(u&&!/^https:\/\/([a-z]+\.)?claude\.ai\//i.test(u)){msg("El enlace debe ser de claude.ai (https://claude.ai/artifact/…)");return}
  if(!f&&!(prev&&prev.pdf_path)){msg("Adjunta el PDF del caso");$("#dc_f").focus();return}
  b.disabled=true;b.textContent="Guardando…";
@@ -149,7 +147,7 @@ window.docsGuarda=async()=>{const b=$("#dc_g");const t=$("#dc_t").value.trim(),u
   if(r.error){msg("No se pudo subir el PDF: "+r.error.message);b.disabled=false;b.textContent="💾 Guardar";return}pdf=path}
  let cont=$("#dc_x")?$("#dc_x").value.trim():"";
  if(f&&!cont){b.textContent="Leyendo el PDF…";cont=await textoPdf(f)}
- const fila={contenido:cont||(prev&&prev.contenido)||null,titulo:t,url:u||null,pdf_path:pdf,pos:reg.pos,tipo:reg.tipo,orden:reg.orden,ot_id:otId,carpeta:$("#dc_c").value,notas:$("#dc_n").value.trim()||null,registro:reg};
+ const fila={contenido:cont||(prev&&prev.contenido)||null,titulo:t,url:u||null,pdf_path:pdf,pos:reg.pos||null,tipo:reg.tipo||null,orden:reg.orden||null,ot_id:otId,carpeta:$("#dc_c").value,notas:$("#dc_n").value.trim()||null,registro:reg};
  const r=prev?await sb.from("docs_claude").update(fila).eq("id",prev.id).select()
   :await sb.from("docs_claude").insert({...fila,autor:(typeof tecNombre!="undefined"&&tecNombre)||user.email}).select();
  if(r.error||!r.data||!r.data.length){msg("No se pudo guardar: "+((r.error&&r.error.message)||"sin permiso"));b.disabled=false;b.textContent="💾 Guardar";return}
