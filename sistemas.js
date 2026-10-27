@@ -72,7 +72,7 @@ PAS:[
   "Freno manual: palancas de desfrenado T-S6 / T-S8 → E-A3 mód. 3 LED 2 y LED 4 (● en servicio). Palanca accionada = PBB bloqueada.",
   "Freno perdido (relé R2 de los variadores): E-A2 mód. 4 LED 2 (U1) y E-A3 mód. 1 LED 4 (U2) deben estar ○ con la PBB parada."]},
  {s:"Sensores de traslación (giro y contaje)",f:[61],c:[
-  "Almena: pieza metálica dentada que gira con las ruedas; los inductivos la leen para saber la posición y el ángulo de las ruedas (ver guía «Inductivos de traslación · almena»).",
+  "Almena: pieza metálica dentada que gira con las ruedas; los inductivos la leen para saber la posición y el ángulo de las ruedas (ver guía «Límite de traslación · inductivos de final de giro izq./dcha. · almena»).",
   "Límite giro traslación izquierda H-B3 y derecha H-B4 (inductivos PNP M12) → E-A3 mód. 4 LED 1 y LED 2 ●.",
   "Contaje traslación H-B1 / H-B2 → E-A3 mód. 4 LED 3 y LED 4 (cambian al mover).",
   "En cada inductivo: LED propio, distancia a la pieza metálica que detecta (1 mm < distancia < 4 mm), fijación y conector (latiguillos H-W14 a H-W17 → H-X51:16-19 → EH-W1 → E-X55:16-19 → hilos 281-284)."]},
