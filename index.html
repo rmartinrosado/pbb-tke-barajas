@@ -3728,4 +3728,15 @@ body{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
   return r}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v108"}})();
 </script>
+<script>
+/* ===== v109: Inicio. La caja «Mantenimiento preventivo» pasa de encima de las cajas a debajo de «Importar OT»
+ (a todo el ancho, justo tras la rejilla Registrar OT | Claude / Importar OT | Seguimiento OT). ===== */
+(function(){const st=document.createElement("style");st.textContent=`#app .grid + #dmpres{margin-top:12px}`;document.head.appendChild(st);
+ function coloca(){if(view!="dash")return;const d=document.getElementById("dmpres");if(!d)return;
+  const im=document.getElementById("oibtn");const g=(im&&im.closest(".grid"))||document.querySelector("#app .grid");
+  if(g&&g.nextElementSibling!==d)g.insertAdjacentElement("afterend",d)}
+ const o=render;render=function(){const r=o.apply(this,arguments);try{coloca()}catch(e){}return r};
+ if(typeof mantCarga=="function"){const m=mantCarga;mantCarga=function(){const p=m.apply(this,arguments);try{Promise.resolve(p).then(()=>setTimeout(coloca,0)).catch(()=>{})}catch(e){}return p}}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v109"}})();
+</script>
 </body></html>
