@@ -66,23 +66,24 @@ function fila(d){const mio=admin||(user&&d.creado_por==user.id);
  <div class="dcmeta">${d.pos?`<span class="tag">PBB ${esc(d.pos)}</span>`:""}${d.tipo?`<span class="tag">${esc(d.tipo)}</span>`:""}${d.orden?`<span class="mu">CGA ${esc(d.orden)}</span>`:""}<span class="dccarp">${esc(d.carpeta)}</span></div>
  ${d.registro&&(d.registro.hIni||d.registro.hCie)?`<div class="mu dcpie">⏱ ${esc(d.registro.hIni||"–")} → ${esc(d.registro.hLle||"–")} → ${esc(d.registro.hCie||"–")}${d.registro.rep?" · "+esc(d.registro.rep):""}</div>`:""}${d.notas?`<div class="dcnot">${esc(d.notas)}</div>`:""}
  ${frag(d)}<div class="mu dcpie">${fFecha(d.created_at)}${d.autor?" · "+esc(d.autor):""}</div>
- <div class="dcbot">${d.url?`<button class="pri" onclick="docsAbre('${d.id}')">Abrir doc</button>`:""}${d.pdf_path?`<button class="sec" onclick="docsPdf('${d.id}')">PDF</button>`:""}${otOk?`<button class="sec" onclick="docsOT('${d.id}')">Ver OT</button>`:""}
+ <div class="dcbot">${d.pdf_path?`<button class="pri" onclick="docsPdf('${d.id}')">📄 Abrir PDF</button>`:`<button class="sec" disabled style="opacity:.55" title="Adjunta el PDF con ✎">Sin PDF</button>`}${otOk?`<button class="sec" onclick="docsOT('${d.id}')">Ver OT</button>`:""}
  <span style="margin-left:auto;display:flex;gap:6px">${mio?`<button class="sec dcic" aria-label="Editar" onclick="docsForm('${d.id}')">✎</button>`:""}${admin?`<button class="sec dcic" aria-label="Borrar" onclick="docsBorra('${d.id}')">✕</button>`:""}</span></div></div>`}
 function vDocs(){const app=document.getElementById("app");if(!app)return;
  if(!puede()){app.innerHTML=`<div class="card"><p class="mu">La carpeta Casos solo está disponible en modo Técnico o Administrador.</p></div>`;return}
  const l=filtrados();const g=[];l.forEach(d=>{const m=fMes(d.created_at);let e=g.find(z=>z.m==m);if(!e)g.push(e={m,l:[]});e.l.push(d)});
  app.innerHTML=`<div class="card"><div class="row" style="align-items:center"><h3 style="margin:0">📁 Casos</h3><button class="pri" style="width:auto;margin:0;padding:9px 14px" onclick="docsForm()">+ Guardar doc</button></div>
- <p class="mu" style="margin:6px 0 10px">Registro de los documentos generados con Claude Docs para su consulta.</p>
+ <p class="mu" style="margin:6px 0 10px">Registro de los casos resueltos en PDF para su consulta.</p>
  <div class="dcbus"><span>🔍</span><input id="dcq" type="search" autocomplete="off" placeholder="PBB, orden, avería, actuación, componente (E-K81), sistema…" value="${esc(dTxt)}" oninput="docsQ(this.value)"></div>
  <div class="dccarps">${["Todas",...CARPETAS].map(c=>`<button class="${dCarp==c?"on":""}" onclick="docsCarp('${c}')">${c}${c=="Todas"?"":` <i>${DOCS.filter(d=>d.carpeta==c).length}</i>`}</button>`).join("")}</div></div>
- ${dTxt.trim()&&dCarg?`<div class="mu" style="margin:6px 4px 0;font-size:12px">${l.length} caso${l.length==1?"":"s"} con «${esc(dTxt.trim())}»</div>`:""}<div id="dclista">${!dCarg?`<div class="card mu">Cargando…</div>`:l.length?g.map(e=>`<div class="dcmes">${esc(e.m)}</div><div class="card dccaja">${e.l.map(fila).join("")}</div>`).join(""):`<div class="card mu">${DOCS.length?"Ningún documento coincide con la búsqueda.":"Aún no hay documentos guardados. Pulsa «+ Guardar doc» y pega el enlace del Claude Doc."}</div>`}</div>`;
+ ${dTxt.trim()&&dCarg?`<div class="mu" style="margin:6px 4px 0;font-size:12px">${l.length} caso${l.length==1?"":"s"} con «${esc(dTxt.trim())}»</div>`:""}<div id="dclista">${!dCarg?`<div class="card mu">Cargando…</div>`:l.length?g.map(e=>`<div class="dcmes">${esc(e.m)}</div><div class="card dccaja">${e.l.map(fila).join("")}</div>`).join(""):`<div class="card mu">${DOCS.length?"Ningún documento coincide con la búsqueda.":"Aún no hay documentos guardados. Pulsa «+ Guardar doc» y adjunta el PDF del caso."}</div>`}</div>`;
  if(!dCarg)docsCarga().then(()=>{if(view=="docs")vDocs()})}
 window.vDocs=vDocs;
 window.docsQ=v=>{dTxt=v;const c=document.getElementById("dclista");if(!c)return vDocs();const p=document.getElementById("dcq").selectionStart;vDocs();const i=document.getElementById("dcq");if(i){i.focus();try{i.setSelectionRange(p,p)}catch(e){}}};
 window.docsCarp=c=>{dCarp=c;vDocs()};
 window.docsAbre=id=>{const d=DOCS.find(x=>x.id==id);if(d&&d.url)window.open(d.url,"_blank","noopener")};
-window.docsPdf=async id=>{const d=DOCS.find(x=>x.id==id);if(!d||!d.pdf_path)return;const w=window.open("","_blank");
- const r=await sb.storage.from("docs_claude").createSignedUrl(d.pdf_path,600,{download:nomPdf(d.registro||{pos:d.pos,tipo:d.tipo,orden:d.orden,fecha:String(d.created_at||"").slice(0,10)})});
+/* v96: «Abrir PDF» abre el PDF guardado directamente (sin pasar por Claude Docs) */
+window.docsPdf=async id=>{const d=DOCS.find(x=>x.id==id);if(!d||!d.pdf_path){msg("Este caso no tiene PDF: adjúntalo con ✎");return}const w=window.open("","_blank");
+ const r=await sb.storage.from("docs_claude").createSignedUrl(d.pdf_path,1800);
  if(r.error){if(w)w.close();msg("No se pudo abrir el PDF");return}if(w)w.location=r.data.signedUrl;else location.href=r.data.signedUrl};
 window.docsOT=id=>{const d=DOCS.find(x=>x.id==id);if(!d)return;if(typeof bqOT!="undefined")bqOT=String(d.orden||d.pos||"");go("track","todas")};
 
@@ -121,13 +122,12 @@ window.docsForm=(id,otId)=>{if(!puede())return;const d=id?DOCS.find(x=>x.id==id)
  const o=otId&&typeof inc!="undefined"?inc.find(i=>String(i.id)==String(otId)):null;
  const v=k=>esc(d?(d[k]||""):"");
  const reg=(d&&d.registro)||regDeOT(o)||(d?{pos:d.pos,tipo:d.tipo,orden:d.orden,rep:"CGA",fecha:String(d.created_at||"").slice(0,10)}:null);
- $("#sheetc").innerHTML=`<h3 style="margin-top:0">${d?"Editar documento":"Guardar documento de Claude"}</h3>
+ $("#sheetc").innerHTML=`<h3 style="margin-top:0">${d?"Editar documento":"Guardar caso en PDF"}</h3>
  <label>OT asociada (rellena el registro)</label><select id="dc_ot" onchange="docsDeOT(this.value)"><option value="">— Sin OT —</option>${otsLista().map(i=>`<option value="${esc(String(i.id))}" ${String(d?d.ot_id:o?o.id:"")==String(i.id)?"selected":""}>PBB ${esc(String(i.pos))} · ${esc(i.tipo)} · ${esc(String(i.orden||""))} · ${esc(i.fecha||"")}${i.estado=="abierta"?" · abierta":""}</option>`).join("")}</select>
  <div id="dc_regw">${campoReg(reg)}</div>
  <label>Título</label><input id="dc_t" value="${v("titulo")}" data-auto="${d?"0":"1"}" oninput="this.dataset.auto='0'" placeholder="PBB 579 · PAS · Orden 600600 – Sirena y portón">
- <label>Enlace del Claude Doc</label><input id="dc_u" type="url" inputmode="url" value="${v("url")}" placeholder="https://claude.ai/artifact/…">
- <label>PDF exportado (opcional)${d&&d.pdf_path?" · ya hay uno guardado":""}</label><input id="dc_f" type="file" accept="application/pdf,.pdf">
- <details class="dcreg" ${d&&d.contenido?"":""}><summary>🔎 Texto del documento <span class="mu">(para la búsqueda; se rellena solo con el PDF)</span></summary><textarea id="dc_x" rows="5" placeholder="Pega aquí el texto del Claude Doc: diagnóstico, comprobaciones, componentes, cableado…">${esc(d&&d.contenido||"")}</textarea></details>
+ <label>PDF del caso${d&&d.pdf_path?" · ya hay uno guardado (elige otro solo para cambiarlo)":""}</label><input id="dc_f" type="file" accept="application/pdf,.pdf">
+ <details class="dcreg" ${d&&d.contenido?"":""}><summary>🔎 Texto del documento <span class="mu">(para la búsqueda; se rellena solo al leer el PDF)</span></summary><textarea id="dc_x" rows="5" placeholder="Opcional: texto del caso para la búsqueda: diagnóstico, comprobaciones, componentes, cableado…">${esc(d&&d.contenido||"")}</textarea></details>
  <label>Carpeta</label><select id="dc_c">${CARPETAS.map(c=>`<option ${((d&&d.carpeta)||"Resoluciones")==c?"selected":""}>${c}</option>`).join("")}</select>
  <label>Notas</label><textarea id="dc_n" rows="2" placeholder="Resumen de la avería o de lo que contiene">${v("notas")}</textarea>
  <button class="pri" id="dc_g" style="margin-top:14px" onclick="docsGuarda()">💾 Guardar</button>
@@ -135,14 +135,14 @@ window.docsForm=(id,otId)=>{if(!puede())return;const d=id?DOCS.find(x=>x.id==id)
  $("#sheet").style.display="flex";if(!d)docsNom()};
 window.docsDeOT=otId=>{const o=(typeof inc!="undefined"?inc:[]).find(i=>String(i.id)==String(otId));if(!o)return;
  $("#dc_regw").innerHTML=campoReg(regDeOT(o));if(!$("#dc_n").value.trim()&&o.desc)$("#dc_n").value=o.desc;docsNom()};
-window.docsGuarda=async()=>{const b=$("#dc_g");const t=$("#dc_t").value.trim(),u=$("#dc_u").value.trim(),f=$("#dc_f").files[0];
+window.docsGuarda=async()=>{const b=$("#dc_g");const t=$("#dc_t").value.trim(),u=(dEdit&&(DOCS.find(x=>x.id==dEdit)||{}).url)||"",f=$("#dc_f").files[0];
  const prev=dEdit?DOCS.find(x=>x.id==dEdit):null;const reg=leeReg();const otId=$("#dc_ot").value||null;
  if(!reg.pos){msg("Indica la posición PBB");$("#dr_pos").focus();return}
  if(!reg.orden){msg("Indica el nº de orden CGA");$("#dr_ord").focus();return}
  if(reg.hIni&&reg.hLle&&reg.hLle<reg.hIni&&!confirm("La hora de llegada es anterior a la de inicio. ¿Guardar igualmente (cambio de día)?"))return;
  if(!t){msg("Pon un título");return}
  if(u&&!/^https:\/\/([a-z]+\.)?claude\.ai\//i.test(u)){msg("El enlace debe ser de claude.ai (https://claude.ai/artifact/…)");return}
- if(!u&&!f&&!(prev&&prev.pdf_path)){msg("Pega el enlace del Claude Doc o adjunta el PDF");return}
+ if(!f&&!(prev&&prev.pdf_path)){msg("Adjunta el PDF del caso");$("#dc_f").focus();return}
  b.disabled=true;b.textContent="Guardando…";
  let pdf=prev?prev.pdf_path:null;
  if(f){const path=Date.now()+"_"+nomPdf(reg);const r=await sb.storage.from("docs_claude").upload(path,f,{contentType:"application/pdf"});
