@@ -3307,6 +3307,7 @@ const CROQ={mega:{i:"🔊",f:30,t:"Cómo funciona la megafonía de la PBB",
  brazo:{sim:"brazo",img:"croquis/brazo-autonivelador-f86.png",f:86,t:"Croquis del brazo · secuencia de los inductivos",
  alt:"Tabla del folio 86: posición del brazo (>50, >25, 0, <25, <50 mm) frente a los sensores B8 a B13",
  n:[
+ "<b>Cómo es en campo.</b> Bajo el suelo de la cabina, en la esquina delantera: un soporte horizontal con el motorreductor SEW (C-M2, brazo adelante / atrás) y, en su extremo, una pletina vertical que sube hasta la carcasa gris hexagonal. Arriba de la carcasa asoma la rueda de goma negra, que se apoya en el fuselaje y gira cuando el avión sube o baja. Dentro de la carcasa la rueda arrastra el disco que tapa o destapa los inductivos C-B8…C-B13. Los cables llegan por la manguera corrugada hasta el conector de la base del mástil.",
  "<b>Cómo se lee.</b> Columnas: sensores del brazo C-B8…C-B13 (arriba B8/B9, abajo B10/B11, neutral B12/B13). Filas: desnivel entre la cabina y la puerta del avión. Flecha ↑ = la cabina sube; ↓ = baja; 0 mm sin flecha = nivelada, cabina parada.",
  "<b>El punto gris</b> = entrada de P-A5 encendida. Los SICK IME12 son NC: entrada encendida = sensor <u>sin</u> target delante. Sin punto = sensor tapado por la leva del brazo.",
  "<b>Secuencia (sensores tapados):</b> &gt;50 mm → B8 B9 B10 B11 · &gt;25 mm → B9 B10 B11 · <b>0 mm → B10 B11 B12 B13</b> · &lt;25 mm → solo B10 · &lt;50 mm → ninguno.",
@@ -3338,7 +3339,7 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=1"></script><script src="sos.js?v=8"></script><script src="iconos.js?v=2"></script><script src="sim-brazo.js?v=1"></script><script>
+</script><script src="sistemas.js?v=1"></script><script src="sos.js?v=8"></script><script src="iconos.js?v=2"></script><script src="sim-brazo.js?v=2"></script><script>
 /* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
 function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
  msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
@@ -3375,4 +3376,4 @@ ${i.obs||"(sin observaciones)"}
 Analiza la actuación y las observaciones con la documentación del proyecto PBB TKE (planos, guía de averías y procedimientos). Necesito el diagnóstico y los pasos para resolver la avería. Empieza con un apartado «Siguiente actuación en campo» con pasos numerados, breves y claros.`)}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v82"}})();
 </script>
-</body></html>
+<script>(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v83"}})();</script></body></html>
