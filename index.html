@@ -3583,7 +3583,7 @@ const POS_PROPIO=["504","507","508"];
 (function(){const o=puAnalog;puAnalog=function(i){const P=o(i);if(!i)return P;return POS_PROPIO.includes(String(i.pos))?P.filter(p=>p.an!=4):P}})();
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||!i||!POS_PROPIO.includes(String(i.pos)))return r;
  if(r.rel.some(x=>x.mod=="E-A4"&&+String(x.S.l)==4)){r.rel=r.rel.filter(x=>!(x.mod=="E-A4"&&+String(x.S.l)==4));r.mods=[...new Set(r.rel.map(x=>x.mod))]}return r}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v99"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v100"}})();
 </script>
 <script>
 /* ===== v99: esquema general rev. J (T87911031210ES_BARAJAS_T4T4S_Rev_J_ESQUEMA, antes «RCS PLANOS») =====
@@ -3597,6 +3597,21 @@ const POS_PROPIO=["504","507","508"];
   if(!confirm("¿Borrar el esquema anterior ("+V.map(x=>x.name).join(", ")+")? La app ya usa la rev. J."))return;
   const r=await sb.storage.from("planos").remove(V.map(x=>x.id));if(r.error||!r.data||!r.data.length){msg("Sin permiso para eliminar");return}
   try{if(typeof gDocs!="undefined")gDocs=null}catch(e){}msg("Esquema anterior borrado");vPlans()}})();
+</script>
+<script>
+/* ===== v100: al abrir la app con la sesión del administrador (rmartinrosado@gmail.com, rol admin) entra directamente
+ en modo Administrador, sin pedir la contraseña. Solo una vez por apertura: si luego cambia a O o T, se respeta.
+ Además, al abrir comprueba si hay una versión nueva en GitHub y recarga sola (para todos los usuarios). ===== */
+(function(){let hecho=false;const ADM="rmartinrosado@gmail.com";const o=render;
+ render=function(){try{if(!hecho&&typeof user!="undefined"&&user&&rol=="admin"&&String(user.email||"").toLowerCase()==ADM){hecho=true;
+   if(!admin){admin=true;tecnico=false;view="dash";filtro="todas";ptxt=""}}}catch(e){}return o.apply(this,arguments)}})();
+(async function(){try{ const ver=s=>{const m=[...s.matchAll(/rol\+" · v(\d+)"/g)].map(x=>+x[1]);return m.length?Math.max(...m):0};
+ const mia=ver(document.documentElement.innerHTML);if(!mia)return;
+ const r=await fetch(location.pathname+"?chk="+Date.now(),{cache:"no-store"});if(!r.ok)return;const nueva=ver(await r.text());
+ let ya=0;try{ya=+sessionStorage.getItem("pbb_autoVer")||0}catch(e){}
+ if(nueva>mia&&ya!=nueva){try{sessionStorage.setItem("pbb_autoVer",String(nueva))}catch(e){}
+  try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
+  location.replace(location.pathname+"?v="+Date.now())}}catch(e){}})();
 </script>
 <script src="docs-claude.js?v=7"></script>
 </body></html>
