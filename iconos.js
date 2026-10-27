@@ -1,8 +1,8 @@
-/* ===== v76: iconos de la guía de campo sacados de los dibujos del propio plano RCS PLANOS =====
+/* ===== v76: iconos de la guía de campo sacados de los dibujos del propio plano ESQUEMA GENERAL rev. J =====
  Sustituyen a los iconos de zona de v70. Cada título de la guía (cajas de avería, actuación más eficaz,
  comprobaciones por sistema, inspección cable a cable…) lleva delante el dibujo del plano del sistema
  electromecánico al que se refiere (folio de origen entre paréntesis). El conector 400 Hz no tiene dibujo en
- RCS PLANOS y se mantiene dibujado. Si un título no apunta a ningún sistema, se pone el del tipo de aviso. */
+ ESQUEMA GENERAL rev. J y se mantiene dibujado. Si un título no apunta a ningún sistema, se pone el del tipo de aviso. */
 (function(){
 const ICO={
  pasarela:["Pasarela (f.9)"],alimentacion:["Alimentación / armario E (f.9)"],telefono:["Comunicaciones teléfono (f.10)"],

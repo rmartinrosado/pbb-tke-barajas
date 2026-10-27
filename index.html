@@ -53,7 +53,7 @@ addEventListener("load",function(){setTimeout(__diag,4000)});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>')</script>
-<script src="cableado.js?v=56"></script>
+<script src="cableado.js?v=57"></script>
 <script>
 let POS=[500,502,504,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,538,539,540,542,544,546,548,550];
 const TIPOS=["PAS","AAA","AAP","HZ","SVGA","Sigma"];
@@ -325,7 +325,9 @@ function pedirTec(){if(rol=="operador"){msg("Tu usuario no tiene permiso de Téc
 async function guardaPos(){const v=$("#n_p").value.trim();if(!v){msg("Introduce la posición");return}if(POS.some(p=>String(p)==v)){msg("Esa posición ya existe");return}
  const r=await sb.from("posiciones").insert({num:v}).select();if(r.error||!r.data.length){msg("Sin permiso para añadir posiciones");return}
  POS.push(v);POS.sort(ordPos);closeSheet();render();msg("Posición "+v+" añadida")}
-async function allPdf(){const r=await sb.storage.from("planos").list("",{limit:200,sortBy:{column:"name",order:"asc"}});if(r.error)return[];return r.data.filter(x=>x.name!==".emptyFolderPlaceholder").map(x=>({id:x.name,name:x.name.replace(/^\d+_/,""),type:(x.metadata&&x.metadata.mimetype)||"",size:(x.metadata&&x.metadata.size)||0,data:null}))}
+async function allPdf(){const r=await sb.storage.from("planos").list("",{limit:200,sortBy:{column:"name",order:"asc"}});if(r.error)return[];return r.data.filter(x=>x.name!==".emptyFolderPlaceholder").map(x=>({id:x.name,name:x.name.replace(/^\d+_/,""),type:(x.metadata&&x.metadata.mimetype)||"",size:(x.metadata&&x.metadata.size)||0,data:null})).sort((a,b)=>planRk(a.name)-planRk(b.name))}
+/* v99: el esquema general rev. J (T87911031210…_Rev_J) va delante del antiguo «ESQUEMA GENERAL rev. J» */
+function planRk(n){return /T87911031210|T4T4S/i.test(n)?0:/RCS.?PLANOS/i.test(n)?2:1}
 async function subir(fs){let n=0;for(const f of fs){try{const buf=await f.arrayBuffer();const t=f.type||(/\.pdf$/i.test(f.name)?"application/pdf":"");const path=Date.now()+"_"+f.name.replace(/[^\w.\-]/g,"_");const r=await sb.storage.from("planos").upload(path,new Blob([buf],{type:t}),{contentType:t||undefined});if(r.error)msg("No se pudo subir "+f.name+": "+r.error.message);else n++}catch(e){msg("No se pudo leer "+f.name)}}
  if(n)msg(n+" documento(s) cargado(s)");vPlans()}
 async function delPdf(id){const r=await sb.storage.from("planos").remove([id]);if(r.error||!r.data||!r.data.length)msg("Sin permiso para eliminar");vPlans()}
@@ -527,33 +529,33 @@ function pintaLT(){const r=window._tecAll||{data:[]},b=$("#ltb"),box=$("#ltbox")
   return `<div class="lti"><button class="ltn" data-k="${esc(o.k)}" onclick="ltPick(this.dataset.k)"><span style="overflow-wrap:anywhere">${esc(o.n)}</span><span class="mu">${ab?"▴":"▾"}</span></button>`+(ab?`<div class="ltd">`+o.l.map(x=>`<div class="row" style="flex-wrap:nowrap;margin:6px 0"><span class="mu">Turno ${esc(x.turno)}</span><span style="white-space:nowrap"><button class="sec" style="padding:6px 10px" onclick="codTec('${x.id}')">Código</button> <button class="sec" style="padding:6px 10px" onclick="bajaTec('${x.id}')">Eliminar</button></span></div>`).join("")+`</div>`:"")+`</div>`}).join("")||`<div class="mu" style="padding:12px">Sin técnicos dados de alta</div>`)+`</div>`}
 /* ===== v18: Guía de campo integrada en modo Técnico (planos PBB 504/508, RCS T4S, PLC RCS, AAA, PDS 400) ===== */
 const GUIA={
- fuente:"Plano de cotejo por defecto: RCS PLANOS (T87911031210, T4/T4S, todas las posiciones) y PLC RCS para el estado de los LED. Para 504/507/508 hay datos propios del esquema PBB 504.",
+ fuente:"Plano de cotejo por defecto: ESQUEMA GENERAL rev. J (T87911031210, T4/T4S, todas las posiciones) y PLC RCS para el estado de los LED. Para 504/507/508 hay datos propios del esquema PBB 504.",
  seg:["Coordinar con CGA / Responsable de Turno y anotar Nº de orden.","Pasarela parada, sin avión o con la operación asegurada. Balizar rotonda y ruedas.","Selector en MANTENIMIENTO / MANUAL antes de mover nada.","Potencia: abrir E-S0 (armario E) y/o CBTH-Z0 (40 A), bloquear, etiquetar y comprobar ausencia de tensión.","OJO: el 24 VDC sigue vivo con E-S0 abierto (SAI por CBTH-X12 → E-S0.1). Para cortar mando, abrir E-S0.1.","Nunca dejar puenteadas setas, finales de carrera, bordes ni zapata. El bypass CP-S33 solo para maniobra controlada.","Esta guía no sustituye el procedimiento de TK Airport Solutions ni el de Aena."],
  alim:[["Potencia 400 V","CBTH-Z0 (40 A) → CBTH-X11 → E-X11 → E-S0 → E-K0 → distriblock E-X72 →\n• E-Q1 (22 A) → E-K1 → variadores E-U1 izq / E-U2 dcha (ATV28 5,5 kW) → T-M1 / T-M2\n• E-Q3 (11,4 A) → E-K3 → bomba H-M1 5,5 kW\n• E-Q40 (16 A) → P-Q6 giro cabina C-M1 · P-Q5 brazo autonivelador C-M2\n• E-Q15 (13-18 A) → trafo P-T1 + protectores E-F19/F20/F21"],["Monofásico 230 V","E-Q150 (16 A) → E-K0.1 →\n• E-Q10 ilum. túnel interior · E-Q10.1 cabina/túnel ext./medio\n• E-Q12 gálibos y caldeos · E-Q13 diferencial 30 mA enchufes\n• E-Q15.1 focos · E-Q14 cámara · E-Q17.1 lunetas\n• E-Q4/E-Q4.1 capota · E-Q8 portón · P-Q7 suelo basculante"],["Mando 24 VDC","SAI → E-S0.1 → E-Q22 (3 A) → fuente E-V3 (24 V 10 A) → E-Q30 (10 A) →\n• Armario E: E-Q30.0 (alarma), E-Q30.1…E-Q30.4\n• Pupitre: P-Q30.0 (alarma), P-Q30.1…P-Q30.3\n• E-Q24 frenos traslación · E-Q25 megafonía · E-Q26 retorno autónomo/switch"]],
  leds:[["E-A0","Línea seguridades (E-K0), disyuntores variadores, bomba, capota, portón, protector sobretensiones","—"],["E-A2","Fallo variador U1 y U2 (encendido = OK), límite inferior inclinación","Límite sup. inclinación, bloqueos A/A, carro A/A, convertidor, 90 % conector, freno perdido U1"],["E-A3","Protecciones 24 VDC, freno manual izq/dcha, límite giro traslación izq/dcha","Seta AO, setas traslación, freno perdido U2, estado E-K1/E-K3/E-K24, freno eléctrico"],["E-A6","Bobina E-K1, E-K0, E-K0.1","E-K24, sirena cabina, E-K3"],["E-A8","Sensor portón, bandas ruedas, seta pupitre, FC traslación, extensión, rotonda, inclinación","Bypass seguridad"],["E-A9","Antiatrapamiento túnel interior izq/dcha (y medio en 3 túneles)","Autorización rotonda, sirena"],["E-A10","Bumpers brazo y cabina, barrera rotonda, puerta servicio, modo manual, zapata","Modo auto, local/remoto"],["P-A4","Inversores cabina, disyuntor brazo, cabina, suelo, estado P-Q30","Mandos pupitre"],["P-A5","Brazo autonivelador arriba 1 y 2","Contacto avión, cable 400 Hz, brazo abajo/neutral"],["P-A6","Límites cabina, frenos cabina, FC límite suelo","Pulsadores handling"]],
- dk:{PAS:[/RCS.?PLANOS/i,/PBB/i],AAA:[/AAA|PCA/i],HZ:[/^(?!.*OPERA).*(PDS|400)/i],AAP:[/AAP/i]},
+ dk:{PAS:[/T87911031210|T4T4S|RCS.?PLANOS/i,/PBB/i],AAA:[/AAA|PCA/i],HZ:[/^(?!.*OPERA).*(PDS|400)/i],AAP:[/AAP/i]},
  tipos:{
   PAS:{n:"Pasarela (PBB)",s:[
    {t:"PBB sin tensión (pupitre y luces apagados)",g:[9, 9, 9, 29, 29, 36],p:["CBTH: ¿CBTH-Z0 cerrado? Medir 400 V entre fases en CBTH-X11 (1-2-3). Si no hay → aguas arriba, avisar.","Armario E: ¿E-S0 cerrado? Medir 400 V en E-X11.","¿220 V SAI en CBTH-X12 (1-2)? ¿E-S0.1 cerrado?","Revisar E-Q22 (3 A) y E-Q30 (10 A). Medir 24 VDC a la salida de E-V3.","E-V3 sin 24 V con 230 V en entrada → sustituir fuente.","LED alarma de E-Q30.0 / P-Q30.0: localizar la salida disparada (E-Q30.1…30.4 / P-Q30.1…30.3) y buscar el cortocircuito antes de rearmar."],r:"pág. 9, 13, 29, 36-40"},
    {t:"Pupitre encendido pero no rearma / no activa",g:[68, 43, 42, 41, 68, 70, 98, 37],p:["E-A8: el LED apagado que debería estar encendido indica qué abre la cadena.","Setas CP-S5 (pupitre), H-S3 / H-S4 (elevación), seta AO: desenclavar y comprobar contactos 21-22.","Finales de carrera: traslación H-S1, extensión ET-S1, rotonda CO-S1, inclinación IT-S2/IT-S3.","Bordes ruedas T-B5/T-B6 → relé Gelbau E-U5: ver LEDs, cable T1-W1/W2 y conector T-CON10.","Sensor portón C-S9 (portón bajado).","E-A10: bumpers C-B27…C-B30, barrera rotonda R-B1…R-B4 (limpiar/alinear), puerta servicio SS-B15, zapata.","E-A9: antiatrapamiento túneles (SICK L41): limpiar ópticas y alinear.","Entradas OK pero E-A6 no da salida a E-K0/E-K0.1/E-K1 → alimentación safety (E-Q30.3/E-Q30.4, borna E-X68:6) e Interbus E-A11 ↔ P-A0 (cable EP-W3)."],r:"pág. 41-45, 63-70, 89, 92, 98-99"},
    {t:"Antiatrapamiento túnel activado (seguridad entre túneles)",g:[41,69,98,41,41,49,70,41,69,41,69,69],a:"Puentear una entrada de seguridad anula una protección de personas. Solo como medida temporal, con autorización del Responsable de Turno, anotándolo en la OT y retirando el puente en cuanto se repare la causa.",p:[
-"QUÉ HAY (RCS PLANOS pág. 41, casi todas las posiciones): FINALES DE CARRERA MECÁNICOS. Túnel A-B (interior): IT-S3' e IT-S3'' (un final por lado) → relés E-K247 / E-K248. Túnel B-C (medio, PBB de 3 túneles): MT-S3' y MT-S3'' → relés E-K247A / E-K248A. Con el final libre el relé está excitado; al pulsarlo cae el relé y se abre su contacto 11-14.",
-"ENTRADAS EN E-A9 (RCS PLANOS pág. 69): túnel A-B = MÓDULO 3, borna 5.1 (IN05S) / 5.2 (UT1), con los contactos de E-K247 y E-K248 en serie (izquierdo y derecho entran juntos). Túnel B-C = módulo 1, borna 2.1 / 2.2 (E-K247A y E-K248A). En reposo el LED está ENCENDIDO.",
+"QUÉ HAY (ESQUEMA GENERAL rev. J folio 41, todas las posiciones salvo 504, 507 y 508): FINALES DE CARRERA MECÁNICOS, DOS POR LADO (superior e inferior) EN SERIE y SIN RELÉS. Túnel interior izquierdo: IT-S3''(SUP) + IT-S3''(INF) → hilo 743. Túnel interior derecho: IT-S3'(SUP) + IT-S3'(INF) → hilo 744. Túnel medio (PBB de 3 túneles): izquierdo MT-S3''(SUP/INF) → hilo 745; derecho MT-S3'(SUP/INF) → hilo 746. Se alimentan con el 24 V de seguridad (hilo 613, E-X68:6) desde la clema del túnel. Final pulsado = se abre el bucle de ese lado.",
+"ENTRADAS EN E-A9 (folio 69): CADA LADO TIENE SU ENTRADA. Interior izquierdo = módulo 3, borna 5.1 (IN05S, LED 1); interior derecho = módulo 3, borna 6.1 (IN06S, LED 2); medio izquierdo = módulo 1, borna 2.1 (LED 2); medio derecho = módulo 4, borna 8.1 (LED 2). En reposo los LED están ENCENDIDOS: el LED apagado indica el lado activado.",
 "POSICIONES 504, 507 y 508 (planos PBB 504 pág. 98-99): BARRERAS ÓPTICAS SICK L41 con entrada propia por lado: túnel interior izq IT-B1 → E-A9 módulo 3, 5.1–5.2; dcha IT-B2 → módulo 3, 6.1–6.2; túnel medio izq MT-B1 → módulo 1, 2.1–2.2; dcha MT-B2 → módulo 4, 8.1–8.2.",
 "PRIORIDAD 1 · Inspeccionar los antiatrapamientos DERECHO e IZQUIERDO: comprobar que no hay objetos pulsando el final de carrera o interrumpiendo la barrera (objetos atrapados, suciedad, cables, golpes en el soporte).",
-"PRIORIDAD 1 · Si está activado, liberarlo. Final de carrera: retirar el objeto y comprobar que la palanca o el rodillo vuelve libre y que el relé E-K247/E-K248 vuelve a entrar. Barrera óptica (504, 507, 508): limpiar la óptica y realinear. Comprobar que se enciende el LED en E-A9.",
+"PRIORIDAD 1 · Si está activado, liberarlo. Final de carrera: retirar el objeto y comprobar que la palanca o el rodillo vuelve libre y que vuelve a encenderse el LED de ese lado en E-A9. Barrera óptica (504, 507, 508): limpiar la óptica y realinear. Comprobar que se enciende el LED en E-A9.",
 "PRIORIDAD 1 · Resetear o inicializar la PBB desde el pupitre.",
 "PRIORIDAD 1 · Selector CP-S16: pasar de REMOTO a LOCAL y después otra vez a REMOTO para dejar la PBB en estado de reposo (E-A10 módulo 4, borna 7.1: modo local/remoto).",
-"PRIORIDAD 2 · Si sigue activado el antiatrapamiento del túnel B por golpeo en la caja del aire acondicionado de cabina: identificar el lado contactado (izquierdo o derecho) mirando qué relé, E-K247 o E-K248, está caído.",
-"PRIORIDAD 2 · Anular el contacto con un puente directo en el PLC, en el MÓDULO 3 de E-A9. Finales mecánicos: puente 5.1–5.2 (anula los dos lados a la vez, porque entran por la misma entrada). Barreras ópticas 504/507/508: lado IZQUIERDO = 5.1–5.2; lado DERECHO = 6.1–6.2.",
-"PRIORIDAD 2 · Alternativa más selectiva en finales mecánicos: puentear solo el contacto 11-14 del relé caído (E-K247 o E-K248). Así el otro lado sigue protegido.",
-"PRIORIDAD 2 · Puentear siempre la entrada con su propia salida de test del mismo módulo (IN–UT). Un puente a +24 V directo lo detecta el módulo safety como fallo.",
-"PRIORIDAD 2 · Rearmar la PBB, comprobar movimientos, señalizar el puente en el armario y anotarlo en la OT (lado, bornas y motivo) para su retirada al reparar la caja de A/A o el final de carrera."],r:"RCS pág. 41, 69, 70 · PBB 504 pág. 98-99"},
+"PRIORIDAD 2 · Si sigue activado el antiatrapamiento del túnel B por golpeo en la caja del aire acondicionado de cabina: identificar el lado contactado mirando qué LED de E-A9 está apagado (módulo 3: LED 1 = izquierdo, 5.1 · LED 2 = derecho, 6.1).",
+"PRIORIDAD 2 · Puentear SOLO el lado activado (el otro sigue protegido). Finales mecánicos (rev. J): unir el 613 con el retorno de ese lado en la clema del túnel (izquierdo hilo 743, derecho hilo 744; medio izq. 745, medio dcha. 746) o, en el armario E, unir E-X68:6 (613) con la borna IN de ese lado en E-A9 (5.1 izquierdo, 6.1 derecho; 2.1 / 8.1 túnel medio). Barreras ópticas 504/507/508: lado IZQUIERDO = 5.1–5.2; lado DERECHO = 6.1–6.2.",
+"PRIORIDAD 2 · Antes de puentear, medir: con el final cerrado, la borna IN del lado tiene 24 V del 613. Si en esa posición el bucle sale de la salida de test (UT) y no del 613, puentear IN–UT de ese canal.",
+"PRIORIDAD 2 · Barreras ópticas (504/507/508): puentear siempre la entrada con su propia salida de test del mismo módulo (IN–UT); un puente a +24 V directo lo detecta el módulo safety como fallo.",
+"PRIORIDAD 2 · Rearmar la PBB, comprobar movimientos, señalizar el puente en el armario y anotarlo en la OT (lado, bornas y motivo) para su retirada al reparar la caja de A/A o el final de carrera."],r:"Esquema general rev. J folios 41, 69, 70 · PBB 504 pág. 98-99"},
    {t:"No traslada / fallo variador",g:[49, 31, 58, 64, 30, 61, 59, 32, 61],p:["Anotar el código de alarma del display.","E-A0 disyuntor variadores apagado → E-Q1 disparado (22 A). Medir aislamiento de T-M1/T-M2 y cables ETR-W1/W2 antes de rearmar.","E-A2 DIN02/DIN03 apagado = fallo variador U1/U2. Leer código en E-U1/E-U2 y hacer reset quitando mando.","¿Entra E-K1 al pedir marcha? (bobina desde E-A6 DOS01). Si no → ver «no rearma».","Freno: E-K24 (E-A6 DOS02) alimenta T-Y1/T-Y2 por E-Q24 (6 A). Medir tensión en el freno con orden de marcha.","Freno manual T-S6/T-S8: E-A3 DIN10/12 deben estar encendidos; comprobar palanca de desfrenado.","«Freno perdido» encendido con PBB parada → freno no actúa: revisar frenos y relé R2 del variador.","Fallo sobretensión bus → medir resistencias de frenado E-R1/E-R2 (82 Ω 150 W).","Inductivos M12 límite giro H-B3/H-B4 y contaje H-B1/H-B2: LED del sensor y distancia al target."],r:"pág. 31-33, 54, 58-61"},
    {t:"No sube / no baja (elevación)",g:[34, 65, 44, 44, 58],p:["E-A0 disyuntor bomba apagado → E-Q3 disparado (11,4 A). Revisar motor H-M1 y cable H-W13.","¿Entra E-K3 al pedir subir? (bobina desde E-A6 DOS08).","Válvulas H-Y1 subir / H-Y2 bajar (24 V) por relés E-K61 / E-K62. Medir 24 V en la válvula con la orden; si llega y no actúa → bobina.","Bajada rápida: H-Y3 (24 V) y H-Y4/H-Y5 (12 V) desde E-A7.","Límites inclinación IT-S2/IT-S3 (E-A2 DIN04/05) y medidor de altura C-B14 (E-A4, 4-20 mA)."],r:"pág. 34, 44, 62"},
    {t:"Cabina / brazo autonivelador / suelo basculante",g:[35, 87, 35, 27],p:["Giro cabina: P-Q6 (1,3 A) → P-K61/2 → C-M1. En P-A4 disyuntor e inversores cabina encendidos.","Límites cabina C-B1/C-B2 y freno cabina C-B24 (P-A6). Potenciómetro giro C-R10 → E-R10 → E-A4.","Brazo autonivelador: P-Q5 (0,2 A) → P-K51/2 → C-M2. Sensores C-B8…C-B13 (P-A5); en reposo arriba 1 y 2 encendidos.","Suelo basculante: P-Q7 (1,6 A) → P-K71/2 → C-M5 (condensador P-C1). FC suelo C-S1/C-S2 (P-A6)."],r:"pág. 27, 35, 62, 84-88"},
    {t:"Fallo de autonivelación · sensores neutrales del brazo autonivelador",cro:"brazo",g:[86,86,86,86,86,86,35,35,86],a:"No se puentean los sensores del brazo autonivelador: son los que nivelan la cabina con la puerta del avión.",p:[
-"QUÉ HAY (RCS PLANOS pág. 86): 6 inductivos SICK IME12-04BPSZC0K (M12, PNP, NC, alcance 4 mm) leídos por P-A5. Arriba: C-B9 (sensor 1 → DIN11, borna 5.4) y C-B8 (sensor 2 → DIN10, borna 6.1). Abajo: C-B11 (sensor 1 → DIN13, borna 7.1) y C-B10 (sensor 2 → DIN12, borna 6.4). NEUTRAL: C-B12 (sensor 1 → DIN14, borna 8.1) y C-B13 (sensor 2 → DIN15, borna 7.4). Contacto avión C-B7 → DIN09 (5.1).",
+"QUÉ HAY (ESQUEMA GENERAL rev. J pág. 86): 6 inductivos SICK IME12-04BPSZC0K (M12, PNP, NC, alcance 4 mm) leídos por P-A5. Arriba: C-B9 (sensor 1 → DIN11, borna 5.4) y C-B8 (sensor 2 → DIN10, borna 6.1). Abajo: C-B11 (sensor 1 → DIN13, borna 7.1) y C-B10 (sensor 2 → DIN12, borna 6.4). NEUTRAL: C-B12 (sensor 1 → DIN14, borna 8.1) y C-B13 (sensor 2 → DIN15, borna 7.4). Contacto avión C-B7 → DIN09 (5.1).",
 "LED EN REPOSO (brazo recogido), P-A5: arriba 1 y 2 ENCENDIDOS · abajo 1 y 2 apagados · neutral 1 y 2 apagados (módulo 4, LED 2 y 3).",
 "PRIORIDAD 1 · Selector en MANUAL, cabina separada del avión o operación asegurada. Llevar el brazo a la posición central (0 mm): los DOS LED neutral de P-A5 (DIN14 8.1 = C-B12 · DIN15 7.4 = C-B13) deben quedar APAGADOS a la vez (sensores NC tapados por el target) y encenderse los dos al salir de neutral hacia arriba o hacia abajo. Si uno no acompaña al otro → ese sensor (C-B12 o C-B13), su latiguillo o su target.",
 "PRIORIDAD 1 · Mirar el LED del propio sensor en la cabina. Cambia el LED del sensor y no el de P-A5 → latiguillo M12 (C-W4x), conector C-CON10 o manguera P-W10 (12×1,5). No cambia el LED del sensor → distancia al target (dejar 1-2 mm), target suelto o sucio, sensor dañado.",
@@ -565,7 +567,7 @@ const GUIA={
    {t:"Capota no despliega / no recoge",g:[26, 47, 59, 26],p:["E-A0 disyuntor capota apagado → E-Q4 (izq) / E-Q4.1 (dcha), 2,15 A.","Inversores E-K41/42 (izq) y E-K43/44 (dcha), órdenes desde E-A1 OUT12-15.","FC capota C-S15/C-S16 (E-A2 DIN12/13): encendido = capota echada.","Motores C-M4 / C-M4.1 (0,5 kW)."],r:"pág. 26, 47, 55, 59"},
    {t:"Portón enrollable · bloqueo de traslación",g:[27, 68, 68, 68],p:["E-Q8 (1,1 A) → E-K81/2 (E-A1 OUT31/32 subir/bajar) → motor C-M6.","Sensor portón abajo C-S9 (E-A8). Si falla, la PBB no rearma.","BLOQUEO DE LA PAS: con el portón arriba la pasarela queda bloqueada. Antes de una traslación hay que BAJAR el portón para quitar el bloqueo. La llave de bypass NO elimina este bloqueo.","Solo para OT de portón: si el portón está COMPROBADO abajo y cerrado y C-S9 no lo detecta → puente provisional E-A8 1.1–1.2 y revisar sensor C-S9 (distancia, soporte, cable)."],r:"pág. 27, 57, 68"},
    {t:"Sirena de cabina · fallo sensor sirena (alarma 138) y barrera de rotonda",g:[91,70,54,70,69,91,91,91,89,91],a:"No se puentea el sensor de la sirena (E-A9 4.1–4.2) ni la barrera de rotonda: son entradas de seguridad. Si la sirena está averiada, se sustituye.",p:[
-"QUÉ HAY (RCS PLANOS folio 91): sirena de seguridad de cabina C-H41, manguera EC-W20 (7×1,5) hasta la regleta E-X70. Alimentación 24 V: X3:1 (+24 V, cable 613, hilo 3) y X3:3 (0 V, cable 205, hilo 4). MANDO desde la salida de seguridad E-A6 módulo 4 (LED 1, bornas 7.1/7.3/7.4) por los cables 664/665 (hilos 1 y 2) a X1:3 / X1:5. SENSOR DE LA SIRENA (confirma que suena): salida de test E-A9 4.2 (UT2, cable 667, hilo 5) → X3:5 IN → X3:7 OUT → hilo 6 → cable 666 → entrada E-A9 4.1 (IN04S, módulo 2 LED 2).",
+"QUÉ HAY (ESQUEMA GENERAL rev. J folio 91): sirena de seguridad de cabina C-H41, manguera EC-W20 (7×1,5) hasta la regleta E-X70. Alimentación 24 V: X3:1 (+24 V, cable 613, hilo 3) y X3:3 (0 V, cable 205, hilo 4). MANDO desde la salida de seguridad E-A6 módulo 4 (LED 1, bornas 7.1/7.3/7.4) por los cables 664/665 (hilos 1 y 2) a X1:3 / X1:5. SENSOR DE LA SIRENA (confirma que suena): salida de test E-A9 4.2 (UT2, cable 667, hilo 5) → X3:5 IN → X3:7 OUT → hilo 6 → cable 666 → entrada E-A9 4.1 (IN04S, módulo 2 LED 2).",
 "CUÁNDO SUENA (alarmas de la Magelis): 140 «Acceso por puerta de servicio no autorizado» (inductivo SS-B15, E-A10 módulo 2 LED 2) → el PLC de seguridad manda la sirena. Si a los pocos segundos salta 138 «Fallo sensor sirena», el PLC mandó la sirena y no recibió la confirmación por E-A9 4.1 (o la recibe sin orden). La 138 queda ENCLAVADA aunque se cierre la puerta, y la sirena sigue activada. Caso registrado: PBB 579 · PAS · orden 600600 (alarmas del 24/10/2026: 140 → 141 → 138).",
 "RELACIÓN CON EL PORTÓN: en los planos no hay ningún contacto de la sirena en el circuito del portón (E-Q8 → E-K81/82, E-A1 módulo 4 LED 7/8). Pero con la 138 activa (o la 141 «Esperando autorización remota») el PLC puede no dar la orden. Comprobar: pulsar subir portón → P-A4 módulo 3 LED 1 → E-A1 módulo 4 LED 7 → entra E-K81. Si el LED 7 no se enciende, el bloqueo viene del PLC: resolver primero la 138/141. Si se enciende y el portón no sube → avería del portón (E-K81, motor C-M6, mecánica).",
 "PRIORIDAD 1 · Puerta de servicio CERRADA y SS-B15 detectándola (E-A10 módulo 2 LED 2 ●). Alarma 141 activa: selector CP-S16 de REMOTO a LOCAL y otra vez a REMOTO, y pedir autorización a CGA si está en remoto. Rearmar la PBB desde el pupitre y comprobar en la Magelis que la 138 pasa a «Desactivado».",
@@ -580,14 +582,14 @@ const GUIA={
    {t:"Iluminación, enchufes, caldeos, lunetas",g:[19, 23, 21, 18],p:["Interior: E-Q10 + E-K10 / E-K18. Exterior/cabina: E-Q10.1. Focos: E-Q15.1 + E-K15.","Enchufes sin tensión → diferencial E-Q13 (30 mA): buscar derivación antes de rearmar.","Caldeo: E-Q12 + E-K60, termostato E-B4. Lunetas: E-Q17.1 + E-K17.","Cae todo el monofásico → E-Q150 o E-K0.1."],r:"pág. 18-28"},
    {t:"Cámaras, display, comunicaciones",g:[93, 49, 71],p:["Switch E-V1 (MikroTik PoE) por E-Q18 (6 A 30 mA) → fuente 48 V E-X4.1.","Display CP-A1 a 24 V desde P-X92 / P-X53.","Sin comunicación pupitre ↔ armario → Interbus E-A11 ↔ P-A0 (cable EP-W3)."],r:"pág. 49, 71-72, 93-95"},
    {t:"Sistemas auxiliares · megafonía",cro:"mega",g:[30,30,30,29,10,30,30,30],a:"La megafonía no bloquea la pasarela: es un equipo auxiliar. Se repara sin dejar la PBB fuera de servicio salvo que lo pida CGA.",p:[
-"QUÉ HAY (RCS PLANOS folio 30): central de megafonía E-V5 (amplificador FONESTAR, armario E). Alimentación 230 V por E-Q25 (2P 6 A) → E-X53:1-2 (hilos 160/161), tierra E-X91:5. Entrada de audio E1/E2 desde E-X78:1-2. Encendido remoto E3/E4 a 24 VDC. Salida S1/S2 a 4 altavoces: IT-B20 e IT-B21 (túnel interior), ET-B20 (ronda) y MT-B20 (túnel medio, solo PBB de 3 túneles).",
+"QUÉ HAY (ESQUEMA GENERAL rev. J folio 30): central de megafonía E-V5 (amplificador FONESTAR, armario E). Alimentación 230 V por E-Q25 (2P 6 A) → E-X53:1-2 (hilos 160/161), tierra E-X91:5. Entrada de audio E1/E2 desde E-X78:1-2. Encendido remoto E3/E4 a 24 VDC. Salida S1/S2 a 4 altavoces: IT-B20 e IT-B21 (túnel interior), ET-B20 (ronda) y MT-B20 (túnel medio, solo PBB de 3 túneles).",
 "PRIORIDAD 1 · ¿E-V5 encendido (display y piloto del frontal)? Si está apagado: E-Q25 cerrado y 230 V entre E-X53:1 (hilo 160) y E-X53:2 (hilo 161). E-Q25 cuelga de la misma línea de 230 V que E-Q24 (frenos) y E-Q26 (hilos 1/10): si tampoco hay tensión ahí, subir a E-S0.1 / alimentación SAI del CBTH (folio 29).",
 "PRIORIDAD 1 · Encendido remoto: E-V5 se activa con 24 VDC en REMOTE E3/E4 a través del contacto E-S3 (13-14). Medir 24 VDC entre E-X66:3 (hilo 204) y E-X66:4 (hilo 205). Sin tensión → contacto E-S3 abierto o falta de 24 VDC de E-Q30. Cable E-W18 (2×1,5 FR) hasta la central.",
 "PRIORIDAD 1 · Señal de audio: pedir a CGA un aviso de prueba. La señal viene del CBTH por CBTH-X60:7-8 → manguera PCBTH-W1 → P-X60:7-8 (pupitre) → cable apantallado EP-W11 → E-X78:1-2 (hilos 6011 / 171, malla en E-X78:3) → E1/E2 de E-V5. Sin señal en E-X78 → medir en P-X60:7-8; sin señal tampoco ahí → origen en el CBTH / megafonía del aeropuerto.",
 "PRIORIDAD 2 · Ruido o zumbido: revisar la malla de EP-W11 conectada a tierra solo en E-X78:3 y el apriete de E-X78:1-2. Un cable de audio sin malla o con la malla a dos tierras mete zumbido.",
 "PRIORIDAD 2 · Suena una zona y otra no: la salida S1/S2 (hilos 163/164) va a E-X63:1-2 y de ahí salen tres ramas en paralelo: túnel interior (EIT-W2 → IT-X52:1-2 → IT-W12 a IT-B20 e IT-W12.1 a IT-B21), ronda (E-W1 → ET-B20) y túnel medio (EMT-W2 → MT-X51:1-2 → MT-W3 → MT-B20). Revisar la regleta de paso y el altavoz de la rama muda.",
 "PRIORIDAD 2 · No suena ningún altavoz con E-V5 encendido y señal en E1/E2: revisar volumen y selección de entrada en el frontal. Si la central se protege, soltar las ramas en E-X63 una a una para localizar un cortocircuito y medir continuidad de cada rama con la central desconectada.",
-"Sustitución de cable de altavoz: siempre cable FR (resistente al fuego) 2×1,5, como el original (E-W1, EIT-W2, EMT-W2, IT-W12, MT-W3)."],r:"RCS PLANOS pág. 10, 16, 29, 30 (504/508: mismos folios en su plano)"}]},
+"Sustitución de cable de altavoz: siempre cable FR (resistente al fuego) 2×1,5, como el original (E-W1, EIT-W2, EMT-W2, IT-W12, MT-W3)."],r:"ESQUEMA GENERAL rev. J pág. 10, 16, 29, 30 (504/508: mismos folios en su plano)"}]},
   AAA:{n:"Aire acondicionado (PCA RDX 1520-4UG)",s:[
    {t:"Equipo no arranca",g:[6, 1, 2, 5],p:["Pilotos: verde ON, rojo OFF, rojo ALARMA, amarillo FILTRO.","Interruptor general IG, seta de emergencia, selectores MANTENIMIENTO/NORMAL y MANUAL/AUTO.","Relé control de fases RCP (secuencia o falta de fase).","Detector de humos DH CAP-100: rearme en central."],r:"AAA pág. 1, 5-7"},
    {t:"Disparo de diferencial o protección",g:[1, 18, 1],p:["ID1-ID4 (100 A 30 mA, módulos compresor), ID5 (80 A 300 mA, ventilador interior), ID6 (control). Alarmas en clemas 11-14 y 26.","Compresores: FGG1-FGG4 (80 A), KG1-KG4, presostato alta PA1-PA4 (42 bar), klixon KLG. Alarmas clemas 30-33.","Ventiladores exteriores FGVE1-FGVE4 (10 A), alarmas clemas 35-38."],r:"AAA pág. 1, 3-4, 17-28"},
@@ -694,7 +696,7 @@ function gDocId(t,l){let id=null;try{id=localStorage.getItem("g_doc2_"+t)}catch(
 async function gFillDoc(){const s=$("#g_doc");if(!s)return;const l=await gLista();const id=gDocId(gTipo,l);
  s.innerHTML=(l.length?`<option value="">— Elegir plano —</option>`:`<option value="">No hay planos cargados (pestaña Planos)</option>`)+l.map(x=>`<option value="${x.id}" ${x.id==id?"selected":""}>${esc(x.name)}</option>`).join("")}
 function gSetDoc(v){try{localStorage.setItem("g_doc2_"+gTipo,v)}catch(e){}}
-function gPagina(name,folio){if(/RCS.?PLANOS/i.test(name)&&folio>96)folio={97:62,98:41,99:41,100:93}[folio]||folio;return (/RCS.?PLANOS/i.test(name)||/50[48]/.test(name)&&!/AAA|CBTH|PDS/i.test(name))&&folio>=9?folio-1:folio}
+function gPagina(name,folio){if(/T87911031210|T4T4S|RCS.?PLANOS/i.test(name)&&folio>96)folio={97:62,98:41,99:41,100:93}[folio]||folio;return (/T87911031210|T4T4S|RCS.?PLANOS/i.test(name)||/50[48]/.test(name)&&!/AAA|CBTH|PDS/i.test(name))&&folio>=9?folio-1:folio}
 async function gOpera(){const l=await gLista();const d=l.find(x=>/OPERA/i.test(x.name)&&/PDS|HZ|400/i.test(x.name));if(!d){msg("Sube a Planos el documento OPERATIVA del conector HZ PDS400");return}gPagIni=1;await ver(d.id)}
 async function gPlano(t,folio){const l=await gLista();const id=gDocId(t,l);const d=l.find(x=>x.id==id);
  if(!d){msg("Elige el plano de esta guía (o súbelo en la pestaña Planos)");const s=$("#g_doc");if(s){s.scrollIntoView({block:"center"});s.focus()}return}
@@ -711,7 +713,7 @@ const PLC=[
   [["Variador U1 adelante",0],["Variador U1 atrás",0],["Variador U2 adelante",0],["Variador U2 atrás",0],["Variador U1 velocidad 1",0],["Variador U1 velocidad 2",0],["Variador U2 velocidad 1",0],["Variador U2 velocidad 2",0]],
   [["Válvula subir elevación",0],["Válvula bajar elevación",0],["Reserva",0],["Capota izq desplegar",0],["Capota izq recoger",0],["Capota dcha desplegar",0],["Capota dcha recoger",0],["Test barrera seguridad rotonda",1]],
   [["Señal pasarela activada",1],["Señal pasarela en servicio",0],["Señal pasarela mantenimiento",0],["Reserva",0],["Señal pasarela alarma",0],["Reserva",0],["Luces flash",1],["Reserva",0]],
-  [["Resistencia caldeo armario y pupitre",0],["Reserva",0],["Lunetas térmicas",0],["Autorización columna",0],["Autorización rotonda",0],["Iluminación escalera servicio",0],["Subir portón",0],["Bajar portón",0]]]},
+  [["Resistencia caldeo armario y pupitre",0],["Reserva",0],["Lunetas térmicas",0],["Reserva",0],["Autorización rotonda",0],["Iluminación escalera servicio",0],["Subir portón",0],["Bajar portón",0]]]},
  {id:"E-A2",n:"Entradas digitales armario E",t:"DI",f:[58,58,59,59],p:"E-Q30.2",m:[
   [["Termostato caldeo armario E",0],["Fallo variador U1 (encendido = OK)",1],["Fallo variador U2 (encendido = OK)",1],["Límite inferior inclinación",1]],
   [["Límite superior inclinación",0],["Detector 1 extensión/retracción",2],["Detector 2 extensión/retracción",2],["Bloqueo PBB máquina A/A",0]],
@@ -737,10 +739,10 @@ const PLC=[
   [["FC traslación H-S1",1],["FC extensión ET-S1",1]],
   [["FC rotonda CO-S1",1],["FC inclinación IT-S2/IT-S3",1]]]},
  {id:"E-A9",n:"Entradas de seguridad (antiatrapamientos)",t:"SDI",f:[69,69,69,69],p:"E-Q30.4",m:[
-  [["Autorización columna",0],["Antiatrapamiento túnel medio B-C (PBB 3 túneles = encendido)",2]],
+  [["Pulsador luminoso «OK retirada PBB» H-S11",0],["Antiatrapamiento túnel medio izquierdo (PBB 3 túneles = encendido)",2]],
   [["Autorización rotonda",0],["Sirena seguridad cabina",0]],
-  [["Antiatrapamiento túnel A-B (en 504/507/508: lado izquierdo)",1],["504/507/508: antiatrapamiento lado derecho · resto: reserva",2]],
-  [["Reserva",0],["504: antiatrapamiento túnel medio derecho",2]]]},
+  [["Antiatrapamiento túnel interior izquierdo",1],["Antiatrapamiento túnel interior derecho",1]],
+  [["Reserva",0],["Antiatrapamiento túnel medio derecho (PBB 3 túneles = encendido)",2]]]},
  {id:"E-A10",n:"Entradas de seguridad",t:"SDI",f:[70,70,70,70],p:"E-Q30.4",m:[
   [["Bumper brazo autonivelador",1],["Bumper lateral izquierdo cabina",1]],
   [["Barrera seguridad rotonda",1],["Inductivo puerta de servicio SS-B15",1]],
@@ -775,18 +777,18 @@ const PLC=[
   [["Brazo autonivelador abajo 1",0],["Brazo autonivelador neutral 1",0],["Brazo autonivelador neutral 2",0],["Reserva",0]]]},
  {id:"P-A6",n:"Entradas digitales pupitre (cabina)",t:"DI",f:[87,87,88,88],p:"P-Q30.3",m:[
   [["Límite cabina izquierda",1],["Límite cabina derecha",1],["Freno túnel B (PBB 3 túneles = encendido)",2],["Freno cabina izquierda",1]],
-  [["Freno cabina derecha",1],["FC límite suelo derecha",1],["FC límite suelo izquierda",1],["Reserva",0]],
+  [["Freno cabina derecha",1],["FC límite suelo derecha",1],["FC límite suelo izquierda",1],["Bypass AKS E-S7 (solo 504/508; resto reserva)",0]],
   [["Pulsador «Abandono operador»",0],["Pulsador «Presencia desconexión»",0],["Pulsador «Presencia conexión»",0],["Pulsador luminoso «OK Handling»",0]],
-  [["Pulsador luminoso «OK retirada PBB»",0],["Reserva",0],["Reserva",0],["Reserva",0]]]}];
+  [["Reserva (el pulsador «OK retirada PBB» va a E-A9 1.1)",0],["Reserva",0],["Reserva",0],["Reserva",0]]]}];
 /* Bornas por tipo de módulo. DI16: LED l del módulo k → IN en (2k-1).1, (2k).1, (2k-1).4, (2k).4 ; +24 V en la borna siguiente. SDI: LED l del módulo k → (2k-2+l).1 IN / .2 UT */
 function pBorna(M,k,l){if(M.t=="DI"&&M.id!="E-A0"){const s=[2*k-1,2*k,2*k-1,2*k][l-1],c=l<=2?1:4;return{in:`${s}.${c}`,v:`${s}.${c+1}`}}
  if(M.t=="SDI"){const s=2*k-2+l;return{in:`${s}.1`,v:`${s}.2`}}return null}
 /* Puentes provisionales permitidos (solo si el elemento de campo está comprobado). Clave: módulo|submódulo|LED */
 const PUENTE={
- "E-A9|3|1":"Antiatrapamiento túnel A-B: liberar primero (guía «Antiatrapamiento»). Si sigue caído por golpe en la caja de A/A: puente 5.1–5.2, o solo el contacto 11-14 del relé caído (E-K247/E-K248) para dejar protegido el otro lado.",
- "E-A9|3|2":"Solo 504/507/508 (barrera óptica derecha): puente 6.1–6.2 tras comprobar que no hay nada en el túnel.",
- "E-A9|1|2":"Antiatrapamiento túnel B-C (PBB de 3 túneles): puente 2.1–2.2 tras comprobar que no hay nada atrapado.",
- "E-A9|4|2":"Solo 504 (túnel medio derecho): puente 8.1–8.2 tras comprobar que no hay nada atrapado.",
+ "E-A9|3|1":"Antiatrapamiento túnel interior IZQUIERDO: liberar primero (guía «Antiatrapamiento»). Si sigue activado (p. ej. golpe en la caja de A/A): puente solo de ese lado, 613 con el retorno 743 en la clema del túnel o E-X68:6 (613) con E-A9 5.1. Barrera óptica 504/507/508: puente 5.1–5.2.",
+ "E-A9|3|2":"Antiatrapamiento túnel interior DERECHO: liberar primero. Puente solo de ese lado, 613 con el retorno 744 en la clema del túnel o E-X68:6 (613) con E-A9 6.1. Barrera óptica 504/507/508: puente 6.1–6.2 tras comprobar que no hay nada en el túnel.",
+ "E-A9|1|2":"Antiatrapamiento túnel medio IZQUIERDO (PBB de 3 túneles): tras comprobar que no hay nada atrapado, puente 613 con el retorno 745 o E-X68:6 (613) con E-A9 2.1. Barrera óptica (504): puente 2.1–2.2.",
+ "E-A9|4|2":"Antiatrapamiento túnel medio DERECHO (PBB de 3 túneles): tras comprobar que no hay nada atrapado, puente 613 con el retorno 746 o E-X68:6 (613) con E-A9 8.1. Barrera óptica (504): puente 8.1–8.2.",
  "E-A8|1|1":"Sensor portón C-S9: solo con el portón COMPROBADO abajo y cerrado: puente 1.1–1.2.",
  "E-A10|2|2":"Inductivo puerta de servicio SS-B15: solo con la puerta COMPROBADA cerrada y nadie en la escalera: puente 4.1–4.2.",
  "E-A3|3|2":"Sensor freno manual izquierdo: solo con la palanca de desfrenado COMPROBADA en posición de servicio: puente 6.1–6.2.",
@@ -859,7 +861,7 @@ function gResumen(){
 async function gFotoSel(inp){const f=inp.files&&inp.files[0];if(!f)return;try{gFoto=await gComprime(f)}catch(e){msg("No se pudo leer la imagen");return}const ot=inc.find(x=>x.id==gOT);if(!ot){gFoto="";msg("Selecciona una OT abierta antes de hacer la foto");return}ot.plc=gFoto;sv("pbb_inc",inc);msg("Foto guardada en la OT "+ot.orden);gPintaCot()}
 function gZoom(src){let o=document.createElement("div");o.style.cssText="position:fixed;inset:0;z-index:45;background:#000;overflow:auto;-webkit-overflow-scrolling:touch";o.innerHTML=`<button class="sec" style="position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:10px;background:#fff;color:#000;z-index:2">✕ Cerrar</button><img src="${src}" style="width:200%;max-width:none">`;o.onclick=e=>{if(e.target.tagName=="BUTTON")o.remove()};document.body.appendChild(o)}
 async function gVerRef(){const l=await gLista();const d=l.find(x=>/PLC.?RCS/i.test(x.name));if(!d){msg("Sube el PDF «PLC RCS» en la pestaña Planos");return}gPagIni=gPMod.startsWith("P")?2:1;await ver(d.id)}
-async function gPlanoRCS(folio){const l=await gLista();const d=l.find(x=>/RCS.?PLANOS/i.test(x.name))||l.find(x=>/PBB/i.test(x.name));if(!d){msg("Sube «RCS PLANOS» en la pestaña Planos");return}gPagIni=gPagina(d.name,folio);await ver(d.id)}
+async function gPlanoRCS(folio){const l=await gLista();const d=l.find(x=>/T87911031210|T4T4S|RCS.?PLANOS/i.test(x.name))||l.find(x=>/PBB/i.test(x.name));if(!d){msg("Sube «ESQUEMA GENERAL rev. J» en la pestaña Planos");return}gPagIni=gPagina(d.name,folio);await ver(d.id)}
 function gCotOT(){const i=inc.find(x=>x.id==gOT);if(!i){msg("Selecciona una OT abierta arriba");return}
  const cl=$("#g_res").cloneNode(true);cl.querySelectorAll(".gpl").forEach(x=>x.remove());document.body.appendChild(cl);cl.style.cssText="position:absolute;left:-9999px";const t=cl.innerText.replace(/\n{2,}/g,"\n").trim();cl.remove();
  i.guiada=(i.guiada?i.guiada+"\n\n":"")+"[Cotejo PLC con reposo]\n"+t;if(gFoto)i.plc=gFoto;sv("pbb_inc",inc);msg(`Cotejo añadido a la OT ${i.orden}`)}
@@ -886,32 +888,23 @@ document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.datas
 (function(){const o=cargaInc;cargaInc=async function(re){await o(re);if(typeof view!="undefined"&&view=="tec"&&$("#g_cot"))gPintaCot()}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 iniciar();
-/* ===== v37: inspección cable a cable (rutas de medida desde RCS_PLANOS) =====
- Cada paso: p = punto de medida, e = valor esperado, x = qué falla si no se cumple, f = folio RCS_PLANOS. */
+/* ===== v37: inspección cable a cable (rutas de medida desde ESQUEMA GENERAL rev. J) =====
+ Cada paso: p = punto de medida, e = valor esperado, x = qué falla si no se cumple, f = folio ESQUEMA GENERAL rev. J. */
 const RUTAS={"E-A9":{n:"Entradas safety (IB IL 24 PSDI 8-PAC)",
  ref:"Polímetro en V DC. Punta negra en la GND del módulo (borna x.3 de la misma entrada) o en +E-X68:2 (0 V). Las salidas UT son pulsos de test: el polímetro puede marcar algo menos de 24 V.",
  s:[
- {id:"DIS01",led:"1.1",t:"Autorización columna (+CO-S2)",r:"LED 1.1 apagado en reposo; se enciende al pulsar CO-S2 (pulsador NA).",p:[
-  {p:"E-A9 borna 1.2 (UT1)",e:"≈24 V",x:"Sin tensión de test: módulo E-A9 o su alimentación (+E-Q30.4).",f:69},
-  {p:"+E-X70:11 · cable 681",e:"≈24 V",x:"Cable 681 cortado o flojo entre E-A9 1.2 y E-X70:11.",f:69},
-  {p:"+IT-X50:11 · manguera EIT-W10 hilo BK",e:"≈24 V",x:"Hilo BK de EIT-W10 entre E-X70:11 e IT-X50:11.",f:69},
-  {p:"+CO-S2 borna 13 · manguera ITCO-W3 hilo BK",e:"≈24 V",x:"Hilo BK de ITCO-W3 entre IT-X50:11 y CO-S2:13.",f:69},
-  {p:"+CO-S2 borna 14, con el pulsador PULSADO",e:"≈24 V (0 V sin pulsar)",x:"Contacto 13-14 del pulsador CO-S2.",f:69},
-  {p:"+IT-X50:10 · ITCO-W3 hilo GY (pulsado)",e:"≈24 V",x:"Hilo GY de ITCO-W3 entre CO-S2:14 e IT-X50:10.",f:69},
-  {p:"+E-X70:10 · EIT-W10 hilo RD (pulsado)",e:"≈24 V",x:"Hilo RD de EIT-W10 entre IT-X50:10 y E-X70:10.",f:69},
+ {id:"DIS01",led:"1.1",t:"Pulsador luminoso «OK retirada PBB» (+H-S11)",r:"LED 1.1 apagado en reposo; se enciende al pulsar H-S11 (pulsador NA). Rev. J: antes era «Autorización columna».",p:[
+  {p:"+H-S11 borna 13 · PH-W1 hilo 332",e:"≈24 V",x:"Alimentación del pupitre (332) por P-X92.3.",f:69},
+  {p:"+H-S11 borna 14, con el pulsador PULSADO",e:"≈24 V (0 V sin pulsar)",x:"Contacto 13-14 del pulsador H-S11.",f:69},
+  {p:"+P-X92.3:4 · PH-W1 hilo 2000 (pulsado)",e:"≈24 V",x:"Manguera PH-W1 entre H-S11 y el pupitre.",f:69},
+  {p:"+E-X68.1 · manguera EP-W4 (pulsado)",e:"≈24 V",x:"Manguera EP-W4 entre P-X92.2 y E-X68.1.",f:69},
   {p:"E-A9 borna 1.1 (IN01S) · cable 680 (pulsado)",e:"≈24 V y LED 1.1 encendido",x:"Cable 680. Si hay 24 V y el LED no enciende: entrada del módulo E-A9.",f:69}]},
- {id:"DIS02",led:"2.1",t:"Antiatrapamiento túnel medio B-C (PBB 3 túneles)",r:"LED 2.1 encendido en reposo. Los relés E-K247A y E-K248A deben estar excitados; los finales de carrera MT-S3'' y MT-S3' (NC) los alimentan.",p:[
+ {id:"DIS02",led:"2.1",t:"Antiatrapamiento túnel medio IZQUIERDO (PBB 3 túneles)",r:"LED 2.1 encendido en reposo. Rev. J: finales MT-S3''(SUP) y MT-S3''(INF) (NC) en serie, sin relés, alimentados con 613.",p:[
   {p:"+E-X68:6 · cable 613",e:"≈24 V",x:"+24 V de seguridad: módulo +E-Q30.4 (fusible 8 A).",f:37},
-  {p:"+MT-S3'' borna 11",e:"≈24 V",x:"Cable 613 entre E-X68:6 y el túnel (tramo no detallado en RCS_PLANOS).",f:41},
-  {p:"+MT-S3'' borna 12",e:"≈24 V",x:"Final de carrera MT-S3'' abierto: antiatrapamiento actuado, desajustado o roto.",f:41},
-  {p:"+MT-S3' borna 12",e:"≈24 V",x:"Final de carrera MT-S3' abierto (o el puente entre MT-S3'':12 y MT-S3':11).",f:41},
-  {p:"+E-K247A A1–A2 y +E-K248A A1–A2",e:"≈24 V y ambos relés excitados",x:"Retorno 0 V por cable 205 a E-X68:2, o bobina del relé que no entra.",f:41},
-  {p:"E-A9 borna 2.2 (UT2)",e:"≈24 V",x:"Sin tensión de test: módulo E-A9.",f:69},
-  {p:"+E-K247A borna 14 · cable 633",e:"≈24 V",x:"Cable 633 entre E-A9 2.2 y E-K247A:14.",f:69},
-  {p:"+E-K247A borna 11",e:"≈24 V",x:"Contacto 11-14 de E-K247A no cierra (relé caído o contacto quemado).",f:69},
-  {p:"+E-K248A borna 14 · cable 3278",e:"≈24 V",x:"Cable 3278 entre E-K247A:11 y E-K248A:14.",f:69},
-  {p:"+E-K248A borna 11",e:"≈24 V",x:"Contacto 11-14 de E-K248A no cierra.",f:69},
-  {p:"E-A9 borna 2.1 (IN02S) · cable 3277",e:"≈24 V y LED 2.1 encendido",x:"Cable 3277. Si hay 24 V y el LED no enciende: entrada del módulo.",f:69}]},
+  {p:"Clema del túnel medio · 613",e:"≈24 V",x:"Cable 613 entre E-X68:6 y el túnel.",f:41},
+  {p:"+MT-S3''(SUP) borna 12",e:"≈24 V",x:"Final superior izquierdo abierto: actuado, desajustado o roto.",f:41},
+  {p:"+MT-S3''(INF) borna 12 · hilo 745",e:"≈24 V",x:"Final inferior izquierdo abierto (o el puente entre los dos finales).",f:41},
+  {p:"E-A9 borna 2.1 (IN02S) · hilo 745",e:"≈24 V y LED 2.1 encendido",x:"Hilo 745 entre el túnel y E-A9. Si hay 24 V y el LED no enciende: entrada del módulo.",f:69}]},
  {id:"DIS03",led:"3.1",t:"Autorización rotonda (+R-S2)",r:"LED 3.1 apagado en reposo; se enciende al pulsar R-S2 (pulsador NA).",p:[
   {p:"E-A9 borna 3.2 (UT1)",e:"≈24 V",x:"Sin tensión de test: módulo E-A9.",f:69},
   {p:"+E-X70:13 · cable 683",e:"≈24 V",x:"Cable 683 entre E-A9 3.2 y E-X70:13.",f:69},
@@ -928,24 +921,29 @@ const RUTAS={"E-A9":{n:"Entradas safety (IB IL 24 PSDI 8-PAC)",
   {p:"+E-X70:24 · cable 667",e:"≈24 V",x:"Cable 667 entre E-A9 4.2 y E-X70:24.",f:91},
   {p:"+C-H41 X3:5 (IN) · EC-W20 hilo 5",e:"≈24 V",x:"Hilo 5 de la manguera EC-W20.",f:91},
   {p:"+C-H41 X3:7 (OUT) → E-X70:25 (hilo 6) → E-A9 4.1 (cable 666)",e:"Igual en los tres puntos (0 V en reposo)",x:"Si X3:7 tiene tensión y 4.1 no: hilo 6 de EC-W20 o cable 666.",f:91}]},
- {id:"DIS05",led:"5.1",t:"Antiatrapamiento túnel interior A-B",r:"LED 5.1 encendido en reposo. Los relés E-K247 y E-K248 deben estar excitados; los finales de carrera IT-S3'' e IT-S3' (NC) los alimentan.",p:[
+ {id:"DIS05",led:"5.1",t:"Antiatrapamiento túnel interior IZQUIERDO",r:"LED 5.1 encendido en reposo. Rev. J: finales IT-S3''(SUP) e IT-S3''(INF) (NC) en serie, sin relés, alimentados con 613.",p:[
   {p:"+E-X68:6 · cable 613",e:"≈24 V",x:"+24 V de seguridad: módulo +E-Q30.4 (fusible 8 A).",f:37},
-  {p:"+IT-S3'' borna 11",e:"≈24 V",x:"Cable 613 entre E-X68:6 y el túnel (tramo no detallado en RCS_PLANOS).",f:41},
-  {p:"+IT-S3'' borna 12",e:"≈24 V",x:"Final de carrera IT-S3'' abierto: antiatrapamiento actuado, desajustado o roto.",f:41},
-  {p:"+IT-S3' borna 12",e:"≈24 V",x:"Final de carrera IT-S3' abierto (o el puente entre IT-S3'':12 e IT-S3':11).",f:41},
-  {p:"+E-K247 A1–A2 y +E-K248 A1–A2",e:"≈24 V y ambos relés excitados",x:"Retorno 0 V por cable 205 a E-X68:2, o bobina del relé que no entra.",f:41},
-  {p:"E-A9 borna 5.2 (UT1)",e:"≈24 V",x:"Sin tensión de test: módulo E-A9.",f:69},
-  {p:"+E-K247 borna 14 · cable 634",e:"≈24 V",x:"Cable 634 entre E-A9 5.2 y E-K247:14.",f:69},
-  {p:"+E-K247 borna 11",e:"≈24 V",x:"Contacto 11-14 de E-K247 no cierra (relé caído o contacto quemado).",f:69},
-  {p:"+E-K248 borna 14 · cable 3276",e:"≈24 V",x:"Cable 3276 entre E-K247:11 y E-K248:14.",f:69},
-  {p:"+E-K248 borna 11",e:"≈24 V",x:"Contacto 11-14 de E-K248 no cierra.",f:69},
-  {p:"E-A9 borna 5.1 (IN05S) · cable 3275",e:"≈24 V y LED 5.1 encendido",x:"Cable 3275. Si hay 24 V y el LED no enciende: entrada del módulo.",f:69}]}
+  {p:"Clema del túnel interior · 613",e:"≈24 V",x:"Cable 613 entre E-X68:6 y el túnel.",f:41},
+  {p:"+IT-S3''(SUP) borna 12",e:"≈24 V",x:"Final superior izquierdo abierto: actuado, desajustado o roto.",f:41},
+  {p:"+IT-S3''(INF) borna 12 · hilo 743",e:"≈24 V",x:"Final inferior izquierdo abierto (o el puente entre los dos finales).",f:41},
+  {p:"E-A9 borna 5.1 (IN05S) · hilo 743",e:"≈24 V y LED 5.1 encendido",x:"Hilo 743 entre el túnel y E-A9. Si hay 24 V y el LED no enciende: entrada del módulo.",f:69}]},
+ {id:"DIS06",led:"6.1",t:"Antiatrapamiento túnel interior DERECHO",r:"LED 6.1 encendido en reposo. Rev. J: finales IT-S3'(SUP) e IT-S3'(INF) (NC) en serie, alimentados con 613.",p:[
+  {p:"+E-X68:6 · cable 613",e:"≈24 V",x:"+24 V de seguridad: módulo +E-Q30.4 (fusible 8 A).",f:37},
+  {p:"Clema del túnel interior · 613",e:"≈24 V",x:"Cable 613 entre E-X68:6 y el túnel.",f:41},
+  {p:"+IT-S3'(SUP) borna 12",e:"≈24 V",x:"Final superior derecho abierto: actuado, desajustado o roto.",f:41},
+  {p:"+IT-S3'(INF) borna 12 · hilo 744",e:"≈24 V",x:"Final inferior derecho abierto (o el puente entre los dos finales).",f:41},
+  {p:"E-A9 borna 6.1 (IN06S) · hilo 744",e:"≈24 V y LED 6.1 encendido",x:"Hilo 744 entre el túnel y E-A9. Si hay 24 V y el LED no enciende: entrada del módulo.",f:69}]},
+ {id:"DIS08",led:"8.1",t:"Antiatrapamiento túnel medio DERECHO (PBB 3 túneles)",r:"LED 8.1 encendido en reposo (solo PBB de 3 túneles). Rev. J: finales MT-S3'(SUP) y MT-S3'(INF) (NC) en serie, alimentados con 613.",p:[
+  {p:"+E-X68:6 · cable 613",e:"≈24 V",x:"+24 V de seguridad: módulo +E-Q30.4 (fusible 8 A).",f:37},
+  {p:"+MT-S3'(SUP) borna 12",e:"≈24 V",x:"Final superior derecho abierto: actuado, desajustado o roto.",f:41},
+  {p:"+MT-S3'(INF) borna 12 · hilo 746",e:"≈24 V",x:"Final inferior derecho abierto (o el puente entre los dos finales).",f:41},
+  {p:"E-A9 borna 8.1 (IN08S) · hilo 746",e:"≈24 V y LED 8.1 encendido",x:"Hilo 746 entre el túnel y E-A9. Si hay 24 V y el LED no enciende: entrada del módulo.",f:69}]}
 ]}};
 let gIMod="E-A9",gISig="DIS05",gIRes={};
 function gIKey(){return (gOT||"-")+"|"+gIMod+"|"+gISig}
 function gInsHTML(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig)||R.s[0];gISig=S.id;const res=gIRes[gIKey()]||[];
  const nok=S.p.findIndex((_,i)=>res[i]&&res[i].ok===false);
- let h=`<div class="mu" style="font-size:12px;margin:6px 0">Ruta de medida desde el plano RCS_PLANOS. Compruébala siempre con el folio indicado.</div>
+ let h=`<div class="mu" style="font-size:12px;margin:6px 0">Ruta de medida desde el plano ESQUEMA GENERAL rev. J. Compruébala siempre con el folio indicado.</div>
  <label>Módulo</label><div class="gmods">${Object.keys(RUTAS).map(k=>`<button class="${k==gIMod?"on":""}" onclick="gIMod='${k}';gPintaIns()">${k}</button>`).join("")}</div>
  <label>Señal</label><select onchange="gISig=this.value;gPintaIns()">${R.s.map(x=>`<option value="${x.id}" ${x.id==S.id?"selected":""}>${x.id} · LED ${x.led} · ${esc(x.t)}</option>`).join("")}</select>
  <div class="gav">${esc(S.r)}</div><div class="mu" style="font-size:12px">${esc(R.ref)}</div>
@@ -978,7 +976,7 @@ function delGuiBloque(id,k){const i=inc.find(x=>x.id==id);if(!i)return;const ps=
  msg("Apartado borrado de la OT "+(i.orden||""))}
 (function(){const st=document.createElement("style");st.textContent=`.gblq{padding:8px 0;border-bottom:1px dashed color-mix(in srgb,currentColor 25%,transparent)}.gblq:last-child{border-bottom:0}.gblqf{display:flex;justify-content:flex-end;margin-top:6px}.gbdel{width:44px;height:40px;display:flex;align-items:center;justify-content:center;padding:0;color:#ff6b6b;border-color:#ff6b6b}.gbdel svg{width:20px;height:20px}`;document.head.appendChild(st)})();
 
-/* ===== v39: PDF A4 «Inspección cable a cable» (esquema dibujado + folios RCS_PLANOS marcados) ===== */
+/* ===== v39: PDF A4 «Inspección cable a cable» (esquema dibujado + folios ESQUEMA GENERAL rev. J marcados) ===== */
 function cargaJsPDF(){return new Promise((res,rej)=>{if(window.jspdf){res();return}const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";s.onload=()=>res();s.onerror=rej;document.head.appendChild(s)})}
 function pT(s){return String(s==null?"":s).replace(/≈/g,"~").replace(/→/g,"->").replace(/↔/g,"<->").replace(/[–—]/g,"-").replace(/…/g,"...").replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/✔/g,"OK").replace(/✘/g,"NOK").replace(/[^\x00-\xFF]/g,"")}
 /* Descompone un punto de medida: etiqueta del elemento, borna/detalle y cable/hilo de llegada */
@@ -998,7 +996,7 @@ function pCabecera(d,ot,R,S,pag){const W=210;d.setFillColor(108,29,170);d.rect(0
  d.setTextColor(255);d.setFont("helvetica","bold");d.setFontSize(16);d.text("Inspección cable a cable",12,10.6);
  d.setFont("helvetica","normal");d.setFontSize(8);d.text(pT("PBB TKE Barajas · "+pag),W-12,10.6,{align:"right"});d.setTextColor(20)}
 function pPie(d){const n=d.getNumberOfPages();for(let k=1;k<=n;k++){d.setPage(k);const W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight();d.setFont("helvetica","normal");d.setFontSize(7);d.setTextColor(120);
- d.text(pT("Ruta de medida obtenida de RCS_PLANOS. Comprobar siempre con el folio indicado antes de intervenir."),12,H-6);d.text(`Pág. ${k}/${n}`,W-12,H-6,{align:"right"})}}
+ d.text(pT("Ruta de medida obtenida de ESQUEMA GENERAL rev. J. Comprobar siempre con el folio indicado antes de intervenir."),12,H-6);d.text(`Pág. ${k}/${n}`,W-12,H-6,{align:"right"})}}
 async function gIPdf(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig);if(!S)return;const ot=inc.find(x=>x.id==gOT);const res=gIRes[gIKey()]||[];
  msg("Generando PDF…");try{await cargaJsPDF()}catch(e){msg("No se pudo cargar el generador de PDF (sin conexión)");return}
  const {jsPDF}=window.jspdf;const d=new jsPDF({unit:"mm",format:"a4",orientation:"portrait"});const W=210,M=12;
@@ -1046,14 +1044,14 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig);if(
  if(nok>=0){d.setTextColor(198,40,40);d.text(d.splitTextToSize(pT(`Fallo localizado en el paso ${nok+1}: ${S.p[nok].x}`),W-2*M),M,y)}else{d.setTextColor(60);d.text(pT(res.some(r=>r&&r.ok!==undefined)?"Sin fallo registrado en los puntos medidos.":"Pendiente de medir: anotar valores en campo."),M,y)}
  y+=14;d.setTextColor(20);d.setFont("helvetica","normal");d.setFontSize(8);d.text("Observaciones:",M,y);d.setDrawColor(170);for(let k=1;k<=4;k++)d.line(M,y+k*7,W-M,y+k*7);y+=38;
  d.text("Firma técnico: ______________________________",M,y);d.text(pT("Fecha / hora: ____________________"),W/2+8,y);
- /* ---- Folios RCS_PLANOS con puntos marcados ---- */
+ /* ---- Folios ESQUEMA GENERAL rev. J con puntos marcados ---- */
  const folios=[...new Set(S.p.map(q=>q.f))];let sinPlano=false;
- try{const l=await gLista();const doc=l.find(x=>/RCS.?PLANOS/i.test(x.name));
+ try{const l=await gLista();const doc=l.find(x=>/T87911031210|T4T4S|RCS.?PLANOS/i.test(x.name));
   if(!doc)sinPlano=true;else{let blob=gCache[doc.id];if(!blob){const dl=await sb.storage.from("planos").download(doc.id);if(dl.error)throw dl.error;blob=dl.data;gCache[doc.id]=blob}
    await cargaLib();const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;
    for(const f of folios){const np=gPagina(doc.name,f);if(np<1||np>pdf.numPages)continue;await pFolio(d,pdf,np,f,S,ot,R)}}
  }catch(e){sinPlano=true}
- if(sinPlano){d.setPage(1);d.setFont("helvetica","italic");d.setFontSize(7);d.setTextColor(198,40,40);d.text(pT("Folios no adjuntos: sube «RCS PLANOS» en la pestaña Planos para incluirlos marcados."),M,286)}
+ if(sinPlano){d.setPage(1);d.setFont("helvetica","italic");d.setFontSize(7);d.setTextColor(198,40,40);d.text(pT("Folios no adjuntos: sube «ESQUEMA GENERAL rev. J» en la pestaña Planos para incluirlos marcados."),M,286)}
  pPie(d);
  const nom=pT(`Inspeccion_cable_a_cable_${ot&&ot.orden?ot.orden+"_":""}${gIMod}_${S.id}.pdf`).replace(/\s+/g,"_");
  pMuestra(d.output("blob"),nom)}
@@ -1080,7 +1078,7 @@ async function pFolio(d,pdf,np,f,S,ot,R){const pg=await pdf.getPage(np);const v1
   cx.fillStyle="#d32f2f";cx.beginPath();cx.arc(lx,ly,r,0,7);cx.fill();cx.fillStyle="#fff";cx.fillText(lab,lx,ly+.3*u)});
  const land=c.width>c.height;d.addPage("a4",land?"landscape":"portrait");const W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight();
  d.setFillColor(108,29,170);d.rect(0,0,W,11,"F");d.setFillColor(240,120,30);d.rect(0,11,W,1,"F");d.setTextColor(255);d.setFont("helvetica","bold");d.setFontSize(11);d.text("Inspección cable a cable",10,7.4);
- d.setFont("helvetica","normal");d.setFontSize(8);d.text(pT(`RCS_PLANOS · folio ${f} · puntos ${pasos.map(o=>o.i+1).join(", ")}${ot&&ot.orden?" · OT "+ot.orden:""}`),W-10,7.4,{align:"right"});
+ d.setFont("helvetica","normal");d.setFontSize(8);d.text(pT(`ESQUEMA GENERAL rev. J · folio ${f} · puntos ${pasos.map(o=>o.i+1).join(", ")}${ot&&ot.orden?" · OT "+ot.orden:""}`),W-10,7.4,{align:"right"});
  const top=14,leg=pasos.length>6?20:14,aw=W-16,ah=H-top-leg-10,s=Math.min(aw/c.width,ah/c.height),iw=c.width*s,ih=c.height*s,ix=(W-iw)/2;
  d.addImage(c.toDataURL("image/jpeg",.82),"JPEG",ix,top,iw,ih);d.setDrawColor(150);d.setLineWidth(.2);d.rect(ix,top,iw,ih);
  d.setTextColor(20);d.setFontSize(6.6);let ly=top+ih+4;const colw=(W-16)/2;
@@ -1137,7 +1135,7 @@ function gIGenera(){const det=RUTAS_DET;Object.keys(RUTAS).forEach(k=>delete RUT
     {p:`${M.p} — salida de la protección`,e:"≈24 V",x:`Protección ${M.p} disparada o sin entrada.`,f},
     {p:`Origen de la señal «${desc}» (elemento, contacto o disyuntor; ver folio ${f})`,e:esp,x:"Elemento de origen abierto, disparado o averiado.",f},
     {p:`${id} — entrada de «${desc}» (mód. ${k}, LED ${l}; borna en el folio ${f})`,e:esp+" y LED coherente",x:`Cable entre el origen y ${id}. Si hay tensión y el LED no cambia: módulo ${id}.`,f}];
-   s.push({id:`${id}-${k}.${l}`,led,k,l,t:desc,r:`Mód. ${k} · LED ${l}${b?` (IN ${b.in})`:""}: ${repTxt}. Ruta básica: los números de cable y bornas intermedias se toman del folio ${f} de RCS_PLANOS.`,p,det:false})}));
+   s.push({id:`${id}-${k}.${l}`,led,k,l,t:desc,r:`Mód. ${k} · LED ${l}${b?` (IN ${b.in})`:""}: ${repTxt}. Ruta básica: los números de cable y bornas intermedias se toman del folio ${f} de ESQUEMA GENERAL rev. J.`,p,det:false})}));
   RUTAS[id]={n:M.n,ref,s,fol:M.f}})}
 gIGenera();
 function pParse(p){let a=p,cab="";const k=a.indexOf(" · ");if(k>=0){cab=a.slice(k+3);a=a.slice(0,k)}
@@ -1161,7 +1159,7 @@ function gIAuto(){if(gIAutoOT===gOT)return;gIAutoOT=gOT;gIAutoTxt="";const i=inc
 function gISel(id){gIMod=id;const R=RUTAS[id];if(R&&R.s.length&&!R.s.some(x=>x.id==gISig))gISig=R.s[0].id;gIAutoTxt="";gPintaIns()}
 function gInsHTML(){gIAuto();const R=RUTAS[gIMod]||RUTAS["E-A9"];
  const fila=a=>`<div class="gmods">${a.map(k=>`<button class="${k==gIMod?"on":""}${RUTAS[k].vacio?" vac":""}" onclick="gISel('${k}')">${k}</button>`).join("")}</div>`;
- let h=`<div class="mu" style="font-size:12px;margin:6px 0">Ruta de medida desde el plano RCS_PLANOS. Compruébala siempre con el folio indicado.</div>
+ let h=`<div class="mu" style="font-size:12px;margin:6px 0">Ruta de medida desde el plano ESQUEMA GENERAL rev. J. Compruébala siempre con el folio indicado.</div>
  ${gIAutoTxt?`<div class="gav" style="border-left-color:var(--pr)">${esc(gIAutoTxt)}</div>`:""}
  <label>Módulo · armario E</label>${fila(INS_E)}<label>Módulo · pupitre P</label>${fila(INS_P)}`;
  if(R.vacio||!R.s.length)return h+`<div class="gav">${esc(gIMod)}: no hay señales de este módulo en el PLC RCS de la app. Elige otro módulo.</div>`;
@@ -1224,7 +1222,7 @@ function verBarra(){return !!user&&((user.email||"").toLowerCase()=="rmartinrosa
 try{barra()}catch(e){}
 
 /* ===== v49: ubicación física de cada punto de la inspección cable a cable =====
- Según la denominación de lugar (+) de RCS_PLANOS / Armario CBTH: +E = armario eléctrico E (AE), +P = pupitre,
+ Según la denominación de lugar (+) de ESQUEMA GENERAL rev. J / Armario CBTH: +E = armario eléctrico E (AE), +P = pupitre,
  +C = cabina, +IT/+MT/+ET = túneles A/B/C, +CO = columna, +R = rotonda, CBTH = armario CBTH de la posición. */
 const UBI={
  CBTH:{c:"CBTH",n:"Armario CBTH de la posición (alimentación BT / SAI)",k:"#455a64"},
@@ -1254,7 +1252,7 @@ function gRecorridoHTML(S){const seq=[];S.p.forEach(q=>gUbiZ(q).forEach(k=>{if(s
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 
 /* ===== v50: conexiones intermedias en el PDF (elemento → bornas / regleteros → cable, hilo, manguera → ubicación) =====
- Rutas detalladas (★): se toman de los propios puntos de medida. Rutas básicas: lectura automática del folio RCS_PLANOS
+ Rutas detalladas (★): se toman de los propios puntos de medida. Rutas básicas: lectura automática del folio ESQUEMA GENERAL rev. J
  alrededor de la borna del módulo (a verificar) + casillas para anotar en campo lo que falte. */
 const COLR=/^(BK|BN|BU|GY|RD|VT|WH|OG|YE|GN|PK|GNYE|GYPK|BKWH|BUWH)$/;
 function cEnd(q){const P=pParse(q.p);return ((P.plus?"+":"")+P.tag+(P.det?" "+P.det.replace(/\(cable según folio \d+\)/,""):"")).replace(/\s+/g," ").trim()}
@@ -1304,9 +1302,9 @@ function cCorto(c){if(c.tipo=="int")return "puente interno del elemento (sin cab
  return (t||"cable / regletero: ver folio "+c.f)+(c.cab?"":c.autoC.length||c.autoB.length?" (auto)":"")}
 async function gIPdf(){const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);if(!S)return;const ot=inc.find(x=>x.id==gOT);const res=gIRes[gIKey()]||[];
  msg("Generando PDF…");try{await cargaJsPDF()}catch(e){msg("No se pudo cargar el generador de PDF (sin conexión)");return}
- /* plano RCS_PLANOS (si está subido): se usa para la lectura de conexiones y para los folios marcados */
+ /* plano ESQUEMA GENERAL rev. J (si está subido): se usa para la lectura de conexiones y para los folios marcados */
  let plan=null,planDoc=null;
- try{const l=await gLista();planDoc=l.find(x=>/RCS.?PLANOS/i.test(x.name));
+ try{const l=await gLista();planDoc=l.find(x=>/T87911031210|T4T4S|RCS.?PLANOS/i.test(x.name));
   if(planDoc){let blob=gCache[planDoc.id];if(!blob){const dl=await sb.storage.from("planos").download(planDoc.id);if(dl.error)throw dl.error;blob=dl.data;gCache[planDoc.id]=blob}
    await cargaLib();plan=await pdfjsLib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise}}catch(e){plan=null}
  const folios=[...new Set(S.p.map(q=>q.f))];const auto={};
@@ -1345,9 +1343,9 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);
  d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Conexiones intermedias");y=24;
  d.setFont("helvetica","bold");d.setFontSize(10);d.setTextColor(20);d.text(pT(`${gIMod} · ${S.id} · LED ${S.led} · ${S.t}`),M,y);y+=4.5;
  d.setFont("helvetica","normal");d.setFontSize(7.3);d.setTextColor(70);
- l=d.splitTextToSize(pT(S.traz?`Ruta trazada en RCS_PLANOS (folios ${S.fol}): tipo de cable, nº de hilo, sección, color, mangueras, bornas e interconexiones tomados del plano.`:S.det?"Ruta detallada: conexiones tomadas de RCS_PLANOS (folio indicado en cada tramo).":
-  plan?"Ruta básica: cables y regleteros marcados (auto) leídos del folio RCS_PLANOS junto a la borna del módulo; verificar en el plano. Completar las casillas en blanco en campo.":
-  "Ruta básica sin RCS_PLANOS cargado: completar cable, regletero y manguera de cada tramo con el folio indicado (súbelo en Planos para la lectura automática)."),W-2*M);d.text(l,M,y);y+=l.length*3.2+1;
+ l=d.splitTextToSize(pT(S.traz?`Ruta trazada en ESQUEMA GENERAL rev. J (folios ${S.fol}): tipo de cable, nº de hilo, sección, color, mangueras, bornas e interconexiones tomados del plano.`:S.det?"Ruta detallada: conexiones tomadas de ESQUEMA GENERAL rev. J (folio indicado en cada tramo).":
+  plan?"Ruta básica: cables y regleteros marcados (auto) leídos del folio ESQUEMA GENERAL rev. J junto a la borna del módulo; verificar en el plano. Completar las casillas en blanco en campo.":
+  "Ruta básica sin ESQUEMA GENERAL rev. J cargado: completar cable, regletero y manguera de cada tramo con el folio indicado (súbelo en Planos para la lectura automática)."),W-2*M);d.text(l,M,y);y+=l.length*3.2+1;
  /* recorrido de zonas */
  const seq=[];S.p.forEach(q=>gUbiZ(q).forEach(k=>{if(seq[seq.length-1]!=k)seq.push(k)}));
  d.setFont("helvetica","bold");d.setTextColor(240,120,30);d.text(pT("Recorrido: "+seq.map(k=>UBI[k].c).join(" -> ")),M,y);y+=4;
@@ -1381,7 +1379,7 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);
   fila2([`${c.n} -> ${c.n+1}\nF.${c.f}`,c.de+"\nUbic.: "+c.ubiA,c.a+"\nUbic.: "+c.ubiB,cab,bor,c.zona+(c.man&&c.tipo=="cable"?"\n"+c.man:"")],false,c.tipo=="int"||c.tipo=="nuevo"?[246,246,246]:null)});
  }
  y+=5;if(y<270){d.setFont("helvetica","italic");d.setFontSize(6.8);d.setTextColor(95);
-  d.text(d.splitTextToSize(pT("Localizaciones (folio 2 de RCS_PLANOS): +E armario eléctrico principal · +C cabina · +CP panel de control · +P pupitre · +IT / +MT / +ET túnel interior / medio / exterior · +TF túnel fijo · +R rotonda · +CO armarios en columna · +H sistema de elevación · +T sistema de traslación · +SS escalera de servicio · +CBTH armario CBTH. Mangueras: EP = E <-> P, CP = C <-> P, EIT = E <-> IT, ITCO = IT <-> CO, ITR = IT <-> R, EC = E <-> C, EH = E <-> H, ESS = E <-> SS, ECBTH = E <-> CBTH."),W-2*M),M,y)}
+  d.text(d.splitTextToSize(pT("Localizaciones (folio 2 de ESQUEMA GENERAL rev. J): +E armario eléctrico principal · +C cabina · +CP panel de control · +P pupitre · +IT / +MT / +ET túnel interior / medio / exterior · +TF túnel fijo · +R rotonda · +CO armarios en columna · +H sistema de elevación · +T sistema de traslación · +SS escalera de servicio · +CBTH armario CBTH. Mangueras: EP = E <-> P, CP = C <-> P, EIT = E <-> IT, ITCO = IT <-> CO, ITR = IT <-> R, EC = E <-> C, EH = E <-> H, ESS = E <-> SS, ECBTH = E <-> CBTH."),W-2*M),M,y)}
  /* ---- Página 3: hoja de medidas ---- */
  d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24;
  d.setFont("helvetica","bold");d.setFontSize(10);d.setTextColor(20);d.text(pT(`${gIMod} · ${S.id} · LED ${S.led} · ${S.t}`),M,y);y+=4;
@@ -1399,18 +1397,18 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);
  else{d.setTextColor(60);d.text(pT(res.some(r=>r&&r.ok!==undefined)?"Sin fallo registrado en los puntos medidos.":"Pendiente de medir: anotar valores en campo."),M,y)}
  y+=14;d.setTextColor(20);d.setFont("helvetica","normal");d.setFontSize(8);d.text("Observaciones:",M,y);d.setDrawColor(170);for(let k=1;k<=4;k++)d.line(M,y+k*7,W-M,y+k*7);y+=38;
  d.text("Firma técnico: ______________________________",M,y);d.text(pT("Fecha / hora: ____________________"),W/2+8,y);
- /* ---- Folios RCS_PLANOS con puntos marcados ---- */
+ /* ---- Folios ESQUEMA GENERAL rev. J con puntos marcados ---- */
  let sinPlano=!plan;
  if(plan){try{for(const f of folios){const np=gPagina(planDoc.name,f);if(np<1||np>plan.numPages)continue;await pFolio(d,plan,np,f,S,ot,R)}}catch(e){sinPlano=true}}
- if(sinPlano){d.setPage(1);d.setFont("helvetica","italic");d.setFontSize(7);d.setTextColor(198,40,40);d.text(pT("Folios no adjuntos: sube «RCS PLANOS» en la pestaña Planos para incluirlos marcados."),M,286)}
+ if(sinPlano){d.setPage(1);d.setFont("helvetica","italic");d.setFontSize(7);d.setTextColor(198,40,40);d.text(pT("Folios no adjuntos: sube «ESQUEMA GENERAL rev. J» en la pestaña Planos para incluirlos marcados."),M,286)}
  pPie(d);
  const nom=pT(`Inspeccion_cable_a_cable_${ot&&ot.orden?ot.orden+"_":""}${gIMod}_${S.id}.pdf`).replace(/\s+/g,"_");
  pMuestra(d.output("blob"),nom)}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v51"}})();
 
-/* ===== v51: rutas cable a cable REALES trazadas de RCS_PLANOS (cableado.js) =====
+/* ===== v51: rutas cable a cable REALES trazadas de ESQUEMA GENERAL rev. J (cableado.js) =====
  Cada punto lleva: borna o elemento, tipo de cable (hilo de armario con sección y color, o manguera con su designación),
- referencia (nº de hilo / conductor de manguera), ubicación y folio. Fuente: RCS_PLANOS T87911031210ES rev. D. */
+ referencia (nº de hilo / conductor de manguera), ubicación y folio. Fuente: ESQUEMA GENERAL rev. J T87911031210ES rev. D. */
 Object.assign(UBI,{
  E:{c:"AE",n:"Armario eléctrico principal E",k:"#6c1daa"},
  C:{c:"Cabina",n:"Cabina",k:"#00838f"},
@@ -1494,7 +1492,7 @@ function gICab(){if(!window.CABLEADO)return;CABIDX=null;let n=0;
    if(S.det&&!S.traz&&pts.length<3)return;
    const fol=[...new Set(pts.map(q=>q.f))].join(", ");
    S.p=pts;S.det=true;S.traz=true;S.fol=fol;
-   S.r=`${S.r.split(". Ruta")[0].split(". Los")[0]}. Ruta trazada en RCS_PLANOS (folios ${fol}): bornas, nº de hilo, sección, color y mangueras del plano.`;n++})});
+   S.r=`${S.r.split(". Ruta")[0].split(". Los")[0]}. Ruta trazada en ESQUEMA GENERAL rev. J (folios ${fol}): bornas, nº de hilo, sección, color y mangueras del plano.`;n++})});
  return n}
 gICab();
 /* PDF: página «Conexiones intermedias» con tipo de cable, referencia e interconexión para rutas trazadas */
@@ -1839,7 +1837,7 @@ async function iaGPdfIA(){
  pMuestra(d.output("blob"),nom)}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v60"}})();
 /* ===== v61: planos PROPIOS por posición (504, 507, 508) =====
- Para estas posiciones no se usa el plano genérico RCS PLANOS: se usan solo los planos cuyo nombre lleva el número de la posición
+ Para estas posiciones no se usa el plano genérico ESQUEMA GENERAL rev. J: se usan solo los planos cuyo nombre lleva el número de la posición
  (o, si no hay ninguno, el plano PBB cuyo cajetín declara ese stand, p. ej. «Stand_504&508»).
  El polímetro (inspección cable a cable) lee ese plano en el móvil y verifica cada punto de medida contra él. */
 const PPROP=["504","507","508"];
@@ -1851,18 +1849,18 @@ function ppPos(pos){pos=String(pos||"").trim();return PPROP.includes(pos)?pos:nu
 function ppCtx(){let id=null;const sh=$("#sheet"),s=$("#t_sel");
  if(s&&sh&&sh.style.display!="none")id=s.value;else if(typeof gOT!="undefined"&&gOT)id=gOT;
  const i=inc.find(x=>x.id==id);return i?ppPos(i.pos):null}
-function ppGenerico(x){return !/(^|\D)5\d\d(\D|$)/.test(x.name)&&!/RCS/i.test(x.name)}
+function ppGenerico(x){return !/(^|\D)5\d\d(\D|$)/.test(x.name)&&!/RCS|T87911031210|T4T4S/i.test(x.name)}
 function ppDoc(l,pos,t){const ds=l.filter(x=>ppRe(pos).test(x.name));
  if(t=="PAS")return ds.find(x=>/PBB/i.test(x.name)&&!PPOTROS.test(x.name))||ds.find(x=>!PPOTROS.test(x.name))||(PPDOC[pos]&&l.find(x=>x.id==PPDOC[pos].id))||null;
  return ds.find(x=>PPTIPO[t]&&PPTIPO[t].test(x.name))||null}
-function ppNom(){const p=PPACT||ppCtx();if(!p)return "RCS_PLANOS";const d=PPDOC[p];return d?`plano ${d.name.replace(/\.pdf$/i,"")}`:`plano PBB ${p}`}
+function ppNom(){const p=PPACT||ppCtx();if(!p)return "ESQUEMA GENERAL rev. J";const d=PPDOC[p];return d?`plano ${d.name.replace(/\.pdf$/i,"")}`:`plano PBB ${p}`}
 
 /* --- qué plano abre cada botón --- */
 (function(){const o=gDocId;gDocId=function(t,l){const pos=ppCtx();if(!pos)return o(t,l);
  const d=ppDoc(l,pos,t);if(d)return d.id;
  if(t=="HZ"){const g=l.find(x=>ppGenerico(x)&&PPTIPO.HZ.test(x.name));return g?g.id:""}
  return ""}})();
-(function(){const o=gPagina;gPagina=function(name,folio){if(ppRe("507").test(name)&&!PPOTROS.test(name)&&!/RCS.?PLANOS/i.test(name))return folio>=9?folio-1:folio;return o(name,folio)}})();
+(function(){const o=gPagina;gPagina=function(name,folio){if(ppRe("507").test(name)&&!PPOTROS.test(name)&&!/T87911031210|T4T4S|RCS.?PLANOS/i.test(name))return folio>=9?folio-1:folio;return o(name,folio)}})();
 (function(){const o=gPlano;gPlano=async function(t,folio){const pos=ppCtx();if(pos){const l=await gLista();if(!ppDoc(l,pos,t)&&!(t=="HZ"&&l.some(x=>ppGenerico(x)&&PPTIPO.HZ.test(x.name)))){
   if(t=="PAS"&&!PPDOC[pos]){try{await ppPlanDoc(pos)}catch(e){}if(PPDOC[pos])return o(t,folio)}
   msg(`No hay plano propio de la PBB ${pos}${t!="PAS"?" ("+t+")":""}. Súbelo en Planos con «${pos}» en el nombre.`);return}}
@@ -1933,7 +1931,7 @@ function ppTransforma(pos,F){const R=JSON.parse(ppBase().r),plc={},st={cor:0,nv:
     else nv.push(tg)});
    if(nv.length){q.p+=` ⚠ ${nv.join(", ")}: no aparece en el folio ${q.f} del plano PBB ${pos}`;q.nv=true;st.nv++}});
   const nnv=(S.p||[]).filter(q=>q.nv).length;if(nnv)S.r=`⚠ ${nnv} punto(s) de esta ruta no aparecen en el plano de la PBB ${pos}: sigue el folio indicado en cada punto del plano propio. `+String(S.r||"");
-  if(S.traz)S.r=String(S.r||"").replace(/RCS_PLANOS/g,`plano PBB ${pos} (verificada)`)})});
+  if(S.traz)S.r=String(S.r||"").replace(/ESQUEMA GENERAL rev. J/g,`plano PBB ${pos} (verificada)`)})});
  return {rutas:JSON.stringify(R),plc,st:{cor:st.cor,nv:st.nv,dif:st.dif,cambios:[...st.cambios]}}}
 async function ppPrep(pos){if(PPCACHE[pos]&&(PPCACHE[pos].ok||PPCACHE[pos].cargando))return PPCACHE[pos];
  PPCACHE[pos]={cargando:true};
@@ -1960,12 +1958,12 @@ function ppBanner(pos){const o=document.querySelector(".insov .card");if(!o)retu
  ppPrep(pos).then(()=>{if(gOT!=id||!document.querySelector(".insov"))return;const vm=insVerMods;ppAplica(pos);o(id);if(vm&&typeof insMods=="function"){insVerMods=true;gPintaIns()}ppBanner(pos)})}})();
 (function(){const o=insCierra;insCierra=function(){o();ppAplica(null)}})();
 /* PDF de la inspección: usa el plano de la posición para la lectura automática y los folios marcados */
-(function(){try{let s=gIPdf.toString();const a='planDoc=l.find(x=>/RCS.?PLANOS/i.test(x.name))';if(!s.includes(a))return;
- s=s.replace(a,'planDoc=PPACT&&PPCACHE[PPACT]&&PPCACHE[PPACT].ok?PPCACHE[PPACT].doc:l.find(x=>/RCS.?PLANOS/i.test(x.name))')
-  .replace(/`Ruta trazada en RCS_PLANOS/g,"`Ruta trazada en ${ppNom()}")
-  .replace(/conexiones tomadas de RCS_PLANOS/g,'conexiones tomadas de "+ppNom()+"')
-  .replace(/leídos del folio RCS_PLANOS/g,'leídos del folio del "+ppNom()+"')
-  .replace(/`RCS_PLANOS · folio/g,"`${ppNom()} · folio");
+(function(){try{let s=gIPdf.toString();const a='planDoc=l.find(x=>/T87911031210|T4T4S|RCS.?PLANOS/i.test(x.name))';if(!s.includes(a))return;
+ s=s.replace(a,'planDoc=PPACT&&PPCACHE[PPACT]&&PPCACHE[PPACT].ok?PPCACHE[PPACT].doc:l.find(x=>/T87911031210|T4T4S|RCS.?PLANOS/i.test(x.name))')
+  .replace(/`Ruta trazada en ESQUEMA GENERAL rev. J/g,"`Ruta trazada en ${ppNom()}")
+  .replace(/conexiones tomadas de ESQUEMA GENERAL rev. J/g,'conexiones tomadas de "+ppNom()+"')
+  .replace(/leídos del folio ESQUEMA GENERAL rev. J/g,'leídos del folio del "+ppNom()+"')
+  .replace(/`ESQUEMA GENERAL rev. J · folio/g,"`${ppNom()} · folio");
  gIPdf=(0,eval)("("+s.replace(/^async function gIPdf/,"async function")+")")}catch(e){console.warn("v61 gIPdf",e)}})();
 ppBase();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v61"}})();
@@ -1997,7 +1995,7 @@ function acGuarda(id,cerrarOT){const i=inc.find(x=>x.id==id);if(!i)return;
  const d=document.createElement("div");d.className="madm";d.innerHTML=`<button type="button" onclick="addPos()">＋ Posición PBB</button><button type="button" onclick="gesTec()">Técnicos</button><button type="button" onclick="pedirExport()">Exportar CSV</button><button type="button" class="madmref" title="Cargar la última versión de la app" onclick="refrescaApp()">↻ Actualizar</button>`;b.appendChild(d)}})();
 try{barra()}catch(e){}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v63"}})();
-/* ===== v64: guía de campo · Cámaras RCS (RCS PLANOS folios 25, 93-95) =====
+/* ===== v64: guía de campo · Cámaras RCS (ESQUEMA GENERAL rev. J folios 25, 93-95) =====
  Lista de cámaras de vídeo del sistema RCS con su ubicación en la pasarela, puerto del switch MikroTik E-V1,
  cable y modelo. La IP de cada cámara es por posición: se guarda en la tabla camaras_ip (la edita el administrador). */
 const CAMS=[
@@ -2045,7 +2043,7 @@ function camDet(){const c=CAMS.find(x=>x.id==camSel);if(!c)return `<div class="m
  <div class="mu" style="font-size:11px;margin-top:4px">Respuesta «bytes=32 tiempo&lt;…» = cámara en red. «Tiempo de espera agotado» = revisar PoE en E-V1 (${c.x}), cable ${esc(c.c)} y alimentación E-Q18. En la Magelis: comprobar que la imagen de esta cámara aparece en su canal.</div>
  <button class="sec" style="width:100%;margin-top:8px" onclick="window.open('http://${esc(ip)}','_blank')">Abrir http://${esc(ip)} (desde la red del aeropuerto)</button>`:`<div class="mu" style="font-size:12px;margin-top:8px">La IP de esta cámara en la PBB ${esc(pos)} aún no está cargada.${admin?" Añádela abajo.":" La añadirá el administrador."}</div>`}
  ${admin?`<label>IP de ${esc(c.id)} en PBB ${esc(pos)}</label><div style="display:flex;gap:6px"><input id="cam_ip" inputmode="decimal" placeholder="Ej.: 10.0.0.0" value="${esc(ip)}"><button class="pri" style="width:auto;padding:6px 12px" onclick="camGuarda('${c.id}')">Guardar</button></div>`:""}
- <div class="mu" style="font-size:11px;margin-top:8px">Plano: RCS PLANOS folio 95 (cámaras) y 94 (switch E-V1).</div></div>`}
+ <div class="mu" style="font-size:11px;margin-top:8px">Plano: ESQUEMA GENERAL rev. J folio 95 (cámaras) y 94 (switch E-V1).</div></div>`}
 function camHTML(){const pos=camPosAct();if(camIPpos!==pos)camLee(pos);
  return `<label>Posición PBB</label><select onchange="camPos=this.value;camIPpos=null;camPinta()">${POS.map(p=>`<option ${String(p)==pos?"selected":""}>${p}</option>`).join("")}</select>
  ${camSVG()}
@@ -2068,7 +2066,7 @@ async function camGuarda(id){const v=($("#cam_ip").value||"").trim();if(v&&!/^\d
  nombre de la tabla TKE ↔ cámara del plano y la red. */
 (function(){const t={"ET-P2":"Cámara Ruedas Delantera PBB","IT-P2":"Cámara Interior Túnel Int.","ET-P3":"Cámara Interior Ronda","C-P4":"Cámara Frontal Cabina","C-P5":"Cámara Cabina Inf. Izq.","C-P3":"Cámara Cabina Superior","C-P1":"Cámara Cabina Derecha","SS-P1":"Cámara Escalera"};
  CAMS.forEach(c=>c.t=t[c.id]);const ss=CAMS.find(c=>c.id=="SS-P1");if(ss)ss.d="Exterior, escalera de servicio (vigila motores del avión). Solo en las posiciones que la tienen en la tabla TKE.";
- CAMS.splice(3,0,{id:"BR",n:"Bajo ronda (rotonda)",z:"TE",m:"—",c:"—",x:"—",t:"Cámara Bajo Ronda",d:"Exterior, bajo la rotonda. Figura en la tabla de direcciones TKE, no en el folio 95 de RCS PLANOS.",xy:[40,112]})})();
+ CAMS.splice(3,0,{id:"BR",n:"Bajo ronda (rotonda)",z:"TE",m:"—",c:"—",x:"—",t:"Cámara Bajo Ronda",d:"Exterior, bajo la rotonda. Figura en la tabla de direcciones TKE, no en el folio 95 de ESQUEMA GENERAL rev. J.",xy:[40,112]})})();
 const CAMPOS=[500,502,504,507,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,540,542,544,546,548,550,552,554,556,558,560,562,564,566,568,570,572,574,576,578,579,583,584,586];
 const CAMOTROS=[["PLC","PLC (armario E)"],["HMI","HMI · Magelis pupitre"],["ENC","Encoder rotonda"],["SW","Switch PoE E-V1"],["ANT","PLC anticolisión"]];
 let camDev={},camRed={};
@@ -2124,7 +2122,7 @@ const camBadge=id=>{const m=camMarca(id);return m?`<span title="${esc(m.t)}" sty
   h=h.replace(`<div style="margin-top:10px">`,`<div style="margin-top:8px;font-size:11px;display:flex;gap:12px;flex-wrap:wrap">${nv?`<span>${camBadge(Object.keys(M).find(k=>M[k][0]=="v"))} ${nv} en verde</span>`:""}${na?`<span>${camBadge(Object.keys(M).find(k=>M[k][0]=="a"))} ${na} en amarillo</span>`:""}<span class="mu">(marcas de la hoja TKE)</span></div><div style="margin-top:10px">`)}
  return h}})();
 (function(){const o=camDet;camDet=function(){let h=o();const m=camSel&&camMarca(camSel);
- if(camSel=="BR")h=h.replace("E-V1 (MikroTik CRS112) · puerto — PoE","E-V1 (MikroTik CRS112) · puerto sin documentar").replace("— (Cat.5e)","sin documentar en RCS PLANOS").replace("revisar PoE en E-V1 (—), cable — y","revisar PoE en E-V1, su cable y");if(m)h=h.replace('<span class="mu">Referencia</span>',`<span class="mu">Hoja TKE</span><span style="color:${m.c};font-weight:700">● ${esc(m.t.replace(" en la hoja TKE",""))}${m.n?`<br><span style="font-weight:400;color:var(--tx)">${esc(m.n)}</span>`:""}</span><span class="mu">Referencia</span>`);return h}})();
+ if(camSel=="BR")h=h.replace("E-V1 (MikroTik CRS112) · puerto — PoE","E-V1 (MikroTik CRS112) · puerto sin documentar").replace("— (Cat.5e)","sin documentar en ESQUEMA GENERAL rev. J").replace("revisar PoE en E-V1 (—), cable — y","revisar PoE en E-V1, su cable y");if(m)h=h.replace('<span class="mu">Referencia</span>',`<span class="mu">Hoja TKE</span><span style="color:${m.c};font-weight:700">● ${esc(m.t.replace(" en la hoja TKE",""))}${m.n?`<br><span style="font-weight:400;color:var(--tx)">${esc(m.n)}</span>`:""}</span><span class="mu">Referencia</span>`);return h}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v67"}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v68"}})();
 /* ===== v69: OT de cámara/vídeo → el polímetro abre directamente Cámaras RCS; sin botón FOTO PLC ===== */
@@ -2656,7 +2654,7 @@ new MutationObserver(hiAuto).observe(document.body,{childList:true,subtree:true}
 (function(){const o=guardar;guardar=function(){const f=$("#f_hi");if(f)f.value=ahora();return o.apply(this,arguments)}})();
 setInterval(()=>{const f=document.querySelector("#f_hi[data-auto]");if(f)f.value=ahora()},5000);
 /* ===== v9: ubicación de cada elemento y recorrido con bornas / interconexiones intermedias
- (Elementos de campo a revisar y pasos de la Guía de campo). Datos: cableado.js (RCS_PLANOS rev. D) + prefijo de lugar (+). ===== */
+ (Elementos de campo a revisar y pasos de la Guía de campo). Datos: cableado.js (ESQUEMA GENERAL rev. J rev. D) + prefijo de lugar (+). ===== */
 UBI.CP=UBI.CP||{c:"Mandos pupitre",n:"Pupitre de mando · frontal de mandos (setas, joystick, selectores)",k:"#1565c0"};
 UBI.C4=UBI.C4||{c:"Cabina",n:"Cabina de la PBB · zona C4 (regletero C4)",k:"#00838f"};
 function elZona(tag){const pre=String(tag).replace(/^\+/,"").split("-")[0];return UBI[pre]||UBI[pre.replace(/\d+$/,"")]||null}
@@ -2698,7 +2696,7 @@ new MutationObserver(elPasos).observe(document.body,{childList:true,subtree:true
 GUIA.tipos.AAA.s.unshift({t:"Bloqueo carro A/A · puerta del carro",p:["Cerrar la puerta del carro.","Ajuste del FC del carro + cierre de puerta."],r:"AAA pág. 7, 16 · PBB E-A2 DIN09 (carro A/A)",ef:1});
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r.tipo!="AAA")return r;
  if(!r.guia.some(g=>g.si==0))r.guia.unshift({si:0,t:GUIA.tipos.AAA.s[0].t,sc:99});else{r.guia.sort((a,b)=>(b.si==0)-(a.si==0))}return r}})();
-/* ===== v10: recorridos de potencia y salidas leídos a mano de RCS_PLANOS (T87911031210ES rev. D) + localizaciones oficiales (folio 2) ===== */
+/* ===== v10: recorridos de potencia y salidas leídos a mano de ESQUEMA GENERAL rev. J (T87911031210ES rev. D) + localizaciones oficiales (folio 2) ===== */
 Object.assign(UBI.E,{c:"Armario E",n:"Armario eléctrico principal E (túnel exterior, junto a cabina)"});
 Object.assign(UBI.IT,{c:"Túnel interior",n:"Túnel interior (IT) · caja de conexiones ITB"});
 Object.assign(UBI.MT,{c:"Túnel medio",n:"Túnel medio (MT) · caja de conexiones MTB"});
@@ -2723,7 +2721,7 @@ const RUT_MAN=(()=>{const r=(sig,f,txt,bor)=>({sig,f,txt:txt.join(" → "),bor})
  ad("T-Y1 E-K24 E-Q24",r("Freno motor izquierdo (230 V)",30,["E-Q24 2P 6 A [Armario E]","E-K0.1 (5/L3-6/T3)","E-K24 (1-2 / 3-4)","hilos 157 BN / 159 BU","borna E-X56:1 / 2 [Armario E]","manguera EH-W2 (H07RN-F 12x1,5, cond. 1-2, PE :12)","borna H-X52:1 / 2 [Elevación]","manguera H-W19 (H07RN-F 7x1,5)","T-Y1 L/N/PE [Traslación]"],["E-X56:1-2 (Armario E)","H-X52:1-2 (Elevación)"]));
  ad("T-Y2 E-K24 E-Q24",r("Freno motor derecho (230 V)",30,["E-Q24 → E-K0.1 → E-K24 [Armario E]","borna E-X56:1 / 2 [Armario E]","manguera EH-W2 (cond. 1-2)","borna H-X52:1 / 2 [Elevación]","manguera H-W20 (H07RN-F 7x1,5)","T-Y2 L/N/PE [Traslación]"],["E-X56:1-2 (Armario E)","H-X52:1-2 (Elevación)"]));
  ad("T-B5 T-B6 T-CON10 T1-W1 T1-W2 E-U5",r("Bordes de seguridad de ruedas · relé GELBAU E-U5 (Z1/Z2)",41,["E-U5 Z1 / Z2 [Armario E]","hilos 290 / 632 RD","borna E-X55:21 / 22 [Armario E]","manguera EH-W1 (H07RN-F 24x1,5, cond. 21-22)","borna H-X51:21 / 22 [Elevación]","manguera H-W18 (H07RN-F 3x1,5, BN/BK)","conector T-CON10 pines 1 / 2 [Traslación]","T1-W1 → T-B5 borde delantero (1-2) → T1-W1 hilo 239 → T-CON10:3 → T1-W2 → T-B6 borde trasero (1-2) → T1-W2 → T-CON10:2 (bucle en serie)"],["E-X55:21-22 (Armario E)","H-X51:21-22 (Elevación)","conector T-CON10:1/2/3 (Traslación)"]));
- ad("MT-S3 IT-S3 E-K247 E-K248",r("Antiatrapamiento entre túneles (E-K247/E-K248, E-K247A/E-K248A)",41,["24 V hilo 613 desde E-X68:6 [Armario E]","IT-S3'' (11-12) → IT-S3' (11-12) [Túnel interior · túnel AB] → relés E-K247 / E-K248","MT-S3'' (11-12) → MT-S3' (11-12) [Túnel medio · túnel BC] → relés E-K247A / E-K248A","0 V hilo 205 → E-X68:2","tramo E-X68 ↔ túneles no detallado en el folio"],[]));
+ ad("MT-S3 IT-S3",r("Antiatrapamiento entre túneles · rev. J (dos finales por lado, sin relés)",41,["24 V hilo 613 desde E-X68:6 [Armario E] → clema del túnel","interior izquierdo: IT-S3''(SUP) 11-12 → IT-S3''(INF) 11-12 → hilo 743 → E-A9 DIS05 (5.1)","interior derecho: IT-S3'(SUP) → IT-S3'(INF) → hilo 744 → E-A9 DIS06 (6.1)","medio izquierdo: MT-S3''(SUP) → MT-S3''(INF) → hilo 745 → E-A9 DIS02 (2.1)","medio derecho: MT-S3'(SUP) → MT-S3'(INF) → hilo 746 → E-A9 DIS08 (8.1)"],["clemas de antiatrapamiento (Túnel interior / medio)"]));
  ad("IT-S3",r("FC inclinación inferior · módulo seguridad E-A8 4:8.1",42,["E-A8 4:8.1 [Armario E]","hilo 299 RD","borna E-X51:12 [Armario E]","manguera EIT-W1 (H07RN-F 24x1,5, cond. 12)","borna IT-X51:12 [Túnel interior]","manguera IT-W7 (H07RN-F 5x1,5, BK)","IT-S3 (11-12)","IT-W7 GY hilo 242","borna IT-X51:18 (puente a IT-S2)"],["E-X51:12 (Armario E)","IT-X51:12 y :18 (Túnel interior)"]));
  ad("IT-S2",r("FC inclinación superior · módulo seguridad E-A8 4:8.2",42,["E-A8 4:8.2 [Armario E]","hilo 297 RD","borna E-X51:13 [Armario E]","manguera EIT-W1 (cond. 13)","borna IT-X51:13 [Túnel interior]","manguera IT-W8 (H07RN-F 5x1,5, GY)","IT-S2 (11-12)","IT-W8 BK","borna IT-X51:18 (puente con IT-S3)"],["E-X51:13 (Armario E)","IT-X51:13 y :18 (Túnel interior)"]));
  ad("C-B14 EP-W8 P-W20",r("Medidor de altura 4-20 mA · E-A4 AIN01",62,["E-A4 AIN01 (E-X62:3) [Armario E]","borna E-X62:1 / 3 / 2 · pantalla :7","manguera EP-W8 (3x0,75 apantallada, BN/BK/GY)","borna P-X62:1 / 3 / 2 [Pupitre]","manguera P-W20 (fabricante, BN/BK/BU)","C-B14 [Cabina]"],["E-X62:1-3, :7 (Armario E)","P-X62:1-3 (Pupitre)"]));
@@ -2737,7 +2735,7 @@ const RUT_MAN=(()=>{const r=(sig,f,txt,bor)=>({sig,f,txt:txt.join(" → "),bor})
  ad("C-B4 CP-W14 P-U5",r("Zapata de seguridad · relé GELBAU P-U5",45,["P-U5 Z1 / Z2 [Pupitre]","hilos 387 / 388 RD","manguera CP-W14 (fabricante, BN/BU) directa","C-B4 1-2 [Cabina]","salida P-U5 13/14 → hilos 411/412 → P-X51:9/10 → EP-W1 (cond. 9-10) → E-X59:9/10 → E-A10 4:8.2 / 8.1"],["P-X51:9-10 (Pupitre)","E-X59:9-10 (Armario E)"]));
  return R})();
 (function(){const o=elRutas;elRutas=function(tag){const m=RUT_MAN[tag]||[];const a=o(tag);return m.concat(a.filter(x=>!m.some(y=>y.txt==x.txt)))}})();
-/* ===== v11: recorridos según el plano de la posición. 504 y 508 → PBB_504 (T87911031260, «Stand_504&508»); resto → RCS_PLANOS.
+/* ===== v11: recorridos según el plano de la posición. 504 y 508 → PBB_504 (T87911031260, «Stand_504&508»); resto → ESQUEMA GENERAL rev. J.
  PLC_RCS es común. Folios de PBB_504 comparados con RCS: si el circuito es idéntico se reutiliza el recorrido; si cambia, solo
  se muestran los recorridos leídos de PBB_504 (o el aviso de ver el folio). Corrige además C-B52 / C-B22 en RCS (folio 85). ===== */
 function elPlano(){const p=typeof ppCtx=="function"?ppCtx():null;return p=="504"||p=="508"?"504":"RCS"}
@@ -2770,10 +2768,10 @@ EL_C.clear&&EL_C.clear();
  const r=m.concat(ok);if(!r.length&&quitados.length)r.push({sig:"PBB_504 (posiciones 504 y 508)",f:quitados[0].f,txt:`Este circuito cambia respecto a RCS: ver folio ${quitados[0].f} del plano PBB_504`,bor:[],pl:"504",av:1});
  return r}})();
 (function(){const o=elHTML;elHTML=function(tag,corto){let h=o(tag,corto);const pl=elPlano();
- h=h.replace(/<i>folio (\d+)<\/i>/g,(x,f)=>`<i>folio ${f} · ${pl=="504"?"PBB_504":"RCS_PLANOS"}</i>`);
+ h=h.replace(/<i>folio (\d+)<\/i>/g,(x,f)=>`<i>folio ${f} · ${pl=="504"?"PBB_504":"ESQUEMA GENERAL rev. J"}</i>`);
  return h}})();
 (function(){const st=document.createElement("style");st.textContent=".elplan{font-size:11px;font-weight:600;margin:4px 0 2px;opacity:.8}";document.head.appendChild(st)})();
-(function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);return h.replace('<div class="elus">',`<div class="elplan">Recorridos según plano ${elPlano()=="504"?"PBB_504 (posiciones 504 / 508)":"RCS_PLANOS"}</div><div class="elus">`)}})();
+(function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);return h.replace('<div class="elus">',`<div class="elplan">Recorridos según plano ${elPlano()=="504"?"PBB_504 (posiciones 504 / 508)":"ESQUEMA GENERAL rev. J"}</div><div class="elus">`)}})();
 /* ===== v12: Guía de campo ordenada por eficacia para la OT: la actuación más eficaz va la primera (abierta),
  justo debajo del Análisis de la OT; después Seguridad, cotejo/inspección y el resto de averías, primero las relacionadas. ===== */
 (function(){const st=document.createElement("style");st.textContent=`details.gd.gef{border:2px solid #ef6c00}.gefb{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#ef6c00;border-radius:999px;padding:2px 8px;margin-bottom:4px}`;document.head.appendChild(st)})();
@@ -2898,7 +2896,7 @@ function infHopTxt(h){const z=(h.match(/\[([^\]]+)\]/)||[])[1];const t=h.replace
  if(/^conector /i.test(t))return `Conector <b>${esc(t.replace(/^conector /i,""))}</b>${z?` en ${esc(z)}`:""}: revisa que los pines estén limpios y bien encajados.`;
  return `<b>${esc(t)}</b>${z?` (${esc(z)})`:""}.`}
 function infActuacion(k){const t=k.replace(/\d+$/,""),si=+k.slice(t.length);const G=GUIA.tipos[t];const S=G&&G.s[si];if(!S)return;
- const i=inc.find(x=>x.id==gOT);const pl=elPlano();const plN=pl=="504"?"PBB_504 (posiciones 504 y 508)":"RCS_PLANOS";
+ const i=inc.find(x=>x.id==gOT);const pl=elPlano();const plN=pl=="504"?"PBB_504 (posiciones 504 y 508)":"ESQUEMA GENERAL rev. J";
  const vistos=new Map(),pasosVistos=new Set();let h="",nb=0;
  const pasos=S.p.map((p,pi)=>({p,pi,g:S.g&&S.g[pi]})).filter(x=>{const n=x.p.toLowerCase().replace(/\s+/g," ").trim();if(pasosVistos.has(n))return false;pasosVistos.add(n);return true});
  pasos.forEach((x,ix)=>{const tags=[...new Set((x.p.toUpperCase().match(ANA_TAG)||[]).map(t=>t.replace(/'+$/,"")))].filter(t=>elZona(t));
@@ -3134,12 +3132,14 @@ const plegOT=new Set(),anaAbOT=new Set();
  return h.replace(`<button class="sec" onclick="borrar('${i.id}')">Eliminar</button>`,`<button class="sec gwr gotdel" title="Eliminar OT" aria-label="Eliminar OT ${esc(i.orden||"")}" onclick="borrar('${i.id}')">${IC('trash')}</button>`)}})();
 (function(){const st=document.createElement("style");st.textContent=".cacts .gotdel{position:static!important;width:46px!important;height:42px;display:flex;align-items:center;justify-content:center;padding:0;color:#ff6b6b!important;border-color:#ff6b6b!important}.gotdel svg{width:22px;height:22px}";document.head.appendChild(st)})();
 /* Orden en Guía: la «Actuación más eficaz» va ANTES del «Análisis de OT» (ver gOrdena) */
-/* ===== Planos por posición: solo 504, 507 y 508 usan sus planos propios (barreras ópticas SICK L41); el resto, RCS_PLANOS
- (antiatrapamientos con finales de carrera mecánicos IT-S3'/IT-S3'' → relés E-K247/E-K248). El elemento de seguridad se nombra según la posición de la OT. ===== */
+/* ===== Planos por posición: solo 504, 507 y 508 usan sus planos propios (barreras ópticas SICK L41); el resto, ESQUEMA GENERAL rev. J
+ (rev. J: antiatrapamientos con dos finales de carrera por lado, sin relés, una entrada por lado en E-A9). El elemento de seguridad se nombra según la posición de la OT. ===== */
 function segPosFix(x,pos){if(!x||x[0]!="E-A9")return x;pos=String(pos||"");const op=["504","507","508"].includes(pos);
- if(x[1]=="5.1")return op?["E-A9","5.1","5.2","IT-B1","Barrera óptica túnel interior izquierda (PBB "+pos+")"]:["E-A9","5.1","5.2","IT-S3' / IT-S3'' (E-K247 / E-K248)","Antiatrapamiento túnel interior A-B (finales de carrera)"];
- if(x[1]=="2.1")return pos=="504"?["E-A9","2.1","2.2","MT-B1","Barrera óptica túnel medio izquierda (PBB 504)"]:["E-A9","2.1","2.2","MT-S3' / MT-S3'' (E-K247A / E-K248A)","Antiatrapamiento túnel medio B-C (finales de carrera)"];
- if((x[1]=="6.1"&&!op)||(x[1]=="8.1"&&pos!="504"))return null;return x}
+ if(x[1]=="5.1")return op?["E-A9","5.1","5.2","IT-B1","Barrera óptica túnel interior izquierda (PBB "+pos+")"]:["E-A9","5.1","E-X68:6 (613)","IT-S3''(SUP/INF)","Antiatrapamiento túnel interior izquierdo (finales de carrera)"];
+ if(x[1]=="6.1")return op?x:["E-A9","6.1","E-X68:6 (613)","IT-S3'(SUP/INF)","Antiatrapamiento túnel interior derecho (finales de carrera)"];
+ if(x[1]=="8.1"&&pos!="504")return ["E-A9","8.1","E-X68:6 (613)","MT-S3'(SUP/INF)","Antiatrapamiento túnel medio derecho (finales de carrera)"];
+ if(x[1]=="2.1")return pos=="504"?["E-A9","2.1","2.2","MT-B1","Barrera óptica túnel medio izquierda (PBB 504)"]:["E-A9","2.1","E-X68:6 (613)","MT-S3''(SUP/INF)","Antiatrapamiento túnel medio izquierdo (finales de carrera)"];
+ return x}
 (function(){const o=segOT;segOT=function(i){const r=o(i);if(!r||!i||!r.sen)return r;r.sen=r.sen.map(x=>segPosFix(x,i.pos)).filter(Boolean);return r}})();
 (function(){const st=document.createElement("style");st.textContent=`#nav .navstar span{color:#2e9e44!important;animation:navstar 2s ease-in-out infinite}@keyframes navstar{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.85)}}`;document.head.appendChild(st)})();
 /* ===== Administrador: «↻ Actualizar» borra la memoria caché de la PWA y recarga la última versión de GitHub
@@ -3261,7 +3261,7 @@ const det=h.slice(e).startsWith('<details')?h.indexOf('</details>',e)+'</details
 /* v74: logo TKE reactivado (se quita la ocultación de la v53) */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v53"}})();
 
-/* ===== v54: la guía de campo abre SIEMPRE con el tipo de la OT (y su plano: AAA → plano AAA/PCA, HZ → PDS 400, AAP → AAP, PAS → RCS PLANOS / PBB propio).
+/* ===== v54: la guía de campo abre SIEMPRE con el tipo de la OT (y su plano: AAA → plano AAA/PCA, HZ → PDS 400, AAP → AAP, PAS → ESQUEMA GENERAL rev. J / PBB propio).
    Antes, al entrar por el puente o las seguridades (varita), se quedaba el último tipo usado (PAS) y su plano. ===== */
 function gTipoOT(i){if(!i)return "PAS";return [i.tipo,...(i.equipos||[])].find(t=>GUIA.tipos[t])||"PAS"}
 function otEsPAS(i){if(!i)return false;if([i.tipo,...(i.equipos||[])].includes("PAS"))return true;
@@ -3329,7 +3329,7 @@ const CROQ={mega:{i:"🔊",f:30,t:"Cómo funciona la megafonía de la PBB",
 function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
  return `<div class="gcro"><div class="gcro-h"><b>${C.i||"📐"} ${esc(C.t)}</b><button class="gpl" aria-label="Ver plano página ${C.f}" onclick="event.preventDefault();event.stopPropagation();gPlano('${tipo}',${C.f})">${IC('plans')}<small>${C.f}</small></button></div>
  ${C.img?`<img src="${C.img}" alt="${esc(C.alt)}" loading="lazy" onclick="event.preventDefault();event.stopPropagation();window.open(this.src,'_blank')">
- <div class="mu" style="font-size:11px;margin:2px 0 6px">RCS PLANOS · folio ${C.f} · P-A5 módulo de entradas (igual en 504/508). Toca la imagen para ampliarla.</div>`:""}${C.sim?`<div class="gsim" data-sim="${C.sim}"></div>`:""}${C.fl?`<div class="gflu">${C.fl.map((x,i)=>`${i?'<div class="gfla">↓</div>':""}<div class="gfl"><b>${esc(x[0])}</b><span>${esc(x[1])}</span></div>`).join("")}</div><div class="mu" style="font-size:11px;margin:2px 0 6px">RCS PLANOS · folios 10, 29 y 30 (504/508: mismos folios en su plano).</div>`:""}
+ <div class="mu" style="font-size:11px;margin:2px 0 6px">ESQUEMA GENERAL rev. J · folio ${C.f} · P-A5 módulo de entradas (igual en 504/508). Toca la imagen para ampliarla.</div>`:""}${C.sim?`<div class="gsim" data-sim="${C.sim}"></div>`:""}${C.fl?`<div class="gflu">${C.fl.map((x,i)=>`${i?'<div class="gfla">↓</div>':""}<div class="gfl"><b>${esc(x[0])}</b><span>${esc(x[1])}</span></div>`).join("")}</div><div class="mu" style="font-size:11px;margin:2px 0 6px">ESQUEMA GENERAL rev. J · folios 10, 29 y 30 (504/508: mismos folios en su plano).</div>`:""}
  <ul>${C.n.map(x=>`<li>${x}</li>`).join("")}</ul></div>`}
 (function(){const st=document.createElement("style");st.textContent=".gcro{margin:8px 0 10px;padding:10px;border:1px solid var(--pr);border-radius:10px;background:color-mix(in srgb,var(--pr) 8%,transparent)}.gcro-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;font-size:14px}.gcro img{display:block;width:100%;height:auto;border-radius:8px;background:#fff;cursor:zoom-in}.gcro ul{margin:0;padding-left:18px;font-size:13px;line-height:1.45}.gcro li+li{margin-top:5px}.gflu{display:flex;flex-direction:column;align-items:stretch;margin:4px 0}.gfl{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:6px 9px;border:1px solid var(--bd,#555);border-radius:8px;font-size:12.5px;background:var(--card)}.gfl span{color:var(--mu)}.gfla{text-align:center;color:var(--ac);font-weight:700;line-height:1.1}";document.head.appendChild(st)})();
 
@@ -3350,7 +3350,7 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=1"></script><script src="sos.js?v=9"></script><script src="iconos.js?v=2"></script><script src="sim-brazo.js?v=2"></script><script>
+</script><script src="sistemas.js?v=2"></script><script src="sos.js?v=9"></script><script src="iconos.js?v=3"></script><script src="sim-brazo.js?v=3"></script><script>
 /* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
 function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
  msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
@@ -3388,7 +3388,7 @@ Analiza la actuación y las observaciones con la documentación del proyecto PBB
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v82"}})();
 </script>
 <script>(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v83"}})();</script><script>
-/* ===== v84: medidas analógicas (E-A4, RCS PLANOS folio 62): potenciómetro de giro de cabina C-R10 (vía convertidor E-R10),
+/* ===== v84: medidas analógicas (E-A4, ESQUEMA GENERAL rev. J folio 62): potenciómetro de giro de cabina C-R10 (vía convertidor E-R10),
  láser de extensión ET-B9, ultrasonido de altura C-B14 y potenciómetro de giro de rotonda R-R1.
  · Vocabulario y sinónimos: «medidor», «medida», «mide», «láser», «ultrasonido», «potenciómetro»… (antes «medidor» se corregía a «medio»
    y la OT acababa en antiatrapamiento del túnel medio).
@@ -3397,7 +3397,7 @@ ANA_SIN.push(["potenciometro","potenciometros","medidor","medidores","medida","m
 try{ANA_VOC=null;ANA_C={k:"",r:null}}catch(e){}
 (function(){
  const S=(ch,t,r,p)=>({id:"E-A4-1."+ch,led:"1."+ch,k:1,l:ch,t,r,p:p.map(x=>({p:x[0],e:x[1],x:x[2],f:x[3]||62,u:[x[4]||"E"],cab:[],nodo:x[0]})),fol:"62"});
- RUTAS["E-A4"]={n:"Entradas analógicas 4-20 mA (IB IL AI 4/I-PAC)",ref:"RCS PLANOS folio 62",fol:"62",s:[
+ RUTAS["E-A4"]={n:"Entradas analógicas 4-20 mA (IB IL AI 4/I-PAC)",ref:"ESQUEMA GENERAL rev. J folio 62",fol:"62",s:[
   S(1,"AIN01 · Medidor de altura (ultrasonido C-B14)","Canal 1 · borna 1.1 (AI01) / 2.1 (-I1). Señal 4-20 mA del ultrasonido de altura.",[
    ["+C-B14 conector (BN +24 V · BU 0 V · BK salida)","24 V entre BN y BU · 4-20 mA en BK","Sin 24 V → alimentación; con 24 V y sin señal → sensor (suciedad, agua u obstáculo bajo el sensor).",62,"C"],
    ["+P-X62:1-3-2 · cable P-W20 (fabricante)","mismas medidas que en el sensor","Diferencia con el sensor → cable P-W20 o bornas de P-X62.",62,"P"],
@@ -3420,7 +3420,7 @@ try{ANA_VOC=null;ANA_C={k:"",r:null}}catch(e){}
  const SEC={t:"Medidas analógicas (E-A4) · potenciómetro de giro de cabina, láser de extensión, ultrasonido de altura",
   a:"Las medidas analógicas no se puentean. Sin medida el PLC no sabe dónde está la pasarela: si bloquea movimientos, avisar al Responsable de Turno y mover solo en MANUAL, despacio y vigilando.",
   g:[62,62,40,62,62,62,62,62,62,49],
-  p:["QUÉ HAY (RCS PLANOS folio 62 · módulo E-A4 IB IL AI 4/I-PAC, 4-20 mA): AIN01 medidor de ALTURA = ultrasonido C-B14 (borna 1.1) · AIN02 medida de EXTENSIÓN = láser ET-B9 (borna 1.2) · AIN03 medidor de CABINA = potenciómetro de giro C-R10 a través del convertidor E-R10 WAS5 PRO RTD (borna 1.3) · AIN04 potenciómetro de giro de ROTONDA R-R1 (borna 1.4; en 504/508 es reserva y la rotonda va por el encoder R-R10 en red).",
+  p:["QUÉ HAY (ESQUEMA GENERAL rev. J folio 62 · módulo E-A4 IB IL AI 4/I-PAC, 4-20 mA): AIN01 medidor de ALTURA = ultrasonido C-B14 (borna 1.1) · AIN02 medida de EXTENSIÓN = láser ET-B9 (borna 1.2) · AIN03 medidor de CABINA = potenciómetro de giro C-R10 a través del convertidor E-R10 WAS5 PRO RTD (borna 1.3) · AIN04 potenciómetro de giro de ROTONDA R-R1 (borna 1.4; en 504/508 es reserva y la rotonda va por el encoder R-R10 en red).",
    "PRIORIDAD 1 · Mirar en la Magelis qué medidas fallan. Si fallan VARIAS a la vez (p. ej. giro de cabina y extensión) buscar primero lo común: módulo E-A4 (LED de diagnóstico y de alimentación del bus) y los 24 VDC que alimentan los sensores (E-X68:1 + / E-X68:2 0 V → E-X62:1-2 y E-R10:10-11). Si falla una sola, ir a su canal.",
    "PRIORIDAD 1 · Medir 24 VDC en E-X62:1-2 (ultrasonido C-B14 y láser ET-B9) y en E-R10:10-11 (convertidor del potenciómetro de cabina). Sin tensión → regleta E-X68 y protección de 24 V del armario E (LED de alarma de E-Q30.0).",
    "PRIORIDAD 1 · Medir 4-20 mA en serie en el canal que falla (soltar el hilo de la entrada de E-A4 y polímetro en mA): 0 mA = lazo abierto o sensor sin alimentación · por debajo de 4 mA = sensor o cable · entre 4 y 20 mA variando con el movimiento pero la Magelis no lo muestra = canal o borna de E-A4.",
@@ -3430,7 +3430,7 @@ try{ANA_VOC=null;ANA_C={k:"",r:null}}catch(e){}
    "ULTRASONIDO DE ALTURA C-B14 (AIN01): BN/BK/BU → cable P-W20 → P-X62:1-3-2 → manguera EP-W8 (3×0,75 apantallada, malla en E-X62:7) → E-X62:1-3-2 → E-A4 borna 1.1. Comprobar que nada se interpone bajo el sensor (suciedad, agua, objetos), fijación y conector.",
    "Lectura que salta o con ruido: mallas de E-W13, EP-W8, IT-W16 / EIT-W4 / E-W9 conectadas a tierra en un solo extremo y bornas apretadas. No pasar cables de señal junto a los de potencia.",
    "CIERRE: comprobar en la Magelis (CP-A1) que cada medida varía de forma continua en todo su recorrido (cabina izquierda ↔ derecha, extender ↔ recoger, subir ↔ bajar). Anotar en la Actuación los mA medidos antes y después."],
-  r:"RCS PLANOS pág. 40, 49, 62 · PBB 504 pág. 62 (AIN04 reserva) y 97 (encoder de rotonda)"};
+  r:"ESQUEMA GENERAL rev. J pág. 40, 49, 62 · PBB 504 pág. 62 (AIN04 reserva) y 97 (encoder de rotonda)"};
  const L=GUIA.tipos.PAS.s;if(!L.some(x=>/^Medidas anal/.test(x.t)))L.push(SEC);
 })();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v84"}})();
@@ -3477,7 +3477,7 @@ function puAnalog(i){if(!i||i.estado!="abierta")return [];const txt=segNorm([i.d
  · Puentes analógicos: extensión y rotonda en E-X62 (resistencia 1→4 / 1→5 con el conductor de campo suelto); cabina en E-R10. */
 (function(){
  const S=(ch,t,r,p)=>({id:"E-A4-1."+ch,led:"1."+ch,k:1,l:ch,t,r,p:p.map(x=>({p:x[0],e:x[1],x:x[2],f:x[3]||62,u:[x[4]||"E"],cab:[],nodo:x[0]})),fol:"62"});
- RUTAS["E-A4"]={n:"Entradas analógicas 4-20 mA (IB IL AI 4/I-PAC)",ref:"RCS PLANOS / PBB 504 folio 62",fol:"62",s:[
+ RUTAS["E-A4"]={n:"Entradas analógicas 4-20 mA (IB IL AI 4/I-PAC)",ref:"ESQUEMA GENERAL rev. J / PBB 504 folio 62",fol:"62",s:[
   S(1,"AIN01 · Medidor de altura (ultrasonido C-B14)","Canal 1 · borna 1.1 (AI01, hilo 341) / 2.1 (-I1, hilo 205 a E-X62:2). Ultrasonido de 3 hilos alimentado desde E-X62:1-2.",[
    ["+C-B14 conector (BN + · BU − · BK salida)","24 V entre BN y BU · 4-20 mA por BK","Sin 24 V → E-X62:1-2 / EP-W8 / P-W20. Con 24 V y sin señal → sensor (suciedad, agua u obstáculo).",62,"C"],
    ["+P-X62:1-3-2 (pupitre) · cable P-W20 (fabricante) BN-BK-BU","mismas medidas que en el sensor","Diferencia → P-W20 o bornas de P-X62.",62,"P"],
@@ -3533,7 +3533,7 @@ function puAnalog(i){if(!i||i.estado!="abierta")return [];const txt=segNorm([i.d
 </script>
 <script>
 /* ===== v87: giro de ROTONDA en «Medidas analógicas» (folio 62, AIN04) =====
- RCS PLANOS: AIN04 «POTENCIÓMETRO GIRO ROTONDA» R-R1, transmisor 4-20 mA (x1, x2, x3) en la rotonda → cable IT-W16 → IT-X62
+ ESQUEMA GENERAL rev. J: AIN04 «POTENCIÓMETRO GIRO ROTONDA» R-R1, transmisor 4-20 mA (x1, x2, x3) en la rotonda → cable IT-W16 → IT-X62
  → manguera EIT-W4 (6×0,75, malla a E-X62:7) → E-X62:5 → hilo 316 → E-A4 borna 1.4 (AI04) / 2.4 (-I4).
  PBB 504/508: AIN04 = RESERVA; el giro de rotonda lo da el encoder Posital R-R10 (OCD-EM01B, Ethernet/IP) por red al switch E-V1:X12,
  alimentado desde E-X62:1-2 por IT-X62:1-2 (EIT-W4) — folio 97.
@@ -3558,32 +3558,45 @@ const AN_CH={1:/altura|ultrason/,2:/extensi|retracc|laser/,3:/cabina/,4:/rotonda
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v87"}})();
 </script>
 <script>
-/* ===== v88: cotejo del folio 62 con RCS PLANOS (plano base de todas las posiciones salvo 504, 507 y 508) =====
- AIN01-AIN03 idénticos en RCS PLANOS y PBB 504 (mismas bornas E-X62 1/2/3/4/7, hilos 341/312/315/189/205, E-X65, E-R10 y switch).
- Solo cambia AIN04: RCS PLANOS = R-R1 (IT-W16 → IT-X62:1-2-3, malla 7 → EIT-W4 → E-X62:5 señal, hilo 316 · E-X62:8 0 V del R-R1
+/* ===== v88: cotejo del folio 62 con ESQUEMA GENERAL rev. J (plano base de todas las posiciones salvo 504, 507 y 508) =====
+ AIN01-AIN03 idénticos en ESQUEMA GENERAL rev. J y PBB 504 (mismas bornas E-X62 1/2/3/4/7, hilos 341/312/315/189/205, E-X65, E-R10 y switch).
+ Solo cambia AIN04: ESQUEMA GENERAL rev. J = R-R1 (IT-W16 → IT-X62:1-2-3, malla 7 → EIT-W4 → E-X62:5 señal, hilo 316 · E-X62:8 0 V del R-R1
  unido a E-X62:2 · +24 V desde E-X62:1 a IT-X62:1). 504/508 = reserva y encoder R-R10. 507: plano propio pendiente. */
 const POS_PROPIO=["504","507","508"];
 (function(){const S=GUIA.tipos.PAS.s.find(x=>/^Medidas anal/.test(x.t));if(!S||S._v88)return;S._v88=1;
  S.p=S.p.map(x=>{
-  if(/^QUÉ HAY/.test(x))return "QUÉ HAY (folio 62 · plano base RCS PLANOS, todas las posiciones salvo 504, 507 y 508 · E-A4 Phoenix IB IL AI 4/I-PAC, 4-20 mA): AIN01 (1.1) medidor de ALTURA = ultrasonido C-B14 · AIN02 (1.2) medida de EXTENSIÓN = láser ET-B9 · AIN03 (1.3) medidor de CABINA = potenciómetro de giro C-R10 a través del convertidor E-R10 WAS5 PRO RTD · AIN04 (1.4) potenciómetro de giro de ROTONDA R-R1. Retornos -I1…-I4 en 2.1…2.4. En 504/508 (plano PBB 504) AIN04 es RESERVA y la rotonda va por el encoder R-R10 en red; en 507 confirmar con su plano.";
-  if(/^BORNERO E-X62/.test(x))return "BORNERO E-X62 (armario E, RCS PLANOS folio 62): 1 = +24 V común (hilo 189 desde E-X68:1; alimenta C-B14 por EP-W8, ET-B9 por E-W13 y el R-R1 por EIT-W4 hasta IT-X62:1) · 2 = 0 V común (hilo 205 desde E-X68:2; retornos -I1, -I2, -I3 y E-R10:9) · 3 = señal ALTURA → AI01 (hilo 341) · 4 = señal EXTENSIÓN → AI02 (hilo 312) · 5 = señal ROTONDA R-R1 → AI04 (hilo 316) · 7 = mallas a tierra (EP-W8, E-W13, EIT-W4) · 8 = 0 V del R-R1 (conductor de EIT-W4, unido a E-X62:2, hilo 205; deducido de las referencias cruzadas del folio, confirmar en el dibujo). En 504/508 no existen las bornas 5 y 8: E-X62:1-2 alimentan el encoder por IT-X62:1-2. El potenciómetro de CABINA no pasa por E-X62: va por E-X65 al convertidor E-R10.";
-  if(/^POTENCIÓMETRO DE GIRO DE ROTONDA/.test(x))return "POTENCIÓMETRO DE GIRO DE ROTONDA R-R1 (AIN04 · RCS PLANOS, todas las posiciones salvo 504, 507 y 508): transmisor de 4-20 mA (bornas x1, x2, x3) en la rotonda → cable IT-W16 (3×0,75 apantallado) → caja IT-X62 (bornas 1 +24 V · 2 0 V · 3 señal · 7 malla) → manguera EIT-W4 (6×0,75, malla a E-X62:7) → E-X62:5 (señal, hilo 316) y E-X62:8 (0 V) → E-A4 borna 1.4 (AI04) / 2.4 (-I4). El +24 V le llega de E-X62:1 a IT-X62:1. Comprobar 24 V entre IT-X62:1-2, 4-20 mA en E-X62:5 variando al girar la rotonda y el acoplamiento del potenciómetro al eje de giro. No confundir con los inductivos de giro CO-B1 / CO-B2 (E-A0 mód. 4 LED 3-4) ni con el FC de rotonda CO-S1 (seguridad, E-A8 mód. 4 LED 1).";
+  if(/^QUÉ HAY/.test(x))return "QUÉ HAY (folio 62 · plano base ESQUEMA GENERAL rev. J, todas las posiciones salvo 504, 507 y 508 · E-A4 Phoenix IB IL AI 4/I-PAC, 4-20 mA): AIN01 (1.1) medidor de ALTURA = ultrasonido C-B14 · AIN02 (1.2) medida de EXTENSIÓN = láser ET-B9 · AIN03 (1.3) medidor de CABINA = potenciómetro de giro C-R10 a través del convertidor E-R10 WAS5 PRO RTD · AIN04 (1.4) potenciómetro de giro de ROTONDA R-R1. Retornos -I1…-I4 en 2.1…2.4. En 504/508 (plano PBB 504) AIN04 es RESERVA y la rotonda va por el encoder R-R10 en red; en 507 confirmar con su plano.";
+  if(/^BORNERO E-X62/.test(x))return "BORNERO E-X62 (armario E, ESQUEMA GENERAL rev. J folio 62): 1 = +24 V común (hilo 189 desde E-X68:1; alimenta C-B14 por EP-W8, ET-B9 por E-W13 y el R-R1 por EIT-W4 hasta IT-X62:1) · 2 = 0 V común (hilo 205 desde E-X68:2; retornos -I1, -I2, -I3 y E-R10:9) · 3 = señal ALTURA → AI01 (hilo 341) · 4 = señal EXTENSIÓN → AI02 (hilo 312) · 5 = señal ROTONDA R-R1 → AI04 (hilo 316) · 7 = mallas a tierra (EP-W8, E-W13, EIT-W4) · 8 = 0 V del R-R1 (conductor de EIT-W4, unido a E-X62:2, hilo 205; deducido de las referencias cruzadas del folio, confirmar en el dibujo). En 504/508 no existen las bornas 5 y 8: E-X62:1-2 alimentan el encoder por IT-X62:1-2. El potenciómetro de CABINA no pasa por E-X62: va por E-X65 al convertidor E-R10.";
+  if(/^POTENCIÓMETRO DE GIRO DE ROTONDA/.test(x))return "POTENCIÓMETRO DE GIRO DE ROTONDA R-R1 (AIN04 · ESQUEMA GENERAL rev. J, todas las posiciones salvo 504, 507 y 508): transmisor de 4-20 mA (bornas x1, x2, x3) en la rotonda → cable IT-W16 (3×0,75 apantallado) → caja IT-X62 (bornas 1 +24 V · 2 0 V · 3 señal · 7 malla) → manguera EIT-W4 (6×0,75, malla a E-X62:7) → E-X62:5 (señal, hilo 316) y E-X62:8 (0 V) → E-A4 borna 1.4 (AI04) / 2.4 (-I4). El +24 V le llega de E-X62:1 a IT-X62:1. Comprobar 24 V entre IT-X62:1-2, 4-20 mA en E-X62:5 variando al girar la rotonda y el acoplamiento del potenciómetro al eje de giro. No confundir con los inductivos de giro CO-B1 / CO-B2 (E-A0 mód. 4 LED 3-4) ni con el FC de rotonda CO-S1 (seguridad, E-A8 mód. 4 LED 1).";
   if(/^GIRO DE ROTONDA EN 504\/508/.test(x))return x.replace("GIRO DE ROTONDA EN 504/508 (folio 97)","GIRO DE ROTONDA EN 504/508 (plano PBB 504, folio 97; 507 pendiente de su plano)");
-  if(/^PUENTE PROVISIONAL/.test(x))return x.replace("ROTONDA (no 504/508)","ROTONDA (solo posiciones con RCS PLANOS, no 504/507/508)");
+  if(/^PUENTE PROVISIONAL/.test(x))return x.replace("ROTONDA (no 504/508)","ROTONDA (solo posiciones con ESQUEMA GENERAL rev. J, no 504/507/508)");
   return x});
- S.r="RCS PLANOS folio 62 (E-A4, E-X62, E-X65, E-R10, IT-X62) · 40 (24 VDC E-X68) · 49 (Magelis) · PBB 504 folios 62 y 97 (504/508)"})();
+ S.r="ESQUEMA GENERAL rev. J folio 62 (E-A4, E-X62, E-X65, E-R10, IT-X62) · 40 (24 VDC E-X68) · 49 (Magelis) · PBB 504 folios 62 y 97 (504/508)"})();
 (function(){const R=RUTAS["E-A4"];if(!R)return;const S4=R.s.find(s=>+s.l==4);if(!S4)return;
- S4.t="AIN04 · Potenciómetro de giro de rotonda (R-R1) · RCS PLANOS (reserva en 504/508)";
- S4.r="Canal 4 · borna 1.4 (AI04, hilo 316 desde E-X62:5) / 2.4 (-I4). RCS PLANOS: R-R1 con 0 V por E-X62:8 (unido a E-X62:2) y +24 V desde E-X62:1 a IT-X62:1. En 504/508 está libre (encoder R-R10, folio 97); 507 según su plano.";
+ S4.t="AIN04 · Potenciómetro de giro de rotonda (R-R1) · ESQUEMA GENERAL rev. J (reserva en 504/508)";
+ S4.r="Canal 4 · borna 1.4 (AI04, hilo 316 desde E-X62:5) / 2.4 (-I4). ESQUEMA GENERAL rev. J: R-R1 con 0 V por E-X62:8 (unido a E-X62:2) y +24 V desde E-X62:1 a IT-X62:1. En 504/508 está libre (encoder R-R10, folio 97); 507 según su plano.";
  S4.p=[["+R-R1 (bornas x1, x2, x3, salida 4-20 mA) · cable IT-W16 (3×0,75 apantallado)","24 V entre alimentación y 0 V · 4-20 mA variando al girar la rotonda","Sin señal → potenciómetro, alimentación o acoplamiento al eje.","IT"],
   ["+IT-X62:1 (+24 V) · :2 (0 V) · :3 (señal) · :7 (malla)","24 V entre 1-2 · 4-20 mA por 3","Diferencia con el R-R1 → cable IT-W16 o bornas de IT-X62.","IT"],
   ["+E-X62:5 (señal) y +E-X62:8 (0 V, unido a E-X62:2) · manguera EIT-W4 (6×0,75, malla a E-X62:7)","4-20 mA en E-X62:5","Diferencia con IT-X62:3 → manguera EIT-W4 o bornas.","E"],
   ["E-A4 borna 1.4 (AI04) · hilo 316","4-20 mA en serie","Corriente correcta y la Magelis no la muestra → canal 4 de E-A4.","E"]].map(x=>({p:x[0],e:x[1],x:x[2],f:62,u:[x[3]],cab:[],nodo:x[0]}))})();
-/* el puente de rotonda (E-X62:1→5) solo en posiciones con RCS PLANOS */
+/* el puente de rotonda (E-X62:1→5) solo en posiciones con ESQUEMA GENERAL rev. J */
 (function(){const o=puAnalog;puAnalog=function(i){const P=o(i);if(!i)return P;return POS_PROPIO.includes(String(i.pos))?P.filter(p=>p.an!=4):P}})();
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||!i||!POS_PROPIO.includes(String(i.pos)))return r;
  if(r.rel.some(x=>x.mod=="E-A4"&&+String(x.S.l)==4)){r.rel=r.rel.filter(x=>!(x.mod=="E-A4"&&+String(x.S.l)==4));r.mods=[...new Set(r.rel.map(x=>x.mod))]}return r}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v98"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v99"}})();
+</script>
+<script>
+/* ===== v99: esquema general rev. J (T87911031210ES_BARAJAS_T4T4S_Rev_J_ESQUEMA, antes «RCS PLANOS») =====
+ En Planos (administrador) avisa si falta subir la rev. J y, si siguen las dos versiones, ofrece borrar la anterior. */
+(function(){const o=vPlans;const esJ=n=>/T87911031210|T4T4S/i.test(n),esOld=n=>/RCS.?PLANOS/i.test(n)&&!esJ(n);
+ vPlans=async function(){const r=await o.apply(this,arguments);try{if(view!="plans"||!admin)return r;const l=await allPdf();const J=l.find(x=>esJ(x.name)),V=l.filter(x=>esOld(x.name));
+  let h="";if(!J)h=`<div class="card" style="border-left:4px solid var(--ac)"><b>Esquema general rev. J pendiente</b><div class="mu" style="margin-top:4px">Sube el PDF «T87911031210ES_BARAJAS_T4T4S_Rev_J_ESQUEMA.pdf». Sustituye a «RCS PLANOS» en todas las posiciones salvo 504, 507 y 508.</div></div>`;
+  else if(V.length)h=`<div class="card" style="border-left:4px solid var(--ac)"><b>Hay dos versiones del esquema general</b><div class="mu" style="margin:4px 0 8px">La app ya usa la rev. J. Borra la versión anterior para no confundirlas.</div><button class="pri" style="width:auto;margin:0;padding:8px 14px" onclick="planBorraViejo()">Borrar «${esc(V.map(x=>x.name).join("», «"))}»</button></div>`;
+  if(h){const pl=document.getElementById("pl");if(pl)pl.insertAdjacentHTML("beforebegin",h)}}catch(e){}return r};
+ window.planBorraViejo=async function(){const l=await allPdf();const V=l.filter(x=>esOld(x.name));if(!V.length)return;
+  if(!confirm("¿Borrar el esquema anterior ("+V.map(x=>x.name).join(", ")+")? La app ya usa la rev. J."))return;
+  const r=await sb.storage.from("planos").remove(V.map(x=>x.id));if(r.error||!r.data||!r.data.length){msg("Sin permiso para eliminar");return}
+  try{if(typeof gDocs!="undefined")gDocs=null}catch(e){}msg("Esquema anterior borrado");vPlans()}})();
 </script>
 <script src="docs-claude.js?v=7"></script>
 </body></html>

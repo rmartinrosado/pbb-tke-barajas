@@ -1,4 +1,4 @@
-/* ===== v79 (dibujo v83 según fotos reales): Simulación animada del brazo autonivelador (RCS PLANOS folio 86) =====
+/* ===== v79 (dibujo v83 según fotos reales): Simulación animada del brazo autonivelador (ESQUEMA GENERAL rev. J folio 86) =====
  Dibujo del brazo que sigue a la puerta del avión y LED de P-A5 (B8…B13) que cambian según la tabla del folio 86.
  LED encendido = punto gris de la tabla = entrada de P-A5 encendida (sensor NC sin target delante). */
 (function(){

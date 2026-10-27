@@ -2,9 +2,9 @@
  Va justo después de «Inspección cable a cable» (o en su lugar en los tipos que no la tienen).
  Recoge, ordenadas por tipo de aviso (PAS, AAA, HZ, AAP) y por sistema, las actuaciones y comprobaciones
  de todos los sistemas electromecánicos que aparecen en los planos del proyecto:
-  - PAS: RCS PLANOS (T87911031210, T4/T4S) · PBB 504 (T87911031260, stands 504 y 508) · PLC RCS (LED en reposo)
+  - PAS: ESQUEMA GENERAL rev. J (T87911031210, T4/T4S; antes ESQUEMA GENERAL rev. J) · PBB 504 (T87911031260, stands 504 y 508) · PLC RCS (LED en reposo)
   - AAA: AAA 504 / rdx_1520-4ug_barajas (PCA RDX 1520-4UG, «PCA PRO CONTROL» hojas 1-30)
-  - HZ:  PDS 400 + OPERATIVA CONECTOR HZ PDS400 + interfaz con la PBB (RCS PLANOS folios 11, 59, 85)
+  - HZ:  PDS 400 + OPERATIVA CONECTOR HZ PDS400 + interfaz con la PBB (ESQUEMA GENERAL rev. J folios 11, 59, 85)
  «f» = folio/hoja del plano del tipo (botón de plano). Líneas con «solo» se muestran únicamente en esas posiciones;
  con «no», en todas menos esas. ● LED encendido · ○ apagado (estado de reposo, PLC RCS). */
 (function(){
@@ -114,8 +114,9 @@ PAS:[
   "Inductivo puerta de servicio SS-B15 → E-A10 mód. 2 LED 2 ●.",
   "No se puentean bordes, zapata, bumpers ni la barrera de rotonda."]},
  {s:"Antiatrapamiento entre túneles",f:[41,69],c:[
-  {t:"Túnel A-B: finales mecánicos IT-S3' / IT-S3'' → relés E-K247 / E-K248 (contactos 11-14 en serie) → E-A9 mód. 3 LED 1 ●.",no:P3},
-  {t:"Túnel B-C (PBB de 3 túneles): MT-S3' / MT-S3'' → relés E-K247A / E-K248A → E-A9 mód. 1 LED 2 ●.",no:P3},
+  {t:"Rev. J: dos finales mecánicos por lado (superior e inferior) en serie, sin relés, alimentados con 613. Túnel interior izquierdo IT-S3''(SUP/INF) → hilo 743 → E-A9 mód. 3 LED 1 ● · derecho IT-S3'(SUP/INF) → hilo 744 → E-A9 mód. 3 LED 2 ●.",no:P3},
+  {t:"Túnel medio (PBB de 3 túneles): izquierdo MT-S3''(SUP/INF) → hilo 745 → E-A9 mód. 1 LED 2 ● · derecho MT-S3'(SUP/INF) → hilo 746 → E-A9 mód. 4 LED 2 ●.",no:P3},
+  {t:"Puente provisional solo del lado activado: 613 con el retorno de ese lado (743 / 744 / 745 / 746) o E-X68:6 con la borna IN en E-A9. El otro lado sigue protegido.",no:P3},
   {t:"Barreras ópticas SICK L41 (emisor L41S / receptor L41E): túnel interior IT-B1 / IT-B2 → E-A9 mód. 3 LED 1 (izq.) y LED 2 (dcha.).",solo:P3,f:98},
   {t:"Túnel medio MT-B1 / MT-B2 → E-A9 mód. 1 LED 2 (izq.) y mód. 4 LED 2 (dcha.). Limpiar ópticas y realinear.",solo:P3,f:99},
   "Liberar primero el elemento activado; puente provisional solo según la guía «Antiatrapamiento» y con autorización."]},
@@ -201,7 +202,7 @@ AAA:[
   "Contacto de bloqueo de pasarela: clemas 136 / 137 → en la PBB, E-A2 mód. 2 LED 4 (bloqueo máquina A/A).",
   "Manguera en cesta: clemas 128 / 129 (cesta 1) y 142 / 143 (cesta 2).",
   "Señales al CBTH: alarma 131, activado 132, en servicio 133, mantenimiento 134.",
-  "Carro de A/A: final de carrera E-S100 en la PBB (RCS PLANOS folio 12) → E-A2 mód. 3 LED 1. Cerrar la puerta del carro y ajustar el FC."]}
+  "Carro de A/A: final de carrera E-S100 en la PBB (ESQUEMA GENERAL rev. J folio 12) → E-A2 mód. 3 LED 1. Cerrar la puerta del carro y ajustar el FC."]}
 ],
 HZ:[
  {s:"Conector PDS 400",f:[1],c:[
