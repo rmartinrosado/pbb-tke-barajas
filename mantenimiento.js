@@ -251,7 +251,9 @@ function colsTerm(l){const ORD=["T4","T4S","T123"],g={};l.forEach(x=>{const t=te
  const ts=Object.keys(g).sort((a,b)=>(ORD.indexOf(a)+1||9)-(ORD.indexOf(b)+1||9));
  const num=v=>String(v.pos).replace(/^T/i,"");
  return `<div class="mcols" style="grid-template-columns:repeat(${ts.length},minmax(0,1fr))">${ts.map(t=>`<div class="mcol"><div class="mcolt">${esc(t)}</div>${g[t].sort((a,b)=>num(a).localeCompare(num(b),undefined,{numeric:true})||a.tipo.localeCompare(b.tipo)).map(x=>chip(x)).join("")}</div>`).join("")}</div>`}
-function dashMant(){const pinta=()=>{if(view!="dash")return;const old=document.getElementById("dmant");const l=delDia(hoy());
+/* v80: la caja «Mantenimiento preventivo hoy» se oculta en Inicio (se consulta en la pestaña Mant.) */
+function dashMant(){const o=document.getElementById("dmant");if(o)o.remove()}
+function dashMantCaja(){const pinta=()=>{if(view!="dash")return;const old=document.getElementById("dmant");const l=delDia(hoy());
  const html=l.length?`<div class="mhoyt">🔧 Mantenimiento preventivo hoy <span class="mhoyn">${l.filter(x=>x.estado=="pendiente").length} pendiente(s) ›</span></div>${colsTerm(l)}`
   :`<div class="mhoyt" style="color:var(--mu)">🔧 Sin mantenimiento preventivo hoy</div>`;
  if(old){old.innerHTML=html;return}const d=document.createElement("div");d.id="dmant";d.className="card mhoy";d.style.cursor="pointer";d.onclick=()=>go("mant");d.innerHTML=html;
