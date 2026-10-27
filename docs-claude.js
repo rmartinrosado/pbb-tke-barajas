@@ -1,4 +1,4 @@
-/* ===== Docs Claude (v93) =====
+/* ===== Casos (antes «Docs», v94) =====
  Carpeta de registro y consulta de los documentos generados con Claude Docs (resoluciones de averías, procedimientos…).
  - Pestaña «Docs» en la barra inferior, solo en modo Técnico y Administrador.
  - Cada documento guarda: título, enlace al Claude Doc, PDF exportado (opcional), PBB, tipo, nº de orden CGA, OT asociada, carpeta y notas.
@@ -30,9 +30,9 @@ function fila(d){const mio=admin||(user&&d.creado_por==user.id);
  <div class="dcbot">${d.url?`<button class="pri" onclick="docsAbre('${d.id}')">Abrir doc</button>`:""}${d.pdf_path?`<button class="sec" onclick="docsPdf('${d.id}')">PDF</button>`:""}${otOk?`<button class="sec" onclick="docsOT('${d.id}')">Ver OT</button>`:""}
  <span style="margin-left:auto;display:flex;gap:6px">${mio?`<button class="sec dcic" aria-label="Editar" onclick="docsForm('${d.id}')">✎</button>`:""}${admin?`<button class="sec dcic" aria-label="Borrar" onclick="docsBorra('${d.id}')">✕</button>`:""}</span></div></div>`}
 function vDocs(){const app=document.getElementById("app");if(!app)return;
- if(!puede()){app.innerHTML=`<div class="card"><p class="mu">La carpeta de documentos solo está disponible en modo Técnico o Administrador.</p></div>`;return}
+ if(!puede()){app.innerHTML=`<div class="card"><p class="mu">La carpeta Casos solo está disponible en modo Técnico o Administrador.</p></div>`;return}
  const l=filtrados();const g=[];l.forEach(d=>{const m=fMes(d.created_at);let e=g.find(z=>z.m==m);if(!e)g.push(e={m,l:[]});e.l.push(d)});
- app.innerHTML=`<div class="card"><div class="row" style="align-items:center"><h3 style="margin:0">📁 Docs Claude</h3><button class="pri" style="width:auto;margin:0;padding:9px 14px" onclick="docsForm()">+ Guardar doc</button></div>
+ app.innerHTML=`<div class="card"><div class="row" style="align-items:center"><h3 style="margin:0">📁 Casos</h3><button class="pri" style="width:auto;margin:0;padding:9px 14px" onclick="docsForm()">+ Guardar doc</button></div>
  <p class="mu" style="margin:6px 0 10px">Registro de los documentos generados con Claude Docs para su consulta.</p>
  <div class="dcbus"><span>🔍</span><input id="dcq" type="search" autocomplete="off" placeholder="PBB, nº de orden, título…" value="${esc(dTxt)}" oninput="docsQ(this.value)"></div>
  <div class="dccarps">${["Todas",...CARPETAS].map(c=>`<button class="${dCarp==c?"on":""}" onclick="docsCarp('${c}')">${c}${c=="Todas"?"":` <i>${DOCS.filter(d=>d.carpeta==c).length}</i>`}</button>`).join("")}</div></div>
@@ -114,7 +114,7 @@ window.docsGuarda=async()=>{const b=$("#dc_g");const t=$("#dc_t").value.trim(),u
  let otMsg="";
  if($("#dr_ot").checked&&otId&&typeof inc!="undefined"){const i=inc.find(x=>String(x.id)==String(otId));
   if(i){Object.assign(i,{pos:isNaN(+reg.pos)?reg.pos:(typeof i.pos=="number"?+reg.pos:reg.pos),tipo:reg.tipo,orden:reg.orden,rep:reg.rep,fecha:reg.fecha||i.fecha,desc:reg.desc,hIni:reg.hIni,hLle:reg.hLle,hCie:reg.hCie,act:reg.act,obs:reg.obs});sv("pbb_inc",inc);otMsg=" y OT actualizada"}}
- closeSheet();await docsCarga(true);msg((prev?"Documento actualizado":"Documento guardado en Docs")+otMsg+" ✔");if(view=="docs")vDocs();else go("docs")};
+ closeSheet();await docsCarga(true);msg((prev?"Documento actualizado":"Documento guardado en Casos")+otMsg+" ✔");if(view=="docs")vDocs();else go("docs")};
 window.docsBorra=async id=>{const d=DOCS.find(x=>x.id==id);if(!d||!admin)return;if(!confirm(`¿Borrar «${d.titulo}» de la carpeta? El Claude Doc no se borra.`))return;
  const r=await sb.from("docs_claude").delete().eq("id",id).select();
  if(r.error||!r.data||!r.data.length){msg("No se pudo borrar (solo el administrador)");return}
@@ -126,7 +126,7 @@ window.docsBorra=async id=>{const d=DOCS.find(x=>x.id==id);if(!d||!admin)return;
  const r=o.apply(this,arguments);if(esV){view="docs";vDocs()}
  const nav=document.getElementById("nav");
  if(nav&&puede()&&!nav.querySelector("[data-docs]")){const b=document.createElement("button");b.dataset.docs="1";b.className=view=="docs"?"on":"";
-  b.innerHTML=`<span>${IC_DOCS}</span>Docs`;b.onclick=()=>go("docs");const ref=[...nav.children].find(x=>/Guía/.test(x.textContent));nav.insertBefore(b,ref||null)}
+  b.innerHTML=`<span>${IC_DOCS}</span>Casos`;b.onclick=()=>go("docs");const ref=[...nav.children].find(x=>/Guía/.test(x.textContent));nav.insertBefore(b,ref||null)}
  if(esV&&nav)[...nav.children].forEach(x=>{if(!x.dataset.docs)x.classList.remove("on")});
  return r}})();
 

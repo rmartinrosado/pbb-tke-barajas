@@ -3583,7 +3583,7 @@ const POS_PROPIO=["504","507","508"];
 (function(){const o=puAnalog;puAnalog=function(i){const P=o(i);if(!i)return P;return POS_PROPIO.includes(String(i.pos))?P.filter(p=>p.an!=4):P}})();
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||!i||!POS_PROPIO.includes(String(i.pos)))return r;
  if(r.rel.some(x=>x.mod=="E-A4"&&+String(x.S.l)==4)){r.rel=r.rel.filter(x=>!(x.mod=="E-A4"&&+String(x.S.l)==4));r.mods=[...new Set(r.rel.map(x=>x.mod))]}return r}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v93"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v94"}})();
 </script>
-<script src="docs-claude.js?v=2"></script>
+<script src="docs-claude.js?v=3"></script>
 </body></html>
