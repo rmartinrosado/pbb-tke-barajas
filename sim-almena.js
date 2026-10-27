@@ -25,6 +25,7 @@ function init(el){
  <svg viewBox="0 0 340 462" role="img" aria-label="Planta de la almena, tren de ruedas girando y LED de los módulos del PLC"></svg>
  <div class="gsim-st"></div>
  <div class="gsim-bt"><button data-a="play">⏸ Pausa</button><button data-m="-1">◀ Izquierda</button><button data-m="0">0°</button><button data-m="1">Derecha ▶</button></div>
+ <label class="gsim-vel"><span>🐢</span><input type="range" min="1" max="40" step="1" value="${V}" aria-label="Velocidad de la simulación"><span>🐇</span><b>${V} °/s</b></label>
  <div class="mu" style="font-size:11px;margin-top:4px">Inductivo tapado por la almena = LED encendido. Contaje: cada flanco de H-B1 = 5°; H-B2 está desfasado medio diente para saber el sentido. Límite: cada final lee su pista de la almena; H-B4 se apaga al salir del final de su pista girando a derecha y H-B3 girando a izquierda y el PLC corta la orden de giro. Los ±${LIM}° son de ejemplo: el tope real lo da la almena de cada PBB.</div>`;
  const svg=el.querySelector("svg"),row=el.querySelector(".gsim-row"),st=el.querySelector(".gsim-st");
  const T=(x,y,txt,a,p)=>{const t=H("text",Object.assign({x,y,"font-size":7.5,fill:"var(--mu)"},a||{}));t.textContent=txt;(p||svg).append(t);return t};
@@ -127,17 +128,20 @@ function init(el){
   // el PLC solo da orden si el límite de ese lado está tapado
   const s={B3:tapa("B3"),B4:tapa("B4")};
   if(d>0&&!s.B4||d<0&&!s.B3){dirVis=0;return false}
-  dirVis=d;g+=d*V*dt;tr+=d*V*dt*0.6;return true}
+  dirVis=d;g+=d*vel*dt;tr+=d*vel*dt*0.6;return true}
  function paso(t){
   if(!el.isConnected)return;
   const dt=Math.min(.05,(t-last)/1000);last=t;
   if(pausa){dirVis=0;pinta();requestAnimationFrame(paso);return}
   if(modo=="ciclo"){const F=FASES[fase];
    if(F.p){dirVis=0;espera+=dt;if(espera>1.2){espera=0;fase=(fase+1)%FASES.length}}
-   else if(F.h===0){const sig=Math.sign(0-g);if(Math.abs(g)<=V*dt){g=0;dirVis=0;fase=(fase+1)%FASES.length}else mueve(sig,dt)}
+   else if(F.h===0){const sig=Math.sign(0-g);if(Math.abs(g)<=vel*dt){g=0;dirVis=0;fase=(fase+1)%FASES.length}else mueve(sig,dt)}
    else if(!mueve(F.d,dt)){fase=(fase+1)%FASES.length}}
-  else if(modo=="fijo"){if(fijo===0){if(Math.abs(g)<=V*dt){g=0;dirVis=0}else mueve(Math.sign(-g),dt)}else if(!mueve(fijo,dt))dirVis=0}
+  else if(modo=="fijo"){if(fijo===0){if(Math.abs(g)<=vel*dt){g=0;dirVis=0}else mueve(Math.sign(-g),dt)}else if(!mueve(fijo,dt))dirVis=0}
   pinta();requestAnimationFrame(paso)}
+ let vel=V;const sl=el.querySelector(".gsim-vel input"),slT=el.querySelector(".gsim-vel b");
+ sl.addEventListener("input",()=>{vel=+sl.value;slT.textContent=vel+" °/s"});
+ ["click","pointerdown","touchstart"].forEach(ev=>sl.addEventListener(ev,e=>e.stopPropagation(),{passive:true}));
  el.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;e.preventDefault();e.stopPropagation();
   const pb=el.querySelector("[data-a]");
   if(b.dataset.a){if(modo=="fijo"){modo="ciclo";pausa=false}else pausa=!pausa;pb.textContent=pausa?"▶ Reanudar":"⏸ Pausa";return}
@@ -145,6 +149,7 @@ function init(el){
   el.querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("on",x===b))});
  pinta();requestAnimationFrame(paso);
 }
+const css=document.createElement("style");css.textContent=".gsim-vel{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px}.gsim-vel input{flex:1;accent-color:var(--ac)}.gsim-vel b{min-width:44px;text-align:right;color:var(--ac)}";document.head.appendChild(css);
 const scan=()=>document.querySelectorAll('.gsim[data-sim="almena"]:not([data-ok])').forEach(init);
 new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});scan();
 })();
