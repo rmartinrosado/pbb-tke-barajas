@@ -3338,4 +3338,41 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=1"></script><script src="sos.js?v=8"></script><script src="iconos.js?v=2"></script><script src="sim-brazo.js?v=1"></script></body></html>
+</script><script src="sistemas.js?v=1"></script><script src="sos.js?v=8"></script><script src="iconos.js?v=2"></script><script src="sim-brazo.js?v=1"></script><script>
+/* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
+function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
+ msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
+ t.addEventListener("input",function q(){if(t.value.trim()){t.style.borderColor="";t.style.boxShadow="";t.removeEventListener("input",q)}});return true}
+(function(){const o=guardar;guardar=function(){if(descVacia("#f_desc"))return;return o.apply(this,arguments)}})();
+(function(){const o=guardaEdit;guardaEdit=function(){if(descVacia("#e_d"))return;return o.apply(this,arguments)}})();
+(function(){const o=vNew;vNew=function(){const r=o.apply(this,arguments);const t=$("#f_desc"),l=t&&t.previousElementSibling;
+ if(l&&l.tagName=="LABEL"&&!l.dataset.ob){l.dataset.ob=1;l.insertAdjacentHTML("beforeend",' <span style="color:#d33">*</span>')}if(t)t.placeholder="Obligatorio: descripción del aviso de CGA";return r}})();
+(function(){const o=resTec;resTec=function(sel){const r=o.apply(this,arguments);const s=$("#t_sel"),d=$("#t_def");if(!s||!d)return r;
+ const i=inc.find(x=>x.id==s.value);if(!i)return r;
+ if(!d.value.trim()){if(i.desc){d.value=i.desc;d.dispatchEvent(new Event("input"))}else msg("Esta OT no tiene descripción del aviso: complétala en Editar")}return r}})();
+function abreClaude(pr){try{navigator.clipboard.writeText(pr).catch(()=>{})}catch(e){}
+ const U=CLAUDE_PROJ+"?q="+encodeURIComponent(pr);
+ const w=window.open(U,"_blank");if(!w){const a=document.createElement("a");a.href=U;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}
+ msg("Abriendo el proyecto PBB TKE en Claude… (si no arranca solo, el texto está copiado: pégalo)")}
+function guardaTec(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;
+ i.def=$("#t_def").value.trim()||i.desc||"";i.com=$("#t_com").value.trim();i.guiada=$("#t_gui").value.trim();if(tFoto)i.plc=tFoto;sv("pbb_inc",inc);
+ const pr=`Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden}.
+Descripción del aviso: ${i.desc||"(sin descripción)"}
+Definición de la avería: ${i.def||"(sin definir)"}
+Comentario: ${i.com||"(sin comentario)"}
+Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, guía de averías y procedimientos). Necesito diagnóstico y pasos a seguir de comprobaciones en campo. Empieza la respuesta con un apartado titulado "Primera actuación en campo" con pasos numerados, breves y claros.`;
+ try{localStorage.setItem("pbb_ret",JSON.stringify({t:turno,n:tecNombre,id:i.id,def:i.def,com:i.com,gui:i.guiada,ts:Date.now()}))}catch(e){}
+ render();abreClaude(pr)}
+function resClaude(id){const i=inc.find(x=>x.id==id);if(!i)return;
+ const a=($("#r_a")||{}).value||"",o=($("#r_o")||{}).value||"";i.act=a.trim();i.obs=o.trim();sv("pbb_inc",inc);
+ abreClaude(`Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden||"-"}.
+Descripción de la OT: ${i.desc||"(sin descripción)"}${i.def?`\nDefinición de la avería: ${i.def}`:""}${i.com?`\nComentario: ${i.com}`:""}
+Horas: inicio ${i.hIni||"-"} · llegada ${($("#r_l")||{}).value||i.hLle||"-"}
+Actuación realizada hasta ahora:
+${i.act||"(sin actuación)"}
+Observaciones:
+${i.obs||"(sin observaciones)"}
+Analiza la actuación y las observaciones con la documentación del proyecto PBB TKE (planos, guía de averías y procedimientos). Necesito el diagnóstico y los pasos para resolver la avería. Empieza con un apartado «Siguiente actuación en campo» con pasos numerados, breves y claros.`)}
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v82"}})();
+</script>
+</body></html>
