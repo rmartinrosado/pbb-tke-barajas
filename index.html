@@ -3376,4 +3376,52 @@ ${i.obs||"(sin observaciones)"}
 Analiza la actuación y las observaciones con la documentación del proyecto PBB TKE (planos, guía de averías y procedimientos). Necesito el diagnóstico y los pasos para resolver la avería. Empieza con un apartado «Siguiente actuación en campo» con pasos numerados, breves y claros.`)}
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v82"}})();
 </script>
-<script>(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v83"}})();</script></body></html>
+<script>(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v83"}})();</script><script>
+/* ===== v84: medidas analógicas (E-A4, RCS PLANOS folio 62): potenciómetro de giro de cabina C-R10 (vía convertidor E-R10),
+ láser de extensión ET-B9, ultrasonido de altura C-B14 y potenciómetro de giro de rotonda R-R1.
+ · Vocabulario y sinónimos: «medidor», «medida», «mide», «láser», «ultrasonido», «potenciómetro»… (antes «medidor» se corregía a «medio»
+   y la OT acababa en antiatrapamiento del túnel medio).
+ · Señales de E-A4 con su recorrido para el polímetro y una caja propia en la guía de campo (PAS). ===== */
+ANA_SIN.push(["potenciometro","potenciometros","medidor","medidores","medida","medidas","mide","miden","medir","laser","ultrasonido","ultrasonidos","analogica","analogicas","analogico","lectura","inclinometro"]);
+try{ANA_VOC=null;ANA_C={k:"",r:null}}catch(e){}
+(function(){
+ const S=(ch,t,r,p)=>({id:"E-A4-1."+ch,led:"1."+ch,k:1,l:ch,t,r,p:p.map(x=>({p:x[0],e:x[1],x:x[2],f:x[3]||62,u:[x[4]||"E"],cab:[],nodo:x[0]})),fol:"62"});
+ RUTAS["E-A4"]={n:"Entradas analógicas 4-20 mA (IB IL AI 4/I-PAC)",ref:"RCS PLANOS folio 62",fol:"62",s:[
+  S(1,"AIN01 · Medidor de altura (ultrasonido C-B14)","Canal 1 · borna 1.1 (AI01) / 2.1 (-I1). Señal 4-20 mA del ultrasonido de altura.",[
+   ["+C-B14 conector (BN +24 V · BU 0 V · BK salida)","24 V entre BN y BU · 4-20 mA en BK","Sin 24 V → alimentación; con 24 V y sin señal → sensor (suciedad, agua u obstáculo bajo el sensor).",62,"C"],
+   ["+P-X62:1-3-2 · cable P-W20 (fabricante)","mismas medidas que en el sensor","Diferencia con el sensor → cable P-W20 o bornas de P-X62.",62,"P"],
+   ["+E-X62:1-3-2 · manguera EP-W8 (3×0,75 apantallada, malla en E-X62:7)","24 V en E-X62:1-2 · señal en E-X62:3","Diferencia con P-X62 → manguera EP-W8 (pupitre ↔ armario).",62],
+   ["E-A4 borna 1.1 (AI01) · hilo 341","4-20 mA en serie, variando al subir y bajar","Corriente correcta y la Magelis no la muestra → canal 1 de E-A4.",62]]),
+  S(2,"AIN02 · Medida de extensión (láser ET-B9)","Canal 2 · borna 1.2 (AI02) / 2.2 (-I2). Señal 4-20 mA del láser de extensión / retracción.",[
+   ["+ET-B9 conector (BN +24 V · BU 0 V · BK salida)","24 V entre BN y BU · 4-20 mA en BK","Con 24 V y sin señal → óptica sucia, haz tapado o desalineado, blanco/reflector movido, sensor averiado.",62,"ET"],
+   ["+E-X62:4 · manguera E-W13 (3×0,75 apantallada)","4-20 mA de la salida del láser","Diferencia con el sensor → manguera E-W13 o bornas.",62],
+   ["E-A4 borna 1.2 (AI02) · hilo 312","4-20 mA en serie, variando al extender y recoger","Corriente correcta y la Magelis no la muestra → canal 2 de E-A4.",62]]),
+  S(3,"AIN03 · Medidor de cabina (potenciómetro de giro C-R10 → convertidor E-R10)","Canal 3 · borna 1.3 (AI03) / 2.3 (-I3). El potenciómetro de giro de cabina C-R10 entra al convertidor E-R10 (WAS5 PRO RTD), que da 4-20 mA.",[
+   ["+C-R10 bornas 1-2-3 (potenciómetro de giro de cabina)","Sin tensión: 1-3 valor fijo · 1-2 y 2-3 varían suave al girar","Abierto, saltos o valor fijo al girar → potenciómetro o su acoplamiento al eje de giro.",62,"C"],
+   ["+IT-X62 · cable IT-W16 (3×0,75 apantallado) → manguera EIT-W4 (6×0,75)","misma resistencia que en C-R10","Diferencia → IT-W16, EIT-W4 o bornas de IT-X62.",62,"IT"],
+   ["+E-X65:1-2-3 · cable E-W9 (3×0,75 apantallado) → E-R10 entradas 1-2-3","misma resistencia que en C-R10","Diferencia → E-W9 o bornas de E-X65.",62],
+   ["+E-R10 (WAS5 PRO RTD) alimentación 10-11","24 VDC (hilos 189 / 205)","Sin tensión → alimentación 24 V del armario E (E-X68).",62],
+   ["+E-R10:7 → E-A4 borna 1.3 (AI03) · hilo 315","4-20 mA en serie, variando al girar la cabina","Potenciómetro bien y sin 4-20 mA → convertidor E-R10 o sus switch internos (folio 62). Corriente bien y la Magelis no la muestra → canal 3 de E-A4.",62]]),
+  S(4,"AIN04 · Potenciómetro de giro de rotonda (R-R1)","Canal 4 · borna 1.4 (AI04) / 2.4 (-I4). En 504/508 es reserva: la rotonda va por el encoder R-R10 en red (folio 97).",[
+   ["+R-R1 (bornas x1, x2 y x3, salida 4-20 mA)","4-20 mA variando al girar la rotonda","Sin señal → potenciómetro, su alimentación o acoplamiento.",62,"IT"],
+   ["+IT-X62 · manguera EIT-W4 → +E-X62:5","4-20 mA","Diferencia → manguera EIT-W4 o bornas.",62],
+   ["E-A4 borna 1.4 (AI04) · hilo 316","4-20 mA en serie","Corriente correcta y la Magelis no la muestra → canal 4 de E-A4.",62]])]};
+ const SEC={t:"Medidas analógicas (E-A4) · potenciómetro de giro de cabina, láser de extensión, ultrasonido de altura",
+  a:"Las medidas analógicas no se puentean. Sin medida el PLC no sabe dónde está la pasarela: si bloquea movimientos, avisar al Responsable de Turno y mover solo en MANUAL, despacio y vigilando.",
+  g:[62,62,40,62,62,62,62,62,62,49],
+  p:["QUÉ HAY (RCS PLANOS folio 62 · módulo E-A4 IB IL AI 4/I-PAC, 4-20 mA): AIN01 medidor de ALTURA = ultrasonido C-B14 (borna 1.1) · AIN02 medida de EXTENSIÓN = láser ET-B9 (borna 1.2) · AIN03 medidor de CABINA = potenciómetro de giro C-R10 a través del convertidor E-R10 WAS5 PRO RTD (borna 1.3) · AIN04 potenciómetro de giro de ROTONDA R-R1 (borna 1.4; en 504/508 es reserva y la rotonda va por el encoder R-R10 en red).",
+   "PRIORIDAD 1 · Mirar en la Magelis qué medidas fallan. Si fallan VARIAS a la vez (p. ej. giro de cabina y extensión) buscar primero lo común: módulo E-A4 (LED de diagnóstico y de alimentación del bus) y los 24 VDC que alimentan los sensores (E-X68:1 + / E-X68:2 0 V → E-X62:1-2 y E-R10:10-11). Si falla una sola, ir a su canal.",
+   "PRIORIDAD 1 · Medir 24 VDC en E-X62:1-2 (ultrasonido C-B14 y láser ET-B9) y en E-R10:10-11 (convertidor del potenciómetro de cabina). Sin tensión → regleta E-X68 y protección de 24 V del armario E (LED de alarma de E-Q30.0).",
+   "PRIORIDAD 1 · Medir 4-20 mA en serie en el canal que falla (soltar el hilo de la entrada de E-A4 y polímetro en mA): 0 mA = lazo abierto o sensor sin alimentación · por debajo de 4 mA = sensor o cable · entre 4 y 20 mA variando con el movimiento pero la Magelis no lo muestra = canal o borna de E-A4.",
+   "POTENCIÓMETRO DE GIRO DE CABINA C-R10 (AIN03): C-R10 bornas 1-2-3 → cable IT-W16 (3×0,75 apantallado) → IT-X62 → manguera EIT-W4 (6×0,75) → E-X65:1-2-3 → cable E-W9 (3×0,75 apantallado) → convertidor E-R10 (entradas 1-2-3) → salida E-R10:7 → E-A4 borna 1.3. Sin tensión, medir resistencia: entre 1 y 3 valor fijo; entre 1-2 y 2-3 debe variar suave al girar la cabina, sin saltos ni circuito abierto. Revisar el acoplamiento del potenciómetro al eje de giro.",
+   "CONVERTIDOR E-R10 (WAS5 PRO RTD): 24 VDC en bornas 10-11 y LED de estado. Potenciómetro correcto y sin 4-20 mA en E-R10:7 → convertidor o su configuración (switch internos, tabla del folio 62). Sustituir por el mismo modelo copiando la posición de los switch.",
+   "LÁSER DE EXTENSIÓN ET-B9 (AIN02): BN +24 V · BU 0 V · BK salida → manguera E-W13 (3×0,75 apantallada) → E-X62:4 → E-A4 borna 1.2. Limpiar la óptica y el blanco/reflector, comprobar que el haz no está tapado ni desalineado (golpes, lluvia, suciedad), LED del sensor y conector.",
+   "ULTRASONIDO DE ALTURA C-B14 (AIN01): BN/BK/BU → cable P-W20 → P-X62:1-3-2 → manguera EP-W8 (3×0,75 apantallada, malla en E-X62:7) → E-X62:1-3-2 → E-A4 borna 1.1. Comprobar que nada se interpone bajo el sensor (suciedad, agua, objetos), fijación y conector.",
+   "Lectura que salta o con ruido: mallas de E-W13, EP-W8, IT-W16 / EIT-W4 / E-W9 conectadas a tierra en un solo extremo y bornas apretadas. No pasar cables de señal junto a los de potencia.",
+   "CIERRE: comprobar en la Magelis (CP-A1) que cada medida varía de forma continua en todo su recorrido (cabina izquierda ↔ derecha, extender ↔ recoger, subir ↔ bajar). Anotar en la Actuación los mA medidos antes y después."],
+  r:"RCS PLANOS pág. 40, 49, 62 · PBB 504 pág. 62 (AIN04 reserva) y 97 (encoder de rotonda)"};
+ const L=GUIA.tipos.PAS.s;if(!L.some(x=>/^Medidas anal/.test(x.t)))L.push(SEC);
+})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v84"}})();
+</script>
+</body></html>
