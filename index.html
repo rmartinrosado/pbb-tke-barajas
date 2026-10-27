@@ -3778,4 +3778,20 @@ body{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
  const o=card;card=function(i){const h=o(i);const c=i.estado!="abierta"?"otcer":i.hLle?"otlle":i.hIni?"otini":"";return c?h.replace('<div class="card','<div class="card '+c):h}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v116"}})();
 </script>
+<script>
+/* ===== v117: la llegada no se pierde por un refresco en curso; la tarjeta abierta muestra la hora de llegada ===== */
+(function(){let pend=0,gen=0;const oe=empuja;
+ empuja=async function(v){pend++;gen++;try{return await oe.apply(this,arguments)}finally{pend--;gen++}};
+ const oc=cargaInc;cargaInc=async function(re){
+  if(pend){setTimeout(()=>cargaInc(re).catch(()=>{}),600);return}
+  const g=gen,loc=Array.isArray(inc)?JSON.parse(JSON.stringify(inc)):null;
+  const r=await sb.from("incidencias").select("id,datos").order("updated_at",{ascending:false});
+  if(r.error){msg("Error al cargar: "+r.error.message);return}
+  if(g!==gen||pend){setTimeout(()=>cargaInc(re).catch(()=>{}),600);return} /* hubo un guardado mientras se cargaba: se descarta esta lectura */
+  inc=r.data.map(x=>({...x.datos,id:x.id}));remoto={};r.data.forEach(x=>remoto[x.id]=JSON.stringify(x.datos));
+  if(!re||view=="dash"||view=="track")render()};
+ const ol=llegada;llegada=function(id){const i=inc.find(x=>x.id==id);if(!i||i.hLle)return;ol(id)};
+ const o=card;card=function(i){let h=o(i);if(i.estado=="abierta"&&i.hLle)h=h.replace(/(<div class="mu">Inicio [^<]*?)(<\/div>)/,`$1 · <b style="color:#facc15">Llegada ${esc(i.hLle)}</b>$2`);return h}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v117"}})();
+</script>
 </body></html>
