@@ -3739,4 +3739,31 @@ body{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
  if(typeof mantCarga=="function"){const m=mantCarga;mantCarga=function(){const p=m.apply(this,arguments);try{Promise.resolve(p).then(()=>setTimeout(coloca,0)).catch(()=>{})}catch(e){}return p}}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v109"}})();
 </script>
+<script>
+/* ===== v110: tarjeta OT en Seguimiento. «Editar» pasa a icono de lápiz y va debajo de ABIERTA, con la papelera debajo
+ (columna a la derecha). SOS a la izquierda de la fila de botones, algo más grande. FOTO PLC queda solo con el icono de cámara. ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+.ot .obd::after{content:"";display:block;clear:both}
+.otcol{float:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin:2px 0 6px 10px}
+.otcol button{width:38px!important;height:38px!important;padding:0!important;margin:0!important;display:flex;align-items:center;justify-content:center}
+.otcol button svg{width:20px!important;height:20px!important}
+.otcol .gotdel{color:#ff6b6b!important;border-color:#ff6b6b!important}
+.ot .cacts{clear:both}.ot .cacts .cacr{margin-left:auto!important}
+.cacts .sosb.sosg{width:48px!important;height:48px!important}.cacts .sosb.sosg img{width:48px;height:48px}
+.cacts .gfb2.gcam{width:38px!important;height:38px!important;padding:0!important;justify-content:center;gap:0!important}
+.cacts .gfb2.gcam svg{width:20px!important;height:20px!important}`;document.head.appendChild(st);
+ const LAPIZ=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>`;
+ function ajusta(){if(view!="track")return;document.querySelectorAll("#app .card.ot[data-pl]:not([data-v110])").forEach(c=>{
+  const bd=c.querySelector(".obd"),ca=c.querySelector(".cacts");if(!bd||!ca)return;c.dataset.v110="1";
+  const ed=[...ca.querySelectorAll("button")].find(b=>/editar\(/.test(b.getAttribute("onclick")||""));
+  const del=ca.querySelector(".gotdel");
+  if(ed){ed.innerHTML=LAPIZ;ed.classList.add("gwr","gedit");ed.title="Editar OT";ed.setAttribute("aria-label","Editar OT")}
+  if(ed||del){const col=document.createElement("div");col.className="otcol";if(ed)col.appendChild(ed);if(del)col.appendChild(del);bd.prepend(col)}
+  const sos=ca.querySelector(".sosb");if(sos){sos.classList.add("sosg");ca.prepend(sos)}
+  ca.querySelectorAll(".sosmid,.cacl").forEach(s=>{if(!s.children.length)s.remove()});
+  const f=ca.querySelector(".gfb2");if(f){[...f.childNodes].forEach(n=>{if(n.nodeType==3)n.remove()});f.classList.add("gcam");f.title="Foto PLC";f.setAttribute("aria-label","Foto PLC")}})}
+ const o=render;render=function(){const r=o.apply(this,arguments);try{ajusta()}catch(e){}return r};
+ new MutationObserver(()=>{try{ajusta()}catch(e){}}).observe(document.body,{childList:true,subtree:true})})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v110"}})();
+</script>
 </body></html>
