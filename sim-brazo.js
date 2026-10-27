@@ -126,6 +126,6 @@ function init(el){
 const st=document.createElement("style");
 st.textContent=".gsim{margin:8px 0;padding:8px;border:1px solid var(--bd,#444);border-radius:10px;background:var(--card)}.gsim-h{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:13px;margin-bottom:4px}.gsim-row{color:var(--ac);font-weight:700}.gsim svg{display:block;width:100%;height:auto}.gsim-st{font-size:12.5px;margin:4px 0}.gsim-bt{display:flex;flex-wrap:wrap;gap:5px}.gsim-bt button{font:inherit;font-size:12px;padding:4px 9px;border-radius:8px;border:1px solid var(--pr);background:transparent;color:var(--tx);cursor:pointer}.gsim-bt button.on{background:var(--pr);color:#fff}";
 document.head.appendChild(st);
-const scan=()=>document.querySelectorAll(".gsim[data-sim]:not([data-ok])").forEach(init);
+const scan=()=>document.querySelectorAll('.gsim[data-sim="brazo"]:not([data-ok])').forEach(init);
 new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});scan();
 })();
