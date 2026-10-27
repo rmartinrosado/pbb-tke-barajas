@@ -61,7 +61,6 @@ function init(el){
   T(x,y+2.5,s.t.slice(-1),{"text-anchor":"middle","font-size":7,fill:"#fff","font-weight":700})}
  { const[x,y]=pol(66,-20);T(x-4,y-8,"H-B3 lím. izq",{"font-size":6.5,fill:"currentColor","text-anchor":"end"});}
  { const[x,y]=pol(90,20);T(x+4,y-8,"H-B4 lím. dcha",{"font-size":6.5,fill:"currentColor"});}
- T(CX,CY+76,"almena (gira con las ruedas)",{"text-anchor":"middle","font-size":6.5});
  // Indicador a la derecha
  T(304,40,"ÁNGULO",{"text-anchor":"middle","font-size":7.5});
  const tAng=T(304,64,"0°",{"text-anchor":"middle","font-size":22,fill:"var(--ac)","font-weight":700});
