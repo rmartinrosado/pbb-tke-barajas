@@ -3794,4 +3794,23 @@ body{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
  const o=card;card=function(i){let h=o(i);if(i.estado=="abierta"&&i.hLle)h=h.replace(/(<div class="mu">Inicio [^<]*?)(<\/div>)/,`$1 · <b style="color:#facc15">Llegada ${esc(i.hLle)}</b>$2`);return h}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v117"}})();
 </script>
+<script>
+/* ===== v118: la hora de cierre es obligatoria siempre (Resolución y Editar); nunca se rellena sola ===== */
+(function(){
+ const marca=(id)=>{const el=$(id);if(!el)return;const lb=el.closest(".hrow")?el.closest(".hrow").previousElementSibling:el.previousElementSibling;
+  if(lb&&lb.tagName=="LABEL"&&!lb.querySelector(".obl"))lb.insertAdjacentHTML("beforeend",' <span class="obl" style="color:#ff6b6b">* obligatoria</span>')};
+ const or=resolver;resolver=function(id){const r=or.apply(this,arguments);try{marca("#r_c")}catch(e){}return r};
+ const oe=editar;editar=function(id){const r=oe.apply(this,arguments);try{marca("#e_hc")}catch(e){}return r};
+ const oc=cerrar;cerrar=function(id){const c=$("#r_c");if(!c||hMin(c.value)==null){msg("Introduce la hora de cierre");if(c&&c.type!="hidden"){c.focus();c.style.outline="2px solid #d33"}return}return oc(id)};
+ const og=guardaEdit;guardaEdit=function(id){const e=$("#e_est");if(e&&e.value=="cerrada"){
+  const fi=$("#e_hi"),fl=$("#e_hl"),fc=$("#e_hc"),hi=hMin(fi&&fi.value),hl=hMin(fl&&fl.value),hc=hMin(fc&&fc.value);
+  const ped=(el,t)=>{msg(t);if(el){el.focus();el.style.outline="2px solid #d33"}};
+  if(hi==null)return ped(fi,"Introduce la hora de inicio");
+  if(hl==null)return ped(fl,"Introduce la hora de llegada");
+  if(hc==null)return ped(fc,"Introduce la hora de cierre");
+  if(!hTras(hi,hl))return ped(fl,`La hora de llegada (${fl.value}) no puede ser anterior a la de inicio (${fi.value})`);
+  if(!hTras(hl,hc))return ped(fc,`La hora de cierre (${fc.value}) no puede ser anterior a la de llegada (${fl.value})`)}
+  return og(id)}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v118"}})();
+</script>
 </body></html>
