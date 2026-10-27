@@ -245,23 +245,6 @@ if(SIS&&SIS.PAS){
   "Salida digital 1 «STOP» → P-A6 8.1 (paro) · salida digital 3 «LOW SPEED» → P-A6 7.1 (velocidad lenta). En la Magelis o en el LED: P-A6 módulo 4 LED 2 (paro) y LED 1 (lenta).",
   "La PBB se para o va lenta en la aproximación sin ala cerca: limpiar el cabezal láser, revisar su orientación y el conector del bus CAN; medir 24 V en el módulo.",
   "Sin láser instalado esas entradas son reserva y deben estar apagadas."]});
- /* CT y UPS por posición (listado de CT del T4 y T4S) */
- const CT=[
-  ["11",[372,374,376,378,380,382,384,386],"escaleras detrás del poste de la guía de la 373; abajo, el CT está unos 5 m a la derecha","Cuadro B, panel 4, diferencial S10"],
-  ["13",[364,366,368,370,388,390,392,394],"escaleras debajo del túnel fijo de la 366; abajo, unos 5 m a la derecha","Cuadro A, panel 5, diferencial S10"],
-  ["15",[352,354,356,358,360,362],"escaleras debajo del túnel fijo de la 356; abajo, unos 50 m a la derecha","Cuadro A, panel 1, diferencial S10"],
-  ["16",[342,344,346,348,350],"escaleras debajo del túnel fijo de la 346 (abajo, unos 5 m a la izquierda) o entre la 350 y la 352 (abajo, unos 10 m a la derecha)","Cuadro A, panel 1, diferencial S10"],
-  ["18",[300,302,304,336,338,340],"escaleras detrás del poste de la guía de la 338; abajo, unos 2 m a la izquierda","Cuadro B, panel 1, diferencial S10"],
-  ["20",[306,308,310,312,330,332,334],"escaleras debajo del túnel fijo de la 332; abajo, unos 2 m a la izquierda","Cuadro A, panel 1, diferencial S10"],
-  ["21",[568,570,572,574,576,578,580,582,584,586],"escaleras detrás del poste de la guía de la 572; abajo, unos 10 m a la izquierda","circuito 1: Cuadro A, 1ª puerta izquierda, automático GA 21-11 · circuito 2: Cuadro B, 2ª puerta izquierda, automático GB 21-10"],
-  ["23",[500,502,504,508,510,512,516,562,564,566],"escaleras detrás del poste de la guía de la 564; abajo, unos 50 m a la derecha","circuito 1: Cuadro A, 1ª puerta izquierda, automático GA 23-10 · circuito 2: Cuadro B, 1ª puerta izquierda, automático GB 23-11"],
-  ["24",[518,520,522,524,526,548,550,552,554,556,558,560],"escaleras a la izquierda del túnel fijo de la 556; abajo, unos 50 m a la izquierda","circuito 1: Cuadro A, 1ª puerta izquierda, automático GA 24-11 · circuito 2: Cuadro B, 1ª puerta izquierda, automático GB 24-8"],
-  ["26",[528,530,532,534,536,538,540,542,544,546],"escaleras detrás del poste de la guía de la 549; abajo, unos 20 m a la izquierda","circuito 1: Cuadro A, 1ª puerta izquierda, automático GA 26-11 · circuito 2: Cuadro B, 1ª puerta izquierda, automático GB 26-11"]];
- const todas=[].concat(...CT.map(x=>x[1].map(String)));
- SIS.PAS.push({s:"SAI de la PBB · centro de transformación (CT)",f:[9,29],c:[
-  "Sin 220 V de SAI en CBTH-X12 (1-2): la UPS de la posición está en su CT. Ir con autorización y comprobar el automático indicado antes de tocar la PBB.",
-  ...CT.map(([n,pos,acc,ups])=>({t:`CT ${n} (posiciones ${pos.join(", ")}): bajar por ${acc}. Automático de la UPS: ${ups}.`,solo:pos.map(String)})),
-  {t:"Esta posición no figura en el listado de CT del T4 / T4S: preguntar a CGA o al Responsable de Turno qué CT la alimenta.",no:todas}]});
 }
 
 /* ---------- 6. Pintado: plano y folio correctos, procedimientos 507 ocultos fuera de la 507 ---------- */
@@ -273,8 +256,37 @@ if(SIS&&SIS.PAS){
   const f=+(m[1]||m[2]);const s=b.querySelector("small");if(!s)return;const v=es?f507(f):Math.abs(f);if(String(v)!=s.textContent)s.textContent=v;
   if(es)b.setAttribute("aria-label","Ver plano 507 folio "+v)});
  document.querySelectorAll("#app details.gd .mu").forEach(e=>{if(/Planos: .*-\d/.test(e.textContent))e.textContent=e.textContent.replace(/(^|[\s,(])-(\d+)/g,"$1$2")});
- if(es){const c=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
-  if(c&&!c.querySelector(".g507"))c.insertAdjacentHTML("beforeend",`<div class="g507 mu" style="font-size:12px;margin-top:6px;border-left:3px solid var(--ac);padding-left:8px">PBB 507 (A380): plano propio T87911031230ES. Los botones de plano abren el folio equivalente del plano 507 (p. ej. E-A9 = folio 92, E-A4 = 85). Cambia respecto al esquema general: antiatrapamientos ópticos sin salida de test, bumper de ala (E-A9 7.1), outriggers, sensores AKS, medidas analógicas propias, contactores E-K101 / E-K102 y sin bloqueos A/A en E-A2. La inspección cable a cable sigue el esquema general: coteja hilos y bornas con el plano 507.</div>`)}
+ if(es&&gTipo=="PAS")caja507();
  }catch(e){console.warn("pbb507",e)}return r}})();
+/* ---------- 7. Todo lo propio de la 507 en un desplegable «PBB 507 (A380)» ----------
+ Dentro: qué cambia, equivalencia de folios, los procedimientos 507 (salvo el que sea «Actuación más eficaz», que se queda arriba)
+ y las comprobaciones por sistema propias de la 507. La guía de traslación con UPS queda aparte (sai.js). */
+const EQ507=[["E-A0 entradas / salidas",52,75],["E-A1 salidas",54,77],["E-A2 entradas",58,81],["E-A3 entradas",60,83],["E-A4 analógicas",62,85],["Módulo seguridades E-A5",63,86],
+ ["E-A6 salidas safety",64,87],["E-A7 salidas safety",66,89],["E-A8 entradas safety",68,91],["E-A9 entradas safety",69,92],["E-A10 entradas safety",70,93],["P-A1 / P-A2 salidas",73,96],
+ ["P-A3 / P-A4 entradas",81,104],["P-A5 entradas",85,108],["P-A6 entradas",87,110],["Alimentación variadores",31,44],["Frenos traslación",30,47],["Antiatrapamientos",41,64],["Encoder giro rotonda",97,61]];
+const ab507=new Set();
+function caja507(){const app=document.getElementById("app");if(!app)return;let d=app.querySelector('details.gd[data-k="P507"]');if(d)d.remove();
+ d=document.createElement("details");d.className="card gd g507c";d.dataset.k="P507";if(gAbierto.has("P507"))d.open=true;
+ d.innerHTML=`<summary><b>✈️ PBB 507 (A380) · plano propio</b> <span class="mu" style="font-weight:400">(qué cambia, folios, procedimientos y comprobaciones)</span></summary>
+ <div class="mu" style="font-size:12px;margin:6px 0">Plano T87911031230ES (rev. C, 07/10/2024, 122 folios; página del PDF = folio). Los botones de plano de toda la guía abren el folio equivalente del plano 507. La inspección cable a cable sigue el esquema general: coteja hilos y bornas con el plano 507.</div>
+ <details class="gelem s507" data-s="dif"><summary>Qué cambia respecto al esquema general</summary><ol class="gol">${[
+  "Antiatrapamientos: sensores ópticos NPN IT-B4 / IT-B5 / MT-B2 / MT-B3 con +24 V (hilo 218), SIN salida de test: el puente IN–UT no sirve (folio 64).",
+  "E-A9 7.1 = bumper de ala A380 C-B25 (en la rev. J es reserva) (folio 63).",
+  "Bordes de ruedas T-B51 / T-B61 por relé Gelbau E1-U8 (folio 62).",
+  "E-A2: sin bloqueos A/A; ahí van giro de rotonda, sensores de extensión, estado E-K26 y límites de cabina (folios 81-82).",
+  "E-A4: inclinómetro, potenciómetro de giro de cabina 4-20 mA, láser de elongación y anemómetro; P-A7 inclinómetro del suelo (folios 85 y 112).",
+  "Outriggers A380 (H-Y6 / H-Y7 / H-Y8) y sensores anticolisión AKS (folios 69-71, 103, 110-111).",
+  "Contactores de seguridad E-K0, E-K101 y E-K102; bomba con retorno por el variador ABB E1-U6 (folios 40, 50, 87-88).",
+  "SAI: UPS 230 V 6 kVA por CBTH-X2 → CO-Q16 → E-X80 → E-S1 (folios 9 y 54)."].map(x=>`<li>${esc(x)}</li>`).join("")}</ol></details>
+ <details class="gelem s507" data-s="fol"><summary>Equivalencia de folios (rev. J → 507)</summary><div style="font-size:12px">${EQ507.map(([n,j,f])=>`<div class="row" style="flex-wrap:nowrap;justify-content:space-between;margin:3px 0"><span>${esc(n)}</span><span class="mu">rev. J ${j} → <b>507 ${f}</b></span><button class="gpl" aria-label="Ver plano 507 folio ${f}" onclick="event.preventDefault();event.stopPropagation();gPlano('PAS',${-f})">${IC('plans')}<small>${f}</small></button></div>`).join("")}</div></details>
+ <div class="g507p"></div><div class="g507s"></div>`;
+ d.addEventListener("toggle",()=>{d.open?gAbierto.add("P507"):gAbierto.delete("P507")});
+ d.querySelectorAll("details.s507").forEach(x=>{if(ab507.has(x.dataset.s))x.open=true;x.addEventListener("toggle",()=>{x.open?ab507.add(x.dataset.s):ab507.delete(x.dataset.s)})});
+ const pp=d.querySelector(".g507p");PR_IX.forEach(si=>{const p=app.querySelector(`details.gd[data-k="PAS${si}"]`);if(p&&!p.classList.contains("gef")){p.classList.remove("card");p.classList.add("gelem");pp.appendChild(p)}});
+ const ss=d.querySelector(".g507s");const sis=[...app.querySelectorAll('details[data-k="SIS"] details.sisd')].filter(x=>/^PBB 507/.test((x.querySelector("summary b")||{}).textContent||""));
+ if(sis.length){ss.insertAdjacentHTML("beforeend",`<div class="anal" style="margin-top:8px">Comprobaciones por sistema · PBB 507</div>`);sis.forEach(x=>ss.appendChild(x))}
+ const anc=document.getElementById("anag")||app.querySelector("details.gd.gef")||document.getElementById("gsegl")||document.getElementById("gpte")||app.querySelector('details.gd[data-k="SEG"]');
+ if(anc)anc.insertAdjacentElement("afterend",d);else app.appendChild(d)}
+(function(){const st=document.createElement("style");st.textContent=`#app details.g507c{border:2px solid var(--ac)}#app details.g507c details.gelem{margin-top:8px;border:1px solid var(--bd);border-radius:10px;padding:6px 10px}#app details.g507c details.gelem>summary{cursor:pointer;font-weight:600}`;document.head.appendChild(st)})();
 if(typeof gPintaCot=="function"){const o=gPintaCot;gPintaCot=function(){const i=otActual();plc507(i&&String(i.pos)==P5);return o.apply(this,arguments)}}
 })();
