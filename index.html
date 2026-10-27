@@ -3424,4 +3424,39 @@ try{ANA_VOC=null;ANA_C={k:"",r:null}}catch(e){}
 })();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v84"}})();
 </script>
+<script>
+/* ===== v85: puente provisional de MEDIDA ANALÓGICA (E-A4, folio 62) =====
+ El canal averiado se desconecta y se le inyecta una corriente fija con una resistencia desde +24 V: el PLC deja de dar alarma
+ de medida y los canales buenos no se tocan. NO se une la señal de un sensor bueno a otra entrada: la corriente 4-20 mA se reparte
+ y falsea las dos medidas (o las deja por debajo de 4 mA y salen dos alarmas). La altura (AIN01) no se puentea. */
+const PU_AN={
+ 2:{re:/extensi|retracc|laser/,nom:"AIN02 · Medida de extensión (láser ET-B9)",hilo:"312",orig:"viene de E-X62:4 (manguera E-W13)"},
+ 3:{re:/cabina/,nom:"AIN03 · Medidor de cabina (potenciómetro de giro C-R10 → convertidor E-R10)",hilo:"315",orig:"viene de la salida E-R10:7 del convertidor"},
+ 4:{re:/rotonda/,nom:"AIN04 · Potenciómetro de giro de rotonda (R-R1)",hilo:"316",orig:"viene de E-X62:5 (manguera EIT-W4)"}};
+const PU_AN_MED=/medid|\bmide|miden|medir|potenciom|laser|ultrason|analog|no marca|lectura|inclinom/;
+function puAnalog(i){if(!i||i.estado!="abierta")return [];const txt=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
+ if(!PU_AN_MED.test(txt))return [];const pos=String(i.pos);const out=[];
+ [3,2,4].forEach(ch=>{const C=PU_AN[ch];if(!C.re.test(txt))return;if(ch==4&&["504","508"].includes(pos))return;
+  out.push({key:"E-A4|1|"+ch,id:"E-A4",k:1,l:ch,an:ch,nom:C.nom,f:62,b:null,suelta:false,
+   t:`Soltar el hilo ${C.hilo} de la borna 1.${ch} (AI0${ch}) de E-A4 —${C.orig}— y aislarlo. Poner una resistencia de 2,2 kΩ 1 W entre +24 V (E-X62:1, hilo 189) y la borna 1.${ch}: entran ≈11 mA fijos (media escala) y el PLC deja de dar alarma de medida. Para dejar el valor de la posición real: R = 24 V ÷ I (1,5 kΩ ≈ 16 mA · 4,7 kΩ ≈ 5 mA).`})});
+ return out}
+(function(){const o=puentesOT;puentesOT=function(i){const P=o(i);if(!i||(typeof otEsPAS=="function"&&!otEsPAS(i)))return P;
+ const A=puAnalog(i).filter(a=>!P.some(p=>p.key==a.key));return P.concat(A)}})();
+(function(){const o=puenteHTML;puenteHTML=function(i,P){let h=o(i,P);if(!P.some(p=>p.an))return h;
+ P.filter(p=>p.an).forEach(p=>{h=h.replace(`<b>E-A4 · módulo 1 · LED ${p.an}</b>`,`<b>E-A4 · canal AIN0${p.an} · borna 1.${p.an}</b>`)});
+ const ex=`<div class="pucond" style="border-top:1px solid #c62828;padding-top:6px"><b>Puente de medida analógica (4-20 mA):</b><ol>
+  <li>El canal queda con un valor FIJO: el PLC ya no conoce la posición real de ese eje. Elige la corriente que corresponda a la posición en la que está (p. ej. cabina centrada).</li>
+  <li>Solo en MANUAL, despacio y con vigilancia. Prohibido automático, retorno autónomo y aproximación automática.</li>
+  <li>Siguen activas las protecciones físicas: límites de cabina C-B1/C-B2 · FC extensión ET-S1 y detectores ET-B6/ET-B7 · FC inclinación IT-S2/IT-S3. No se tocan.</li>
+  <li>NO unir el hilo de señal del sensor averiado al del sensor bueno (ni dos entradas en paralelo): la corriente se reparte entre las dos entradas, la medida buena queda falseada (≈ la mitad) y por debajo de 4 mA saltan las dos alarmas.</li>
+  <li>La medida de ALTURA (AIN01, ultrasonido C-B14) no se puentea: es la que evita el golpe con la puerta del avión.</li>
+  <li>Si el PLC da alarma de medida congelada al mover, el puente no sirve: reparar antes de operar.</li>
+  <li>Etiqueta en E-A4 «PUENTE ANALÓGICO · OT ${esc(i.orden||"")}», anotarlo en la OT y retirarlo al reparar (volver a conectar el hilo y comprobar en la Magelis que la medida varía).</li></ol></div>`;
+ return h+ex}})();
+/* la caja «Medidas analógicas» de la guía también lleva el puente */
+(function(){const S=GUIA.tipos.PAS.s.find(x=>/^Medidas anal/.test(x.t));if(!S||S.p.some(x=>/^PUENTE PROVISIONAL/.test(x)))return;
+ S.p.splice(4,0,"PUENTE PROVISIONAL (para que el PLC no dé alarma de medida mientras se repara): soltar y aislar el hilo de señal del canal averiado en E-A4 y poner una resistencia de 2,2 kΩ 1 W entre +24 V (E-X62:1) y la borna del canal (1.2 extensión · 1.3 cabina · 1.4 rotonda): ≈11 mA fijos. NO unir el cable del sensor averiado al del bueno: la corriente se reparte y se falsean las dos medidas. La altura (1.1) no se puentea. Solo en MANUAL y con vigilancia.");
+ S.g.splice(4,0,62)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v85"}})();
+</script>
 </body></html>
