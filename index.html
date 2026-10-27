@@ -3546,4 +3546,32 @@ const AN_CH={1:/altura|ultrason/,2:/extensi|retracc|laser/,3:/cabina/,4:/rotonda
  r.rel=rel.slice(0,10);r.mods=[...new Set(r.rel.map(x=>x.mod))];return r}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v87"}})();
 </script>
+<script>
+/* ===== v88: cotejo del folio 62 con RCS PLANOS (plano base de todas las posiciones salvo 504, 507 y 508) =====
+ AIN01-AIN03 idénticos en RCS PLANOS y PBB 504 (mismas bornas E-X62 1/2/3/4/7, hilos 341/312/315/189/205, E-X65, E-R10 y switch).
+ Solo cambia AIN04: RCS PLANOS = R-R1 (IT-W16 → IT-X62:1-2-3, malla 7 → EIT-W4 → E-X62:5 señal, hilo 316 · E-X62:8 0 V del R-R1
+ unido a E-X62:2 · +24 V desde E-X62:1 a IT-X62:1). 504/508 = reserva y encoder R-R10. 507: plano propio pendiente. */
+const POS_PROPIO=["504","507","508"];
+(function(){const S=GUIA.tipos.PAS.s.find(x=>/^Medidas anal/.test(x.t));if(!S||S._v88)return;S._v88=1;
+ S.p=S.p.map(x=>{
+  if(/^QUÉ HAY/.test(x))return "QUÉ HAY (folio 62 · plano base RCS PLANOS, todas las posiciones salvo 504, 507 y 508 · E-A4 Phoenix IB IL AI 4/I-PAC, 4-20 mA): AIN01 (1.1) medidor de ALTURA = ultrasonido C-B14 · AIN02 (1.2) medida de EXTENSIÓN = láser ET-B9 · AIN03 (1.3) medidor de CABINA = potenciómetro de giro C-R10 a través del convertidor E-R10 WAS5 PRO RTD · AIN04 (1.4) potenciómetro de giro de ROTONDA R-R1. Retornos -I1…-I4 en 2.1…2.4. En 504/508 (plano PBB 504) AIN04 es RESERVA y la rotonda va por el encoder R-R10 en red; en 507 confirmar con su plano.";
+  if(/^BORNERO E-X62/.test(x))return "BORNERO E-X62 (armario E, RCS PLANOS folio 62): 1 = +24 V común (hilo 189 desde E-X68:1; alimenta C-B14 por EP-W8, ET-B9 por E-W13 y el R-R1 por EIT-W4 hasta IT-X62:1) · 2 = 0 V común (hilo 205 desde E-X68:2; retornos -I1, -I2, -I3 y E-R10:9) · 3 = señal ALTURA → AI01 (hilo 341) · 4 = señal EXTENSIÓN → AI02 (hilo 312) · 5 = señal ROTONDA R-R1 → AI04 (hilo 316) · 7 = mallas a tierra (EP-W8, E-W13, EIT-W4) · 8 = 0 V del R-R1 (conductor de EIT-W4, unido a E-X62:2, hilo 205; deducido de las referencias cruzadas del folio, confirmar en el dibujo). En 504/508 no existen las bornas 5 y 8: E-X62:1-2 alimentan el encoder por IT-X62:1-2. El potenciómetro de CABINA no pasa por E-X62: va por E-X65 al convertidor E-R10.";
+  if(/^POTENCIÓMETRO DE GIRO DE ROTONDA/.test(x))return "POTENCIÓMETRO DE GIRO DE ROTONDA R-R1 (AIN04 · RCS PLANOS, todas las posiciones salvo 504, 507 y 508): transmisor de 4-20 mA (bornas x1, x2, x3) en la rotonda → cable IT-W16 (3×0,75 apantallado) → caja IT-X62 (bornas 1 +24 V · 2 0 V · 3 señal · 7 malla) → manguera EIT-W4 (6×0,75, malla a E-X62:7) → E-X62:5 (señal, hilo 316) y E-X62:8 (0 V) → E-A4 borna 1.4 (AI04) / 2.4 (-I4). El +24 V le llega de E-X62:1 a IT-X62:1. Comprobar 24 V entre IT-X62:1-2, 4-20 mA en E-X62:5 variando al girar la rotonda y el acoplamiento del potenciómetro al eje de giro. No confundir con los inductivos de giro CO-B1 / CO-B2 (E-A0 mód. 4 LED 3-4) ni con el FC de rotonda CO-S1 (seguridad, E-A8 mód. 4 LED 1).";
+  if(/^GIRO DE ROTONDA EN 504\/508/.test(x))return x.replace("GIRO DE ROTONDA EN 504/508 (folio 97)","GIRO DE ROTONDA EN 504/508 (plano PBB 504, folio 97; 507 pendiente de su plano)");
+  if(/^PUENTE PROVISIONAL/.test(x))return x.replace("ROTONDA (no 504/508)","ROTONDA (solo posiciones con RCS PLANOS, no 504/507/508)");
+  return x});
+ S.r="RCS PLANOS folio 62 (E-A4, E-X62, E-X65, E-R10, IT-X62) · 40 (24 VDC E-X68) · 49 (Magelis) · PBB 504 folios 62 y 97 (504/508)"})();
+(function(){const R=RUTAS["E-A4"];if(!R)return;const S4=R.s.find(s=>+s.l==4);if(!S4)return;
+ S4.t="AIN04 · Potenciómetro de giro de rotonda (R-R1) · RCS PLANOS (reserva en 504/508)";
+ S4.r="Canal 4 · borna 1.4 (AI04, hilo 316 desde E-X62:5) / 2.4 (-I4). RCS PLANOS: R-R1 con 0 V por E-X62:8 (unido a E-X62:2) y +24 V desde E-X62:1 a IT-X62:1. En 504/508 está libre (encoder R-R10, folio 97); 507 según su plano.";
+ S4.p=[["+R-R1 (bornas x1, x2, x3, salida 4-20 mA) · cable IT-W16 (3×0,75 apantallado)","24 V entre alimentación y 0 V · 4-20 mA variando al girar la rotonda","Sin señal → potenciómetro, alimentación o acoplamiento al eje.","IT"],
+  ["+IT-X62:1 (+24 V) · :2 (0 V) · :3 (señal) · :7 (malla)","24 V entre 1-2 · 4-20 mA por 3","Diferencia con el R-R1 → cable IT-W16 o bornas de IT-X62.","IT"],
+  ["+E-X62:5 (señal) y +E-X62:8 (0 V, unido a E-X62:2) · manguera EIT-W4 (6×0,75, malla a E-X62:7)","4-20 mA en E-X62:5","Diferencia con IT-X62:3 → manguera EIT-W4 o bornas.","E"],
+  ["E-A4 borna 1.4 (AI04) · hilo 316","4-20 mA en serie","Corriente correcta y la Magelis no la muestra → canal 4 de E-A4.","E"]].map(x=>({p:x[0],e:x[1],x:x[2],f:62,u:[x[3]],cab:[],nodo:x[0]}))})();
+/* el puente de rotonda (E-X62:1→5) solo en posiciones con RCS PLANOS */
+(function(){const o=puAnalog;puAnalog=function(i){const P=o(i);if(!i)return P;return POS_PROPIO.includes(String(i.pos))?P.filter(p=>p.an!=4):P}})();
+(function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||!i||!POS_PROPIO.includes(String(i.pos)))return r;
+ if(r.rel.some(x=>x.mod=="E-A4"&&+String(x.S.l)==4)){r.rel=r.rel.filter(x=>!(x.mod=="E-A4"&&+String(x.S.l)==4));r.mods=[...new Set(r.rel.map(x=>x.mod))]}return r}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v88"}})();
+</script>
 </body></html>
