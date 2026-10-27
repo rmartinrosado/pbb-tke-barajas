@@ -3623,4 +3623,47 @@ const POS_PROPIO=["504","507","508"];
  guía aparte «Traslación con alimentación de SAI (retorno autónomo)» y todo lo de la PBB 507 en un desplegable: ver sai.js y pbb507.js ===== */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v102"}})();
 </script>
+<script>
+/* ===== v103: los botones de la barra inferior (Inicio, Nueva, Seguimiento OT, Mant., Planos, Casos, Guía) pasan a un
+ menú desplegable desde el margen izquierdo. Se abre con el botón ☰ de la cabecera o deslizando el dedo desde el borde
+ izquierdo; se cierra al elegir una opción, tocando fuera, deslizando a la izquierda o con Esc. ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+body{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
+#nav{top:0!important;bottom:0!important;left:0!important;right:auto!important;width:min(270px,80vw);flex-direction:column;align-items:stretch;
+ border-top:0!important;border-right:1px solid var(--bd);box-shadow:4px 0 24px #0003;z-index:41!important;overflow-y:auto;-webkit-overflow-scrolling:touch;
+ padding:env(safe-area-inset-top,0px) 0 calc(12px + env(safe-area-inset-bottom,0px))!important;
+ transform:translateX(-105%);transition:transform .22s ease;visibility:hidden}
+#nav.abre{transform:none;visibility:visible}
+#nav::before{content:"MENÚ";display:block;padding:18px 18px 12px;font-size:12px;font-weight:700;letter-spacing:1.2px;color:var(--mu);border-bottom:3px solid var(--ac);border-image:var(--g) 1;margin-bottom:6px}
+#nav button{flex:none!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:flex-start;gap:14px;width:100%;
+ text-align:left;padding:13px 18px!important;font-size:15px!important;line-height:1.2;color:var(--tx)!important;border-left:4px solid transparent!important;font-weight:500}
+#nav button span{display:flex!important;margin:0!important;color:var(--pr);font-size:20px}
+#nav button.on{background:color-mix(in srgb,var(--pr) 12%,transparent);border-left-color:var(--pr)!important;color:var(--pr)!important;font-weight:700}
+#nav button:disabled{opacity:.35}
+#navbg{position:fixed;inset:0;background:#0007;z-index:40;opacity:0;pointer-events:none;transition:opacity .22s}
+#navbg.abre{opacity:1;pointer-events:auto}
+#navbtn{flex:none;width:38px;height:38px;margin-right:8px;padding:0;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--pr);
+ display:flex;align-items:center;justify-content:center;cursor:pointer}
+#navbtn svg{display:block}`;document.head.appendChild(st);
+ const nav=document.getElementById("nav"),hd=document.querySelector("header");if(!nav)return;
+ const bg=document.createElement("div");bg.id="navbg";document.body.appendChild(bg);
+ nav.setAttribute("aria-label","Menú");
+ function abre(){nav.classList.add("abre");bg.classList.add("abre");const b=document.getElementById("navbtn");if(b)b.setAttribute("aria-expanded","true")}
+ function cierra(){nav.classList.remove("abre");bg.classList.remove("abre");const b=document.getElementById("navbtn");if(b)b.setAttribute("aria-expanded","false")}
+ window.menuAbre=abre;window.menuCierra=cierra;
+ if(hd&&!document.getElementById("navbtn")){const b=document.createElement("button");b.type="button";b.id="navbtn";b.title="Menú";b.setAttribute("aria-label","Abrir menú");b.setAttribute("aria-expanded","false");
+  b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+  b.onclick=()=>nav.classList.contains("abre")?cierra():abre();hd.insertBefore(b,hd.firstChild)}
+ bg.onclick=cierra;
+ nav.addEventListener("click",e=>{const b=e.target.closest("button");if(b&&!b.disabled)setTimeout(cierra,60)});
+ addEventListener("keydown",e=>{if(e.key=="Escape")cierra()});
+ /* gesto: deslizar desde el borde izquierdo abre; deslizar a la izquierda con el menú abierto lo cierra */
+ let x0=null,y0=0,modo="";
+ addEventListener("touchstart",e=>{const t=e.touches[0];if(!t)return;const ab=nav.classList.contains("abre");
+  if(!ab&&t.clientX<=22){x0=t.clientX;y0=t.clientY;modo="abrir"}else if(ab){x0=t.clientX;y0=t.clientY;modo="cerrar"}else x0=null},{passive:true});
+ addEventListener("touchend",e=>{if(x0==null)return;const t=e.changedTouches[0];const dx=t.clientX-x0,dy=Math.abs(t.clientY-y0);
+  if(dy<70){if(modo=="abrir"&&dx>45)abre();else if(modo=="cerrar"&&dx<-45)cierra()}x0=null},{passive:true});
+})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v103"}})();
+</script>
 </body></html>
