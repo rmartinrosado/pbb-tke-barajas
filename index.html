@@ -3321,4 +3321,21 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
  <ul>${C.n.map(x=>`<li>${x}</li>`).join("")}</ul></div>`}
 (function(){const st=document.createElement("style");st.textContent=".gcro{margin:8px 0 10px;padding:10px;border:1px solid var(--pr);border-radius:10px;background:color-mix(in srgb,var(--pr) 8%,transparent)}.gcro-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;font-size:14px}.gcro img{display:block;width:100%;height:auto;border-radius:8px;background:#fff;cursor:zoom-in}.gcro ul{margin:0;padding-left:18px;font-size:13px;line-height:1.45}.gcro li+li{margin-top:5px}.gflu{display:flex;flex-direction:column;align-items:stretch;margin:4px 0}.gfl{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:6px 9px;border:1px solid var(--bd,#555);border-radius:8px;font-size:12.5px;background:var(--card)}.gfl span{color:var(--mu)}.gfla{text-align:center;color:var(--ac);font-weight:700;line-height:1.1}";document.head.appendChild(st)})();
 
+</script><script>
+/* ===== v81: OT de cámara/vídeo → sin puentes ni actuaciones de otros sistemas; aviso si la posición no tiene IPs cargadas ===== */
+(function(){
+ const vid=i=>!!i&&/c[aá]mara|v[ií]deo/i.test([i.desc,i.def,i.com].filter(Boolean).join(" "));
+ /* «Cámara vídeo ruedas» no es una avería de traslación ni de bordes de ruedas: la palabra «ruedas» solo dice qué cámara es */
+ const oA=anaOT;anaOT=function(i){return vid(i)?null:oA(i)};
+ const oP=puentesOT;puentesOT=function(i){return vid(i)?[]:oP(i)};
+ const oS=segOT;segOT=function(i){return vid(i)?null:oS(i)};
+ const oV=varita;varita=function(id){const i=inc.find(x=>x.id==id);if(vid(i)){camAbreOT(id);return}return oV(id)};
+ const oH=camHTML;camHTML=function(){let h=oH();const pos=camPosAct();
+  if(camIPpos===pos&&!camCarga&&!Object.keys(camIP).length){
+   const av=`<div class="gav" style="border-left-color:#ef6c00;margin-top:8px"><b>PBB ${esc(pos)}: sin direcciones IP cargadas.</b> La tabla de direcciones TKE que se importó (MAD-T4S rev. 1) solo trae las posiciones de T4S. Para esta posición hay que importar su tabla o meter las IP a mano (modo administrador, en la ficha de cada cámara).</div>`;
+   const k=h.indexOf("</select>");if(k>=0)h=h.slice(0,k+9)+av+h.slice(k+9);
+   h=h.replace(`<div class="mu" style="font-size:12px;margin-top:10px">Sin direcciones cargadas para esta posición.</div>`,"")}
+  return h};
+ const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
+})();
 </script><script src="sistemas.js?v=1"></script><script src="sos.js?v=8"></script><script src="iconos.js?v=2"></script><script src="sim-brazo.js?v=1"></script></body></html>
