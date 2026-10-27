@@ -1,6 +1,6 @@
 /* ===== v79 (dibujo v83 según fotos reales): Simulación animada del brazo autonivelador (ESQUEMA GENERAL rev. J folio 86) =====
  Dibujo del brazo que sigue a la puerta del avión y LED de P-A5 (B8…B13) que cambian según la tabla del folio 86.
- LED encendido = punto gris de la tabla = entrada de P-A5 encendida (sensor NC sin target delante). */
+ LED encendido = punto gris de la tabla = entrada de P-A5 encendida (sensor NC sin leva delante). */
 (function(){
 const SENS=["B8","B9","B10","B11","B12","B13"];
 const NOM={B8:"arriba 2",B9:"arriba 1",B10:"abajo 2",B11:"abajo 1",B12:"neutral 1",B13:"neutral 2"};
@@ -21,7 +21,7 @@ function init(el){
  <svg viewBox="0 0 340 196" role="img" aria-label="Simulación del brazo autonivelador y de los LED de P-A5"></svg>
  <div class="gsim-st"></div>
  <div class="gsim-bt"><button data-a="play">⏸ Pausa</button>${FILAS.map((f,i)=>`<button data-f="${i}">${f.t.replace(" mm","")}</button>`).join("")}</div>
- <div class="mu" style="font-size:11px;margin-top:4px">LED verde = entrada de P-A5 encendida (punto gris del plano, sensor sin target). LED apagado = sensor tapado por la leva. Toca una posición para fijarla.</div>`;
+ <div class="mu" style="font-size:11px;margin-top:4px">LED verde = entrada de P-A5 encendida (punto gris del plano, sensor sin leva delante). LED apagado = sensor tapado por la leva. <b>Ajuste del inductivo a la leva: 1 mm &lt; distancia &lt; 4 mm</b> (por debajo de 1 mm roza; por encima de 4 mm el IME12-04 no la detecta). Toca una posición para fijarla.</div>`;
  const svg=el.querySelector("svg"),row=el.querySelector(".gsim-row"),st=el.querySelector(".gsim-st");
  // ===== Dibujo según las fotos reales del brazo (vista lateral): soporte bajo el suelo de la cabina, motorreductor SEW (C-M2),
  // mástil de pletina, carcasa hexagonal con la rueda de goma arriba apoyada en el fuselaje; en corte, el disco de la rueda y los inductivos C-B8…C-B13.
@@ -70,7 +70,7 @@ function init(el){
  rueda.append(H("line",{x1:0,y1:-4,x2:0,y2:-WR+3,stroke:"var(--ac)","stroke-width":2}));// marca de giro
  svg.append(rueda);
  T(150,12,"rueda de goma",{"text-anchor":"end"});
- // Corte interior: disco solidario de la rueda con el target y los 6 inductivos
+ // Corte interior: disco solidario de la rueda con la leva y los 6 inductivos
  const DX=146,DY=56,DR=9;
  svg.append(H("circle",{cx:DX,cy:DY,r:20,fill:"var(--card)",stroke:"#8e97a2","stroke-dasharray":"2 2"}));
  svg.append(H("line",{x1:DX,y1:DY,x2:WX,y2:WY,stroke:"#8e97a2","stroke-width":1,"stroke-dasharray":"1.5 1.5"}));// transmisión

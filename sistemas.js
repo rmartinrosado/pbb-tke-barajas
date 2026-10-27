@@ -74,7 +74,7 @@ PAS:[
  {s:"Sensores de traslación (giro y contaje)",f:[61],c:[
   "Límite giro traslación izquierda H-B3 y derecha H-B4 (inductivos PNP M12) → E-A3 mód. 4 LED 1 y LED 2 ●.",
   "Contaje traslación H-B1 / H-B2 → E-A3 mód. 4 LED 3 y LED 4 (cambian al mover).",
-  "En cada inductivo: LED propio, distancia al target, fijación y conector (cables H-W14 a H-W17)."]},
+  "En cada inductivo: LED propio, distancia a la pieza metálica que detecta (1 mm < distancia < 4 mm), fijación y conector (cables H-W14 a H-W17)."]},
  {s:"Rotonda, extensión, inclinación y medidas analógicas",f:[52,58,62],c:[
   "Giro rotonda: inductivos CO-B1 / CO-B2 → E-A0 mód. 4 LED 3 y LED 4 (cambian al girar).",
   "Límite inferior y superior de inclinación → E-A2 mód. 1 LED 4 ● y mód. 2 LED 1 ○ (inductivos IT-B10 / IT-B11, confirmar en folio 58).",
