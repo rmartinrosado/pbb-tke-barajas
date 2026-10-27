@@ -3459,4 +3459,65 @@ function puAnalog(i){if(!i||i.estado!="abierta")return [];const txt=segNorm([i.d
  S.g.splice(4,0,62)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v85"}})();
 </script>
+<script>
+/* ===== v86: revisión del folio 62 (E-A4) y del bornero E-X62 =====
+ · C-R10 (potenciómetro de cabina) va por E-W9 → E-X65 → E-R10 (no por IT-X62 / EIT-W4, que son de R-R1 y del encoder 504/508).
+ · Bornero E-X62: 1 = +24 V común de sensores · 2 = 0 V común y retornos -I · 3 = AI01 · 4 = AI02 · 5 = AI04 · 7 = malla / tierra.
+ · Puentes analógicos: extensión y rotonda en E-X62 (resistencia 1→4 / 1→5 con el conductor de campo suelto); cabina en E-R10. */
+(function(){
+ const S=(ch,t,r,p)=>({id:"E-A4-1."+ch,led:"1."+ch,k:1,l:ch,t,r,p:p.map(x=>({p:x[0],e:x[1],x:x[2],f:x[3]||62,u:[x[4]||"E"],cab:[],nodo:x[0]})),fol:"62"});
+ RUTAS["E-A4"]={n:"Entradas analógicas 4-20 mA (IB IL AI 4/I-PAC)",ref:"RCS PLANOS / PBB 504 folio 62",fol:"62",s:[
+  S(1,"AIN01 · Medidor de altura (ultrasonido C-B14)","Canal 1 · borna 1.1 (AI01, hilo 341) / 2.1 (-I1, hilo 205 a E-X62:2). Ultrasonido de 3 hilos alimentado desde E-X62:1-2.",[
+   ["+C-B14 conector (BN + · BU − · BK salida)","24 V entre BN y BU · 4-20 mA por BK","Sin 24 V → E-X62:1-2 / EP-W8 / P-W20. Con 24 V y sin señal → sensor (suciedad, agua u obstáculo).",62,"C"],
+   ["+P-X62:1-3-2 (pupitre) · cable P-W20 (fabricante) BN-BK-BU","mismas medidas que en el sensor","Diferencia → P-W20 o bornas de P-X62.",62,"P"],
+   ["+E-X62:1 (BN, +24 V) · :3 (BK, señal) · :2 (GY, 0 V) · manguera EP-W8 3×0,75 apantallada, malla en E-X62:7","24 V en 1-2 · 4-20 mA en 3","Diferencia con P-X62 → manguera EP-W8 (pupitre ↔ armario).",62],
+   ["E-A4 borna 1.1 (AI01) · hilo 341 desde E-X62:3","4-20 mA en serie, variando al subir y bajar","Corriente correcta y la Magelis no la muestra → canal 1 de E-A4.",62]]),
+  S(2,"AIN02 · Medida de extensión (láser ET-B9)","Canal 2 · borna 1.2 (AI02, hilo 312) / 2.2 (-I2, hilo 205 a E-X62:2). Láser de 3 hilos alimentado desde E-X62:1-2.",[
+   ["+ET-B9 conector (BN + · BU − · BK salida)","24 V entre BN y BU · 4-20 mA por BK","Con 24 V y sin señal → óptica sucia, haz tapado o desalineado, blanco movido, sensor averiado.",62,"ET"],
+   ["+E-X62:1 (BN, +24 V) · :4 (BK, señal) · :2 (GY, 0 V) · manguera E-W13 3×0,75 apantallada, malla en E-X62:7","24 V en 1-2 · 4-20 mA en 4","Diferencia con el sensor → manguera E-W13 o bornas.",62],
+   ["E-A4 borna 1.2 (AI02) · hilo 312 desde E-X62:4","4-20 mA en serie, variando al extender y recoger","Corriente correcta y la Magelis no la muestra → canal 2 de E-A4.",62]]),
+  S(3,"AIN03 · Medidor de cabina (potenciómetro de giro C-R10 → convertidor E-R10)","Canal 3 · borna 1.3 (AI03, hilo 315 desde E-R10:7) / 2.3 (-I3, hilo 205, unido a E-R10:9 y a E-X62:2). No pasa por E-X62.",[
+   ["+C-R10 bornas 1-2-3 (1 y 3 extremos, 2 cursor)","Sin tensión: 1-3 valor fijo · 1-2 y 2-3 varían suave al girar la cabina","Abierto, saltos o fijo al girar → potenciómetro o su acoplamiento al eje de giro.",62,"C"],
+   ["+E-X65:1-2-3 (malla en E-X65:4 a tierra) · cable E-W9 3×0,75 apantallado (BK-BN-GY)","misma resistencia que en C-R10","Diferencia → cable E-W9 o bornas de E-X65.",62],
+   ["+E-R10 entradas 1-2-3 · hilos 319 (1) / 321 (2) / 322 (3)","misma resistencia que en E-X65","Diferencia → hilos 319/321/322.",62],
+   ["+E-R10 alimentación 10 (+24 V, hilo 189 desde E-X68:1) · 11 (0 V, hilo 205 desde E-X68:2)","24 VDC","Sin tensión → E-X68 y protección de 24 V.",62],
+   ["+E-R10:7 (salida) → hilo 315 → E-A4 1.3 · E-R10:9 → hilo 205 → E-A4 2.3","4-20 mA en serie, variando al girar la cabina","Potenciómetro bien y sin 4-20 mA → convertidor E-R10 o sus switch. Corriente bien y la Magelis no la muestra → canal 3 de E-A4.",62]]),
+  S(4,"AIN04 · Potenciómetro de giro de rotonda (R-R1) · reserva en 504/508","Canal 4 · borna 1.4 (AI04, hilo 316 desde E-X62:5) / 2.4 (-I4). En 504/508 está libre: la rotonda va por el encoder R-R10 en red (folio 97), alimentado desde E-X62:1-2 por IT-X62:1-2 y EIT-W4.",[
+   ["+R-R1 (x1, x2, x3, salida 4-20 mA) · cable IT-W16","4-20 mA variando al girar la rotonda","Sin señal → potenciómetro, alimentación o acoplamiento.",62,"IT"],
+   ["+IT-X62 · manguera EIT-W4 (6×0,75, malla a E-X62:7) → +E-X62:5","4-20 mA","Diferencia → manguera EIT-W4 o bornas.",62],
+   ["E-A4 borna 1.4 (AI04) · hilo 316","4-20 mA en serie","Corriente correcta y la Magelis no la muestra → canal 4 de E-A4.",62]])]};
+ const SEC=GUIA.tipos.PAS.s.find(x=>/^Medidas anal/.test(x.t));if(!SEC)return;
+ SEC.p=[
+  "QUÉ HAY (folio 62 · E-A4 Phoenix IB IL AI 4/I-PAC, 4-20 mA): AIN01 (1.1) medidor de ALTURA = ultrasonido C-B14 · AIN02 (1.2) medida de EXTENSIÓN = láser ET-B9 · AIN03 (1.3) medidor de CABINA = potenciómetro de giro C-R10 a través del convertidor E-R10 WAS5 PRO RTD · AIN04 (1.4) potenciómetro de giro de ROTONDA R-R1 (en 504/508: RESERVA, la rotonda va por el encoder R-R10 en red, folio 97). Retornos -I1…-I4 en 2.1…2.4.",
+  "BORNERO E-X62 (armario E): 1 = +24 V común de sensores (hilo 189 desde E-X68:1; alimenta C-B14, ET-B9 y, por IT-X62:1, el encoder de 504/508) · 2 = 0 V común (hilo 205 desde E-X68:2; retornos -I1, -I2, -I3, E-R10:9 y encoder por IT-X62:2) · 3 = señal ALTURA → AI01 (hilo 341) · 4 = señal EXTENSIÓN → AI02 (hilo 312) · 5 = señal ROTONDA → AI04 (hilo 316, no en 504/508) · 7 = mallas a tierra (EP-W8, E-W13, EIT-W4). El potenciómetro de CABINA no pasa por E-X62: va por E-X65 al convertidor E-R10.",
+  "BORNERO E-X65 y CONVERTIDOR E-R10: C-R10 → cable E-W9 (BK-BN-GY, malla a E-X65:4) → E-X65:1-2-3 → hilos 319 / 321 / 322 → E-R10 entradas 1-2-3. E-R10 alimentado en 10 (+24 V, hilo 189) y 11 (0 V, hilo 205). Salida E-R10:7 → hilo 315 → AI03 (1.3); E-R10:9 → hilo 205 → -I3 (2.3). Switch internos (tabla del folio 62): SWITCH 1 = OFF OFF OFF ON ON ON ON OFF · SWITCH 2 = ON ON OFF OFF ON OFF ON ON.",
+  "PRIORIDAD 1 · Mirar en la Magelis qué medidas fallan. Si fallan VARIAS a la vez, buscar primero lo común: módulo E-A4 (LED de diagnóstico y del bus) · +24 V en E-X62:1 y 0 V en E-X62:2 (comunes a altura, extensión, retornos y encoder) · alimentación de E-R10 (10-11). Si falla una sola, ir a su canal.",
+  "PRIORIDAD 1 · Medir 24 VDC en E-X62:1-2 y en E-R10:10-11. Sin tensión → regleta E-X68 y protección de 24 V del armario E (LED de alarma de E-Q30.0). Borna E-X62:2 floja = fallan a la vez altura, extensión y cabina.",
+  "PRIORIDAD 1 · Medir 4-20 mA en serie en el canal que falla (soltar el conductor de señal y polímetro en mA): 0 mA = lazo abierto o sensor sin alimentación · por debajo de 4 mA = sensor o cable · 4-20 mA variando pero la Magelis no lo muestra = canal o borna de E-A4.",
+  "PUENTE PROVISIONAL (sin alarma de medida mientras se repara): EXTENSIÓN → en E-X62 soltar y aislar el conductor BK de E-W13 (lado campo) de la borna 4 y poner una resistencia de 2,2 kΩ 1 W entre E-X62:1 y E-X62:4 · ROTONDA (no 504/508) → igual entre E-X62:1 y E-X62:5 · CABINA → soltar el hilo 315 de E-R10:7 y poner la resistencia entre E-R10:10 (+24 V) y el hilo 315. ≈11 mA fijos; para otra posición R = 24 V ÷ I. La ALTURA (E-X62:3) no se puentea.",
+  "NUNCA en E-X62: cable directo (sin resistencia) entre 1 y 3/4/5 → 24 V directos a la entrada de corriente, puede dañar E-A4 · puente entre 1 y 2 → cortocircuito del 24 V (salta la protección y se pierden todas las medidas y el encoder) · soltar la borna 2 → caen a la vez altura, extensión y cabina · usar la 7 (malla/tierra) como 0 V · unir la señal de un sensor bueno con la de otro canal (la corriente se reparte y falsea las dos).",
+  "POTENCIÓMETRO C-R10: sin tensión, medir en E-X65: 1-3 valor fijo; 1-2 y 2-3 varían suave al girar la cabina, sin saltos ni circuito abierto. Revisar el acoplamiento al eje. CONVERTIDOR E-R10: con potenciómetro bien y sin 4-20 mA en E-R10:7 → convertidor o switch; sustituir por el mismo modelo copiando los switch.",
+  "LÁSER ET-B9: limpiar óptica y blanco, alineación, LED del sensor y conector. ULTRASONIDO C-B14: nada interpuesto bajo el sensor (suciedad, agua, objetos), fijación y conector; en el pupitre P-X62 y cable P-W20.",
+  "Lectura que salta o con ruido: mallas de EP-W8, E-W13 y EIT-W4 en E-X62:7 y de E-W9 en E-X65:4 (a tierra en un solo extremo), bornas apretadas, cables de señal separados de los de potencia.",
+  "CIERRE: retirar el puente, volver a conectar el conductor y comprobar en la Magelis (CP-A1) que cada medida varía de forma continua en todo su recorrido. Anotar en la Actuación los mA medidos antes y después."];
+ SEC.g=[62,62,62,62,40,62,62,62,62,62,62,49];
+ SEC.r="Folio 62 (E-A4, E-X62, E-X65, E-R10) · 40 (24 VDC E-X68) · 49 (Magelis) · PBB 504 folio 97 (encoder rotonda)";
+})();
+const PU_AN2={
+ 2:{re:/extensi|retracc|laser/,nom:"AIN02 · Medida de extensión (láser ET-B9)",b:"E-X62 · bornas 1 y 4",
+   t:"En el bornero E-X62 soltar el conductor BK de la manguera E-W13 (lado campo, viene del láser) de la borna 4 y aislarlo. Poner una resistencia de 2,2 kΩ 1 W entre E-X62:1 (+24 V) y E-X62:4: entran ≈11 mA fijos en AI02 (hilo 312) y el PLC deja de dar alarma. Para otra posición: R = 24 V ÷ I (1,5 kΩ ≈ 16 mA · 4,7 kΩ ≈ 5 mA)."},
+ 3:{re:/cabina/,nom:"AIN03 · Medidor de cabina (potenciómetro de giro C-R10 → convertidor E-R10)",b:"E-R10 · bornas 7 y 10",
+   t:"La señal de cabina no pasa por E-X62. En el convertidor E-R10 soltar el hilo 315 de la borna 7 (salida) y poner una resistencia de 2,2 kΩ 1 W entre E-R10:10 (+24 V, hilo 189) y el hilo 315: entran ≈11 mA fijos en AI03. Vale también si el averiado es el convertidor. Para otra posición: R = 24 V ÷ I."},
+ 4:{re:/rotonda/,nom:"AIN04 · Potenciómetro de giro de rotonda (R-R1)",b:"E-X62 · bornas 1 y 5",
+   t:"En E-X62 soltar el conductor de señal de la manguera EIT-W4 (lado campo) de la borna 5 y aislarlo. Poner una resistencia de 2,2 kΩ 1 W entre E-X62:1 (+24 V) y E-X62:5: ≈11 mA fijos en AI04 (hilo 316). Para otra posición: R = 24 V ÷ I."}};
+function puAnalog(i){if(!i||i.estado!="abierta")return [];const txt=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
+ if(!PU_AN_MED.test(txt))return [];const pos=String(i.pos);const out=[];
+ [3,2,4].forEach(ch=>{const C=PU_AN2[ch];if(!C.re.test(txt))return;if(ch==4&&["504","508"].includes(pos))return;
+  out.push({key:"E-A4|1|"+ch,id:"E-A4",k:1,l:ch,an:ch,anb:C.b,nom:C.nom,f:62,b:null,suelta:false,t:C.t})});return out}
+(function(){const o=puenteHTML;puenteHTML=function(i,P){let h=o(i,P);if(!P.some(p=>p.an))return h;
+ P.filter(p=>p.an).forEach(p=>{h=h.replace(`<b>E-A4 · canal AIN0${p.an} · borna 1.${p.an}</b>`,`<b>E-A4 · canal AIN0${p.an} · puente en ${esc(p.anb)}</b>`)});
+ h=h.replace("<li>La medida de ALTURA (AIN01, ultrasonido C-B14) no se puentea","<li>En E-X62 NUNCA: cable directo de 1 a 3/4/5 (24 V directos a la entrada, daña E-A4), puente entre 1 y 2 (cortocircuito del 24 V: se pierden todas las medidas), soltar la borna 2 (0 V común: caen altura, extensión y cabina) ni usar la 7 (malla) como 0 V.</li><li>La medida de ALTURA (AIN01, ultrasonido C-B14, E-X62:3) no se puentea");
+ return h}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v86"}})();
+</script>
 </body></html>
