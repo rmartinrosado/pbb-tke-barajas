@@ -4144,7 +4144,55 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 .ohc{display:flex;flex-direction:column;align-items:center;line-height:1.05}.ohc small{font-size:8px;font-weight:700;opacity:.8;letter-spacing:.3px}.ohc b{font-size:11.5px;font-weight:800;letter-spacing:-.2px}
 .ohv{color:#4ade80;background:#16a34a22}.ohv .ohc b{font-size:15px}.ohw{color:#facc15;background:#facc1522;animation:ctdp 1s infinite}
 .ohx{color:#f87171;background:#dc262622}.ohx .ohc b{font-size:15px}.ohy{color:#facc15;background:#facc151a}.ohr{color:#f87171;background:#dc26261a}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v172"}})();
+/* ===== v173: simulaciones sin saltos, sin sincronización mientras se está en la Guía y zoom solo en las animaciones =====
+   1) El «parpadeo» era la caja que cambiaba de alto al cambiar el texto (p. ej. «-85° · parado» ↔ «-11° · izquierda ↺»
+      bajaba de línea y empujaba toda la simulación). Ahora la línea de estado y el resumen tienen alto fijo.
+   2) En la Guía no se sincronizan los datos (ni el refresco periódico ni los avisos de cambios); al volver a Inicio
+      o a Seguimiento OT se recargan.
+   3) Zoom programado en las animaciones: pellizcar con dos dedos (hasta ×5), arrastrar con un dedo cuando está ampliada,
+      doble toque para ampliar ×2,5 o volver a 1:1, y botón «1:1». El resto de la PWA sigue sin zoom. ===== */
+(function(){
+ const st=document.createElement("style");st.textContent=`
+.gsim-h{flex-wrap:nowrap!important;flex-direction:column;align-items:stretch;gap:2px!important}
+.gsim-h>b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gsim-row{display:block;height:1.35em;line-height:1.35em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.gsim-st{height:4.2em;line-height:1.4em;overflow:hidden;font-variant-numeric:tabular-nums}
+.gzw{position:relative;overflow:hidden;border-radius:8px;touch-action:pan-y}
+.gzw.gzon{touch-action:none;outline:2px solid var(--pr);outline-offset:-2px}
+.gzw>svg{transform-origin:0 0;will-change:transform}
+.gzr{position:absolute;top:6px;right:6px;z-index:3;display:none;width:auto!important;margin:0!important;padding:4px 10px!important;border-radius:8px!important;border:1px solid #fff5!important;background:#000b!important;color:#fff!important;font-size:12px!important;font-weight:700}
+.gzw.gzon .gzr{display:block}
+.gzh{font-size:10.5px;text-align:center;color:var(--mu);margin:2px 0 0}`;document.head.appendChild(st);
+ const ZM=new WeakMap();
+ const est=w=>{let z=ZM.get(w);if(!z){z={k:1,x:0,y:0};ZM.set(w,z)}return z};
+ const lim=(w,z)=>{const W=w.clientWidth,H=w.clientHeight;z.x=Math.min(0,Math.max(W-W*z.k,z.x));z.y=Math.min(0,Math.max(H-H*z.k,z.y))};
+ const apl=(w,z)=>{if(z.k<=1.01){z.k=1;z.x=0;z.y=0}lim(w,z);const v=w.querySelector(":scope>svg");if(v)v.style.transform=z.k>1?`translate(${z.x}px,${z.y}px) scale(${z.k})`:"";w.classList.toggle("gzon",z.k>1)};
+ const zoomEn=(w,k,cx,cy)=>{const z=est(w),c={x:(cx-z.x)/z.k,y:(cy-z.y)/z.k};z.k=Math.min(5,Math.max(1,k));z.x=cx-c.x*z.k;z.y=cy-c.y*z.k;apl(w,z)};
+ const envuelve=()=>document.querySelectorAll(".gsim>svg").forEach(v=>{const p=v.parentElement;if(p.classList.contains("gzw"))return;
+  const w=document.createElement("div");w.className="gzw";p.insertBefore(w,v);w.appendChild(v);
+  const b=document.createElement("button");b.type="button";b.className="gzr";b.textContent="1:1";w.appendChild(b);
+  b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();const z=est(w);z.k=1;apl(w,z)});
+  const h=document.createElement("div");h.className="gzh";h.textContent="Pellizca o toca dos veces para ampliar";w.after(h)});
+ new MutationObserver(()=>{try{envuelve()}catch(e){}}).observe(document.body,{childList:true,subtree:true});envuelve();
+ let T=null,ult={t:0,x:0,y:0};
+ const pt=(w,t)=>{const r=w.getBoundingClientRect();return{x:t.clientX-r.left,y:t.clientY-r.top}};
+ document.addEventListener("touchstart",e=>{const w=e.target.closest&&e.target.closest(".gzw");if(!w||e.target.closest(".gzr")){T=null;return}const z=est(w);
+  if(e.touches.length==2){const a=pt(w,e.touches[0]),b=pt(w,e.touches[1]);T={w,m:2,d0:Math.hypot(a.x-b.x,a.y-b.y)||1,k0:z.k,c:{x:((a.x+b.x)/2-z.x)/z.k,y:((a.y+b.y)/2-z.y)/z.k}};e.preventDefault()}
+  else if(e.touches.length==1){const a=pt(w,e.touches[0]);T={w,m:1,a,x0:z.x,y0:z.y,mov:false}}},{passive:false,capture:true});
+ document.addEventListener("touchmove",e=>{if(!T)return;const w=T.w,z=est(w);
+  if(T.m==2&&e.touches.length>=2){const a=pt(w,e.touches[0]),b=pt(w,e.touches[1]),d=Math.hypot(a.x-b.x,a.y-b.y);
+   z.k=Math.min(5,Math.max(1,T.k0*d/T.d0));const m={x:(a.x+b.x)/2,y:(a.y+b.y)/2};z.x=m.x-T.c.x*z.k;z.y=m.y-T.c.y*z.k;apl(w,z);e.preventDefault()}
+  else if(T.m==1&&z.k>1&&e.touches.length==1){const a=pt(w,e.touches[0]);z.x=T.x0+a.x-T.a.x;z.y=T.y0+a.y-T.a.y;T.mov=true;apl(w,z);e.preventDefault()}},{passive:false,capture:true});
+ document.addEventListener("touchend",e=>{if(!T)return;const w=T.w;
+  if(T.m==1&&!T.mov&&e.touches.length==0&&!e.target.closest(".hk")){const t=Date.now(),a=T.a;
+   if(t-ult.t<320&&Math.hypot(a.x-ult.x,a.y-ult.y)<30){const z=est(w);zoomEn(w,z.k>1?1:2.5,a.x,a.y);ult.t=0;e.preventDefault()}else ult={t,x:a.x,y:a.y}}
+  if(e.touches.length==0)T=null;else if(e.touches.length==1&&T.m==2){const z=est(w),a=pt(w,e.touches[0]);T={w,m:1,a,x0:z.x,y0:z.y,mov:true}}},{passive:false,capture:true});
+ /* sincronización: en la Guía no se toca nada; al salir a Inicio o Seguimiento se recarga */
+ let pend=false;const oc=cargaInc;
+ cargaInc=function(re){if(re&&typeof view!="undefined"&&view=="tec"){pend=true;return Promise.resolve()}return oc.apply(this,arguments)};
+ const og=go;go=function(v,f){const de=view;const r=og.apply(this,arguments);if(de=="tec"&&v!="tec"&&typeof user!="undefined"&&user){pend=false;cargaInc(false).catch(()=>{})}return r};
+})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v173"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
