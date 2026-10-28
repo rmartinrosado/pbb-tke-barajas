@@ -2654,8 +2654,10 @@ const segAb=new Set(),segPl=new Set(); /* v19: abiertas desplegadas por defecto 
 function segPliega(){if(view!="track")return;document.querySelectorAll("#app .card.ot:not([data-pl])").forEach(c=>{c.dataset.pl="1";
  const hd=c.firstElementChild;if(!hd)return;hd.classList.add("ohd");const bd=document.createElement("div");bd.className="obd";
  while(hd.nextSibling)bd.appendChild(hd.nextSibling);c.appendChild(bd);const id=c.dataset.oid;const esAb=()=>{const i=inc.find(x=>x.id==id);return !!i&&i.estado=="abierta"};
- if(esAb()?!segPl.has(id):segAb.has(id))c.classList.add("oab");
- hd.addEventListener("click",()=>{const a=c.classList.toggle("oab");if(esAb()){a?segPl.delete(id):segPl.add(id)}else{a?segAb.add(id):segAb.delete(id)}})})}
+ /* v161: todas las tarjetas (verdes, amarillas y rojas) plegadas por defecto, solo la primera línea; un toque despliega/pliega */
+ if(segAb.has(id))c.classList.add("oab");
+ hd.addEventListener("click",e=>{e.stopPropagation();const a=c.classList.toggle("oab");a?segAb.add(id):segAb.delete(id)});
+ c.addEventListener("click",e=>{if(c.classList.contains("oab"))return;c.classList.add("oab");segAb.add(id)})})}
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);segPliega();return r}})();
 new MutationObserver(segPliega).observe(document.body,{childList:true,subtree:true});
 /* ===== v7: foto de pasarela de fondo en la cabecera fija, aclarada para que se lean textos y logo ===== */
@@ -4026,7 +4028,7 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
 .gmods button.rel{box-shadow:0 0 0 2px #ef6c00 inset;color:#ef6c00;font-weight:800}.gmods button.rel.on{color:#fff}`;document.head.appendChild(st)})();
 /* ===== v158/v160: Inicio y Seguimiento OT · sin la caja roja «AVERÍA:» en las tarjetas de OT (basta con la actuación guiada) ===== */
 (function(){const o=card;card=function(i){const h=o.apply(this,arguments);return h.replace(/<div class="hfocb hcard">[\s\S]*?<\/span><\/div>/,"")}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v160"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v161"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
