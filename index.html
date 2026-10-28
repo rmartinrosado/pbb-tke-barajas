@@ -3973,7 +3973,59 @@ Analiza minuciosamente lo detectado y cotéjalo con TODA la documentación del p
 4. Termina con la reparación propuesta y la comprobación final de funcionamiento.
 Si algo no se puede confirmar con la documentación, dilo y pide el dato o la medida que falta.`;
   abreClaude(pr)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v156"}})();
+/* ===== v157: Inspección cable a cable · señales relacionadas con la descripción de la OT (PAS), por tipo de movimiento o sistema,
+   de más a menos probable. Evita coincidencias sueltas de palabras (p. ej. «No sube» proponía «Suelo sube derecha»). ===== */
+(function(){
+ const SU="(sube|subir|subida|eleva\\w*|levanta\\w*)",BA="(baja|bajar|bajada|desciende|descenso)";
+ const R=[
+  {n:"Suelo / nivelación de suelo",re:/suelo/,ids:["P-A3-3.3","P-A3-3.4","P-A1-3.1","P-A1-3.2","P-A6-2.2","P-A6-2.3","P-A5-1.3","P-A5-1.4","P-A4-4.2"]},
+  {n:"Elevación · subir",re:new RegExp("\\b"+SU+"\\b"),no:/suelo|porton|capota|brazo|autonivel/,ids:["P-A3-4.1","P-A3-1.2","E-A1-2.1","E-A6-4.2","E-A3-2.2","E-A0-3.3","E-A0-3.1","E-A2-2.1","E-A8-4.2","E-A4-1.1","P-A3-1.1"]},
+  {n:"Elevación · bajar",re:new RegExp("\\b"+BA+"\\b"),no:/suelo|porton|capota|brazo|autonivel/,ids:["P-A3-4.2","P-A3-1.2","E-A1-2.2","E-A6-4.2","E-A3-2.2","E-A0-3.3","E-A7-1.1","E-A7-1.2","E-A2-1.4","E-A8-4.2","E-A10-1.1","E-A10-4.2","E-A4-1.1"]},
+  {n:"Hidráulica · bomba y presión",re:/limitador|presion|bomba|hidraul|aceite|\bbar\b/,ids:["E-A6-4.2","E-A3-2.2","E-A0-3.3","E-A1-2.1","E-A1-2.2"]},
+  {n:"Inclinación",re:/inclinac/,ids:["E-A2-1.4","E-A2-2.1","E-A8-4.2","E-A4-1.1"]},
+  {n:"Traslación",re:/trasla|no avanza|no anda|no rueda|adelante|atras|retrocede|ruedas|variador|freno/,no:/cabina|brazo/,ids:["P-A3-1.3","P-A3-1.4","P-A3-1.2","E-A6-1.1","E-A6-1.2","E-A2-1.2","E-A2-1.3","E-A0-3.2","E-A1-1.1","E-A1-1.2","E-A1-1.3","E-A1-1.4","E-A3-3.1","E-A3-3.2","E-A3-3.3","E-A3-3.4","E-A2-4.2","E-A3-1.4","E-A3-1.3","E-A8-1.2","E-A8-3.1"]},
+  {n:"Giro de ruedas / límite de giro",re:/\bgir\w*|limite de (giro|traslac)|almena|contaje/,no:/cabina/,ids:["P-A3-2.1","P-A3-2.2","E-A3-4.1","E-A3-4.2","E-A3-4.3","E-A3-4.4","E-A8-3.1","E-A0-4.3","E-A0-4.4"]},
+  {n:"Extensión / retracción",re:/extens|extiend|retrac|recoge|\bsale\b|\bentra\b|telescop|tunel/,no:/capota|antiatrap/,ids:["P-A3-1.3","P-A3-1.4","E-A2-2.2","E-A2-2.3","E-A8-3.2","E-A4-1.2"]},
+  {n:"Giro de cabina",re:/cabina/,no:/sirena|bumper/,ids:["P-A3-4.3","P-A3-4.4","P-A1-2.2","P-A1-2.3","P-A6-1.1","P-A6-1.2","P-A6-1.4","P-A6-2.1","P-A4-3.4","P-A4-3.2","P-A4-4.1","E-A4-1.3"]},
+  {n:"Capota",re:/capota|toldo|fuelle/,ids:["P-A4-2.3","P-A4-2.4","E-A1-2.4","E-A1-2.5","E-A1-2.6","E-A1-2.7","E-A2-3.4","E-A2-4.1","E-A0-3.4"]},
+  {n:"Portón",re:/porton|persiana/,ids:["P-A4-3.1","P-A4-4.4","E-A1-4.7","E-A1-4.8","E-A8-1.1","E-A0-4.1"]},
+  {n:"Brazo autonivelador",re:/brazo|autonivel/,ids:["P-A1-1.4","P-A1-2.1","P-A5-3.1","P-A5-3.2","P-A5-3.3","P-A5-3.4","P-A5-4.1","P-A5-4.2","P-A5-4.3","P-A4-3.3","E-A10-1.1"]},
+  {n:"Radar / láser de ala",re:/radar|laser|lazar|\bala\b/,ids:["P-A6-4.2","P-A6-4.1"]},
+  {n:"Setas de emergencia",re:/\bseta|emergencia/,ids:["E-A8-2.2","P-A3-1.1","E-A3-1.1","E-A3-1.3","E-A0-3.1"]},
+  {n:"Zapata",re:/zapata/,ids:["E-A10-4.2","P-A2-2.2"]},
+  {n:"Antiatrapamientos / bumpers",re:/antiatrap|bumper|parachoq/,ids:["DIS05","DIS06","DIS02","DIS08","E-A10-1.2","E-A10-1.1"]},
+  {n:"Rotonda",re:/rotonda|barrera/,ids:["E-A10-2.1","E-A1-2.8","DIS03","E-A8-4.1","E-A4-1.4"]},
+  {n:"Puerta de servicio",re:/puerta de servicio|escalera de servicio/,ids:["E-A10-2.2"]},
+  {n:"Retorno autónomo / SAI",re:/retorno|\bsai\b/,ids:["P-A4-1.3","P-A4-1.2","E-A7-2.2","P-A5-2.3"]},
+  {n:"400 Hz / aire acondicionado",re:/400|convertidor|aire|\ba\/a\b|carro/,ids:["E-A2-2.4","E-A2-3.1","E-A2-3.2","E-A2-3.3","P-A5-1.2"]},
+  {n:"Línea de seguridades",re:/seguridad|seguridades/,ids:["E-A0-3.1","E-A6-2.1","E-A6-2.2","P-A5-2.2","E-A8-2.2"]},
+  {n:"Modo de funcionamiento",re:/\bmodo\b|manual|automatic|\bauto\b|local|remoto/,ids:["E-A10-3.1","E-A10-3.2","E-A10-4.1"]}];
+ const find=id=>{for(const k of Object.keys(RUTAS)){const S=RUTAS[k].s.find(x=>x.id==id);if(S)return{mod:k,S}}return null};
+ window.otRelSig=function(i){if(!i||(i.tipo&&i.tipo!="PAS"))return null;
+  const t=gNorm([i.desc,i.obs,i.act,(i.alarmas||[]).join(" ")].filter(Boolean).join(" "));if(!t.trim())return null;
+  const out=[],vis=new Set(),gr=[];
+  R.forEach(r=>{if(!r.re.test(t)||(r.no&&r.no.test(t)))return;gr.push(r.n);r.ids.forEach(id=>{if(vis.has(id))return;const f=find(id);if(f){vis.add(id);out.push(f)}})});
+  return out.length?{gr,rel:out,txt:i.desc||""}:null};
+ const explicito=i=>/\b[EP]\s*-?\s*A\s*\d{1,2}\b/i.test([i.desc,i.def,i.com,i.obs,i.act].filter(Boolean).join(" "));
+ const og=gIAuto;gIAuto=function(){const nueva=gIAutoOT!==gOT;const r=og.apply(this,arguments);if(!nueva)return r;
+  const i=inc.find(x=>x.id==gOT);if(!i||explicito(i))return r;const A=otRelSig(i);if(!A)return r;
+  const b=A.rel[0];gIMod=b.mod;gISig=b.S.id;
+  gIAutoTxt=`Relacionado con la OT ${i.orden||""} («${i.desc||""}»): ${A.gr.join(" · ")}. Señal propuesta: ${b.mod} · ${b.S.t}. Abajo tienes todas las señales relacionadas, de más a menos probable.`;return r};
+ const oh=gInsHTML;gInsHTML=function(){let h=oh.apply(this,arguments);const i=inc.find(x=>x.id==gOT);const A=i&&otRelSig(i);if(!A)return h;
+  const mods=new Set(A.rel.map(x=>x.mod)),ids=new Set(A.rel.map(x=>x.S.id));
+  const pan=`<details class="otrel" open><summary><b>🎯 Señales relacionadas con la OT</b> <span class="mu" style="font-weight:400">(${A.rel.length} · ${esc(A.gr.join(" · "))})</span></summary>
+<div class="otrell">${A.rel.map((x,n)=>`<button class="otrelb${x.mod==gIMod&&x.S.id==gISig?" on":""}" onclick="gIMod='${x.mod}';gISig='${x.S.id}';gPintaIns()"><span class="otreln">${n+1}</span><span><b>${esc(x.mod)}</b> · Mód. ${x.S.k||"-"} · LED ${x.S.l||"-"}${x.S.led?" · IN "+esc(x.S.led):""}<br>${esc(x.S.t)}</span></button>`).join("")}</div>
+<div class="mu" style="font-size:11px;margin-top:4px">Empieza por la 1: comprueba el LED en el módulo y, si no es coherente, sigue la ruta cable a cable. Si es correcto, pasa a la siguiente.</div></details>`;
+  const k=h.indexOf("<label>Módulo");if(k>=0)h=h.slice(0,k)+pan+h.slice(k);else h=pan+h;
+  h=h.replace(/<div class="gmods">([\s\S]*?)<\/div>/g,(m,c)=>`<div class="gmods">${c.replace(/<button class="([^"]*)"([^>]*)>([EP]-A\d+)<\/button>/g,(b,cl,at,id)=>mods.has(id)?`<button class="${cl} rel"${at}>${id}</button>`:b)}</div>`);
+  h=h.replace(/<option value="([^"]+)"([^>]*)>/g,(m,v,at)=>ids.has(v)?`<option value="${v}"${at}>🎯 `:m);
+  return h};
+ const st=document.createElement("style");st.textContent=`.otrel{border:1px solid #ef6c00;border-radius:10px;padding:8px 10px;margin:8px 0;background:color-mix(in srgb,#ef6c00 6%,var(--card))}.otrel>summary{cursor:pointer}
+.otrell{display:flex;flex-direction:column;gap:6px;margin-top:8px;max-height:300px;overflow:auto}
+.otrelb{display:flex;gap:10px;align-items:center;text-align:left;width:100%;margin:0;padding:8px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:inherit;font-size:13px;line-height:1.3}
+.otrelb.on{border:2px solid #ef6c00}.otreln{flex:none;width:24px;height:24px;border-radius:50%;background:#ef6c00;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+.gmods button.rel{box-shadow:0 0 0 2px #ef6c00 inset;color:#ef6c00;font-weight:800}.gmods button.rel.on{color:#fff}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v157"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
