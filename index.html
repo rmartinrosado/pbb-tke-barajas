@@ -3205,11 +3205,11 @@ function bqIn(v){bqOT=v;bqAplica()}
 function bqBorra(){bqOT="";const e=$("#bq");if(e){e.value="";e.focus()}bqAplica()}
 (function(){const o=vTrack;vTrack=function(){const r=o.apply(this,arguments);const c=document.querySelector("#app .card");if(!c||$("#bq"))return r;
  const h=c.querySelector("h3");const w=document.createElement("div");w.className="bqw";
- w.innerHTML=`<div class="bqbox"><span class="bqlupa">🔍</span><input id="bq" type="search" inputmode="numeric" autocomplete="off" enterkeyhint="search" placeholder="Nº de orden o posición (ej. 600500 · 528)" value="${esc(bqOT)}" oninput="bqIn(this.value)" onkeydown="if(event.key=='Enter')this.blur()"><button type="button" id="bq_x" class="bqx" aria-label="Borrar búsqueda" onclick="bqBorra()">✕</button></div><div id="bq_res" class="mu bqres"></div>`;
+ w.innerHTML=`<div class="bqbox"><span class="bqlupa">🔍</span><input id="bq" type="search" inputmode="numeric" autocomplete="off" enterkeyhint="search" placeholder="Nº orden o PBB (ej. 600500 · 528)" value="${esc(bqOT)}" oninput="bqIn(this.value)" onkeydown="if(event.key=='Enter')this.blur()"><button type="button" id="bq_x" class="bqx" aria-label="Borrar búsqueda" onclick="bqBorra()">✕</button></div><div id="bq_res" class="mu bqres"></div>`;
  if(h)h.insertAdjacentElement("afterend",w);else c.prepend(w);setTimeout(bqAplica,0);return r}})();
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);if(view=="track")setTimeout(bqAplica,0);return r}})();
 (function(){const st=document.createElement("style");st.textContent=`.bqw{margin:8px 0 4px}.bqbox{display:flex;align-items:center;gap:6px;border:2px solid var(--pr);border-radius:12px;padding:2px 6px 2px 10px;background:var(--card)}
-.bqbox input{flex:1;min-width:0;border:0!important;background:transparent!important;font-size:18px;font-weight:600;padding:10px 4px;outline:none;box-shadow:none!important}.bqbox input::-webkit-search-cancel-button{display:none}
+.bqbox input{flex:1;min-width:0;border:0!important;background:transparent!important;font-size:18px;font-weight:600;padding:10px 4px;outline:none;box-shadow:none!important}.bqbox input::-webkit-search-cancel-button{display:none}.bqbox input::placeholder{font-size:13.5px;font-weight:600;letter-spacing:-.1px}
 .bqlupa{font-size:18px}.bqx{width:auto!important;margin:0!important;padding:6px 10px!important;border:0!important;background:transparent!important;color:var(--mu)!important;font-size:18px;visibility:hidden}.bqres{font-size:12px;margin-top:4px;min-height:14px}`;document.head.appendChild(st)})();
 </script>
 <script src="mantenimiento.js?v=58"></script><script src="importar-ot.js?v=44"></script>
@@ -4144,7 +4144,7 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 .ohc{display:flex;flex-direction:column;align-items:center;line-height:1.05}.ohc small{font-size:8px;font-weight:700;opacity:.8;letter-spacing:.3px}.ohc b{font-size:11.5px;font-weight:800;letter-spacing:-.2px}
 .ohv{color:#4ade80;background:#16a34a22}.ohv .ohc b{font-size:15px}.ohw{color:#facc15;background:#facc1522;animation:ctdp 1s infinite}
 .ohx{color:#f87171;background:#dc262622}.ohx .ohc b{font-size:15px}.ohy{color:#facc15;background:#facc151a}.ohr{color:#f87171;background:#dc26261a}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v171"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v172"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
