@@ -3943,7 +3943,37 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
  window.sinCambios=function(){const f=firma();if(f===ult)return true;return false}})();
 /* ===== v153: Inicio · el dedo de la tarjeta de OT baja hasta la línea «He llegado a la posición» ===== */
 (function(){const st=document.createElement("style");st.textContent=`.card>.otdedo{right:72px;bottom:2px;width:80px;height:60px}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v153"}})();
+/* ===== v154: SOS · campo «Observaciones» (lo detectado) con papelera y botón Aceptar que copia el texto y abre el proyecto PBB TKE en Claude
+   para un análisis minucioso cotejado con toda la documentación, paso a paso y con medidas ===== */
+(function(){const st=document.createElement("style");st.textContent=`.srobsw{position:relative}.srobsw textarea{padding-right:52px;min-height:96px}
+.srobdel{position:absolute;right:8px;top:8px;width:38px;height:38px;padding:0;margin:0;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid #e5534b;background:transparent;color:#e5534b}
+.srobdel svg{width:20px;height:20px}.srobok{margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}.srobok img{height:20px}`;document.head.appendChild(st);
+ const PAP=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>`;
+ const o=window.sosRap;if(typeof o!="function")return;
+ window.sosRap=function(){const r=o.apply(this,arguments);const b=[...document.querySelectorAll("#sheetc button.pri")].find(x=>/primera actuaci/i.test(x.textContent));
+  if(b&&!document.getElementById("sr_ob"))b.insertAdjacentHTML("beforebegin",`<label for="sr_ob">Observaciones (lo que detectas en campo)</label>
+<div class="srobsw"><textarea id="sr_ob" rows="4" placeholder="Ej. La PBB no baja; la Magelis indica protección seguridades 2; el LED del módulo… está apagado; medido 0 V en…"></textarea>
+<button type="button" class="srobdel" aria-label="Borrar lo escrito" title="Borrar lo escrito" onclick="sosObLimpia()">${PAP}</button></div>
+<button type="button" class="sec srobok" onclick="sosObClaude()"><img src="claude-logo.png" alt="">Aceptar · analizar con Claude</button>`);
+  return r};
+ window.sosObLimpia=function(){const t=document.getElementById("sr_ob");if(!t)return;t.value="";t.focus()};
+ window.sosObClaude=function(){const t=document.getElementById("sr_ob"),ob=(t&&t.value.trim())||"";
+  if(!ob){msg("Escribe en Observaciones lo que has detectado");if(t)t.focus();return}
+  const pos=(($("#sr_p")||{}).value||"").trim(),sa=$("#sr_a"),al=sa&&sa.value?sa.options[sa.selectedIndex].text:"",am=(($("#sr_t")||{}).value||"").trim();
+  const ot=(typeof inc!="undefined"&&Array.isArray(inc)&&pos)?inc.find(x=>String(x.pos)==pos&&x.estado=="abierta"):null;
+  const pr=`Contexto: pasarela de embarque PBB ${pos||"(sin indicar)"} del Aeropuerto de Madrid Barajas (TK Elevator). Actuación directa SOS.
+${ot?`OT abierta: tipo ${ot.tipo||"-"} · Nº de orden CGA ${ot.orden||"-"} · descripción: ${ot.desc||"(sin descripción)"}\n`:""}Alarma activada en la Magelis: ${al||"(no elegida)"}${am?`\nAlarma escrita a mano: ${am}`:""}
+Observaciones del técnico (lo detectado en campo):
+${ob}
+
+Analiza minuciosamente lo detectado y cotéjalo con TODA la documentación del proyecto PBB TKE (planos eléctricos e hidráulicos, PLC, guía de averías, procedimientos y casos anteriores). Quiero instrucciones de campo de nivel profesional para localizar la avería:
+1. Empieza con «Primera actuación en campo» (seguridad y pasos inmediatos, numerados y breves).
+2. Diagnóstico paso a paso: en cada paso indica el elemento y su referencia en plano (folio, borne, módulo PLC, entrada/salida, LED), la medida a tomar (magnitud, puntos de medida y valor esperado) y qué hacer según el resultado (si es correcto → siguiente paso; si no → causa probable y actuación).
+3. Medida a medida, con las comprobaciones de cada una, hasta acotar la avería.
+4. Termina con la reparación propuesta y la comprobación final de funcionamiento.
+Si algo no se puede confirmar con la documentación, dilo y pide el dato o la medida que falta.`;
+  abreClaude(pr)}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v154"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
