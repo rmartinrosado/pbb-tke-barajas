@@ -13,7 +13,8 @@
   1. Reconoce las OT del láser de ala por la descripción: radar, láser / lazar, «ala» (palabra suelta: «alarma» no cuenta),
      «parada por detección de ala». Si «láser» va con extensión, retracción, telescópico, medida o elongación, la OT sigue
      siendo de medida analógica (láser de extensión ET-B9) y no se toca.
-  2. En esas OT la guía abre como «Actuación más eficaz» el procedimiento del láser detector de ala, con botones al documento
+  2. Al detectar ala la PAS se para con ese aviso: la actuación más eficaz es salir con traslación a zona segura.
+     En esas OT la guía abre como «Actuación más eficaz» el procedimiento del láser detector de ala, con botones al documento
      Laser_detector_de_ala (pág. 1 conexionado, pág. 2 folio 88) y al folio 88 del plano de la posición.
   3. Se quitan de esas OT el puente provisional de medida analógica (AIN02) y la caja de medidas analógicas, que salían por la
      palabra «láser». ===== */
@@ -34,20 +35,22 @@ try{ANA_SIN.push(["radar","lazar","laser","ala","alas"]);ANA_VOC=null;ANA_C={k:"
 
 /* ---------- procedimiento de la guía de campo ---------- */
 const PROC={t:"Radar de ala · láser detector de ala (cabina, zona derecha) · parada por detección de ala",
- a:"El láser de ala evita que la cabina golpee el ala del avión. Si se anula su paro, la maniobra se hace en MANUAL, a velocidad lenta y con un compañero vigilando el ala.",
+ a:"Cuando el láser detecta ala, la PAS se para con ese aviso. Lo primero es SALIR CON TRASLACIÓN A ZONA SEGURA, alejando la cabina del ala, con un compañero vigilando el ala.",
  p:[
-"QUÉ HAY: módulo láser en la CABINA, ZONA DERECHA, con un cabezal láser unido por bus CAN. El módulo da dos salidas digitales al PLC del pupitre: SALIDA 1 «Out Stop» → P-A6 borna 8.1 (PARO) y SALIDA 3 «Out low speed» → P-A6 borna 7.1 (VELOCIDAD LENTA). En el plano rev. J esas dos entradas figuran como RESERVA (folio 88, anotadas a mano).",
+"QUÉ HAY: módulo láser en la CABINA, ZONA DERECHA, con un cabezal láser unido por bus CAN. Al detectar ala, la PAS se PARA y da el aviso de detección de ala. El módulo da dos salidas digitales al PLC del pupitre: SALIDA 1 «Out Stop» → P-A6 borna 8.1 (PARO) y SALIDA 3 «Out low speed» → P-A6 borna 7.1 (VELOCIDAD LENTA). En el plano rev. J esas dos entradas figuran como RESERVA (folio 88, anotadas a mano).",
 "QUÉ HAY · CONEXIONADO DEL MÓDULO (Laser_detector_de_ala pág. 1): POWER V- = 0 V y V+ = +24 V · CAN BUS: + rojo, H blanco, L azul, − negro hacia el cabezal · DIGITAL OUT: borna común (la primera, sin número) unida con cable negro al conector POWER, salida 1 = paro, salida 3 = lenta. Las salidas 2 y 4 y la regleta DIGITAL IN no se usan.",
-"QUÉ HAY · LED EN EL PLC: P-A6 módulo 4, LED 1 = lenta (7.1) · LED 2 = paro (8.1). Con el láser sin ala delante deben estar en su estado normal; al detectar ala se activa primero LENTA y después PARO.",
-"PRIORIDAD 1 · Mirar la zona: confirmar que de verdad no hay ala, carro, escalera ni otro obstáculo delante del cabezal. Limpiar la ventana del cabezal láser (polvo, agua, hielo, insectos) y comprobar que no está girado ni golpeado: un cabezal desorientado «ve» el suelo o la propia PBB y para la maniobra.",
-"PRIORIDAD 1 · Paso 2 · Leer el LED de P-A6 módulo 4 sin ala delante: si LED 2 (paro, 8.1) o LED 1 (lenta, 7.1) cambian al tapar y destapar el cabezal con la mano, el láser funciona y la causa es la zona o la orientación. Si se quedan fijos en paro, seguir con el módulo.",
-"Paso 3 · Módulo en cabina zona derecha: medir 24 Vdc entre V+ y V- del conector POWER. Sin tensión → revisar su alimentación de 24 V del pupitre (P-Q30.3 alimenta P-A6) y el conector POWER.",
-"Paso 4 · Bus CAN al cabezal: conector bien apretado, cables + rojo / H blanco / L azul / − negro sin cortes ni bornas flojas. Con alimentación y sin comunicación con el cabezal, el módulo deja la salida de paro activada.",
-"Paso 5 · Señales al PLC: medir en el módulo la salida 1 (paro) y la salida 3 (lenta) respecto al común y comprobar que llegan a P-A6 8.1 y 7.1 (folio 88). Si el módulo cambia la salida y el LED del PLC no, buscar el corte en el hilo entre el módulo y P-A6.",
-"PRIMERA ACTUACIÓN EN CAMPO (solo para retirar o acercar la PBB con el láser averiado): con la PBB en MANUAL, autorización del Responsable de Turno y un compañero vigilando el ala, anular el paro del láser en P-A6 8.1: si el LED 2 está ENCENDIDO mientras para, soltar el hilo de la salida 1 en el módulo (o en 8.1) y aislarlo; si está APAGADO mientras para, puentear +24 V a la borna 8.1. Anotarlo en la OT y quitarlo al terminar.",
-"Reposición: cabezal limpio y orientado, comprobar que al acercar la mano (o con el ala en la aproximación) entra primero LENTA y luego PARO, y retirar cualquier puente provisional."],
- g:[88,0,88,0,88,0,0,88,88,88],
- lz:[2,1,2,0,2,1,1,2,2,0],
+"QUÉ HAY · LED EN EL PLC: P-A6 módulo 4, LED 1 = lenta (7.1) · LED 2 = paro (8.1). Al acercarse al ala entra primero LENTA y después PARO.",
+"PRIORIDAD 1 · ACTUACIÓN MÁS EFICAZ: con la PAS parada por el aviso de detección de ala, SALIR CON TRASLACIÓN A ZONA SEGURA, alejando la cabina del ala, hasta que el láser deje de ver el ala y desaparezca el aviso. Selector en MANUAL y un compañero vigilando el ala.",
+"PRIORIDAD 1 · Paso 2 · Ya en zona segura, comprobar si había ala u obstáculo real delante del cabezal. Si lo había, la parada es correcta: volver a aproximar despacio, por otra trayectoria, sin acercar la cabina al ala.",
+"Paso 3 · Si no había nada delante (falsa detección): limpiar la ventana del cabezal láser (polvo, agua, hielo, insectos) y comprobar que no está girado ni golpeado. Un cabezal desorientado «ve» el suelo o la propia PBB y para la maniobra.",
+"Paso 4 · Tapar y destapar el cabezal con la mano y mirar P-A6 módulo 4: si cambian LED 1 (lenta) y LED 2 (paro), el láser funciona. Si se quedan fijos en paro sin nada delante, seguir con el módulo.",
+"Paso 5 · Módulo en cabina zona derecha: medir 24 Vdc entre V+ y V- del conector POWER. Sin tensión → revisar su alimentación de 24 V del pupitre (P-Q30.3 alimenta P-A6) y el conector POWER.",
+"Paso 6 · Bus CAN al cabezal: conector bien apretado, cables + rojo / H blanco / L azul / − negro sin cortes ni bornas flojas. Sin comunicación con el cabezal, el módulo deja el paro activado.",
+"Paso 7 · Señales al PLC: medir en el módulo la salida 1 (paro) y la salida 3 (lenta) respecto al común y comprobar que llegan a P-A6 8.1 y 7.1 (folio 88). Si el módulo cambia la salida y el LED del PLC no, buscar el corte en el hilo entre el módulo y P-A6.",
+"Solo si el paro queda fijo sin ala delante y no deja salir con traslación: puente provisional en P-A6 8.1 para llevar la PBB a zona segura (MANUAL, autorización del Responsable de Turno, compañero vigilando). Si el LED 2 está ENCENDIDO mientras para, soltar el hilo de la salida 1 en el módulo (o en 8.1) y aislarlo; si está APAGADO, puentear +24 V a 8.1. Anotarlo en la OT y quitarlo al terminar.",
+"Reposición: cabezal limpio y orientado; comprobar que al acercar la mano entra primero LENTA y luego PARO, que la PAS se para con el aviso y que se puede salir con traslación. Retirar cualquier puente provisional."],
+ g:[88,0,88,0,0,0,88,0,0,88,88,88],
+ lz:[2,1,2,0,0,1,2,1,1,2,2,0],
  r:"Laser_detector_de_ala (pág. 1 módulo, pág. 2 folio 88) · ESQUEMA GENERAL rev. J folio 88 (P-A6)"};
 const IX=PAS.s.push(PROC)-1;
 window.LASER_ALA_IX=IX;
