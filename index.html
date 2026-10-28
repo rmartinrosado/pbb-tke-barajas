@@ -3881,4 +3881,31 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
 /* v122: guía de campo · «Inductivos de traslación · almena (giro de ruedas)»: elementos, cableado folio 61, ajuste 1-4 mm y croquis */
 /* v121: en la guía y la simulación del brazo, «target» pasa a «leva» y se indica el ajuste inductivo–leva 1 mm < distancia < 4 mm */
 </script>
+<script>
+/* ===== v143: en Inicio, indicador dibujado a mano (flecha curva + silueta de dedo, trazo fino y semitransparente)
+ sobre la tarjeta de OT con caja amarilla (llegada) y caja verde (OT registrada con inicio): «pulsa aquí» → Seguimiento OT ===== */
+(function(){const st=document.createElement("style");st.textContent=`.card[data-hoid]{position:relative}
+.otdedo{position:absolute;right:64px;bottom:4px;width:100px;height:75px;pointer-events:none;opacity:.62;z-index:2}
+.otdedo path,.otdedo line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.otdedo .otfl{stroke-dasharray:130;stroke-dashoffset:130;animation:otfl 2.6s ease-in-out infinite}
+.otdedo .otmano{transform-origin:70px 60px;animation:ottap 2.6s ease-in-out infinite}
+.otdedo .otray{opacity:0;animation:otray 2.6s ease-in-out infinite}
+.card.otlle .otdedo{color:#b98a00}.card.otini .otdedo{color:#15803d}
+@keyframes otfl{0%{stroke-dashoffset:130}45%,100%{stroke-dashoffset:0}}
+@keyframes ottap{0%,50%,100%{transform:translate(0,0) rotate(-28deg)}62%{transform:translate(-4px,-5px) rotate(-28deg) scale(.96)}74%{transform:translate(0,0) rotate(-28deg)}}
+@keyframes otray{0%,58%{opacity:0}66%{opacity:1}82%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.otdedo *{animation:none!important;stroke-dashoffset:0!important}.otdedo .otray{opacity:.8}}`;document.head.appendChild(st)})();
+(function(){
+ const svg=`<svg class="otdedo" viewBox="0 0 120 90" aria-hidden="true"><defs><filter id="otwob"><feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter></defs>
+<g filter="url(#otwob)">
+<path class="otfl" d="M112 34 C110 12 78 2 52 10 C40 14 30 22 24 32"/>
+<path class="otfl" d="M24 32 L25 21 M24 32 L34 29"/>
+<g class="otmano"><path d="M66 70 L66 30 Q66 22 71 22 Q76 22 76 30 L76 52 Q76 46 81 46 Q86 46 86 53 L86 55 Q86 49 91 49 Q96 49 96 56 L96 58 Q96 53 100 53 Q104 53 104 60 L104 74 Q104 90 88 90 L78 90 Q68 90 62 81 L54 69 Q51 63 56 61 Q60 60 64 65"/>
+<path d="M68 27 Q71 25 74 27" style="stroke-width:1"/>
+<line class="otray" x1="62" y1="16" x2="58" y2="11"/><line class="otray" x1="71" y1="13" x2="71" y2="7"/><line class="otray" x1="80" y1="16" x2="84" y2="11"/></g>
+</g></svg>`;
+ const o=card;card=function(i){const h=o(i);if(view!="dash"||i.estado!="abierta"||!(i.hLle||i.hIni))return h;
+  return h.replace(/(<div[^>]*class="card[^"]*"[^>]*>)/,"$1"+svg)}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v143"}})();
+</script>
 </body></html>
