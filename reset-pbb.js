@@ -1,6 +1,6 @@
 /* ===== v140: RESET DE PASARELA como 1ª opción rápida =====
  Avisos de ZAPATA ACTIVADA, FALLO DE AUTONIVELACIÓN y SENSORES NEUTRALES: antes que nada, reset de la pasarela:
-   selector en ON · mantener 5 s en ON · pasar el selector a REMOTO.
+   selector en ON · mantener 5 s en ON · pasar el selector a REMOTO · Magelis «PBB remoto activado» (v142).
  Se muestra:
    · Guía de campo: caja roja «1ª OPCIÓN RÁPIDA · RESET DE PASARELA» en la primera línea (también en modo SOS).
      En las OT de zapata, el reset va dentro de la caja roja de primera actuación (antes del puente), sin duplicar.
@@ -17,9 +17,9 @@ const txt=i=>nrm([i&&i.desc,i&&i.def,i&&i.com,i&&i.obs].filter(Boolean).join(" "
 const aplica=i=>!!i&&i.estado=="abierta"&&(!i.tipo||i.tipo=="PAS"||(i.equipos||[]).includes("PAS"))&&RE.test(txt(i));
 const que=i=>{const t=txt(i),a=[];if(/zapata/.test(t))a.push("zapata activada");if(/autonivel|auto[- ]?nivel|nivelacion/.test(t)){const sb=/\bsub(ir|e|ida)\b/.test(t),bj=/\bbaj(ar|a|ada)\b/.test(t);a.push("fallo de autonivelación"+(sb&&bj?" subir / bajar":sb?" subir":bj?" bajar":""))}if(/neutral/.test(t))a.push("sensores neutrales");return a.join(" / ")};
 window.resetAplica=aplica;
-const PASO="1ª OPCIÓN RÁPIDA · RESET DE PASARELA (también en fallo de autonivelación al subir o al bajar, que depende del fuselaje del avión y de la posición neutral en ese atraque): selector de la pasarela en ON, mantener 5 segundos en ON y pasar el selector a REMOTO. Si la alarma desaparece y la PBB responde, comprobar maniobra y cerrar; si vuelve, seguir con los pasos siguientes.";
+const PASO="1ª OPCIÓN RÁPIDA · RESET DE PASARELA (también en fallo de autonivelación al subir o al bajar, que depende del fuselaje del avión y de la posición neutral en ese atraque): selector de la pasarela en ON, mantener 5 segundos en ON y pasar el selector a REMOTO; comprobar en la Magelis «PBB remoto activado». Si la alarma desaparece y la PBB responde, comprobar maniobra y cerrar; si vuelve, seguir con los pasos siguientes.";
 const NOTA="Fallo de autonivelación (al subir o al bajar): la alarma depende del fuselaje del avión y de la posición neutral del brazo en ese atraque. Por eso, lo primero es el reset de la pasarela.";
-function cuerpo(i){return `${i&&/autonivel|auto[- ]?nivel|nivelacion|neutral/.test(txt(i))?`<div class="mu" style="font-size:12.5px;margin-bottom:4px">${es(NOTA)}</div>`:""}<div class="puit rstp"><div class="puac">1. Selector de la pasarela en <b>ON</b>.</div><div class="puac">2. Mantener <b>5 segundos</b> en ON.</div><div class="puac">3. Pasar el selector a <b>REMOTO</b>.</div></div>
+function cuerpo(i){return `${i&&/autonivel|auto[- ]?nivel|nivelacion|neutral/.test(txt(i))?`<div class="mu" style="font-size:12.5px;margin-bottom:4px">${es(NOTA)}</div>`:""}<div class="puit rstp"><div class="puac">1. Selector de la pasarela en <b>ON</b>.</div><div class="puac">2. Mantener <b>5 segundos</b> en ON.</div><div class="puac">3. Pasar el selector a <b>REMOTO</b>.</div><div class="puac">4. Comprobar en la Magelis «<b>PBB remoto activado</b>».</div></div>
  <div class="mu" style="font-size:12.5px">Si la alarma desaparece y la PBB responde, comprobar la maniobra y cerrar la OT. Si vuelve a salir, seguir con la primera actuación y la actuación más eficaz.</div>`}
 window.resetHTML=function(i){return `<div class="pucab">⚡ 1ª OPCIÓN RÁPIDA · RESET DE PASARELA${que(i)?" · "+es(que(i)):""}</div>${cuerpo(i)}`};
 
