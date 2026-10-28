@@ -128,6 +128,20 @@ function casos(i){if(!i)return [];const t=txt(i);if(OTRO.test(t)&&!ELEV.test(t))
  return PROCS.filter(p=>p.k(t)).map(p=>p.id)}
 window.hidrCasos=casos;
 
+/* ---------- v132: componente que acota la avería (parpadea en el esquema y en la actuación) ----------
+ Primero lo que nombra la descripción de la OT; si no nombra ninguno, el de la avería detectada. */
+const FOCO_TXT=[[/limitador|presion|\bbar\b|tarad|manometr/,"3"],[/grifo|pilotaje/,"11"],[/filtro/,"2"],[/bomba manual|toma 12/,"12"],
+ [/h-?y1\b|valvula (de )?subida/,"4"],[/h-?y2\b/,"5.2"],[/h-?y3\b/,"5.1"],[/h-?y4\b/,"21.1"],[/h-?y5\b/,"21.2"],
+ [/(bajada|baja|bajar|desciende|descenso)[^.]{0,15}rapid|rapid[^.]{0,12}(bajada|descenso)/,"5.1"],
+ [/nivel de aceite|falta (de )?aceite/,"13"],[/baja sola|no mantiene|pierde (altura|posicion)|inclinacion anomala|fuga/,"20.1"],
+ [/\bbomba\b|e-?q3\b|h-?m1\b|motor/,"17"]];
+const FOCO_CASO={sub:"3",baj:"11",rap:"5.1",man:"12",bom:"17",sola:"20.1",aju:"9"};
+const FOCO_PASO={"3":/limitadora/,"4":/h-y1|valvula 4\b/,"5.2":/h-y2|\b5\.2\b/,"5.1":/h-y3|\b5\.1\b/,"21.1":/h-y4|\b21\.1\b|retenciones? (electrica|21)/,"21.2":/h-y5|\b21\.2\b|retenciones? (electrica|21)/,
+ "20.1":/\b20\.1\b|retencion(es)? (pilotada|20)/,"11":/grifo/,"12":/toma 12|bomba manual/,"2":/filtro/,"13":/visor 14|nivel/,"17":/e-q3|h-m1|bomba|motor/,"9":/\b9\.[12]\b|manometro/};
+window.hidrFoco=function(i){if(!i)return null;const c=casos(i);if(!c.length)return null;const t=txt(i);
+ const r=FOCO_TXT.find(([re])=>re.test(t));return r?r[1]:(FOCO_CASO[c[0]]||null)};
+function focoOT(){try{if(typeof view!="undefined"&&view!="tec")return null;const i=inc.find(x=>x.id==gOT);return i&&i.estado=="abierta"?hidrFoco(i):null}catch(e){return null}}
+
 /* ---------- análisis de la OT ---------- */
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r._hid)return r;r._hid=1;if(r.tipo&&r.tipo!="PAS")return r;
  const c=casos(i);r.guia=(r.guia||[]).filter(g=>!esH(g.si));
@@ -204,6 +218,8 @@ function pintaEl(el,k){const E=EL[k];if(!E)return;el.querySelectorAll(".hk").for
  inf.innerHTML=`<b>${es(E.n)}</b><div>${es(E.f)}</div>${E.e?`<div class="he">⚡ ${es(E.e)}</div>`:""}<div class="hm">🔎 ${es(E.m)}</div>
  <div class="hbb">${E.pg?`<button class="sec" onclick="event.preventDefault();event.stopPropagation();gHidrPdf(${E.pg})">📄 Descripción técnica · pág. ${E.pg-1}</button>`:""}${E.f2?`<button class="sec" onclick="event.preventDefault();event.stopPropagation();gPlano('PAS',${E.f2})">📐 Plano eléctrico · folio ${E.f2}</button>`:""}</div>`}
 function init(el){if(el.dataset.ok)return;el.dataset.ok=1;const m=(el.dataset.sim.split("_")[1])||"rep";el.innerHTML=htmlHidr(m);const s=el.querySelector(".hsim");pintaMan(s,m);
+ const fk=focoOT();if(fk&&EL[fk]){const g=s.querySelector(`.hk[data-k="${fk}"]`);if(g){g.classList.add("foc");pintaEl(s,fk);
+  s.querySelector(".hinf").insertAdjacentHTML("afterbegin",`<div class="hfocb">🎯 Avería acotada en: <b>${es(EL[fk].n)}</b></div>`)}}
  s.addEventListener("click",e=>{e.stopPropagation();const b=e.target.closest("button[data-man]");if(b){e.preventDefault();pintaMan(s,b.dataset.man);return}
   const g=e.target.closest(".hk");if(g){e.preventDefault();pintaEl(s,g.dataset.k)}});
  s.addEventListener("keydown",e=>{const g=e.target.closest&&e.target.closest(".hk");if(g&&(e.key=="Enter"||e.key==" ")){e.preventDefault();pintaEl(s,g.dataset.k)}})}
@@ -221,6 +237,11 @@ window.hidrSimHTML=m=>`<div class="gsim" data-sim="hidr_${m||"rep"}"></div>`;
 .hsim .hk.on rect{fill:color-mix(in srgb,#e53935 16%,var(--card));stroke:#e53935}
 .hsim .hk.co rect{stroke:var(--ac);stroke-width:3}.hsim .hk.co .hk1{fill:var(--ac)}
 .hsim .hk.ce rect{fill:color-mix(in srgb,#1e88e5 22%,var(--card));stroke:#1e88e5;stroke-width:3}
+.hsim .hk.foc rect{animation:hfoc 2s ease-in-out infinite}
+@keyframes hfoc{0%,100%{stroke:#ef6c00;stroke-width:4;fill:color-mix(in srgb,#ef6c00 30%,var(--card))}50%{stroke:#ef6c00;stroke-width:1.2;fill:var(--card)}}
+.hsim .hfocb{font-size:12.5px;color:#ef6c00;margin-bottom:4px}
+#app .gpaso.hfoco,#app .gelit.hfoco{border-radius:8px;animation:hfocp 2s ease-in-out infinite}
+@keyframes hfocp{0%,100%{box-shadow:0 0 0 2px #ef6c00;background:color-mix(in srgb,#ef6c00 14%,transparent)}50%{box-shadow:0 0 0 0 #ef6c0000;background:transparent}}
 .hsim .hk.sel rect{stroke:var(--pr);stroke-width:3.2}.hsim .hk:focus-visible rect{stroke:var(--pr);stroke-width:3.2}
 .hsim .hbt{display:flex;flex-wrap:wrap;gap:5px}.hsim .hbt button{font:inherit;font-size:12px;padding:5px 9px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:auto;margin:0}
 .hsim .hbt button.on{background:var(--pr);border-color:var(--pr);color:#fff}
@@ -244,7 +265,8 @@ const PRIM={
  rap:["Bajada rápida","La bajada normal sigue funcionando: la PBB puede seguir en servicio y se anota la bajada rápida en la OT.","Medir con la orden H-Y3 24 V y H-Y4 / H-Y5 12 V (E-A7 mód. 1 LED 1 y 2)."]};
 window.hidrOT=function(i){if(!i||i.estado!="abierta")return null;if(typeof otEsPAS=="function"&&!otEsPAS(i))return null;const c=casos(i).filter(k=>PRIM[k]);return c.length?c[0]:null};
 window.hidrHTML=function(i,k){const P=PRIM[k];if(!P)return "";const pr=IX[k]!=null?IX[k]:IX.sub;
- return `<div class="pucab">🛢️ PRIMERA ACTUACIÓN EN CAMPO · hidráulica · ${es(P[0])}</div>
+ const fk=hidrFoco(i),fe=fk&&EL[fk];
+ return `<div class="pucab">🛢️ PRIMERA ACTUACIÓN EN CAMPO · hidráulica · ${es(P[0])}</div>${fe?`<div class="hfocb" style="font-size:13px;color:#ef6c00;margin:4px 0">🎯 Avería acotada en: <b>${es(fe.n)}</b></div>`:""}
  <div class="puit"><div class="puac">1. ${es(P[1])}</div><div class="puac">2. ${es(P[2])}</div></div>
  <div class="gnp" style="margin-top:6px">⛔ En la hidráulica no se puentea nada: las retenciones de los cilindros son las que sujetan la pasarela.</div>
  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="sec" style="flex:1;width:auto" onclick="hidrVa(${pr})">Ver la actuación completa</button><button class="sec" style="flex:1;width:auto" onclick="gHidrPdf(${PG.esquema})">📄 Esquema hidráulico</button></div>`};
@@ -262,6 +284,8 @@ function pinta(){if(gTipo!="PAS")return;const info=typeof gEsInfo=="function"?gE
   const pon=(el,pi)=>{const pg=o.h[pi];if(!el||!pg||el.querySelector(".ghz"))return;
    el.insertAdjacentHTML("beforeend",`<button class="gpl ghz" aria-label="Ver la descripción técnica hidráulica, página ${pg-1}" onclick="event.preventDefault();event.stopPropagation();gHidrPdf(${pg})">📄<small>H${pg-1}</small></button>`)};
   const ga=d.querySelectorAll(".gst>.gpaso"),gi=d.querySelectorAll(".gelit");acc.forEach((pi,k)=>pon(ga[k],pi));inf.forEach((pi,k)=>pon(gi[k],pi));
+  const fk=focoOT(),fr=fk&&FOCO_PASO[fk];d.querySelectorAll(".hfoco").forEach(x=>x.classList.remove("hfoco"));
+  if(fr&&hidrCasos(inc.find(x=>x.id==gOT)).includes(o.id)){acc.forEach((pi,k)=>{if(ga[k]&&fr.test(n_(o.p[pi])))ga[k].classList.add("hfoco")});inf.forEach((pi,k)=>{if(gi[k]&&fr.test(n_(o.p[pi])))gi[k].classList.add("hfoco")})}
   if(!d.querySelector(".ghzb")){const mu=[...d.querySelectorAll(".mu")].find(x=>/^Planos:/.test(x.textContent.trim()));
    const h=`<div class="ghzb" style="display:flex;gap:6px;margin:6px 0"><button class="sec" style="flex:1" onclick="gHidrPdf(${PG.esquema})">📄 Esquema hidráulico (pág. 20)</button><button class="sec" style="flex:1" onclick="gHidrPdf(${PG.fallos})">📄 Fallos y solución (pág. 17)</button></div>`;
    if(mu)mu.insertAdjacentHTML("afterend",h);else d.insertAdjacentHTML("beforeend",h)}})}
