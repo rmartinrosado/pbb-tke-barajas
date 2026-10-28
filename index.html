@@ -4117,7 +4117,24 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
  document.addEventListener("touchmove",e=>{if(e.touches.length>1||(e.scale!==undefined&&e.scale!==1))e.preventDefault()},{passive:false});
  let ult=0;document.addEventListener("touchend",e=>{const t=Date.now();if(t-ult<300&&e.touches.length==0&&!e.target.closest("input,textarea,select,[contenteditable]"))e.preventDefault();ult=t},{passive:false});
  document.addEventListener("wheel",e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v169"}})();
+/* ===== v170: Seguimiento OT · en la primera línea de la tarjeta, entre el tipo y el estado:
+   verde (sin llegada) → cuenta atrás de llegada · amarilla (con llegada) → horas de inicio y llegada · roja (cerrada) → inicio, llegada y cierre ===== */
+(function(){
+ const txt=i=>{if(i.estado=="abierta"&&!i.hLle){if(!i.hIni||llegFin(i)==null)return"";const r=Math.round((llegFin(i)-Date.now())/1000),a=Math.abs(r),mm=Math.floor(a/60),ss=String(a%60).padStart(2,"0");
+   return r>=0?`<span class="ohv${r<=60?" ohw":""}">⏱ ${mm}:${ss}</span>`:`<span class="ohx">⚠ +${mm}:${ss}</span>`}
+  const h=(l,v)=>`<span class="ohh"><small>${l}</small>${esc(v||"–")}</span>`;
+  return i.estado=="abierta"?`<span class="ohy">${h("I",i.hIni)}${h("L",i.hLle)}</span>`:`<span class="ohr">${h("I",i.hIni)}${h("L",i.hLle)}${h("C",i.hCie)}</span>`};
+ const o=card;card=function(i){const h=o.apply(this,arguments);if(view!="track"||!i)return h;
+  return h.replace("</span></b>",`</span></b><span class="ohm" data-ohm="${i.id}">${txt(i)}</span>`)};
+ setInterval(()=>{if(typeof view=="undefined"||view!="track"||!Array.isArray(inc))return;
+  document.querySelectorAll("[data-ohm]").forEach(el=>{const i=inc.find(x=>x.id==el.dataset.ohm);if(!i)return;const t=txt(i);if(el.innerHTML!==t)el.innerHTML=t})},1000);
+ const st=document.createElement("style");st.textContent=`.ot .ohd{flex-wrap:nowrap;gap:6px}.ot .ohd>b{white-space:nowrap}
+.ohm{flex:1;display:flex;justify-content:center;min-width:0;font-variant-numeric:tabular-nums}
+.ohv,.ohx{font-weight:800;font-size:15px;padding:3px 8px;border-radius:8px;white-space:nowrap}
+.ohv{color:#4ade80;background:#16a34a22}.ohw{color:#facc15;background:#facc1522;animation:ctdp 1s infinite}.ohx{color:#f87171;background:#dc262622}
+.ohy,.ohr{display:flex;flex-wrap:wrap;justify-content:center;column-gap:6px;row-gap:0;font-size:12px;font-weight:700;line-height:1.35}.ohh{white-space:nowrap}.ohy{color:#facc15}.ohr{color:#f87171}
+.ohh small{font-size:10px;opacity:.75;margin-right:2px;font-weight:600}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v170"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
