@@ -3860,7 +3860,7 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
  if(e.target.closest("button,a,input,select,textarea,label,summary,details,img,[onclick]"))return;abrirSegOT(c.dataset.hoid)});
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v119"}})();
 /* v120: el botón Inicio de la tira vuelve a mostrar Inicio después de abrir un SOS (arreglo en sos.js) */
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v146"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v147"}})();
 /* v130: instalación hidráulica (descripción técnica TKAS): cajas de avería en la guía, esquema hidráulico interactivo, lectura de OT, primera actuación sin puentes (también en SOS), ajustes y erratas en comprobaciones por sistema, tareas en Mantenimiento (ver hidraulica.js) */
 /* v131: guía de campo · «no sube» con actuación más eficaz por lectura de manómetro en 9.1 (0 bar → H-Y1; < 145 bar → nivel, aire, giro, bomba; 145 bar → no subir presión) y ajuste de la limitadora 3 solo si no da 145 ± 5 bar (ver hidraulica.js) */
 /* v132: hidráulica · el componente que acota la avería según la descripción de la OT (p. ej. «no sube» → limitadora 3) parpadea cada 2 s en el esquema interactivo, en los pasos de la actuación que lo nombran y se indica en la caja roja (ver hidraulica.js, hidrFoco) */
@@ -3878,6 +3878,7 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
 /* v128: láser de ala · al detectar ala la PAS se para con ese aviso: actuación más eficaz = salir con traslación a zona segura */
 /* v127: láser detector de ala («radar de ala», cabina zona derecha): OT con radar / láser / ala / parada por detección de ala → guía y documento Laser_detector_de_ala (ver laser-ala.js) */
 /* v126: guía de campo · límite de traslación: la actuación más eficaz es el ajuste de los inductivos de final de giro izq. (H-B3) y dcha. (H-B4) */
+/* v147: guía de campo agrupada por sistema en desplegables (Hidráulica y elevación, Traslación, Seguridades, Cabina, Equipos de servicio, Auxiliares, PBB 507); ver guia-grupos.js */
 /* v146: arreglo · comilla doble sobrante en el texto del FC de traslación (la app no arrancaba) */
 /* v145: almena · 14° por pestaña confirmado en campo (13 pestañas = 182°, flanco 3,5°); se quitan los rótulos de valores de ejemplo */
 /* v144: FC de traslación confirmado en plano: E-A8 DIS05, IN05S 5.1 (hilo 625, E-X55:12) y UT1 5.2 (hilo 285, E-X55:13); medidas y puente IN05S–UT1 en la guía, simulación actualizada */
@@ -3913,11 +3914,12 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
 </g></svg>`;
  const o=card;card=function(i){const h=o(i);if(view!="dash"||i.estado!="abierta"||!(i.hLle||i.hIni))return h;
   return h.replace(/(<div[^>]*class="card[^"]*"[^>]*>)/,"$1"+svg)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v146"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v147"}})();
 </script>
 <script>
 /* ===== v145: sin fondo de pantalla (se quita la foto de pasarela de detrás de las cajas; la cabecera no cambia) ===== */
 (function(){const st=document.createElement("style");st.textContent="body::before,body::after{display:none!important;background:none!important;content:none!important}";document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v146"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v147"}})();
 </script>
+<script src="guia-grupos.js?v=1"></script>
 </body></html>
