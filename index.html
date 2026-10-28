@@ -3646,6 +3646,7 @@ const POS_PROPIO=["504","507","508"];
 <script src="laser-ala.js?v=3"></script>
 <script src="hidraulica.js?v=9"></script>
 <script src="analisis-filtro.js?v=1"></script>
+<script src="reset-pbb.js?v=1"></script>
 <script>
 /* ===== v101: PBB 507 (A380, plano propio T87911031230ES) y documentación nueva en la guía de campo: ver pbb507.js ===== */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v101"}})();
@@ -3856,7 +3857,7 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
  if(e.target.closest("button,a,input,select,textarea,label,summary,details,img,[onclick]"))return;abrirSegOT(c.dataset.hoid)});
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v119"}})();
 /* v120: el botón Inicio de la tira vuelve a mostrar Inicio después de abrir un SOS (arreglo en sos.js) */
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v139"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v140"}})();
 /* v130: instalación hidráulica (descripción técnica TKAS): cajas de avería en la guía, esquema hidráulico interactivo, lectura de OT, primera actuación sin puentes (también en SOS), ajustes y erratas en comprobaciones por sistema, tareas en Mantenimiento (ver hidraulica.js) */
 /* v131: guía de campo · «no sube» con actuación más eficaz por lectura de manómetro en 9.1 (0 bar → H-Y1; < 145 bar → nivel, aire, giro, bomba; 145 bar → no subir presión) y ajuste de la limitadora 3 solo si no da 145 ± 5 bar (ver hidraulica.js) */
 /* v132: hidráulica · el componente que acota la avería según la descripción de la OT (p. ej. «no sube» → limitadora 3) parpadea cada 2 s en el esquema interactivo, en los pasos de la actuación que lo nombran y se indica en la caja roja (ver hidraulica.js, hidrFoco) */
@@ -3867,6 +3868,7 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
 /* v137: OT hidráulica · el análisis solo muestra las señales PLC de la maniobra afectada y los elementos eléctricos de su cadena (fuera C-B52, C4-X64, P-W24 y demás sin relación) */
 /* v138: Análisis de la OT de todas las averías · solo señales y elementos relacionados con la avería que encabeza la guía (ver analisis-filtro.js) */
 /* v139: esquema hidráulico · los cinco botones de maniobra (Reposo, Subir, Bajar, Bajada rápida, Sin corriente) en una sola línea */
+/* v140: zapata activada, fallo de autonivelación y sensores neutrales → 1ª opción rápida RESET DE PASARELA (selector ON 5 s → REMOTO) en la guía, el análisis de la OT, la caja roja, SOS y la varita (ver reset-pbb.js) */
 /* v129: PLC · P-A6 módulo 4 (folio 88 rev. J): LED 1 = 7.1 láser lenta · LED 2 = 8.1 láser paro · 7.4 / 8.4 reserva; rutas del polímetro, pista y puente del paro; cableado rev. D de 7.1 («OK Retirada PBB») quitado */
 /* v128: láser de ala · al detectar ala la PAS se para con ese aviso: actuación más eficaz = salir con traslación a zona segura */
 /* v127: láser detector de ala («radar de ala», cabina zona derecha): OT con radar / láser / ala / parada por detección de ala → guía y documento Laser_detector_de_ala (ver laser-ala.js) */
