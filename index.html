@@ -3941,8 +3941,8 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
  const firma=()=>{try{return JSON.stringify(inc)+"|"+view+"|"+(typeof tecnico!="undefined"&&tecnico)+"|"+(typeof admin!="undefined"&&admin)+"|"+tur()}catch(e){return Math.random()+""}};
  const o=render;render=function(){const r=o.apply(this,arguments);ult=firma();return r};
  window.sinCambios=function(){const f=firma();if(f===ult)return true;return false}})();
-/* ===== v153: Inicio · el dedo de la tarjeta de OT baja hasta la línea «He llegado a la posición» ===== */
-(function(){const st=document.createElement("style");st.textContent=`.card>.otdedo{right:72px;bottom:2px;width:80px;height:60px}`;document.head.appendChild(st)})();
+/* ===== v153/v156: Inicio · sin dedo en las tarjetas de OT abiertas (el de Seguimiento OT junto al SOS se mantiene) ===== */
+(function(){const st=document.createElement("style");st.textContent=`.card>.otdedo{display:none!important}`;document.head.appendChild(st)})();
 /* ===== v154: SOS · campo «Observaciones» (lo detectado) con papelera y botón Aceptar que copia el texto y abre el proyecto PBB TKE en Claude
    para un análisis minucioso cotejado con toda la documentación, paso a paso y con medidas ===== */
 (function(){const st=document.createElement("style");st.textContent=`.srobsw{position:relative}.srobsw textarea{padding-right:52px;min-height:96px}
@@ -3973,7 +3973,7 @@ Analiza minuciosamente lo detectado y cotéjalo con TODA la documentación del p
 4. Termina con la reparación propuesta y la comprobación final de funcionamiento.
 Si algo no se puede confirmar con la documentación, dilo y pide el dato o la medida que falta.`;
   abreClaude(pr)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v155"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v156"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
