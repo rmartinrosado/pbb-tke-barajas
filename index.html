@@ -3860,7 +3860,7 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
  if(e.target.closest("button,a,input,select,textarea,label,summary,details,img,[onclick]"))return;abrirSegOT(c.dataset.hoid)});
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v119"}})();
 /* v120: el botón Inicio de la tira vuelve a mostrar Inicio después de abrir un SOS (arreglo en sos.js) */
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v149"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v150"}})();
 /* v130: instalación hidráulica (descripción técnica TKAS): cajas de avería en la guía, esquema hidráulico interactivo, lectura de OT, primera actuación sin puentes (también en SOS), ajustes y erratas en comprobaciones por sistema, tareas en Mantenimiento (ver hidraulica.js) */
 /* v131: guía de campo · «no sube» con actuación más eficaz por lectura de manómetro en 9.1 (0 bar → H-Y1; < 145 bar → nivel, aire, giro, bomba; 145 bar → no subir presión) y ajuste de la limitadora 3 solo si no da 145 ± 5 bar (ver hidraulica.js) */
 /* v132: hidráulica · el componente que acota la avería según la descripción de la OT (p. ej. «no sube» → limitadora 3) parpadea cada 2 s en el esquema interactivo, en los pasos de la actuación que lo nombran y se indica en la caja roja (ver hidraulica.js, hidrFoco) */
@@ -3915,22 +3915,23 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
  window.OT_DEDO=svg;
  const o=card;card=function(i){const h=o(i);if(view!="dash"||i.estado!="abierta"||!(i.hLle||i.hIni))return h;
   return h.replace(/(<div[^>]*class="card[^"]*"[^>]*>)/,"$1"+svg)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v149"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v150"}})();
 </script>
 <script>
 /* ===== v145: sin fondo de pantalla (se quita la foto de pasarela de detrás de las cajas; la cabecera no cambia) ===== */
 (function(){const st=document.createElement("style");st.textContent="body::before,body::after{display:none!important;background:none!important;content:none!important}";document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v149"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v150"}})();
 </script>
 <script>
+/* v150: el dedo se desplaza a la derecha, punta sobre la segunda S */
 /* v149: el dedo se coloca encima del botón SOS, con la punta sobre la primera S (sin flecha) */
 /* ===== v148: Seguimiento OT · el mismo dedo dibujado a mano de Inicio, junto al botón SOS de la tarjeta, señalando que hay que pulsarlo ===== */
-(function(){const st=document.createElement("style");st.textContent=`.cacts:has(.sosdedo){position:relative}.cacts .sosdedo{position:absolute;left:-13px;top:18px;right:auto;bottom:auto;width:64px;height:48px;margin:0;color:var(--pr);opacity:.7;z-index:3;pointer-events:none}.cacts .sosdedo .otfl{display:none}`;document.head.appendChild(st);
+(function(){const st=document.createElement("style");st.textContent=`.cacts:has(.sosdedo){position:relative}.cacts .sosdedo{position:absolute;left:0px;top:19px;right:auto;bottom:auto;width:64px;height:48px;margin:0;color:var(--pr);opacity:.7;z-index:3;pointer-events:none}.cacts .sosdedo .otfl{display:none}`;document.head.appendChild(st);
  const pon=()=>{if(typeof view!="undefined"&&view!="track")return;if(!window.OT_DEDO)return;
   document.querySelectorAll("#app .cacts .sosb").forEach(b=>{const n=b.nextElementSibling;if(n&&n.classList.contains("sosdedo"))return;
    b.insertAdjacentHTML("afterend",window.OT_DEDO.replace('class="otdedo"','class="otdedo sosdedo"'))})};
  new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.body,{childList:true,subtree:true});pon()})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v149"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v150"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
