@@ -48,8 +48,8 @@ const L507={
   "4.4":["Presostato control bajada outriggers (507)",2],"5.1":["Crepuscular (507)",2],"6.1":["AKS motor 1 ET-B17 · 3 m (507)",2],"5.4":["AKS motor 1 ET-B17 · 1,5 m (507)",2],
   "6.4":["AKS motor 2 ET-B18 · 3 m (507)",2],"7.1":["AKS motor 2 ET-B18 · 1,5 m (507)",2],"8.1":["AKS motor A380 H-B19 · 3 m (507)",2],"7.4":["AKS motor A380 H-B19 · 1,5 m (507)",2],
   "8.4":["Bypass AKS (507)",0]}};
-/* rev. J (resto de posiciones): P-A6 7.1 / 8.1 = láser detector de ala donde esté instalado (anotación sobre el folio 88) */
-const BASE={"P-A6":{"7.1":["Láser detector de ala · salida 3 «velocidad lenta» (si lo lleva; si no, reserva)",2],"8.1":["Láser detector de ala · salida 1 «paro» (si lo lleva; si no, reserva)",2],"4.4":["Bypass AKS",0]}};
+/* rev. J (resto de posiciones): P-A6 7.1 / 8.1 = láser detector de ala (ya en la tabla PLC, v129); aquí solo el bypass AKS */
+const BASE={"P-A6":{"4.4":["Bypass AKS",0]}};
 const ORIG=new Map();
 function plcCada(fn){PLC.forEach(M=>M.m.forEach((mod,k)=>mod.forEach((L,l)=>{const p=pBorna(M,k+1,l+1);if(p)fn(M,L,p.in)})))}
 plcCada((M,L,b)=>{const v=BASE[M.id]&&BASE[M.id][b];if(v){L[0]=v[0];L[1]=v[1]}});
