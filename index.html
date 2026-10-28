@@ -3209,7 +3209,7 @@ function bqBorra(){bqOT="";const e=$("#bq");if(e){e.value="";e.focus()}bqAplica(
 .bqbox input{flex:1;min-width:0;border:0!important;background:transparent!important;font-size:18px;font-weight:600;padding:10px 4px;outline:none;box-shadow:none!important}.bqbox input::-webkit-search-cancel-button{display:none}
 .bqlupa{font-size:18px}.bqx{width:auto!important;margin:0!important;padding:6px 10px!important;border:0!important;background:transparent!important;color:var(--mu)!important;font-size:18px;visibility:hidden}.bqres{font-size:12px;margin-top:4px;min-height:14px}`;document.head.appendChild(st)})();
 </script>
-<script src="mantenimiento.js?v=57"></script><script src="importar-ot.js?v=44"></script>
+<script src="mantenimiento.js?v=58"></script><script src="importar-ot.js?v=44"></script>
 <script>/* ===== v49: botones de la tarjeta OT en una sola línea (Editar, borrar, varita, polímetro, PLC, FOTO PLC) ===== */
 (function(){const st=document.createElement("style");st.textContent=`.cacts{flex-wrap:nowrap!important;gap:5px!important}
 .cacl,.cacr{flex-wrap:nowrap!important;gap:5px!important;min-width:0}.cacr{margin-left:auto}
@@ -3377,7 +3377,7 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=2"></script><script src="sos.js?v=10"></script><script src="iconos.js?v=3"></script><script src="sim-brazo.js?v=4"></script><script src="sim-almena.js?v=3"></script><script>
+</script><script src="sistemas.js?v=2"></script><script src="sos.js?v=11"></script><script src="iconos.js?v=3"></script><script src="sim-brazo.js?v=4"></script><script src="sim-almena.js?v=3"></script><script>
 /* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
 function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
  msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
@@ -3644,6 +3644,7 @@ const POS_PROPIO=["504","507","508"];
 <script src="pbb507.js?v=3"></script>
 <script src="sai.js?v=1"></script>
 <script src="laser-ala.js?v=3"></script>
+<script src="hidraulica.js?v=1"></script>
 <script>
 /* ===== v101: PBB 507 (A380, plano propio T87911031230ES) y documentación nueva en la guía de campo: ver pbb507.js ===== */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v101"}})();
@@ -3854,7 +3855,8 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
  if(e.target.closest("button,a,input,select,textarea,label,summary,details,img,[onclick]"))return;abrirSegOT(c.dataset.hoid)});
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v119"}})();
 /* v120: el botón Inicio de la tira vuelve a mostrar Inicio después de abrir un SOS (arreglo en sos.js) */
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v129"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v130"}})();
+/* v130: instalación hidráulica (descripción técnica TKAS): cajas de avería en la guía, esquema hidráulico interactivo, lectura de OT, primera actuación sin puentes (también en SOS), ajustes y erratas en comprobaciones por sistema, tareas en Mantenimiento (ver hidraulica.js) */
 /* v129: PLC · P-A6 módulo 4 (folio 88 rev. J): LED 1 = 7.1 láser lenta · LED 2 = 8.1 láser paro · 7.4 / 8.4 reserva; rutas del polímetro, pista y puente del paro; cableado rev. D de 7.1 («OK Retirada PBB») quitado */
 /* v128: láser de ala · al detectar ala la PAS se para con ese aviso: actuación más eficaz = salir con traslación a zona segura */
 /* v127: láser detector de ala («radar de ala», cabina zona derecha): OT con radar / láser / ala / parada por detección de ala → guía y documento Laser_detector_de_ala (ver laser-ala.js) */

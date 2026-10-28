@@ -49,6 +49,14 @@ function cajaTrab(x){const v=x.id in mBorr?mBorr[x.id]:(x.trabajos||"");
  return `<div class="msec"><div class="msect">📝 Trabajos realizados${x.trabajos_at?` <span>${esc(x.trabajos_por||"")} · ${new Date(x.trabajos_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>`:""}</div>
  ${puede()?`<textarea class="mtrab" rows="5" placeholder="Anota los trabajos efectuados en el mantenimiento de hoy…" oninput="mantBorr('${x.id}',this.value)">${esc(v)}</textarea><button class="pri" style="margin-top:8px;width:100%" onclick="mantTrab('${x.id}')">💾 Guardar trabajos</button>`
  :`<div class="mnotas">${x.trabajos?esc(x.trabajos):'<span class="mu">Sin anotaciones.</span>'}</div>`}</div>`}
+/* v130: tareas de la instalación hidráulica (descripción técnica TKAS, pág. 15-16) en cada posición con pasarela */
+function cajaHidr(x){if(typeof esRem=="function"&&esRem(x.pos))return "";
+ const L=[["Cada trimestre","Nivel de aceite en el visor 14 y estanqueidad de la central, el bloque, las tuberías y los cilindros."],
+  ["Cada año","Cambio del filtro de retorno de 25 µm (CSM10BNR) y muestra de aceite (≈ 500 cm³) al fabricante para ver si se puede seguir usando."],
+  ["Limpieza","Venteo del depósito y superficies de refrigeración sin polvo ni suciedad."],
+  ["Al trabajar","Ruidos de bomba y descarga, y aceite por debajo de 80 °C. Si se desconectó el motor, comprobar el sentido de giro."]];
+ return `<details class="msec mhid"><summary class="msect">🛢️ Hidráulica · tareas de mantenimiento</summary><div style="font-size:13px;line-height:1.4">${L.map(l=>`<div style="margin-top:5px"><b>${l[0]}:</b> ${l[1]}</div>`).join("")}
+ <button class="sec" style="margin-top:8px;width:100%" onclick="event.stopPropagation();if(typeof gHidrPdf=='function')gHidrPdf(16)">📄 Mantenimiento en la descripción técnica (pág. 15)</button></div></details>`}
 function filaDia(x){const ok=x.estado=="hecho",cx=x.estado=="cancelado";const ab=abierta(x);
  const fh=x.hecho_at?" · "+new Date(x.hecho_at).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
  const est=ok?`<div class="mest ok">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${fh}</div>`:cx?`<div class="mest cx">✕ No realizada${x.tecnico?" · "+esc(x.tecnico):""}${fh}</div>`:`<div class="mest">Pendiente</div>`;
@@ -56,7 +64,7 @@ function filaDia(x){const ok=x.estado=="hecho",cx=x.estado=="cancelado";const ab
  const canc=puede()&&!ok?`<label class="mcanc"><input type="checkbox" ${cx?"checked":""} onchange="mantCanc('${x.id}',this.checked)"><span>Cancelado por Operaciones</span></label>`:"";
  return `<div class="mcaja ${ab?"ab":""}"><div class="mfila ${ok?"ok":""} ${cx?"cx":""}"><div class="mizq">${chip(x,true)}${est}</div><div class="mfinfo" onclick="mantTog('${x.id}')" style="cursor:pointer"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}<div class="mtog">${ab?"▲ Plegar":`▼ ${x.trabajos?"📝 Trabajos anotados · ":""}Ver incidencias y trabajos`}</div></div>
  ${bot||canc?`<div class="mder">${bot?`<div class="mderb">${bot}</div>`:""}${canc}</div>`:""}</div>
- ${ab?`<div class="mcuerpo">${cajaInc(x)}${cajaTrab(x)}</div>`:""}</div>`}
+ ${ab?`<div class="mcuerpo">${cajaInc(x)}${cajaHidr(x)}${cajaTrab(x)}</div>`:""}</div>`}
 window.mantTog=id=>{const x=MANT.find(z=>z.id==id);if(!x)return;if(abierta(x)){mAb.delete(id);mCerr.add(id)}else{mCerr.delete(id);mAb.add(id)}vMant()};
 window.mantBorr=(id,v)=>{mBorr[id]=v};
 window.mantTrab=async id=>{const v=(id in mBorr?mBorr[id]:"").trim();const x=MANT.find(z=>z.id==id);if(!x)return;if(!v&&!x.trabajos){msg("Escribe los trabajos realizados");return}

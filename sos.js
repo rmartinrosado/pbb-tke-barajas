@@ -5,7 +5,8 @@
  únicamente la indicación del puente («Primera actuación en campo»). */
 (function(){
 let sosOn=false;
-const tiene=i=>{try{return !!i&&i.estado=="abierta"&&((typeof puentesOT=="function"&&puentesOT(i).length)||(typeof segOT=="function"&&segOT(i)))}catch(e){return false}};
+const tiene=i=>{try{return !!i&&i.estado=="abierta"&&((typeof puentesOT=="function"&&puentesOT(i).length)||(typeof segOT=="function"&&segOT(i))||(typeof hidrOT=="function"&&hidrOT(i)))}catch(e){return false}};
+/* v130: también la primera actuación de hidráulica (hidraulica.js: hidrOT / hidrHTML, sin puentes) */
 const oC=card;card=function(i){let h=oC(i);if(view!="track"||!tiene(i))return h;
  const b=`<button class="sosb" title="SOS: puente provisional" aria-label="SOS: ir al puente provisional de la OT ${esc(i.orden||"")}" onclick="event.stopPropagation();sosVa('${i.id}')"><img src="sos.png" alt="SOS"></button>`;
  /* v68: en la fila de botones de abajo, al lado de la papelera (o al final del grupo izquierdo si no hay papelera) */
@@ -27,21 +28,23 @@ const oV=vTec;vTec=function(){const r=oV.apply(this,arguments);const app=documen
  const P=puentesOT(i),S=segOT(i);
  if(!pu&&P.length){pu=document.createElement("div");pu.id="gpte";pu.className="card pucard";pu.innerHTML=puenteHTML(i,P)}
  if(!se&&S){se=document.createElement("div");se.id="gsegl";se.className="card pucard";se.innerHTML=segHTML(i,S)}
+ let hi=document.getElementById("ghidr");const H=typeof hidrOT=="function"?hidrOT(i):null;
+ if(!hi&&H){hi=document.createElement("div");hi.id="ghidr";hi.dataset.k=H;hi.className="card pucard";hi.innerHTML=hidrHTML(i,H)}
  let bar=document.getElementById("sosbar");if(!bar){bar=document.createElement("div");bar.id="sosbar";bar.className="card sosbar"}
  bar.innerHTML=`<img src="sos.png" alt=""><div><b>PBB ${esc(String(i.pos))} · ${esc(i.tipo||"")} · ${esc(i.orden||"")}</b><div class="mu" style="font-size:12px">${esc(i.desc||"")}</div></div><button class="sec" onclick="sosSal()">Guía completa</button>`;
- app.prepend(bar);[se,pu].forEach(x=>{if(x)bar.after(x)});if(se&&pu)se.after(pu);
+ app.prepend(bar);[hi,se,pu].forEach(x=>{if(x)bar.after(x)});if(se&&pu)se.after(pu);if(hi){const u=pu||se;if(u)u.after(hi)}
  app.classList.add("sosmode");sosCasos(i);return r};
 /* v98: casos parecidos de la carpeta Casos bajo la primera actuación */
 async function sosCasos(i){const txt=[i.desc,i.def,i.com,i.alarmas&&textoAl(i.alarmas)].filter(Boolean).join(" · ");if(typeof casosParecidos!="function"||!txt)return;
  let l=[];try{l=await casosParecidos(txt,{excluirOt:i.id})}catch(e){return}
  const app=document.getElementById("app");if(!sosOn||!app||gOT!=i.id)return;let c=document.getElementById("soscasos");if(c)c.remove();if(!l.length)return;
- c=document.createElement("div");c.id="soscasos";c.innerHTML=casosHTML(l,i.pos);const last=document.getElementById("gpte")||document.getElementById("gsegl")||document.getElementById("sosbar");last.after(c)}
+ c=document.createElement("div");c.id="soscasos";c.innerHTML=casosHTML(l,i.pos);const last=document.getElementById("ghidr")||document.getElementById("gpte")||document.getElementById("gsegl")||document.getElementById("sosbar");last.after(c)}
 const textoAl=a=>{try{return typeof a=="string"?a:JSON.stringify(a).replace(/[{}\[\]"]/g," ")}catch(e){return ""}};
 const st=document.createElement("style");st.textContent=`.sosw{display:flex;justify-content:flex-end;margin-top:8px}
 .sosmid{flex:1 1 0;min-width:0;display:flex;justify-content:center;align-items:center}.sosmid+.cacr{margin-left:0!important}
 .sosb{width:40px!important;height:40px;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important;border-radius:50%;cursor:pointer;flex:none}
 .sosb img{width:40px;height:40px;display:block;border-radius:50%;filter:drop-shadow(0 2px 4px rgba(198,40,40,.4));animation:sosparp 2s ease-in-out infinite}@keyframes sosparp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.92)}}.sosb:active img{transform:scale(.94)}
-#app.sosmode>*:not(#sosbar):not(#gpte):not(#gsegl):not(#soscasos){display:none!important}
+#app.sosmode>*:not(#sosbar):not(#gpte):not(#gsegl):not(#ghidr):not(#soscasos){display:none!important}
 .sosbar{display:flex;align-items:center;gap:10px;border:2px solid #c62828!important}.sosbar img{width:40px;height:40px;flex:none}.sosbar>div{flex:1;min-width:0}.sosbar button{width:auto;margin:0;padding:8px 10px;font-size:13px;flex:none}`;document.head.appendChild(st);
 })();
 /* ===== v71: SOS rápido en Inicio (junto a OT abiertas / OT cerradas) =====
