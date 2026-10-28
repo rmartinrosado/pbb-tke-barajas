@@ -798,7 +798,7 @@ const PLC=[
   [["Límite cabina izquierda",1],["Límite cabina derecha",1],["Freno túnel B (PBB 3 túneles = encendido)",2],["Freno cabina izquierda",1]],
   [["Freno cabina derecha",1],["FC límite suelo derecha",1],["FC límite suelo izquierda",1],["Bypass AKS E-S7 (solo 504/508; resto reserva)",0]],
   [["Pulsador «Abandono operador»",0],["Pulsador «Presencia desconexión»",0],["Pulsador «Presencia conexión»",0],["Pulsador luminoso «OK Handling»",0]],
-  [["Láser detector de ala · DIG OUT 3 «velocidad lenta» (DIN13)",2],["Láser detector de ala · DIG OUT 1 «paro» (DIN14)",2],["Reserva (DIN15; el pulsador «OK retirada PBB» va a E-A9 1.1)",0],["Reserva (DIN16)",0]]]}];
+  [["Láser detector de ala · DIG OUT 3 «velocidad lenta» (DIN13) · encendido = sin ala (con láser instalado)",2],["Láser detector de ala · DIG OUT 1 «paro» (DIN14) · encendido = sin ala, se apaga al detectar ala",2],["Reserva (DIN15; el pulsador «OK retirada PBB» va a E-A9 1.1)",0],["Reserva (DIN16)",0]]]}];
 /* Bornas por tipo de módulo. DI16: LED l del módulo k → IN en (2k-1).1, (2k).1, (2k-1).4, (2k).4 ; +24 V en la borna siguiente. SDI: LED l del módulo k → (2k-2+l).1 IN / .2 UT */
 function pBorna(M,k,l){if(M.t=="DI"&&M.id!="E-A0"){const s=[2*k-1,2*k,2*k-1,2*k][l-1],c=l<=2?1:4;return{in:`${s}.${c}`,v:`${s}.${c+1}`}}
  if(M.t=="SDI"){const s=2*k-2+l;return{in:`${s}.1`,v:`${s}.2`}}return null}
@@ -3646,7 +3646,7 @@ const POS_PROPIO=["504","507","508"];
 <script src="docs-claude.js?v=7"></script>
 <script src="pbb507.js?v=3"></script>
 <script src="sai.js?v=1"></script>
-<script src="laser-ala.js?v=3"></script>
+<script src="laser-ala.js?v=4"></script>
 <script src="hidraulica.js?v=9"></script>
 <script src="analisis-filtro.js?v=1"></script>
 <script src="reset-pbb.js?v=2"></script>
@@ -3860,7 +3860,7 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
  if(e.target.closest("button,a,input,select,textarea,label,summary,details,img,[onclick]"))return;abrirSegOT(c.dataset.hoid)});
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v119"}})();
 /* v120: el botón Inicio de la tira vuelve a mostrar Inicio después de abrir un SOS (arreglo en sos.js) */
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v150"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v151"}})();
 /* v130: instalación hidráulica (descripción técnica TKAS): cajas de avería en la guía, esquema hidráulico interactivo, lectura de OT, primera actuación sin puentes (también en SOS), ajustes y erratas en comprobaciones por sistema, tareas en Mantenimiento (ver hidraulica.js) */
 /* v131: guía de campo · «no sube» con actuación más eficaz por lectura de manómetro en 9.1 (0 bar → H-Y1; < 145 bar → nivel, aire, giro, bomba; 145 bar → no subir presión) y ajuste de la limitadora 3 solo si no da 145 ± 5 bar (ver hidraulica.js) */
 /* v132: hidráulica · el componente que acota la avería según la descripción de la OT (p. ej. «no sube» → limitadora 3) parpadea cada 2 s en el esquema interactivo, en los pasos de la actuación que lo nombran y se indica en la caja roja (ver hidraulica.js, hidrFoco) */
@@ -3915,14 +3915,15 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
  window.OT_DEDO=svg;
  const o=card;card=function(i){const h=o(i);if(view!="dash"||i.estado!="abierta"||!(i.hLle||i.hIni))return h;
   return h.replace(/(<div[^>]*class="card[^"]*"[^>]*>)/,"$1"+svg)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v150"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v151"}})();
 </script>
 <script>
 /* ===== v145: sin fondo de pantalla (se quita la foto de pasarela de detrás de las cajas; la cabecera no cambia) ===== */
 (function(){const st=document.createElement("style");st.textContent="body::before,body::after{display:none!important;background:none!important;content:none!important}";document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v150"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v151"}})();
 </script>
 <script>
+/* v151: radar de ala · foto del P-A6 en servicio (avión conectado, remoto): mód. 4 LED 1 y 2 ENCENDIDOS sin ala (seguridad positiva); guía, cotejo, rutas, pista y puente 8.2→8.1 actualizados (laser-ala.js) */
 /* v150: el dedo se desplaza a la derecha, punta sobre la segunda S */
 /* v149: el dedo se coloca encima del botón SOS, con la punta sobre la primera S (sin flecha) */
 /* ===== v148: Seguimiento OT · el mismo dedo dibujado a mano de Inicio, junto al botón SOS de la tarjeta, señalando que hay que pulsarlo ===== */
@@ -3931,7 +3932,7 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
   document.querySelectorAll("#app .cacts .sosb").forEach(b=>{const n=b.nextElementSibling;if(n&&n.classList.contains("sosdedo"))return;
    b.insertAdjacentHTML("afterend",window.OT_DEDO.replace('class="otdedo"','class="otdedo sosdedo"'))})};
  new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.body,{childList:true,subtree:true});pon()})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v150"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v151"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>

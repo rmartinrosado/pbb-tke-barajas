@@ -1,3 +1,5 @@
+/* v151: estado en servicio confirmado con foto del P-A6 (avión conectado, PBB en remoto): LED 1 y LED 2 del mód. 4 ENCENDIDOS sin ala;
+   seguridad positiva, se apagan al detectar ala. Puente del paro: 8.2 → 8.1. */
 /* ===== v127-v129: Láser detector de ala («radar de ala») · cabina, zona derecha =====
  Documento «Laser_detector_de_ala» (Planos, 2 páginas):
   · pág. 1 — foto del módulo láser con su conexionado:
@@ -41,16 +43,16 @@ const PROC={t:"Radar de ala · láser detector de ala (cabina, zona derecha) · 
  p:[
 "QUÉ HAY: módulo láser en la CABINA, ZONA DERECHA, con un cabezal láser unido por bus CAN. Al detectar ala, la PAS se PARA y da el aviso de detección de ala. El módulo da dos salidas digitales al PLC del pupitre: SALIDA 1 «Out Stop» → P-A6 borna 8.1 (PARO) y SALIDA 3 «Out low speed» → P-A6 borna 7.1 (VELOCIDAD LENTA). En el plano rev. J esas dos entradas figuran como RESERVA (folio 88, anotadas a mano).",
 "QUÉ HAY · CONEXIONADO DEL MÓDULO (Laser_detector_de_ala pág. 1): POWER V- = 0 V y V+ = +24 V · CAN BUS: + rojo, H blanco, L azul, − negro hacia el cabezal · DIGITAL OUT: borna común (la primera, sin número) unida con cable negro al conector POWER, salida 1 = paro, salida 3 = lenta. Las salidas 2 y 4 y la regleta DIGITAL IN no se usan.",
-"QUÉ HAY · LED EN EL PLC: P-A6 módulo 4, LED 1 = lenta (7.1) · LED 2 = paro (8.1). Al acercarse al ala entra primero LENTA y después PARO.",
+"QUÉ HAY · LED EN EL PLC (confirmado en campo, foto del P-A6 con avión conectado y PBB en REMOTO): P-A6 módulo 4, LED 1 = lenta (7.1) y LED 2 = paro (8.1) ENCENDIDOS sin ala delante. Trabaja en seguridad positiva: ENCENDIDO = libre. Al acercarse al ala se APAGA primero el LED 1 (lenta) y después el LED 2 (paro). Un cable cortado o el módulo sin 24 V da lo mismo que ver ala: LED apagado y PAS parada.",
 "PRIORIDAD 1 · ACTUACIÓN MÁS EFICAZ: con la PAS parada por el aviso de detección de ala, SALIR CON TRASLACIÓN A ZONA SEGURA, alejando la cabina del ala, hasta que el láser deje de ver el ala y desaparezca el aviso. Selector en MANUAL y un compañero vigilando el ala.",
 "PRIORIDAD 1 · Paso 2 · Ya en zona segura, comprobar si había ala u obstáculo real delante del cabezal. Si lo había, la parada es correcta: volver a aproximar despacio, por otra trayectoria, sin acercar la cabina al ala.",
 "Paso 3 · Si no había nada delante (falsa detección): limpiar la ventana del cabezal láser (polvo, agua, hielo, insectos) y comprobar que no está girado ni golpeado. Un cabezal desorientado «ve» el suelo o la propia PBB y para la maniobra.",
-"Paso 4 · Tapar y destapar el cabezal con la mano y mirar P-A6 módulo 4: si cambian LED 1 (lenta) y LED 2 (paro), el láser funciona. Si se quedan fijos en paro sin nada delante, seguir con el módulo.",
+"Paso 4 · Tapar el cabezal con la mano y mirar P-A6 módulo 4: deben APAGARSE LED 1 (lenta) y después LED 2 (paro), y volver a encenderse al destapar. Si el LED 2 sigue APAGADO sin nada delante, seguir con el módulo (24 V, CAN, salida 1) o el hilo a 8.1.",
 "Paso 5 · Módulo en cabina zona derecha: medir 24 Vdc entre V+ y V- del conector POWER. Sin tensión → revisar su alimentación de 24 V del pupitre (P-Q30.3 alimenta P-A6) y el conector POWER.",
 "Paso 6 · Bus CAN al cabezal: conector bien apretado, cables + rojo / H blanco / L azul / − negro sin cortes ni bornas flojas. Sin comunicación con el cabezal, el módulo deja el paro activado.",
 "Paso 7 · Señales al PLC: medir en el módulo la salida 1 (paro) y la salida 3 (lenta) respecto al común y comprobar que llegan a P-A6 8.1 y 7.1 (folio 88). Si el módulo cambia la salida y el LED del PLC no, buscar el corte en el hilo entre el módulo y P-A6.",
-"Solo si el paro queda fijo sin ala delante y no deja salir con traslación: puente provisional en P-A6 8.1 para llevar la PBB a zona segura (MANUAL, autorización del Responsable de Turno, compañero vigilando). Si el LED 2 está ENCENDIDO mientras para, soltar el hilo de la salida 1 en el módulo (o en 8.1) y aislarlo; si está APAGADO, puente 8.2 (+24 V del grupo) → 8.1. Anotarlo en la OT y quitarlo al terminar.",
-"Reposición: cabezal limpio y orientado; comprobar que al acercar la mano entra primero LENTA y luego PARO, que la PAS se para con el aviso y que se puede salir con traslación. Retirar cualquier puente provisional."],
+"Solo si el paro queda fijo sin ala delante y no deja salir con traslación: puente provisional 8.2 (+24 V del grupo) → 8.1 en P-A6 para llevar la PBB a zona segura (MANUAL, autorización del Responsable de Turno, compañero vigilando el ala). Con el puente, el LED 2 vuelve a ENCENDERSE. Si además va en lenta, el mismo puente 7.2 → 7.1 para la lenta. Anotarlo en la OT y quitarlo al terminar.",
+"Reposición: cabezal limpio y orientado; comprobar que al acercar la mano se apaga primero el LED 1 (LENTA) y luego el LED 2 (PARO), y que vuelven a encenderse al retirarla, que la PAS se para con el aviso y que se puede salir con traslación. Retirar cualquier puente provisional."],
  g:[88,0,88,0,0,0,88,0,0,88,88,88],
  lz:[2,1,2,0,0,1,2,1,1,2,2,0],
  r:"Laser_detector_de_ala (pág. 1 módulo, pág. 2 folio 88) · ESQUEMA GENERAL rev. J folio 88 (P-A6)"};
@@ -84,18 +86,18 @@ const L_MOD="Módulo láser (cabina, zona derecha)";
 const rutaLaser=(sal,nom,borna,led)=>[
  {p:`${L_MOD} · conector POWER V+ / V-`,e:"≈24 Vdc entre V+ y V-",x:"Sin 24 V: alimentación del módulo láser (24 V del pupitre) o conector POWER flojo.",f:88,u:["C"],cab:[],nodo:"Módulo láser POWER"},
  {p:`${L_MOD} · CAN BUS al cabezal (+ rojo · H blanco · L azul · − negro)`,e:"cables apretados y sin cortes",x:"Sin comunicación con el cabezal el módulo deja activado el paro: revisar conector y cable CAN hasta el cabezal.",f:88,u:["C"],cab:[],nodo:"Módulo láser CAN"},
- {p:`${L_MOD} · DIGITAL OUT ${sal} «${nom}» respecto al común (borna sin número de la regleta DIGITAL OUT)`,e:"cambia al tapar y destapar el cabezal",x:`No cambia con el cabezal tapado y libre: cabezal sucio, desorientado o módulo láser averiado.`,f:88,u:["C"],cab:[],nodo:`Láser DIG OUT ${sal}`},
- {p:`P-A6 borna ${borna} (IN, ${borna=="7.1"?"DIN13":"DIN14"}) · mód. 4 LED ${led}`,e:"la misma tensión que la salida del láser y LED coherente",x:`Diferencia con la salida del láser: hilo entre el módulo láser y P-A6 ${borna} (anotación a mano en el folio 88, sin nº de hilo en el plano). Con tensión y el LED sin cambiar: entrada de P-A6.`,f:88,u:["P"],cab:[],nodo:`P-A6 ${borna}`}];
+ {p:`${L_MOD} · DIGITAL OUT ${sal} «${nom}» respecto al común (borna sin número de la regleta DIGITAL OUT)`,e:"≈24 V con el cabezal libre · 0 V tapado",x:`No cambia con el cabezal tapado y libre: cabezal sucio, desorientado o módulo láser averiado.`,f:88,u:["C"],cab:[],nodo:`Láser DIG OUT ${sal}`},
+ {p:`P-A6 borna ${borna} (IN, ${borna=="7.1"?"DIN13":"DIN14"}) · mód. 4 LED ${led}`,e:"≈24 V y LED ENCENDIDO sin ala; 0 V y LED apagado con ala",x:`Diferencia con la salida del láser: hilo entre el módulo láser y P-A6 ${borna} (anotación a mano en el folio 88, sin nº de hilo en el plano). Con tensión y el LED sin cambiar: entrada de P-A6.`,f:88,u:["P"],cab:[],nodo:`P-A6 ${borna}`}];
 try{const R=window.RUTAS||RUTAS;const RP=R&&R["P-A6"];if(RP&&RP.s){
- const put=(k,l,led,t,p)=>{const S={id:`P-A6-${k}.${l}`,led,k,l,t,r:`Mód. ${k} · LED ${l} (IN ${led}): cambia con la detección del ala (lenta y después paro). Ruta del documento Laser_detector_de_ala y folio 88 de la rev. J.`,p,det:true,traz:true,fol:"88"};
+ const put=(k,l,led,t,p)=>{const S={id:`P-A6-${k}.${l}`,led,k,l,t,r:`Mód. ${k} · LED ${l} (IN ${led}): ENCENDIDO sin ala (seguridad positiva); se apaga al detectar ala (primero lenta y después paro). Ruta del documento Laser_detector_de_ala y folio 88 de la rev. J.`,p,det:true,traz:true,fol:"88"};
   const ix=RP.s.findIndex(x=>x.led==led);if(ix>=0)RP.s[ix]=S;else RP.s.push(S)};
  put(4,1,"7.1","Láser detector de ala · DIG OUT 3 «velocidad lenta» (DIN13)",rutaLaser(3,"Out low speed","7.1",1));
  put(4,2,"8.1","Láser detector de ala · DIG OUT 1 «paro» (DIN14)",rutaLaser(1,"Out Stop","8.1",2));}}catch(e){console.warn("laser-ala rutas",e)}
 const RE_PU=/radar|lazar|laser|\bala\b|\balas\b|deteccion de ala/;
 try{
- PISTA["P-A6|4|1"]="Láser detector de ala, salida 3 «lenta» (cabina, zona derecha): entra al acercarse al ala. Si cambia sin ala delante, limpiar y orientar el cabezal.";
- PISTA["P-A6|4|2"]="Láser detector de ala, salida 1 «paro»: con ala detectada la PAS se para con ese aviso; salir con traslación a zona segura. Sin ala delante: cabezal sucio o desorientado, 24 V del módulo o bus CAN.";
- PUENTE["P-A6|4|2"]="Láser detector de ala · PARO (P-A6 8.1). 1º salir con TRASLACIÓN a ZONA SEGURA, alejando la cabina del ala. Solo si el paro queda fijo sin ala delante y no deja salir: con el LED 2 ENCENDIDO mientras para, soltar el hilo de 8.1 y aislarlo; con el LED 2 APAGADO, puente 8.2 (+24 V) → 8.1.";
+ PISTA["P-A6|4|1"]="Láser detector de ala, salida 3 «lenta» (cabina, zona derecha): ENCENDIDO sin ala; se apaga al acercarse al ala. Apagado sin ala delante: limpiar y orientar el cabezal, 24 V del módulo o hilo a 7.1.";
+ PISTA["P-A6|4|2"]="Láser detector de ala, salida 1 «paro»: ENCENDIDO sin ala; se APAGA con ala detectada y la PAS se para con ese aviso; salir con traslación a zona segura. Sin ala delante: cabezal sucio o desorientado, 24 V del módulo o bus CAN.";
+ PUENTE["P-A6|4|2"]="Láser detector de ala · PARO (P-A6 8.1). 1º salir con TRASLACIÓN a ZONA SEGURA, alejando la cabina del ala. Solo si el paro queda fijo (LED 2 APAGADO) sin ala delante y no deja salir: puente 8.2 (+24 V) → 8.1; el LED 2 vuelve a encenderse.";
  PU_REQ["P-A6|4|2"]=RE_PU;
 }catch(e){console.warn("laser-ala puente",e)}
 /* en la 507 P-A6 7.1 / 8.1 son AKS: ni puente ni pista del láser */
@@ -127,7 +129,7 @@ function pinta(){const d=document.querySelector(`#app details.gd[data-k="PAS${IX
 try{const SIS=window.SIS;const s=SIS&&SIS.PAS&&SIS.PAS.find(x=>/l[aá]ser detector de ala/i.test(x.s));
  if(s){s.s="Láser detector de ala · radar de ala (cabina zona derecha · P-A6 7.1 / 8.1)";s.c=[
   "Módulo láser en la cabina, zona derecha. POWER: V- = 0 V · V+ = +24 V. CAN BUS al cabezal: + rojo · H blanco · L azul · − negro (documento Laser_detector_de_ala pág. 1).",
-  "Salida digital 1 «Out Stop» → P-A6 8.1 (PARO) · salida digital 3 «Out low speed» → P-A6 7.1 (LENTA). Común de las salidas unido con cable negro al conector POWER. LED: P-A6 módulo 4, LED 2 paro · LED 1 lenta (folio 88).",
-  "La PBB se para o va lenta en la aproximación sin ala delante: limpiar y orientar el cabezal; tapar y destapar con la mano y ver si cambian los LED de P-A6; medir 24 V en POWER y revisar el bus CAN.",
+  "Salida digital 1 «Out Stop» → P-A6 8.1 (PARO) · salida digital 3 «Out low speed» → P-A6 7.1 (LENTA). Común de las salidas unido con cable negro al conector POWER. LED: P-A6 módulo 4, LED 2 paro · LED 1 lenta (folio 88): ENCENDIDOS sin ala, se APAGAN al detectar ala (seguridad positiva, confirmado en campo).",
+  "La PBB se para o va lenta en la aproximación sin ala delante: limpiar y orientar el cabezal; tapar con la mano y ver que se apagan los LED 1 y 2 de P-A6 y vuelven a encender al destapar; medir 24 V en POWER y revisar el bus CAN.",
   "Sin láser instalado esas entradas son reserva y deben estar apagadas."]}}catch(e){}
 })();
