@@ -243,7 +243,7 @@ window.hidrSimHTML=m=>`<div class="gsim" data-sim="hidr_${m||"rep"}"></div>`;
 .hsim .hk.ce rect{fill:color-mix(in srgb,#1e88e5 22%,var(--card));stroke:#1e88e5;stroke-width:3}
 .hsim .hk.foc rect{animation:hfoc 2s ease-in-out infinite}
 @keyframes hfoc{0%,100%{stroke:#ef6c00;stroke-width:4;fill:color-mix(in srgb,#ef6c00 30%,var(--card))}50%{stroke:#ef6c00;stroke-width:1.2;fill:var(--card)}}
-.hsim .hfocb{font-size:12.5px;color:#ef6c00;margin-bottom:4px}
+.hsim .hfocb{color:#c62828;margin-bottom:4px}
 #app .gpaso.hfoco,#app .gelit.hfoco{border-radius:8px;animation:hfocp 2s ease-in-out infinite}
 @keyframes hfocp{0%,100%{box-shadow:0 0 0 2px #ef6c00;background:color-mix(in srgb,#ef6c00 14%,transparent)}50%{box-shadow:0 0 0 0 #ef6c0000;background:transparent}}
 .hsim .hk.sel rect{stroke:var(--pr);stroke-width:3.2}.hsim .hk:focus-visible rect{stroke:var(--pr);stroke-width:3.2}
@@ -270,7 +270,7 @@ const PRIM={
 window.hidrOT=function(i){if(!i||i.estado!="abierta")return null;if(typeof otEsPAS=="function"&&!otEsPAS(i))return null;const c=casos(i).filter(k=>PRIM[k]);return c.length?c[0]:null};
 window.hidrHTML=function(i,k){const P=PRIM[k];if(!P)return "";const pr=IX[k]!=null?IX[k]:IX.sub;
  const fk=hidrFoco(i),fe=fk&&EL[fk];
- return `<div class="pucab">🛢️ PRIMERA ACTUACIÓN EN CAMPO · hidráulica · ${es(P[0])}</div>${fe?`<div class="hfocb" style="font-size:13px;color:#ef6c00;margin:4px 0">🎯 <b>AVERÍA:</b> <b>${es(fe.n)}</b></div>`:""}
+ return `<div class="pucab">🛢️ PRIMERA ACTUACIÓN EN CAMPO · hidráulica · ${es(P[0])}</div>${fe?`<div class="hfocb" style="color:#c62828;margin:4px 0">🎯 <b>AVERÍA:</b> <b>${es(fe.n)}</b></div>`:""}
  <div class="puit"><div class="puac">1. ${es(P[1])}</div><div class="puac">2. ${es(P[2])}</div></div>
  <div class="gnp" style="margin-top:6px">⛔ En la hidráulica no se puentea nada: las retenciones de los cilindros son las que sujetan la pasarela.</div>
  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="sec" style="flex:1;width:auto" onclick="hidrVa(${pr})">Ver la actuación completa</button><button class="sec" style="flex:1;width:auto" onclick="gHidrPdf(${PG.esquema})">📄 Esquema hidráulico</button></div>`};
@@ -376,8 +376,16 @@ function hidAnaHTML(i,F){const P=PRIM[F.caso],S=PAS.s[IX[F.caso]],C=CAD[F.caso]|
  const t=`<div class="hfocb hcard">🎯 <b>AVERÍA:</b> <b>${es(ELN(F.k))}</b> <span class="mu">· ${es(PAS.s[IX[F.caso]].t.replace(/^Hidráulica · /,""))}</span></div>`;
  return h.replace(/(\s*<div class="mu">Inicio )/,t+"$1")}catch(e){return h}}})();
 (function(){const st=document.createElement("style");st.textContent=`.hana{margin:4px 0 6px;padding:8px 10px;border:2px solid #ef6c00;border-radius:10px;background:color-mix(in srgb,#ef6c00 6%,var(--card))}
-.hana1{font-size:14px;color:#ef6c00}.hef{font-size:13px;line-height:1.4;font-weight:600}.hhip{margin:4px 0;padding-left:20px;font-size:12.5px;line-height:1.4}.hhip li{margin:3px 0;padding:2px 4px}
+.hana1{color:#c62828}.hef{font-size:13px;line-height:1.4;font-weight:600}.hhip{margin:4px 0;padding-left:20px;font-size:12.5px;line-height:1.4}.hhip li{margin:3px 0;padding:2px 4px}
 .hhip li.hfoco{border-radius:6px;animation:hfocp 2s ease-in-out infinite}.hcad>summary{list-style:none}.hcad>summary::-webkit-details-marker{display:none}
-.hcard{font-size:13px;color:#ef6c00;margin:4px 0;padding:5px 8px;border-radius:8px;border:1.5px solid #ef6c00;animation:hfocp 2s ease-in-out infinite}`;document.head.appendChild(st)})();
+.hcard{color:#c62828;margin:4px 0;padding:5px 8px;border-radius:8px;border:2px solid #c62828;animation:hfocr 2s ease-in-out infinite}.hcard .mu{color:#c62828}
+@keyframes hfocr{0%,100%{box-shadow:0 0 0 2px #c62828;background:color-mix(in srgb,#c62828 12%,transparent)}50%{box-shadow:0 0 0 0 #c6282800;background:transparent}}
+.hfocb{white-space:nowrap;overflow:hidden;font-size:20px;line-height:1.25}`;document.head.appendChild(st)})();
 try{ANA_C={k:"",r:null}}catch(e){}
+
+/* v135: la línea AVERÍA en rojo, lo más grande posible sin salirse de la línea */
+function hfit(){document.querySelectorAll(".hfocb").forEach(el=>{if(!el.clientWidth)return;let f=20;el.style.fontSize=f+"px";
+ while(el.scrollWidth>el.clientWidth+1&&f>11){f-=.5;el.style.fontSize=f+"px"}})}
+let hfT=0;new MutationObserver(()=>{clearTimeout(hfT);hfT=setTimeout(hfit,60)}).observe(document.body,{childList:true,subtree:true});
+addEventListener("resize",()=>{clearTimeout(hfT);hfT=setTimeout(hfit,100)});document.addEventListener("toggle",()=>setTimeout(hfit,30),true);
 })();
