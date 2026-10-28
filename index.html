@@ -4042,7 +4042,23 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
   return h};
  const of=gFotoSel;gFotoSel=function(){auto=null;return of.apply(this,arguments)};
  const oc=gCotejarOT;gCotejarOT=function(){auto=null;return oc.apply(this,arguments)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v163"}})();
+/* ===== v164: cotejo con foto PLC · solo se muestran los módulos de la zona de la foto (armario E o pupitre P)
+   y los relacionados con la OT; el resto se ocultan. Selector «Foto del armario E / pupitre P» (por defecto armario) ===== */
+(function(){
+ const relMods=ot=>{try{const A=typeof otRelSig=="function"&&otRelSig(ot);return new Set(A?A.rel.map(x=>x.mod):[])}catch(e){return new Set()}};
+ window.gZonaFoto=z=>{const ot=inc.find(x=>x.id==gOT);if(ot){ot.plcZona=z;sv("pbb_inc",inc)}gPintaCot()};
+ const o=gCotHTML;gCotHTML=function(){const ot=gOTs().find(x=>x.id==gOT);
+  if(!ot||!ot.plc)return o.apply(this,arguments);
+  const z=ot.plcZona=="P"?"P":"E",rel=relMods(ot);
+  const ver=id=>id.startsWith(z+"-")||rel.has(id)||[...gMis].some(k=>k.startsWith(id+"|"))||gSinAl.has(id);
+  if(!ver(gPMod)){const v=PLC.find(M=>ver(M.id));if(v)gPMod=v.id}
+  let h=o.apply(this,arguments);
+  h=h.replace(/<button class="[^"]*" onclick="gPMod='([^']+)';gPintaMod\(\)">[\s\S]*?<\/button>/g,(b,id)=>ver(id)?b:"");
+  const sel=`<div class="gzf" style="display:flex;gap:6px;align-items:center;margin:4px 0 6px;font-size:12px"><span class="mu">Foto del:</span>`+
+   [["E","Armario E"],["P","Pupitre P"]].map(([k,t])=>`<button class="${k==z?"on":""}" style="padding:4px 10px;border-radius:14px;font-size:12px" onclick="gZonaFoto('${k}')">${t}</button>`).join("")+`</div>`;
+  const k=h.indexOf('<label>Módulo</label>');if(k>=0)h=h.slice(0,k)+sel+h.slice(k);
+  return h}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v164"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
