@@ -353,10 +353,13 @@ function sigDe(mod,re){try{const R=RUTAS[mod];if(!R||!re)return null;return (R.s
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r._hid2)return r;r._hid2=1;if(r.tipo&&r.tipo!="PAS")return r;
  const F=hidrFocoM(i);if(!F)return r;const C=CAD[F.caso]||[];
  const rel=[];C.forEach(([k,mod,re])=>{const S=sigDe(mod,re);if(S&&!rel.some(x=>x.mod==mod&&x.S===S))rel.push({mod,S,sc:20-rel.length,tg:new Set([k])})});
- r.rel=rel.concat((r.rel||[]).filter(x=>!rel.some(y=>y.mod==x.mod&&y.S===x.S))).slice(0,10);
+ r.rel=rel; /* v137: solo las señales de la cadena de la maniobra; fuera las que no tienen que ver con la avería */
  r.mods=[...new Set(r.rel.map(x=>x.mod))];
- const el=[ELN(F.k)];C.forEach(([k])=>{const n=/^[EI]/.test(k)?k:ELN(k);if(!el.includes(n))el.push(n)});
- r.elem=el.concat((r.elem||[]).filter(x=>!el.includes(x))).slice(0,14);r.hid=F;
+ /* elementos de campo: solo los eléctricos de la cadena (los hidráulicos ya van en el recuadro de la avería) */
+ const EREF={"17":["H-M1"],"4":["H-Y1","E-K61"],"5.2":["H-Y2","E-K62"],"5.1":["H-Y3"],"21.1":["H-Y4","H-Y5"],"21.2":["H-Y5"]};
+ const el=[];const pon=t=>{if(!el.includes(t))el.push(t)};(EREF[F.k]||[]).forEach(pon);
+ C.forEach(([k])=>{if(/^[EI]/.test(k))pon(k);else(EREF[k]||[]).forEach(pon)});
+ r.elem=el;r.hid=F;
  const si=IX[F.caso];r.guia=[{si,t:PAS.s[si].t,sc:60}].concat((r.guia||[]).filter(g=>g.si!==si)).slice(0,5);return r}})();
 function hidAnaHTML(i,F){const P=PRIM[F.caso],S=PAS.s[IX[F.caso]],C=CAD[F.caso]||[],H=(HIP[F.caso]||[]).slice();
  const ef=(S.p.find(p=>/^PRIORIDAD 1/.test(p))||"").replace(/^PRIORIDAD 1 · (ACTUACIÓN MÁS EFICAZ[^:]*: )?/,"");
