@@ -247,7 +247,7 @@ window.hidrSimHTML=m=>`<div class="gsim" data-sim="hidr_${m||"rep"}"></div>`;
 #app .gpaso.hfoco,#app .gelit.hfoco{border-radius:8px;animation:hfocp 2s ease-in-out infinite}
 @keyframes hfocp{0%,100%{box-shadow:0 0 0 2px #ef6c00;background:color-mix(in srgb,#ef6c00 14%,transparent)}50%{box-shadow:0 0 0 0 #ef6c0000;background:transparent}}
 .hsim .hk.sel rect{stroke:var(--pr);stroke-width:3.2}.hsim .hk:focus-visible rect{stroke:var(--pr);stroke-width:3.2}
-.hsim .hbt{display:flex;flex-wrap:wrap;gap:5px}.hsim .hbt button{font:inherit;font-size:12px;padding:5px 9px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:auto;margin:0}
+.hsim .hbt{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.hsim .hbt button{font:inherit;font-size:11.5px;line-height:1.15;padding:6px 2px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%;margin:0;white-space:normal;word-break:normal;min-height:38px}
 .hsim .hbt button.on{background:var(--pr);border-color:var(--pr);color:#fff}
 .hsim .hman{font-size:12.5px;line-height:1.4;margin:2px 0 6px}.hsim .hinf{font-size:12.5px;line-height:1.4;border-top:1px solid var(--bd);padding-top:6px}
 .hsim .hinf>div{margin-top:3px}.hsim .he{color:var(--ac)}.hsim .hbb{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.hsim .hbb button{width:auto;margin:0;font-size:12px;padding:6px 9px}
