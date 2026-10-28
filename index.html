@@ -4058,7 +4058,22 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
    [["E","Armario E"],["P","Pupitre P"]].map(([k,t])=>`<button class="${k==z?"on":""}" style="padding:4px 10px;border-radius:14px;font-size:12px" onclick="gZonaFoto('${k}')">${t}</button>`).join("")+`</div>`;
   const k=h.indexOf('<label>Módulo</label>');if(k>=0)h=h.slice(0,k)+sel+h.slice(k);
   return h}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v164"}})();
+/* ===== v165: cotejo con foto PLC · botones de módulo en dos líneas fijas: primera los E, segunda los P,
+   ajustados al ancho para que cada grupo quepa en una sola línea ===== */
+(function(){
+ const o=gCotHTML;gCotHTML=function(){let h=o.apply(this,arguments);
+  const k=h.indexOf('<div class="gmods">');if(k<0)return h;
+  const re=/<button class="[^"]*" onclick="gPMod='([^']+)';gPintaMod\(\)">[\s\S]*?<\/button>/g;
+  const ini=k+'<div class="gmods">'.length;let fin=ini,E=[],P=[],m;re.lastIndex=ini;
+  while((m=re.exec(h))&&h.slice(fin,m.index).trim()===""){(m[1].startsWith("P-")?P:E).push(m[0]);fin=re.lastIndex}
+  if(!E.length&&!P.length)return h;
+  const fila=a=>a.length?`<div class="gmrow" style="--n:${a.length}">${a.join("")}</div>`:"";
+  return h.slice(0,k)+'<div class="gmods gmods2">'+fila(E)+fila(P)+h.slice(fin)};
+ const st=document.createElement("style");st.textContent=`.gmods2{flex-direction:column;flex-wrap:nowrap;gap:6px}
+.gmods2 .gmrow{display:flex;flex-wrap:nowrap;gap:4px;width:100%}
+.gmods2 .gmrow button{flex:1 1 0;min-width:0;margin:0;padding:7px 1px;white-space:nowrap;overflow:hidden;text-overflow:clip;font-size:clamp(10px,calc(78vw / var(--n) / 3.2),13px);letter-spacing:-.2px}
+.gmods2 .gmrow button b{font-size:9px;padding:0 3px}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v165"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
