@@ -223,7 +223,7 @@ function pintaEl(el,k){const E=EL[k];if(!E)return;el.querySelectorAll(".hk").for
  <div class="hbb">${E.pg?`<button class="sec" onclick="event.preventDefault();event.stopPropagation();gHidrPdf(${E.pg})">📄 Descripción técnica · pág. ${E.pg-1}</button>`:""}${E.f2?`<button class="sec" onclick="event.preventDefault();event.stopPropagation();gPlano('PAS',${E.f2})">📐 Plano eléctrico · folio ${E.f2}</button>`:""}</div>`}
 function init(el){if(el.dataset.ok)return;el.dataset.ok=1;const m=(el.dataset.sim.split("_")[1])||"rep";el.innerHTML=htmlHidr(m);const s=el.querySelector(".hsim");pintaMan(s,m);
  const fk=focoOT();if(fk&&EL[fk]){const g=s.querySelector(`.hk[data-k="${fk}"]`);if(g){g.classList.add("foc");pintaEl(s,fk);
-  s.querySelector(".hinf").insertAdjacentHTML("afterbegin",`<div class="hfocb">🎯 Avería acotada en: <b>${es(EL[fk].n)}</b></div>`)}}
+  s.querySelector(".hinf").insertAdjacentHTML("afterbegin",`<div class="hfocb">🎯 <b>AVERÍA:</b> <b>${es(EL[fk].n)}</b></div>`)}}
  s.addEventListener("click",e=>{e.stopPropagation();const b=e.target.closest("button[data-man]");if(b){e.preventDefault();pintaMan(s,b.dataset.man);return}
   const g=e.target.closest(".hk");if(g){e.preventDefault();pintaEl(s,g.dataset.k)}});
  s.addEventListener("keydown",e=>{const g=e.target.closest&&e.target.closest(".hk");if(g&&(e.key=="Enter"||e.key==" ")){e.preventDefault();pintaEl(s,g.dataset.k)}})}
@@ -270,7 +270,7 @@ const PRIM={
 window.hidrOT=function(i){if(!i||i.estado!="abierta")return null;if(typeof otEsPAS=="function"&&!otEsPAS(i))return null;const c=casos(i).filter(k=>PRIM[k]);return c.length?c[0]:null};
 window.hidrHTML=function(i,k){const P=PRIM[k];if(!P)return "";const pr=IX[k]!=null?IX[k]:IX.sub;
  const fk=hidrFoco(i),fe=fk&&EL[fk];
- return `<div class="pucab">🛢️ PRIMERA ACTUACIÓN EN CAMPO · hidráulica · ${es(P[0])}</div>${fe?`<div class="hfocb" style="font-size:13px;color:#ef6c00;margin:4px 0">🎯 Avería acotada en: <b>${es(fe.n)}</b></div>`:""}
+ return `<div class="pucab">🛢️ PRIMERA ACTUACIÓN EN CAMPO · hidráulica · ${es(P[0])}</div>${fe?`<div class="hfocb" style="font-size:13px;color:#ef6c00;margin:4px 0">🎯 <b>AVERÍA:</b> <b>${es(fe.n)}</b></div>`:""}
  <div class="puit"><div class="puac">1. ${es(P[1])}</div><div class="puac">2. ${es(P[2])}</div></div>
  <div class="gnp" style="margin-top:6px">⛔ En la hidráulica no se puentea nada: las retenciones de los cilindros son las que sujetan la pasarela.</div>
  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="sec" style="flex:1;width:auto" onclick="hidrVa(${pr})">Ver la actuación completa</button><button class="sec" style="flex:1;width:auto" onclick="gHidrPdf(${PG.esquema})">📄 Esquema hidráulico</button></div>`};
@@ -362,7 +362,7 @@ function hidAnaHTML(i,F){const P=PRIM[F.caso],S=PAS.s[IX[F.caso]],C=CAD[F.caso]|
  const ef=(S.p.find(p=>/^PRIORIDAD 1/.test(p))||"").replace(/^PRIORIDAD 1 · (ACTUACIÓN MÁS EFICAZ[^:]*: )?/,"");
  const led=(mod,re)=>{const s=sigDe(mod,re);return s?` · <span class="anae">${es(mod)} mód. ${s.k||"-"} LED ${s.l||"-"}</span>`:mod?` · <span class="anae">${es(mod)}</span>`:""};
  return `<div class="hana">
- <div class="hfocb hana1">🎯 Avería acotada en: <b>${es(ELN(F.k))}</b></div>
+ <div class="hfocb hana1">🎯 <b>AVERÍA:</b> <b>${es(ELN(F.k))}</b></div>
  <div class="mu" style="font-size:12px">${es(S.t)} · por ${es(F.por)}</div>
  ${P?`<div class="anal">1º · Primera actuación en campo</div><div class="puit"><div class="puac">1. ${es(P[1])}</div><div class="puac">2. ${es(P[2])}</div></div>`:""}
  ${ef?`<div class="anal">⭐ Actuación más eficaz</div><div class="hef">${es(ef)}</div>`:""}
@@ -373,7 +373,7 @@ function hidAnaHTML(i,F){const P=PRIM[F.caso],S=PAS.s[IX[F.caso]],C=CAD[F.caso]|
  return h.replace(/(<details class="anap" open><summary>[\s\S]*?<\/summary>)/,`$1${hidAnaHTML(i,R.hid)}`)}})();
 /* apertura de la OT (tarjeta en Seguimiento / Inicio): la avería acotada bajo la descripción */
 (function(){const o=card;card=function(i){let h=o(i);try{if(!i||i.estado!="abierta"||(typeof otEsPAS=="function"&&!otEsPAS(i)))return h;const F=hidrFocoM(i);if(!F)return h;
- const t=`<div class="hfocb hcard">🎯 Avería acotada: <b>${es(ELN(F.k))}</b> <span class="mu">· ${es(PAS.s[IX[F.caso]].t.replace(/^Hidráulica · /,""))}</span></div>`;
+ const t=`<div class="hfocb hcard">🎯 <b>AVERÍA:</b> <b>${es(ELN(F.k))}</b> <span class="mu">· ${es(PAS.s[IX[F.caso]].t.replace(/^Hidráulica · /,""))}</span></div>`;
  return h.replace(/(\s*<div class="mu">Inicio )/,t+"$1")}catch(e){return h}}})();
 (function(){const st=document.createElement("style");st.textContent=`.hana{margin:4px 0 6px;padding:8px 10px;border:2px solid #ef6c00;border-radius:10px;background:color-mix(in srgb,#ef6c00 6%,var(--card))}
 .hana1{font-size:14px;color:#ef6c00}.hef{font-size:13px;line-height:1.4;font-weight:600}.hhip{margin:4px 0;padding-left:20px;font-size:12.5px;line-height:1.4}.hhip li{margin:3px 0;padding:2px 4px}
