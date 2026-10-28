@@ -5,6 +5,7 @@
  Los 4 inductivos van en el MISMO SOPORTE, fijo a la estructura superior, a dos alturas:
   · altura alta (banda lisa): límite de giro H-B3 (izq.) / H-B4 (dcha.) → tapados dentro de la almena, libres al llegar al resalte.
   · altura baja (pestañas): contaje H-B1 / H-B2, desfasados 1/4 de paso para dar sentido y 4 flancos por pestaña.
+ FC H-S1 = E-A8 DIS05 (IN05S 5.1 · hilo 625 · E-X55:12 / UT1 5.2 · hilo 285 · E-X55:13), confirmado en plano.
  Paso, grados por flanco y topes: valores de EJEMPLO (13 pestañas × 14°), pendientes de medir en cada PBB. */
 (function(){
 const H=(t,a)=>{const e=document.createElementNS("http://www.w3.org/2000/svg",t);for(const k in a)e.setAttribute(k,a[k]);return e};
@@ -125,7 +126,7 @@ function init(el){
   ["o3","3 U2 adelante","borna 1.2 → E-U2 LI1"],["o4","4 U2 atrás","borna 2.2 → E-U2 LI2"],
   ["o5","5 / 7 Velocidad 1","bornas 1.3 / 1.4 (U1 / U2)"],["o6","6 / 8 Velocidad 2","bornas 2.3 / 2.4 (parado en giro)"]]);
  modulo(232,104,"Safety E-A8 / E-A6","FC y bobinas",[
-  ["fc","FC límite giro","E-A8 mód. 3 · LED 1 (confirmar)"],["s1","Bobina E-K1","variadores · hilo 303"],["s2","Bobina E-K24","frenos T-Y1 / T-Y2"]]);
+  ["fc","DIS05 FC traslación","H-S1 · IN05S 5.1 · UT1 5.2"],["s1","Bobina E-K1","variadores · hilo 303"],["s2","Bobina E-K24","frenos T-Y1 / T-Y2"]]);
  svg.append(H("rect",{x:236,y:Y0+92,width:96,height:50,rx:3,fill:"#eef1f4"}));
  const tPlc=[0,1,2,3].map(i=>T(240,Y0+102+i*11,"",{"font-size":6,fill:"#1f2328"}));
 
@@ -154,7 +155,7 @@ function init(el){
   tLim2.textContent=fcAbierto?"parada de seguridad":!s.B4||!s.B3?"corte por inductivo":"";
   const L=[`${ed} flancos × ${FL}° = ${pA}°`,
    dirVis>0?"Dcha: U1 adel. + U2 atrás":dirVis<0?"Izq: U1 atrás + U2 adel.":"Sin orden de giro",
-   fcAbierto?"FC abierto: cae E-K1":mov?"E-K24 abre frenos":"Frenos echados",
+   fcAbierto?"DIS05 off: cae E-K1":mov?"E-K24 abre frenos":"Frenos echados",
    fcAbierto?"Resalte pisa el rodillo":!s.B4?"H-B4 libre: corta dcha":!s.B3?"H-B3 libre: corta izq":"Límites tapados: OK"];
   L.forEach((t,i)=>tPlc[i].textContent=t);
   row.textContent=`${ang}° · ${tSen.textContent}`;

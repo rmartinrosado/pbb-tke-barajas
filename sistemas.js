@@ -53,7 +53,7 @@ PAS:[
   "Seta AO (CBTH): llega por E-X61 → E-A3 mód. 1 LED 1 (bloqueo seta AO, ○). Desbloqueo AO en LED 2.",
   "Desenclavar, medir continuidad 21-22 con la seta liberada y revisar el cable (EP-W1, H-W3, H-W4). No se puentean."]},
  {s:"Finales de carrera de seguridad",f:[42,68],c:[
-  "FC traslación H-S1 → E-A8 mód. 3 LED 1 ●.",
+  "FC traslación H-S1 (límite de giro, lo pisan los resaltes de la almena) → E-A8 DIS05: UT1 5.2 → hilo 285 → E-X55:13 → FC → E-X55:12 → hilo 625 → IN05S 5.1 · mód. 3 LED 1 ●.",
   "FC túneles / extensión ET-S1 → E-A8 mód. 3 LED 2 ●.",
   "FC rotonda CO-S1 → E-A8 mód. 4 LED 1 ●.",
   "FC inclinación superior IT-S2 e inferior IT-S3 (en serie) → E-A8 mód. 4 LED 2 ●.",
