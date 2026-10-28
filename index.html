@@ -4073,7 +4073,30 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
 .gmods2 .gmrow{display:flex;flex-wrap:nowrap;gap:4px;width:100%}
 .gmods2 .gmrow button{flex:1 1 0;min-width:0;margin:0;padding:7px 1px;white-space:nowrap;overflow:hidden;text-overflow:clip;font-size:clamp(10px,calc(78vw / var(--n) / 3.2),13px);letter-spacing:-.2px}
 .gmods2 .gmrow button b{font-size:9px;padding:0 3px}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v165"}})();
+/* ===== v166: tarjeta de OT abierta con «Actuación guiada» (copiada o pegada desde la guía de campo) → botón Claude con fondo rojo
+   al final de la tarjeta. Abre la Resolución IA de esa OT con la actuación guiada ya puesta en su caja; el botón Claude
+   de la Resolución IA abre el proyecto PBB TKE en Claude e incluye la actuación guiada en el texto ===== */
+(function(){
+ const o=card;card=function(i){const h=o.apply(this,arguments);
+  if(!i||i.estado!="abierta"||!(i.guiada||"").trim()||!(tecnico||admin))return h;
+  const b=`<button class="otcl" aria-label="Resolución IA con Claude" title="Resolución IA con Claude" onclick="event.stopPropagation();otClaude('${i.id}')"><img src="claude-logo.png" alt="Claude"><span>Resolución IA</span></button>`;
+  return h.replace(/<\/div>\s*$/,b+"</div>")};
+ window.otClaude=id=>{const i=inc.find(x=>x.id==id);if(!i)return;resTec(id);
+  const g=$("#t_gui");if(!g)return;g.value=(i.guiada||"").trim();
+  try{g.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}};
+ window.guardaTec=function(){const i=inc.find(x=>x.id==$("#t_sel").value);if(!i)return;
+  i.def=$("#t_def").value.trim()||i.desc||"";i.com=$("#t_com").value.trim();i.guiada=$("#t_gui").value.trim();if(tFoto)i.plc=tFoto;sv("pbb_inc",inc);
+  const gu=i.guiada&&!/^Contexto: pasarela de embarque/.test(i.guiada)?`\nActuación guiada (guía de campo):\n${i.guiada}`:"";
+  const pr=`Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden}.
+Descripción del aviso: ${i.desc||"(sin descripción)"}
+Definición de la avería: ${i.def||"(sin definir)"}
+Comentario: ${i.com||"(sin comentario)"}${gu}
+Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, guía de averías y procedimientos). Necesito diagnóstico y pasos a seguir de comprobaciones en campo. Empieza la respuesta con un apartado titulado "Primera actuación en campo" con pasos numerados, breves y claros.`;
+  try{localStorage.setItem("pbb_ret",JSON.stringify({t:turno,n:tecNombre,id:i.id,def:i.def,com:i.com,gui:i.guiada,ts:Date.now()}))}catch(e){}
+  render();abreClaude(pr)};
+ const st=document.createElement("style");st.textContent=`.otcl{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:10px 0 0;padding:8px 12px;border:0;border-radius:12px;background:#d32f2f;color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+.otcl img{width:40px;height:40px;border-radius:9px;background:#fff;padding:3px;display:block}.otcl:active{filter:brightness(.9)}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v166"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
