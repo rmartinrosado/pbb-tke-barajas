@@ -81,7 +81,7 @@ P507],
 "Tras desconectar o cambiar el motor: comprobar el SENTIDO DE GIRO (horario mirando el ventilador, lleva flecha).",P507],
  g:[34,52,34,64,34,0,0,0],h:[PG.datos,0,0,0,PG.datos,PG.func,PG.previos,0]},
 {id:"baj",t:"Hidráulica · no baja (bajada normal)",cro:"hidr_baj",
- k:t=>/no baja\b|no bajan\b|no desciende|bajada (normal )?(fallada|no funciona|no va)|no hace (la )?bajada|no deja bajar|sin bajada/.test(t),
+ k:t=>/no baja\b|no bajan\b|no desciende|bajada (normal )?(fallada|no funciona|no va)|no hace (la )?bajada|no deja bajar|sin bajada|no sube ni baja|ni sube ni baja|se queda arriba|no responde (al )?bajar/.test(t),
  p:[
 "CÓMO FUNCIONA (pág. 9): con la bomba en marcha entra H-Y2 (válvula 5.2). La presión pasa por la línea de pilotaje (B / D), con el grifo 11 ABIERTO, y abre 20.1 / 20.2. El aceite de los cilindros vuelve por el regulador 10, la válvula 4 (sin tensión) y el filtro 2. Velocidad 1,23 m/min (48,8 s por metro).",
 "PRIORIDAD 1 · Grifo de pilotaje 11 ABIERTO: palanca a la DERECHA mirando el bloque. Si se quedó cerrado tras una bajada con bomba manual, la presión no abre las retenciones y la PBB no baja.",
@@ -92,7 +92,7 @@ P507],
 "Si hay que bajarla sin corriente o sin bomba: caja «bajada sin corriente con bomba manual».",P507],
  g:[0,0,44,0,0,58,0,0],h:[PG.bajada,PG.planta,PG.fallos,PG.fallos,PG.ajuste,0,PG.bajada,0]},
 {id:"sub",t:"Hidráulica · no sube (elevación)",cro:"hidr_sub",
- k:t=>/no sube\b|no suben\b|no eleva|no levanta|subida (fallada|no funciona|no va)|no hace (la )?subida|no deja subir|sin subida|no sube ni baja/.test(t),
+ k:t=>/no sube\b|no suben\b|no eleva|no levanta|subida (fallada|no funciona|no va)|no hace (la )?subida|no deja subir|sin subida|no sube ni baja|ni sube ni baja|(elevacion|subida) (no funciona|averiada|bloqueada|no responde)|no responde (al )?subir|se queda abajo|no alcanza (la )?altura|no llega (a la )?altura/.test(t),
  a:"No subir la presión para forzar la subida: la limitadora 3 viene tarada de fábrica a 145 ± 5 bar. Si da esa presión y no sube, el fallo está en otro sitio.",
  p:[
 "CÓMO FUNCIONA (pág. 8): al arrancar la bomba el aceite circula libre a depósito 4-5 s. Después entra H-Y1 (válvula 4): cierra el retorno y el aceite pasa por 5.2 (sin tensión) y la retención 6 a los cilindros por 20.1 / 20.2. Sube a 1,15 m/min. Al final de carrera descarga la limitadora 3 (145 bar).",
@@ -134,12 +134,16 @@ const FOCO_TXT=[[/limitador|presion|\bbar\b|tarad|manometr/,"3"],[/grifo|pilotaj
  [/h-?y1\b|valvula (de )?subida/,"4"],[/h-?y2\b/,"5.2"],[/h-?y3\b/,"5.1"],[/h-?y4\b/,"21.1"],[/h-?y5\b/,"21.2"],
  [/(bajada|baja|bajar|desciende|descenso)[^.]{0,15}rapid|rapid[^.]{0,12}(bajada|descenso)/,"5.1"],
  [/nivel de aceite|falta (de )?aceite/,"13"],[/baja sola|no mantiene|pierde (altura|posicion)|inclinacion anomala|fuga/,"20.1"],
- [/\bbomba\b|e-?q3\b|h-?m1\b|motor/,"17"]];
+ [/\bbomba\b|e-?q3\b|h-?m1\b|e-?k3\b|motor/,"17"],[/no sube ni baja|ni sube ni baja/,"17"]];
 const FOCO_CASO={sub:"3",baj:"11",rap:"5.1",man:"12",bom:"17",sola:"20.1",aju:"9"};
 const FOCO_PASO={"3":/limitadora/,"4":/h-y1|valvula 4\b/,"5.2":/h-y2|\b5\.2\b/,"5.1":/h-y3|\b5\.1\b/,"21.1":/h-y4|\b21\.1\b|retenciones? (electrica|21)/,"21.2":/h-y5|\b21\.2\b|retenciones? (electrica|21)/,
  "20.1":/\b20\.1\b|retencion(es)? (pilotada|20)/,"11":/grifo/,"12":/toma 12|bomba manual/,"2":/filtro/,"13":/visor 14|nivel/,"17":/e-q3|h-m1|bomba|motor/,"9":/\b9\.[12]\b|manometro/};
-window.hidrFoco=function(i){if(!i)return null;const c=casos(i);if(!c.length)return null;const t=txt(i);
- const r=FOCO_TXT.find(([re])=>re.test(t));return r?r[1]:(FOCO_CASO[c[0]]||null)};
+window.hidrFoco=function(i){const m=hidrFocoM(i);return m?m.k:null};
+/* foco con el motivo: qué palabra de la OT lo decide o qué síntoma */
+window.hidrFocoM=function(i){if(!i)return null;const c=casos(i);if(!c.length)return null;const t=txt(i);
+ if(/no sube ni baja|ni sube ni baja/.test(t))return {k:"17",caso:"bom",por:"no hace ni subida ni bajada: lo común a las dos es la bomba (E-Q3, E-K3, H-M1)"};
+ for(const [re,k] of FOCO_TXT){const m=t.match(re);if(m)return {k,caso:c[0],por:"la descripción nombra «"+m[0]+"»"}}
+ const k=FOCO_CASO[c[0]];return k?{k,caso:c[0],por:"síntoma «"+PAS.s[IX[c[0]]].t.replace(/^Hidráulica · /,"")+"»"}:null};
 function focoOT(){try{if(typeof view!="undefined"&&view!="tec")return null;const i=inc.find(x=>x.id==gOT);return i&&i.estado=="abierta"?hidrFoco(i):null}catch(e){return null}}
 
 /* ---------- análisis de la OT ---------- */
@@ -306,4 +310,74 @@ try{const SIS=window.SIS;if(SIS&&SIS.PAS){
 
 /* vocabulario de la lectura de OT */
 try{ANA_SIN.push(["aceite","fuga","fugas","perdida","purgar","purgado","retencion","valvula","valvulas","electrovalvula","limitadora","presion","manometro","filtro"]);ANA_VOC=null;ANA_C={k:"",r:null}}catch(e){}
+
+/* ===== v133: Análisis de la OT hidráulica · cadena de elementos que actúan, hipótesis ordenadas y avería acotada ===== */
+/* cadena de cada maniobra: [componente del esquema, módulo PLC, regex de la señal en RUTAS, qué debe pasar] */
+const CAD={
+ sub:[["E-Q3","E-A0",/bomba/i,"disyuntor de la bomba cerrado (LED ●)"],["E-K3","E-A6",/E-K3/i,"entra al pedir SUBIR (bobina)"],["E-K3","E-A3",/E-?K-?3/i,"realimentación «estado E-K3» ●"],
+  ["17","",null,"motor H-M1 gira (horario por el ventilador) · 15 bomba 22 l/min"],["4","E-A1",/subir/i,"tras 4-5 s, H-Y1 24 V: cierra el retorno a depósito"],
+  ["5.2","E-A1",/bajar/i,"H-Y2 SIN tensión: paso P → A"],["6","",null,"retención general deja pasar a los cilindros"],["20.1","",null,"20.1 / 20.2 abren hacia arriba"],
+  ["21.1","E-A7",/H-Y4|H-Y5/i,"H-Y4 / H-Y5 SIN tensión (cerradas)"],["3","",null,"limitadora: 145 ± 5 bar al llegar arriba"],["IT-B11","E-A2",/superior/i,"límite superior de inclinación ○"]],
+ baj:[["E-K3","E-A6",/E-K3/i,"bomba en marcha"],["5.2","E-A1",/bajar/i,"H-Y2 24 V: presión a la línea de pilotaje D"],["11","",null,"grifo de pilotaje ABIERTO (palanca a la derecha)"],
+  ["3","",null,"la limitadora fija la presión de pilotaje (145 bar)"],["20.1","",null,"20.1 / 20.2 abren con el pilotaje"],["10","",null,"regulador de bajada: 1,23 m/min"],
+  ["4","E-A1",/subir/i,"H-Y1 SIN tensión: retorno libre"],["2","",null,"filtro de retorno a depósito"],["IT-B10","E-A2",/inferior/i,"límite inferior de inclinación ●"]],
+ rap:[["5.1","E-A7",/H-Y3/i,"H-Y3 24 V con la orden"],["21.1","E-A7",/H-Y4|H-Y5/i,"H-Y4 / H-Y5 12 V a la vez"],["8","",null,"elemento lógico abre a depósito"],["7","",null,"regulador: ≈ 6,4 m/min (9,4 s por metro)"]],
+ sola:[["20.1","",null,"retenciones pilotadas estancas"],["21.1","E-A7",/H-Y4|H-Y5/i,"H-Y4 / H-Y5 a 0 V en reposo"],["5.2","E-A1",/bajar/i,"H-Y2 ○ en reposo"],["5.1","E-A7",/H-Y3/i,"H-Y3 ○ en reposo"],["C1","",null,"cilindros y latiguillos sin fugas"]],
+ bom:[["E-Q3","E-A0",/bomba/i,"disyuntor cerrado (11,4 A en el plano; motor 12,8 A)"],["E-K3","E-A6",/E-K3/i,"bobina con la orden"],["E-K3","E-A3",/E-?K-?3/i,"realimentación del contactor"],["17","",null,"motor H-M1 y manguera H-W13 (aislamiento)"],["15","",null,"bomba y acoplamiento 16"]],
+ man:[["12","",null,"bomba manual en la toma 12"],["11","",null,"grifo 11 CERRADO mientras se bombea"],["20.1","",null,"20.1 / 20.2 abren con la presión manual"],["10","",null,"regulador de bajada"],["4","",null,"retorno por la 4 sin tensión"]],
+ aju:[["9","",null,"manómetro en 9.1 / 9.2"],["3","",null,"limitadora 145 ± 5 bar"],["10","",null,"bajada normal 1,23 m/min"],["7","",null,"bajada rápida 6,4 m/min"],["2","",null,"filtro 25 µm"],["13","",null,"nivel y aceite ISO 46"]]};
+/* hipótesis de más a menos probable, con la prueba que las separa */
+const HIP={
+ sub:[["17","¿Gira la bomba al pedir SUBIR?","No gira → E-Q3 / E-K3 / motor (caja «la bomba no arranca»)."],
+  ["4","Manómetro en 9.1 ≈ 0 bar","H-Y1 (válvula 4) no cierra el retorno: 24 V en la bobina con la orden; si llegan y no actúa, sustituir la 4."],
+  ["15","Sube pero no llega a 145 bar","Nivel (visor 14), aire en la bomba, giro del motor, bomba gastada; limitadora 3 solo si lo demás está bien."],
+  ["3","No da 145 ± 5 bar con todo lo anterior correcto","Ajuste de la limitadora 3 (¼ de vuelta, sin pasar de 145) o cartucho nuevo 6619012."],
+  ["5.2","145 bar y no sube","No subir la presión: 5.2 / 21 excitadas o agarrotadas, retención 6 o mecánica."]],
+ baj:[["11","Grifo 11 cerrado (palanca a la izquierda)","Abrirlo: palanca a la derecha. Típico tras una bajada con bomba manual."],
+  ["5.2","H-Y2 sin 24 V o no actúa","E-A1 mód. 2 LED 2 → E-K62 → H-Y2. Llega tensión y no baja → bobina o válvula 5.2."],
+  ["10","Regulador 10 cerrado del todo","Abrir hasta 1,23 m/min (48,8 s por metro)."],
+  ["17","La bomba no arranca","Sin bomba no hay pilotaje: bajar con bomba manual y ver la caja de la bomba."],
+  ["20.1","Retenciones 20.1 / 20.2 no abren","Con presión de pilotaje y sin bajar: retenciones o línea D."]],
+ rap:[["5.1","E-A7 no da la orden","LED 1 (H-Y3) y LED 2 (H-Y4 / H-Y5) apagados con la orden: PLC / seguridades."],
+  ["21.1","Llega tensión y no baja rápido","Bobina 5.1, 21.1 o 21.2 o elemento lógico 8 bloqueados."],
+  ["21.2","Baja rápido inclinándose","Una 21 no abre: medir H-Y4 y H-Y5 por separado."],["7","Velocidad incorrecta","Regulador 7: 6,4 m/min."]],
+ sola:[["5.1","Alguna bobina de bajada activa en reposo","E-A1 mód. 2 LED 2, E-A7 mód. 1 LED 1 y 2 deben estar apagados."],
+  ["20.1","Baja de un solo lado","Retenciones 20 / 21 de ese cilindro o junta del vástago."],["C1","Bajan los dos / hay aceite","Fugas en bloque, latiguillos, cilindros; nivel en el visor 14."]],
+ bom:[["E-Q3","E-Q3 disparado (E-A0 mód. 3 LED 3 ○)","Medir aislamiento de H-M1 y H-W13 antes de rearmar; no rearmar más de una vez."],
+  ["E-K3","E-K3 no entra","E-A6 mód. 4 LED 2 apagado con la orden → seguridades / PLC; encendido y no entra → bobina."],["17","Entra E-K3 y el motor no gira","Tensión en bornas del motor, H-W13, motor."]],
+ man:[["11","Grifo 11","Cerrado para bajar con bomba manual; ABRIR al terminar."],["12","Toma 12","Minimanguera Ermeto SMA3 M16 bien roscada."]],
+ aju:[["3","Presión","Limitadora 145 ± 5 bar."],["10","Velocidad de bajada","1,23 m/min."]]};
+const ELN=k=>EL[k]?EL[k].n:k;
+function sigDe(mod,re){try{const R=RUTAS[mod];if(!R||!re)return null;return (R.s||[]).find(S=>re.test(S.t))||null}catch(e){return null}}
+/* el análisis de la OT pasa a la hidráulica: señales y elementos de la cadena primero */
+(function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r._hid2)return r;r._hid2=1;if(r.tipo&&r.tipo!="PAS")return r;
+ const F=hidrFocoM(i);if(!F)return r;const C=CAD[F.caso]||[];
+ const rel=[];C.forEach(([k,mod,re])=>{const S=sigDe(mod,re);if(S&&!rel.some(x=>x.mod==mod&&x.S===S))rel.push({mod,S,sc:20-rel.length,tg:new Set([k])})});
+ r.rel=rel.concat((r.rel||[]).filter(x=>!rel.some(y=>y.mod==x.mod&&y.S===x.S))).slice(0,10);
+ r.mods=[...new Set(r.rel.map(x=>x.mod))];
+ const el=[ELN(F.k)];C.forEach(([k])=>{const n=/^[EI]/.test(k)?k:ELN(k);if(!el.includes(n))el.push(n)});
+ r.elem=el.concat((r.elem||[]).filter(x=>!el.includes(x))).slice(0,14);r.hid=F;
+ const si=IX[F.caso];r.guia=[{si,t:PAS.s[si].t,sc:60}].concat((r.guia||[]).filter(g=>g.si!==si)).slice(0,5);return r}})();
+function hidAnaHTML(i,F){const P=PRIM[F.caso],S=PAS.s[IX[F.caso]],C=CAD[F.caso]||[],H=(HIP[F.caso]||[]).slice();
+ const ef=(S.p.find(p=>/^PRIORIDAD 1/.test(p))||"").replace(/^PRIORIDAD 1 · (ACTUACIÓN MÁS EFICAZ[^:]*: )?/,"");
+ const led=(mod,re)=>{const s=sigDe(mod,re);return s?` · <span class="anae">${es(mod)} mód. ${s.k||"-"} LED ${s.l||"-"}</span>`:mod?` · <span class="anae">${es(mod)}</span>`:""};
+ return `<div class="hana">
+ <div class="hfocb hana1">🎯 Avería acotada en: <b>${es(ELN(F.k))}</b></div>
+ <div class="mu" style="font-size:12px">${es(S.t)} · por ${es(F.por)}</div>
+ ${P?`<div class="anal">1º · Primera actuación en campo</div><div class="puit"><div class="puac">1. ${es(P[1])}</div><div class="puac">2. ${es(P[2])}</div></div>`:""}
+ ${ef?`<div class="anal">⭐ Actuación más eficaz</div><div class="hef">${es(ef)}</div>`:""}
+ ${H.length?`<div class="anal">Cómo se acota en campo (de más a menos probable)</div><ol class="hhip">${H.map(h=>`<li class="${h[0]==F.k?"hfoco":""}"><b>${es(h[1])}</b> → ${es(h[2])} <span class="mu">[${es(ELN(h[0]))}]</span></li>`).join("")}</ol>`:""}
+ ${C.length?`<details class="hcad"><summary class="anal" style="cursor:pointer">Elementos que actúan, en orden (${C.length}) ▾</summary><ol class="hhip">${C.map(([k,mod,re,d])=>`<li class="${k==F.k?"hfoco":""}"><b>${es(/^[EI]/.test(k)?k:ELN(k))}</b>${led(mod,re)} — ${es(d)}</li>`).join("")}</ol></details>`:""}
+ <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="sec" style="flex:1;width:auto" onclick="hidrVa(${IX[F.caso]})">📋 Abrir la actuación</button><button class="sec" style="flex:1;width:auto" onclick="gHidrPdf(${PG.esquema})">📄 Esquema hidráulico</button></div></div>`}
+(function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);if(!R||!R.hid)return h;
+ return h.replace(/(<details class="anap" open><summary>[\s\S]*?<\/summary>)/,`$1${hidAnaHTML(i,R.hid)}`)}})();
+/* apertura de la OT (tarjeta en Seguimiento / Inicio): la avería acotada bajo la descripción */
+(function(){const o=card;card=function(i){let h=o(i);try{if(!i||i.estado!="abierta"||(typeof otEsPAS=="function"&&!otEsPAS(i)))return h;const F=hidrFocoM(i);if(!F)return h;
+ const t=`<div class="hfocb hcard">🎯 Avería acotada: <b>${es(ELN(F.k))}</b> <span class="mu">· ${es(PAS.s[IX[F.caso]].t.replace(/^Hidráulica · /,""))}</span></div>`;
+ return h.replace(/(\s*<div class="mu">Inicio )/,t+"$1")}catch(e){return h}}})();
+(function(){const st=document.createElement("style");st.textContent=`.hana{margin:4px 0 6px;padding:8px 10px;border:2px solid #ef6c00;border-radius:10px;background:color-mix(in srgb,#ef6c00 6%,var(--card))}
+.hana1{font-size:14px;color:#ef6c00}.hef{font-size:13px;line-height:1.4;font-weight:600}.hhip{margin:4px 0;padding-left:20px;font-size:12.5px;line-height:1.4}.hhip li{margin:3px 0;padding:2px 4px}
+.hhip li.hfoco{border-radius:6px;animation:hfocp 2s ease-in-out infinite}.hcad>summary{list-style:none}.hcad>summary::-webkit-details-marker{display:none}
+.hcard{font-size:13px;color:#ef6c00;margin:4px 0;padding:5px 8px;border-radius:8px;border:1.5px solid #ef6c00;animation:hfocp 2s ease-in-out infinite}`;document.head.appendChild(st)})();
+try{ANA_C={k:"",r:null}}catch(e){}
 })();
