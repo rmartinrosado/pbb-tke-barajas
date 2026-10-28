@@ -24,7 +24,7 @@ const MAPA=[
  [/pds ?400|conector|convertidor|manguera|enrollador/i,"HZ"],
  [/carro|a\/a|\baire\b|\bpca\b|ventilador|compresor|condensad|filtro|presostato|mariposa|humos|equipos de servicio/i,"aire"],
  [/safety|m[oó]dulos? de seguridad|lazo de seguridad|contactor de seguridad|interlock|90 ?%/i,"safety"],
- [/cotejo plc|inspecci[oó]n cable|\bplc\b|^sd[io]$|^pwr$|m[oó]dulo|comprobaci[oó]n en armario/i,"plc"],
+ [/cotej(?:o|ar) plc|inspecci[oó]n cable|\bplc\b|^sd[io]$|^pwr$|m[oó]dulo|comprobaci[oó]n en armario/i,"plc"],
  [/borde|zapata|bumper/i,"bordes"],
  [/antiatrapamiento|finales? de carrera/i,"final-carrera"],
  [/\bsetas?\b|emergencia|paradas/i,"seta"],

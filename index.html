@@ -667,7 +667,7 @@ function vTec(){
  <label>Tipo de incidencia</label><div class="gchips">${Object.keys(GUIA.tipos).map(k=>`<button class="${k==gTipo?"pri":"sec"}" onclick="gTipo='${k}';vTec()">${k}</button>`).join("")}</div>
  <div class="mu" style="margin-top:6px">${esc(T.n)}</div><label>Plano de esta guía</label><select id="g_doc" onchange="gSetDoc(this.value)"><option>Cargando…</option></select></div>`;
  h+=det("⚠️ Seguridad antes de intervenir",lista(GUIA.seg),gAbierto.has("SEG")?"open":"","SEG");
- if(gTipo=="PAS")h+=det("🔍 Cotejo PLC con foto (estado de reposo)",`<div id="g_cot">${gCotHTML()}</div>`,gAbierto.has("COT")?"open":"","COT");
+ if(gTipo=="PAS")h+=det("🔍 Cotejar PLC (Estado en Reposo)",`<div id="g_cot">${gCotHTML()}</div>`,gAbierto.has("COT")?"open":"","COT");
  if(gTipo=="PAS")h+=det("📏 Inspección cable a cable",`<div id="g_ins">${gInsHTML()}</div>`,gAbierto.has("INS")?"open":"","INS");
  if(T.v)h+=`<div class="card mu">${esc(T.v)}</div>`;
  T.s.forEach((s,si)=>{const k=gTipo+si;const c=gChk[k]||[];const hechos=c.filter(Boolean).length;
@@ -3382,7 +3382,7 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=2"></script><script src="sos.js?v=12"></script><script src="iconos.js?v=3"></script><script src="sim-brazo.js?v=4"></script><script src="sim-almena.js?v=6"></script><script>
+</script><script src="sistemas.js?v=2"></script><script src="sos.js?v=12"></script><script src="iconos.js?v=4"></script><script src="sim-brazo.js?v=4"></script><script src="sim-almena.js?v=6"></script><script>
 /* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
 function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
  msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
@@ -4042,7 +4042,7 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
   return h};
  const of=gFotoSel;gFotoSel=function(){auto=null;return of.apply(this,arguments)};
  const oc=gCotejarOT;gCotejarOT=function(){auto=null;return oc.apply(this,arguments)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v162"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v163"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
