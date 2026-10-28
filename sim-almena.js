@@ -6,7 +6,7 @@
   · altura alta (banda lisa): límite de giro H-B3 (izq.) / H-B4 (dcha.) → tapados dentro de la almena, libres al llegar al resalte.
   · altura baja (pestañas): contaje H-B1 / H-B2, desfasados 1/4 de paso para dar sentido y 4 flancos por pestaña.
  FC H-S1 = E-A8 DIS05 (IN05S 5.1 · hilo 625 · E-X55:12 / UT1 5.2 · hilo 285 · E-X55:13), confirmado en plano.
- Paso, grados por flanco y topes: valores de EJEMPLO (13 pestañas × 14°), pendientes de medir en cada PBB. */
+ Paso confirmado en campo: 14° por pestaña (pestaña 7° + hueco 7°), 13 pestañas = 182° de almena; flanco H-B1+H-B2 = 3,5°. */
 (function(){
 const H=(t,a)=>{const e=document.createElementNS("http://www.w3.org/2000/svg",t);for(const k in a)e.setAttribute(k,a[k]);return e};
 const N=13, P=14, W=P/2;            // 13 pestañas, paso 14° (pestaña 7° + hueco 7°)
@@ -30,7 +30,7 @@ function init(el){
  <div class="gsim-bt"><button data-a="play">⏸ Pausa</button><button data-m="-1">◀ Izquierda</button><button data-m="0">0°</button><button data-m="1">Derecha ▶</button></div>
  <div class="gsim-bt"><button data-f="B3">⚠ Fallo H-B3</button><button data-f="B4">⚠ Fallo H-B4</button><button data-r="1">↺ Rearme FC</button></div>
  <label class="gsim-vel"><span>🐢</span><input type="range" min="1" max="40" step="1" value="${V}" aria-label="Velocidad de la simulación"><span>🐇</span><b>${V} °/s</b></label>
- <div class="mu" style="font-size:11px;margin-top:4px">Inductivo tapado por la almena = LED encendido. <b>Contaje</b> (altura baja): H-B1 y H-B2 leen las 13 pestañas desfasados ¼ de paso; cada flanco = ${FL}°. <b>Límite</b> (altura alta): H-B4 / H-B3 se liberan al llegar al resalte de su extremo y el PLC corta el giro. <b>Respaldo</b>: si un inductivo de límite no actúa (botón ⚠), unos grados después el resalte pisa el rodillo del único FC y corta por seguridad. Paso y topes de ejemplo: medir en cada PBB.</div>`;
+ <div class="mu" style="font-size:11px;margin-top:4px">Inductivo tapado por la almena = LED encendido. <b>Contaje</b> (altura baja): H-B1 y H-B2 leen las 13 pestañas desfasados ¼ de paso; cada flanco = ${FL}°. <b>Límite</b> (altura alta): H-B4 / H-B3 se liberan al llegar al resalte de su extremo y el PLC corta el giro. <b>Respaldo</b>: si un inductivo de límite no actúa (botón ⚠), unos grados después el resalte pisa el rodillo del único FC y corta por seguridad. Paso confirmado: 14° por pestaña.</div>`;
  const svg=el.querySelector("svg"),row=el.querySelector(".gsim-row"),st=el.querySelector(".gsim-st");
  const T=(x,y,txt,a,p)=>{const t=H("text",Object.assign({x,y,"font-size":7.5,fill:"var(--mu)"},a||{}));t.textContent=txt;(p||svg).append(t);return t};
 
