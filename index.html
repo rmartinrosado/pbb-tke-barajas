@@ -3885,12 +3885,12 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
 /* ===== v143: en Inicio, indicador dibujado a mano (flecha curva + silueta de dedo, trazo fino y semitransparente)
  sobre la tarjeta de OT con caja amarilla (llegada) y caja verde (OT registrada con inicio): «pulsa aquí» → Seguimiento OT ===== */
 (function(){const st=document.createElement("style");st.textContent=`.card[data-hoid]{position:relative}
-.otdedo{position:absolute;right:64px;bottom:4px;width:100px;height:75px;pointer-events:none;opacity:.62;z-index:2}
+.otdedo{position:absolute;right:64px;bottom:24px;width:100px;height:75px;pointer-events:none;opacity:.62;z-index:2}
 .otdedo path,.otdedo line{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .otdedo .otfl{stroke-dasharray:130;stroke-dashoffset:130;animation:otfl 2.6s ease-in-out infinite}
 .otdedo .otmano{transform-origin:70px 60px;animation:ottap 2.6s ease-in-out infinite}
 .otdedo .otray{opacity:0;animation:otray 2.6s ease-in-out infinite}
-.card.otlle .otdedo{color:#b98a00}.card.otini .otdedo{color:#15803d}
+.card.otlle .otdedo,.card.otini .otdedo{color:#7e22ce}
 @keyframes otfl{0%{stroke-dashoffset:130}45%,100%{stroke-dashoffset:0}}
 @keyframes ottap{0%,50%,100%{transform:translate(0,0) rotate(-28deg)}62%{transform:translate(-4px,-5px) rotate(-28deg) scale(.96)}74%{transform:translate(0,0) rotate(-28deg)}}
 @keyframes otray{0%,58%{opacity:0}66%{opacity:1}82%,100%{opacity:0}}
@@ -3906,6 +3906,6 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
 </g></svg>`;
  const o=card;card=function(i){const h=o(i);if(view!="dash"||i.estado!="abierta"||!(i.hLle||i.hIni))return h;
   return h.replace(/(<div[^>]*class="card[^"]*"[^>]*>)/,"$1"+svg)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v143"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v144"}})();
 </script>
 </body></html>
