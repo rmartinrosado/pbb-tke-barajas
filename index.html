@@ -2625,7 +2625,7 @@ async function tkBorra(k){const g=tkGrupos().find(x=>x.k==k);if(!g)return;
 /* ===== v2: al volver a la app (iPhone suspende la conexión en segundo plano) se recargan las OT; además, refresco cada 5 s (v3) ===== */
 (function(){let ult=0;const rec=()=>{if(!user||document.hidden)return;const n=Date.now();if(n-ult<3000)return;ult=n;cargaInc(true).catch(()=>{})};
  document.addEventListener("visibilitychange",rec);addEventListener("pageshow",rec);addEventListener("focus",rec);addEventListener("online",rec);
- setInterval(rec,5000)})();
+ setInterval(()=>{if(typeof view!="undefined"&&view=="tec")return;rec()},10000)})(); /* v169: refresco cada 10 s y nunca en la Guía (las animaciones no se tocan) */
 /* ===== v4: llegada y cierre a mano si no están grabadas (la llegada se graba con «He llegado a la posición»); caja rápida hhmm junto a cada hora ===== */
 (function(){const o=resolver;resolver=function(id){o(id);const i=inc.find(x=>x.id==id);if(!i||i.estado!="abierta")return;
  const l=$("#r_l"),c=$("#r_c");if(l)l.value=i.hLle||"";if(c)c.value=i.hCie||""}})();
@@ -4117,7 +4117,7 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
  document.addEventListener("touchmove",e=>{if(e.touches.length>1||(e.scale!==undefined&&e.scale!==1))e.preventDefault()},{passive:false});
  let ult=0;document.addEventListener("touchend",e=>{const t=Date.now();if(t-ult<300&&e.touches.length==0&&!e.target.closest("input,textarea,select,[contenteditable]"))e.preventDefault();ult=t},{passive:false});
  document.addEventListener("wheel",e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v168"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v169"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
