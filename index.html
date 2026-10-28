@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>PBB TKE Barajas</title>
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -4108,7 +4108,16 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
   delete i.plc;plcBorrar.add(i.id);gFoto="";gMis.clear();gSinAl.clear();sv("pbb_inc",inc);gPintaCot();render();
   msg("Foto PLC borrada de la OT "+(i.orden||""))};
  const st=document.createElement("style");st.textContent=`.gfix{position:sticky}.gfclr{position:absolute;top:12px;right:18px;z-index:5;display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #fff4;border-radius:10px;background:#d32f2fe6;color:#fff;font-size:13px;font-weight:700;cursor:pointer}.gfclr svg{width:16px;height:16px}.gfclr:active{filter:brightness(.85)}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v167"}})();
+/* ===== v168: sin zoom del navegador en ninguna pantalla (pellizco ni doble toque, iPhone y Android).
+   El zoom solo lo hace la propia app donde está programado: «toca para ampliar» de la foto PLC, botones +/− del visor de planos ===== */
+(function(){
+ const st=document.createElement("style");st.textContent=`html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%}button,a,label,input,select,textarea{touch-action:manipulation}`;document.head.appendChild(st);
+ const no=e=>e.preventDefault();
+ ["gesturestart","gesturechange","gestureend"].forEach(t=>document.addEventListener(t,no,{passive:false}));
+ document.addEventListener("touchmove",e=>{if(e.touches.length>1||(e.scale!==undefined&&e.scale!==1))e.preventDefault()},{passive:false});
+ let ult=0;document.addEventListener("touchend",e=>{const t=Date.now();if(t-ult<300&&e.touches.length==0&&!e.target.closest("input,textarea,select,[contenteditable]"))e.preventDefault();ult=t},{passive:false});
+ document.addEventListener("wheel",e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v168"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
