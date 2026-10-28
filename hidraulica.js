@@ -378,7 +378,7 @@ function hidAnaHTML(i,F){const P=PRIM[F.caso],S=PAS.s[IX[F.caso]],C=CAD[F.caso]|
 (function(){const st=document.createElement("style");st.textContent=`.hana{margin:4px 0 6px;padding:8px 10px;border:2px solid #ef6c00;border-radius:10px;background:color-mix(in srgb,#ef6c00 6%,var(--card))}
 .hana1{color:#c62828}.hef{font-size:13px;line-height:1.4;font-weight:600}.hhip{margin:4px 0;padding-left:20px;font-size:12.5px;line-height:1.4}.hhip li{margin:3px 0;padding:2px 4px}
 .hhip li.hfoco{border-radius:6px;animation:hfocp 2s ease-in-out infinite}.hcad>summary{list-style:none}.hcad>summary::-webkit-details-marker{display:none}
-.hcard{color:#c62828;margin:4px 0;padding:5px 8px;border-radius:8px;border:2px solid #c62828;animation:hfocr 2s ease-in-out infinite}.hcard .mu{color:#c62828}
+.hcard{clear:both;display:block;width:100%;box-sizing:border-box;color:#c62828;margin:6px 0 4px;padding:5px 8px;border-radius:8px;border:2px solid #c62828;animation:hfocr 2s ease-in-out infinite}.hcard .mu{color:#c62828}
 @keyframes hfocr{0%,100%{box-shadow:0 0 0 2px #c62828;background:color-mix(in srgb,#c62828 12%,transparent)}50%{box-shadow:0 0 0 0 #c6282800;background:transparent}}
 .hfocb{white-space:nowrap;overflow:hidden;font-size:20px;line-height:1.25}`;document.head.appendChild(st)})();
 try{ANA_C={k:"",r:null}}catch(e){}
@@ -386,6 +386,6 @@ try{ANA_C={k:"",r:null}}catch(e){}
 /* v135: la línea AVERÍA en rojo, lo más grande posible sin salirse de la línea */
 function hfit(){document.querySelectorAll(".hfocb").forEach(el=>{if(!el.clientWidth)return;let f=20;el.style.fontSize=f+"px";
  while(el.scrollWidth>el.clientWidth+1&&f>11){f-=.5;el.style.fontSize=f+"px"}})}
-let hfT=0;new MutationObserver(()=>{clearTimeout(hfT);hfT=setTimeout(hfit,60)}).observe(document.body,{childList:true,subtree:true});
+let hfT=0,hfT2=0;new MutationObserver(()=>{clearTimeout(hfT);clearTimeout(hfT2);hfT=setTimeout(hfit,60);hfT2=setTimeout(hfit,400)}).observe(document.body,{childList:true,subtree:true});
 addEventListener("resize",()=>{clearTimeout(hfT);hfT=setTimeout(hfit,100)});document.addEventListener("toggle",()=>setTimeout(hfit,30),true);
 })();
