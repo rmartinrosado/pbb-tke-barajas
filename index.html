@@ -4117,24 +4117,34 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
  document.addEventListener("touchmove",e=>{if(e.touches.length>1||(e.scale!==undefined&&e.scale!==1))e.preventDefault()},{passive:false});
  let ult=0;document.addEventListener("touchend",e=>{const t=Date.now();if(t-ult<300&&e.touches.length==0&&!e.target.closest("input,textarea,select,[contenteditable]"))e.preventDefault();ult=t},{passive:false});
  document.addEventListener("wheel",e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})})();
-/* ===== v170: Seguimiento OT · en la primera línea de la tarjeta, entre el tipo y el estado:
-   verde (sin llegada) → cuenta atrás de llegada · amarilla (con llegada) → horas de inicio y llegada · roja (cerrada) → inicio, llegada y cierre ===== */
+/* ===== v170/v171: Seguimiento OT · en la primera línea de la tarjeta, entre el tipo y el estado, una caja del mismo tamaño en los tres colores:
+   verde (sin llegada) → cuenta atrás de llegada · amarilla (con llegada) → inicio y llegada · roja (cerrada) → inicio, llegada y cierre.
+   Las cerradas (rojas) van al final, ordenadas por fecha y hora de cierre (la más reciente primero) ===== */
 (function(){
- const txt=i=>{if(i.estado=="abierta"&&!i.hLle){if(!i.hIni||llegFin(i)==null)return"";const r=Math.round((llegFin(i)-Date.now())/1000),a=Math.abs(r),mm=Math.floor(a/60),ss=String(a%60).padStart(2,"0");
-   return r>=0?`<span class="ohv${r<=60?" ohw":""}">⏱ ${mm}:${ss}</span>`:`<span class="ohx">⚠ +${mm}:${ss}</span>`}
-  const h=(l,v)=>`<span class="ohh"><small>${l}</small>${esc(v||"–")}</span>`;
-  return i.estado=="abierta"?`<span class="ohy">${h("I",i.hIni)}${h("L",i.hLle)}</span>`:`<span class="ohr">${h("I",i.hIni)}${h("L",i.hLle)}${h("C",i.hCie)}</span>`};
+ const col=(l,v)=>`<span class="ohc"><small>${l}</small><b>${esc(v||"–")}</b></span>`;
+ const txt=i=>{if(i.estado=="abierta"&&!i.hLle){if(!i.hIni||llegFin(i)==null)return`<span class="ohb ohv">${col("INICIO",i.hIni)}</span>`;
+   const r=Math.round((llegFin(i)-Date.now())/1000),a=Math.abs(r),mm=Math.floor(a/60),ss=String(a%60).padStart(2,"0");
+   return r>=0?`<span class="ohb ohv${r<=60?" ohw":""}">${col("LLEGADA",mm+":"+ss)}</span>`:`<span class="ohb ohx">${col("FUERA",`+${mm}:${ss}`)}</span>`}
+  return i.estado=="abierta"?`<span class="ohb ohy">${col("INI",i.hIni)}${col("LLE",i.hLle)}</span>`:`<span class="ohb ohr">${col("INI",i.hIni)}${col("LLE",i.hLle)}${col("CIE",i.hCie)}</span>`};
  const o=card;card=function(i){const h=o.apply(this,arguments);if(view!="track"||!i)return h;
   return h.replace("</span></b>",`</span></b><span class="ohm" data-ohm="${i.id}">${txt(i)}</span>`)};
+ const mn=h=>{const m=/^(\d{1,2}):(\d{2})/.exec(h||"");return m?+m[1]*60+ +m[2]:null};
+ const tCie=i=>{const d=Date.parse((i.fecha||"1970-01-01")+"T00:00:00Z")||0,c=mn(i.hCie),s=mn(i.hIni);if(c==null)return d;return d+((s!=null&&c<s)?1440:0)*60e3+c*60e3};
+ const ordena=()=>{if(typeof view=="undefined"||view!="track")return;const cs=[...document.querySelectorAll("#app .card[data-oid]")];if(!cs.length)return;
+  const ce=cs.map(c=>({c,i:inc.find(x=>x.id==c.dataset.oid)})).filter(x=>x.i&&x.i.estado!="abierta").sort((a,b)=>tCie(b.i)-tCie(a.i)||(+b.i.id)-(+a.i.id));
+  if(!ce.length)return;const p=cs[0].parentNode;let fin=cs[cs.length-1].nextSibling;
+  const ya=ce.every((x,k)=>cs[cs.length-ce.length+k]===x.c);if(ya)return;ce.forEach(x=>p.insertBefore(x.c,fin))};
+ const or=render;render=function(){const r=or.apply(this,arguments);try{ordena()}catch(e){}return r};
  setInterval(()=>{if(typeof view=="undefined"||view!="track"||!Array.isArray(inc))return;
   document.querySelectorAll("[data-ohm]").forEach(el=>{const i=inc.find(x=>x.id==el.dataset.ohm);if(!i)return;const t=txt(i);if(el.innerHTML!==t)el.innerHTML=t})},1000);
- const st=document.createElement("style");st.textContent=`.ot .ohd{flex-wrap:nowrap;gap:6px}.ot .ohd>b{white-space:nowrap}
-.ohm{flex:1;display:flex;justify-content:center;min-width:0;font-variant-numeric:tabular-nums}
-.ohv,.ohx{font-weight:800;font-size:15px;padding:3px 8px;border-radius:8px;white-space:nowrap}
-.ohv{color:#4ade80;background:#16a34a22}.ohw{color:#facc15;background:#facc1522;animation:ctdp 1s infinite}.ohx{color:#f87171;background:#dc262622}
-.ohy,.ohr{display:flex;flex-wrap:wrap;justify-content:center;column-gap:6px;row-gap:0;font-size:12px;font-weight:700;line-height:1.35}.ohh{white-space:nowrap}.ohy{color:#facc15}.ohr{color:#f87171}
-.ohh small{font-size:10px;opacity:.75;margin-right:2px;font-weight:600}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v170"}})();
+ const st=document.createElement("style");st.textContent=`.ot .ohd{flex-wrap:nowrap;gap:6px}.ot .ohd>b{white-space:nowrap;font-size:15px}
+.ot .ohd .tag{font-size:11px;padding:2px 6px}.ot .ohd>span:last-child{box-sizing:border-box;width:86px;justify-content:center;font-size:10px;letter-spacing:.3px;padding:3px 4px;gap:4px;white-space:nowrap}
+.ohm{flex:1;display:flex;justify-content:flex-end;min-width:0}.ot .ohd>span.ohm::after{content:none;display:none}
+.ohb{box-sizing:border-box;width:118px;height:36px;flex:none;display:flex;align-items:center;justify-content:space-evenly;border-radius:8px;border:1px solid currentColor;font-variant-numeric:tabular-nums}
+.ohc{display:flex;flex-direction:column;align-items:center;line-height:1.05}.ohc small{font-size:8px;font-weight:700;opacity:.8;letter-spacing:.3px}.ohc b{font-size:11.5px;font-weight:800;letter-spacing:-.2px}
+.ohv{color:#4ade80;background:#16a34a22}.ohv .ohc b{font-size:15px}.ohw{color:#facc15;background:#facc1522;animation:ctdp 1s infinite}
+.ohx{color:#f87171;background:#dc262622}.ohx .ohc b{font-size:15px}.ohy{color:#facc15;background:#facc151a}.ohr{color:#f87171;background:#dc26261a}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v171"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
