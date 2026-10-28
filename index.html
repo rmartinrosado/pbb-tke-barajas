@@ -4096,7 +4096,19 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
   render();abreClaude(pr)};
  const st=document.createElement("style");st.textContent=`.otcl{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:10px 0 0;padding:8px 12px;border:0;border-radius:12px;background:#d32f2f;color:#fff;font-weight:800;font-size:15px;cursor:pointer}
 .otcl img{width:40px;height:40px;border-radius:9px;background:#fff;padding:3px;display:block}.otcl:active{filter:brightness(.9)}`;document.head.appendChild(st)})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v166"}})();
+/* ===== v167: botón «Limpiar foto» en la caja «Cotejar PLC (Estado en Reposo)». Quita la foto PLC de la OT
+   (con confirmación, también en Supabase) y deja el cotejo sin LED marcados, listo para una foto nueva ===== */
+(function(){
+ const o=gCotHTML;gCotHTML=function(){const h=o.apply(this,arguments);
+  if(h.indexOf('<div class="gfix">')<0)return h;
+  const b=`<button class="gfclr" onclick="event.stopPropagation();gLimpiaFoto()" aria-label="Limpiar foto" title="Limpiar foto">${IC('trash')}<span>Limpiar foto</span></button>`;
+  return h.replace('<div class="gfix">','<div class="gfix">'+b)};
+ window.gLimpiaFoto=function(){const i=inc.find(x=>x.id==gOT);if(!i||!i.plc)return;
+  if(!confirm(`¿Limpiar la foto PLC de la OT ${i.orden}?`))return;
+  delete i.plc;plcBorrar.add(i.id);gFoto="";gMis.clear();gSinAl.clear();sv("pbb_inc",inc);gPintaCot();render();
+  msg("Foto PLC borrada de la OT "+(i.orden||""))};
+ const st=document.createElement("style");st.textContent=`.gfix{position:sticky}.gfclr{position:absolute;top:12px;right:18px;z-index:5;display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #fff4;border-radius:10px;background:#d32f2fe6;color:#fff;font-size:13px;font-weight:700;cursor:pointer}.gfclr svg{width:16px;height:16px}.gfclr:active{filter:brightness(.85)}`;document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v167"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
