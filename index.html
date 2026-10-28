@@ -3908,4 +3908,9 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
   return h.replace(/(<div[^>]*class="card[^"]*"[^>]*>)/,"$1"+svg)}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v144"}})();
 </script>
+<script>
+/* ===== v145: sin fondo de pantalla (se quita la foto de pasarela de detrás de las cajas; la cabecera no cambia) ===== */
+(function(){const st=document.createElement("style");st.textContent="body::before,body::after{display:none!important;background:none!important;content:none!important}";document.head.appendChild(st)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v145"}})();
+</script>
 </body></html>
