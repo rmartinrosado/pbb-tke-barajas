@@ -4028,7 +4028,21 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
 .gmods button.rel{box-shadow:0 0 0 2px #ef6c00 inset;color:#ef6c00;font-weight:800}.gmods button.rel.on{color:#fff}`;document.head.appendChild(st)})();
 /* ===== v158/v160: Inicio y Seguimiento OT · sin la caja roja «AVERÍA:» en las tarjetas de OT (basta con la actuación guiada) ===== */
 (function(){const o=card;card=function(i){const h=o.apply(this,arguments);return h.replace(/<div class="hfocb hcard">[\s\S]*?<\/span><\/div>/,"")}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v161"}})();
+/* ===== v162: cotejo con foto PLC · al cargar la foto (o abrir una OT que ya la tiene) se activa el módulo relacionado con la OT
+   y se resaltan en naranja todos los módulos relacionados (según la descripción, como en la inspección cable a cable) ===== */
+(function(){let auto=null;
+ const rel=ot=>{try{const A=ot&&typeof otRelSig=="function"&&otRelSig(ot);if(!A)return null;const ids=new Set(PLC.map(M=>M.id)),out=[];
+  A.rel.forEach(x=>{if(ids.has(x.mod)&&!out.includes(x.mod))out.push(x.mod)});return out.length?{mods:out,gr:A.gr}:null}catch(e){return null}};
+ const o=gCotHTML;gCotHTML=function(){const ot=gOTs().find(x=>x.id==gOT);const R=ot&&ot.plc?rel(ot):null;
+  if(R&&auto!==ot.id){auto=ot.id;gPMod=R.mods[0]}
+  let h=o.apply(this,arguments);if(!R)return h;const ms=new Set(R.mods);
+  h=h.replace(/<button class="([^"]*)"( onclick="gPMod='([^']+)';gPintaMod\(\)")/g,(m,cl,at,id)=>ms.has(id)?`<button class="${cl} rel"${at}`:m);
+  const nota=`<div class="mu" style="font-size:12px;margin:2px 0 6px;color:#ef6c00">🎯 Relacionados con la OT (${esc(R.gr.join(" · "))}): <b>${R.mods.join(", ")}</b></div>`;
+  const k=h.indexOf('<label>Módulo</label><div class="gmods">');if(k>=0)h=h.slice(0,k)+h.slice(k).replace('<div class="gmods">',nota+'<div class="gmods">');
+  return h};
+ const of=gFotoSel;gFotoSel=function(){auto=null;return of.apply(this,arguments)};
+ const oc=gCotejarOT;gCotejarOT=function(){auto=null;return oc.apply(this,arguments)}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v162"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
