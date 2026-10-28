@@ -3823,6 +3823,7 @@ body{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
   if(r.error){msg("Error al cargar: "+r.error.message);return}
   if(g!==gen||pend){setTimeout(()=>cargaInc(re).catch(()=>{}),600);return} /* hubo un guardado mientras se cargaba: se descarta esta lectura */
   inc=r.data.map(x=>({...x.datos,id:x.id}));remoto={};r.data.forEach(x=>remoto[x.id]=JSON.stringify(x.datos));
+  if(re&&typeof window.sinCambios=="function"&&window.sinCambios())return; /* v152: refresco sin cambios → no se repinta (evita el parpadeo cada 5 s) */
   if(!re||view=="dash"||view=="track")render()};
  const ol=llegada;llegada=function(id){const i=inc.find(x=>x.id==id);if(!i||i.hLle)return;ol(id)};
  const o=card;card=function(i){let h=o(i);if(i.estado=="abierta"&&i.hLle)h=h.replace(/(<div class="mu">Inicio [^<]*?)(<\/div>)/,`$1 · <b style="color:#facc15">Llegada ${esc(i.hLle)}</b>$2`);return h}})();
@@ -3933,6 +3934,14 @@ document.addEventListener("click",e=>{if(view!="dash")return;const c=e.target.cl
    b.insertAdjacentHTML("afterend",window.OT_DEDO.replace('class="otdedo"','class="otdedo sosdedo"'))})};
  new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.body,{childList:true,subtree:true});pon()})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v151"}})();
+/* ===== v152: sin parpadeo en el refresco de cada 5 s. Solo se repinta la pantalla si cambian las OT, la vista, el modo o el turno horario;
+   las cuentas atrás ya se actualizan solas cada segundo sin repintar ===== */
+(function(){let ult=null;
+ const tur=()=>{const d=new Date(),h=d.getHours();return d.toDateString()+(h<7?"N":h<15?"M":h<23?"T":"N")};
+ const firma=()=>{try{return JSON.stringify(inc)+"|"+view+"|"+(typeof tecnico!="undefined"&&tecnico)+"|"+(typeof admin!="undefined"&&admin)+"|"+tur()}catch(e){return Math.random()+""}};
+ const o=render;render=function(){const r=o.apply(this,arguments);ult=firma();return r};
+ window.sinCambios=function(){const f=firma();if(f===ult)return true;return false}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v152"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
