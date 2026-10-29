@@ -2415,7 +2415,7 @@ function tipoVis(){const w=document.querySelector(".pbbw");if(!w)return;const on
 (function(){const o=remForm;remForm=function(){o();tipoVis()}})();
 (function(){const o=nTermSet;nTermSet=function(t){o(t);const s=$("#f_pos");if(!s)return;
  if(s.options.length&&s.options[0].value!==""||!s.options.length)s.insertAdjacentHTML("afterbegin",`<option value="">Elegir PBB…</option>`);
- const n=$("#f_posn");s.value=n&&n.value&&[...s.options].some(x=>x.value==n.value)?n.value:"";remForm()}})();
+ const n=$("#f_posn");const nv=n&&n.value?([...s.options].find(x=>x.value==n.value)||[...s.options].find(x=>x.value=="T"+n.value)):null;s.value=nv?nv.value:"";remForm()}})(); /* v199: también T5, T16… */
 /* ===== v88: en posiciones remotas tampoco hay AAP (aire acondicionado de pasarela) ===== */
 const REM_FUERA=["PAS","AAP"];
 (function(){const o=remForm;remForm=function(){o();const s=$("#f_pos");if(!s)return;const r=esRem(s.value);const c=document.querySelector('.eqc[value="AAP"]');if(!c)return;
@@ -2526,7 +2526,7 @@ function posTeclea(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s
  w.insertAdjacentHTML("beforeend",`<input id="f_posn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="Teclear nº" oninput="posTeclea()">`);
  w.insertAdjacentHTML("afterend",`<div id="f_posm" class="mu"></div>`);
  s.addEventListener("change",()=>{const n=$("#f_posn");if(n){n.value=s.value;posTeclea()}})}})();
-(function(){const o=nTermSet;nTermSet=function(t){o(t);const n=$("#f_posn"),s=$("#f_pos");if(n&&s&&n.value&&!POS.some(x=>String(x)==n.value&&termDe(x)==t))n.value=""}})();
+(function(){const o=nTermSet;nTermSet=function(t){o(t);const n=$("#f_posn"),s=$("#f_pos");if(n&&s&&n.value&&!POS.some(x=>(String(x)==n.value||String(x)=="T"+n.value||String(x).startsWith(n.value)||String(x).startsWith("T"+n.value))&&termDe(x)==t))n.value=""}})(); /* v199: en T123 las PBB llevan «T» (T5, T16): lo tecleado sin T ya no se borra */
 (function(){const o=guardar;guardar=function(){const n=$("#f_posn"),s=$("#f_pos");
  if(n&&n.value&&s&&n.value!==s.value){msg(`La PBB ${n.value} no está dada de alta`);n.focus();return}return o()}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v92"}})();
@@ -4339,6 +4339,10 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 /* v198: almena con medidas de campo (29/10/2026): pestaña 35 mm, hueco 35 mm (paso 70 mm = 14°, radio ≈ 286 mm), columnas de inductivos a 100 mm (= 20°),
    resalte 70 mm (= 14°), distancia inductivo–almena 2 mm. Límite por inductivo ≈ ±80,5°, FC por resalte ≈ ±90,5° (guía y simulación). Sigue el diagnóstico temporal de v197. */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v198"}})();
+</script>
+<script>
+/* v199: «Teclear nº» no se vacía al teclear posiciones de T123 (T5, T16…). Sigue el diagnóstico temporal de v197. */
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v199"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
