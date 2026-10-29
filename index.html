@@ -4447,6 +4447,12 @@ header .hb{align-self:flex-start}
   const re=/(<div class="mu">Inicio [\s\S]*?<\/div>)/;return re.test(h)?h.replace(re,"$1"+ban):h.replace(/(<p style="margin:6px 0">[\s\S]*?<\/p>)/,"$1"+ban)}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v208"}})();
 </script>
+<script>
+/* ===== v209: al cerrar una OT (botón «Cerrar avería» de la resolución), la app vuelve automáticamente a Inicio ===== */
+(function(){const o=cerrar;cerrar=function(id){const i0=inc.find(x=>x.id==id),ab=!!i0&&i0.estado=="abierta";const r=o.apply(this,arguments);
+ const i=inc.find(x=>x.id==id);if(ab&&i&&i.estado=="cerrada"){try{if(typeof closeSheet=="function")closeSheet()}catch(e){}go("dash");scrollTo(0,0)}return r}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v209"}})();
+</script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
 <script src="pdf-hz.js?v=1"></script>
