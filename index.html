@@ -4283,6 +4283,24 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
  new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.body,{childList:true,subtree:true});pon()})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v194"}})();
 </script>
+<script>
+/* ===== v195: el dedo de «Seguimiento OT» se coloca con la punta encima de la segunda «e» de «Seguimiento» y parpadea cada segundo ===== */
+(function(){const st=document.createElement("style");st.textContent=`#app button.segdedob .segdedo{right:auto;bottom:auto;opacity:.8;animation:segblink 1s linear infinite;animation-delay:var(--sgd,0ms)}
+#app button.segdedob .segdedo .otmano{animation-duration:1s;animation-delay:var(--sgd,0ms)}#app button.segdedob .segdedo .otray{animation-duration:1s;animation-delay:var(--sgd,0ms)}
+@keyframes segblink{0%,55%{opacity:.85}62%,94%{opacity:0}100%{opacity:.85}}
+@media (prefers-reduced-motion:reduce){#app button.segdedob .segdedo{animation:none}}`;document.head.appendChild(st);
+ const W=72,S=W/120,TX=53,TY=26; /* punta del índice en el dibujo (viewBox 120×90, mano girada −28°) */
+ const coloca=()=>{const d=document.querySelector("#app button.segdedob .segdedo");if(!d)return;const b=d.parentElement;
+  const tw=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let n,tn=null;while(n=tw.nextNode()){if(/Seguimiento/.test(n.nodeValue)){tn=n;break}}if(!tn)return;
+  const i=tn.nodeValue.indexOf("Seguimiento")+7;const r=document.createRange();r.setStart(tn,i);r.setEnd(tn,i+1);
+  const e=r.getBoundingClientRect(),bb=b.getBoundingClientRect();if(!e.width)return;
+  const l=Math.round(e.left-bb.left+e.width/2-TX*S),t=Math.round(e.top-bb.top+e.height*.55-TY*S);
+  const ns=`left:${l}px;top:${t}px;--sgd:-${Date.now()%1000}ms`;if(d.dataset.pos!=l+","+t){d.dataset.pos=l+","+t;d.setAttribute("style",ns)}};
+ new MutationObserver(()=>{try{coloca()}catch(e){}}).observe(document.body,{childList:true,subtree:true});
+ addEventListener("resize",()=>{try{const d=document.querySelector("#app .segdedo");if(d)d.dataset.pos="";coloca()}catch(e){}});
+ setTimeout(coloca,300)})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v195"}})();
+</script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
 <script src="pdf-hz.js?v=1"></script>
