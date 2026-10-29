@@ -216,7 +216,7 @@ HZ:[
   "LED rojo «Power ON» = contactor cerrado y tensión en A, B y C."]},
  {s:"Pulsadores y enrollador",f:[1],c:[
   "ON / OFF actúan sobre el contactor; IN / OUT mueven el motor del enrollador (IN hilo 2, OUT hilo 3, común 9).",
-  "Con el conector INSERTADO en el avión el IN del conector no recoge (seguridad de arrastre): recoger desde el armario AO exterior con desbloqueo de PAS + botón IN.",
+  "Con el conector INSERTADO en el avión el IN del AO no opera (seguridad de arrastre): recoger solo con el botón IN del conector + desbloqueo de PAS en el armario AO.",
   "Con el conector DESCONECTADO: recoger solo con el IN del conector, sin arrastrar la manguera por el suelo; a 4 m del final del recorrido terminar desde el armario AO.",
   "No recoge (IN): OFF pulsado y LED rojo apagado, sensor 90 % no «pegado», hombre muerto y desbloqueo de pasarela activos."]},
  {s:"Interfaz con la PBB",f:[],c:[

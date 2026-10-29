@@ -1,4 +1,4 @@
-/* v180: recogida de la manguera con el conector insertado (armario AO: desbloqueo de PAS + IN) o desconectado (IN del conector; a 4 m del final, desde el AO).
+/* v180: recogida de la manguera con el conector insertado (IN del conector + desbloqueo de PAS en el AO; v185) o desconectado (IN del conector; a 4 m del final, desde el AO).
  ===== v179: Análisis de la OT de tipo HZ (convertidor 400 Hz · conector PDS 400) =====
  Las OT HZ no tienen relación con la capota ni con las señales del PLC de la pasarela (PAS).
  Antes, «No recoge cable» casaba con «Capota izq/dcha recoger» del E-A1 por la palabra «recoge».
