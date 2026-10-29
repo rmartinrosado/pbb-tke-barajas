@@ -4215,7 +4215,7 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
   if(fijo(el))return false;
   const sel=window.getSelection&&getSelection();if(sel&&String(sel).length)return false;
   return true};
- const abre=()=>{if(navigator.vibrate)try{navigator.vibrate(30)}catch(e){}go("new");const n=document.getElementById("f_posn");if(n){try{n.focus({preventScroll:true})}catch(e){n.focus()}n.select&&n.select()}if(window.__dtArma)window.__dtArma()};
+ const abre=()=>{if(navigator.vibrate)try{navigator.vibrate(30)}catch(e){}go("new");const n=document.getElementById("f_posn");if(n){try{n.focus({preventScroll:true})}catch(e){n.focus()}}if(window.__dtArma)window.__dtArma()};
  let ini=null,ult={t:0,x:0,y:0};
  document.addEventListener("touchstart",e=>{ini=e.touches.length==1?{x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()}:null},{passive:true});
  document.addEventListener("touchmove",e=>{if(!ini)return;const t=e.touches[0];if(!t||Math.hypot(t.clientX-ini.x,t.clientY-ini.y)>12)ini=null},{passive:true});
@@ -4258,8 +4258,8 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 (function(){
  let hasta=0;
  const pon=()=>{const n=document.getElementById("f_posn");if(!n||(typeof view!="undefined"&&view!="new"))return;
-  if(document.activeElement!==n){try{n.focus({preventScroll:true})}catch(e){n.focus()}}n.select&&n.select()};
- const arma=()=>{hasta=Date.now()+1200;pon();[30,120,300,600,1000].forEach(t=>setTimeout(()=>{if(Date.now()<hasta)pon()},t))};
+  if(document.activeElement!==n){try{n.focus({preventScroll:true})}catch(e){n.focus()}}};
+ const arma=()=>{hasta=Date.now()+1200;pon();[30,120].forEach(t=>setTimeout(()=>{if(Date.now()<hasta)pon()},t))};
  window.__dtArma=arma;
  document.addEventListener("focusin",e=>{if(Date.now()>hasta)return;const n=document.getElementById("f_posn");
   if(n&&e.target!==n&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))pon()},true);
@@ -4300,6 +4300,23 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
  addEventListener("resize",()=>{try{const d=document.querySelector("#app .segdedo");if(d)d.dataset.pos="";coloca()}catch(e){}});
  setTimeout(coloca,300)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v195"}})();
+</script>
+<script>
+/* ===== v196: «Teclear nº» (Posición PBB) admite escribir al primer toque. En iPhone, si la casilla tenía el foco puesto por la app
+   (doble toque o reintentos) el cursor parpadeaba pero no entraba lo tecleado hasta un segundo toque. Ahora, al tocarla,
+   el foco se pone dentro del propio toque (con el teclado activo de verdad) y sin seleccionar el texto. ===== */
+(function(){let prog=false,toque=0;
+ document.addEventListener("focusin",e=>{if(e.target&&e.target.id=="f_posn")prog=Date.now()-toque>800},true);
+ document.addEventListener("touchstart",e=>{if(e.target&&e.target.id=="f_posn")toque=Date.now()},{capture:true,passive:true});
+ document.addEventListener("touchend",e=>{const n=e.target;if(!n||n.id!="f_posn"||e.touches.length)return;
+  if(document.activeElement===n&&!prog)return; /* ya está escribiendo con normalidad */
+  e.preventDefault();
+  if(document.activeElement===n)n.blur();
+  toque=Date.now();prog=false;
+  try{n.focus({preventScroll:true})}catch(x){n.focus()}
+  try{const l=n.value.length;n.setSelectionRange(l,l)}catch(x){}},{capture:true,passive:false});
+})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v196"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
