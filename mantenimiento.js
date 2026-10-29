@@ -1,4 +1,4 @@
-/* ===== Mantenimiento preventivo PBB (v40 · lector de foto v187) =====
+/* ===== Mantenimiento preventivo PBB (v40 · lector de foto v187 · correctivos C v188) =====
  Programa de mantenimientos M (mensual) y S (semestral) por posición y día, guardado en Supabase (tabla «mantenimientos»).
  - Pestaña «Mant.»: hoy, calendario del mes y detalle del día. Técnicos y admin marcan «Hecho».
  - Inicio: aviso con las posiciones que tocan hoy.
@@ -34,7 +34,7 @@ window.mantCarga=mantCarga;
 
 /* ---------- vista principal ---------- */
 function chip(x,grande){const ok=x.estado=="hecho",cx=x.estado=="cancelado";
- return `<span class="mchip ${x.tipo=="S"?"s":"m"} ${ok?"ok":""} ${cx?"cx":""} ${grande?"g":""}"><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":cx?"✕":""}</span>`}
+ return `<span class="mchip ${x.tipo=="S"?"s":x.tipo=="C"?"c":"m"} ${ok?"ok":""} ${cx?"cx":""} ${grande?"g":""}"><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":cx?"✕":""}</span>`}
 /* v40: cada posición del día es una caja desplegable con «Incidencias anteriores» (OT del mes previo en esa posición)
  y «Trabajos realizados» (cuaderno de notas del mantenimiento). Al guardar las notas la caja se pliega. */
 window.mAltaAb=false;window.mNoReAb=false;
@@ -62,7 +62,7 @@ function filaDia(x){const ok=x.estado=="hecho",cx=x.estado=="cancelado";const ab
  const est=ok?`<div class="mest ok">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${fh}</div>`:cx?`<div class="mest cx">✕ No realizada${x.tecnico?" · "+esc(x.tecnico):""}${fh}</div>`:`<div class="mest">Pendiente</div>`;
  const bot=`${puede()&&!cx?`<button class="${ok?"sec":"pri"} mbtn" onclick="mantHecho('${x.id}',${ok?0:1})">${ok?"Deshacer":"✔ Hecho"}</button>`:""}${admin?`<button class="sec mdel" aria-label="Borrar" onclick="mantBorra('${x.id}')">✕</button>`:""}`;
  const canc=puede()&&!ok?`<label class="mcanc"><input type="checkbox" ${cx?"checked":""} onchange="mantCanc('${x.id}',this.checked)"><span>Cancelado por Operaciones</span></label>`:"";
- return `<div class="mcaja ${ab?"ab":""}"><div class="mfila ${ok?"ok":""} ${cx?"cx":""}"><div class="mizq">${chip(x,true)}${est}</div><div class="mfinfo" onclick="mantTog('${x.id}')" style="cursor:pointer"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}<div class="mtog">${ab?"▲ Plegar":`▼ ${x.trabajos?"📝 Trabajos anotados · ":""}Ver incidencias y trabajos`}</div></div>
+ return `<div class="mcaja ${ab?"ab":""}"><div class="mfila ${ok?"ok":""} ${cx?"cx":""}"><div class="mizq">${chip(x,true)}${est}</div><div class="mfinfo" onclick="mantTog('${x.id}')" style="cursor:pointer"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":x.tipo=="C"?"Correctivo":"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}<div class="mtog">${ab?"▲ Plegar":`▼ ${x.trabajos?"📝 Trabajos anotados · ":""}Ver incidencias y trabajos`}</div></div>
  ${bot||canc?`<div class="mder">${bot?`<div class="mderb">${bot}</div>`:""}${canc}</div>`:""}</div>
  ${ab?`<div class="mcuerpo">${cajaInc(x)}${cajaHidr(x)}${cajaTrab(x)}</div>`:""}</div>`}
 window.mantTog=id=>{const x=MANT.find(z=>z.id==id);if(!x)return;if(abierta(x)){mAb.delete(id);mCerr.add(id)}else{mCerr.delete(id);mAb.add(id)}vMant()};
@@ -75,19 +75,19 @@ window.mantTrab=async id=>{const v=(id in mBorr?mBorr[id]:"").trim();const x=MAN
 function calHTML(){const[y,m]=mMes;const pri=new Date(y,m,1);const off=(pri.getDay()+6)%7;const nd=new Date(y,m+1,0).getDate();const h=hoy();
  let c=DIAS.map(d=>`<div class="mcab">${d}</div>`).join("");for(let k=0;k<off;k++)c+=`<div></div>`;
  for(let d=1;d<=nd;d++){const s=iso(new Date(y,m,d));const l=delDia(s);const pend=l.filter(x=>x.estado=="pendiente").length;
-  c+=`<button class="mdia ${s==h?"hoy":""} ${s==mSel?"sel":""} ${l.length?(pend?"tiene":"todo"):""}" onclick="mantDia('${s}')"><span class="mnum">${d}</span>${l.map(x=>`<span class="mmini ${x.tipo=="S"?"s":"m"} ${x.estado=="hecho"?"ok":x.estado=="cancelado"?"cx":""}">${esc(String(x.pos))}</span>`).join("")}</button>`}
+  c+=`<button class="mdia ${s==h?"hoy":""} ${s==mSel?"sel":""} ${l.length?(pend?"tiene":"todo"):""}" onclick="mantDia('${s}')"><span class="mnum">${d}</span>${l.map(x=>`<span class="mmini ${x.tipo=="S"?"s":x.tipo=="C"?"c":"m"} ${x.estado=="hecho"?"ok":x.estado=="cancelado"?"cx":""}">${esc(String(x.pos))}</span>`).join("")}</button>`}
  return `<div class="mcal">${c}</div>`}
 function vMant(){if(!mMes){const d=new Date();mMes=[d.getFullYear(),d.getMonth()]}if(!mSel)mSel=hoy();
  const h=hoy(),lh=delDia(h),ls=delDia(mSel);const pend=lh.filter(x=>x.estado=="pendiente").length;
  const delMes=MANT.filter(x=>x.fecha.startsWith(mMes[0]+"-"+String(mMes[1]+1).padStart(2,"0")));const noRe=delMes.filter(x=>x.estado=="cancelado").sort((a,b)=>a.fecha.localeCompare(b.fecha)||tOrd(a)-tOrd(b));
  $("#app").innerHTML=`<div class="card"><div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Mantenimiento preventivo</h3><div class="mhdr">${admin?`<button class="sec" style="width:auto;padding:6px 12px" onclick="mantImp()">📷 Importar</button>`:""}${(()=>{const e=evtDe(mSel);return e?`<span class="mevt">Evento SGC <b>${esc(e)}</b></span>`:""})()}</div></div>
- <div class="mley"><span class="mchip m"><b>M</b></span> Mensual <span class="mchip s"><b>S</b></span> Semestral <span class="mchip m ok"><b>✔</b></span> Hecho <span class="mchip m cx"><b>✕</b></span> Cancelado</div></div>
+ <div class="mley"><span class="mchip m"><b>M</b></span> Mensual <span class="mchip s"><b>S</b></span> Semestral <span class="mchip c"><b>C</b></span> Correctivo <span class="mchip m ok"><b>✔</b></span> Hecho <span class="mchip m cx"><b>✕</b></span> Cancelado</div></div>
  <div class="card mhoy"><div class="mhoyt">🔧 Hoy · ${fLarga(h)}</div>${lh.length?`<div class="mu" style="margin:2px 0 6px">${pend?`${pend} pendiente${pend>1?"s":""} de ${lh.length}`:"Todo hecho ✔"}</div>${listaTerm(lh)}`:`<div class="mu" style="margin-top:6px">${mCarg?"Sin mantenimientos programados para hoy.":"Cargando…"}</div>`}</div>
  <div class="card"><div class="row mnav" style="flex-wrap:nowrap"><button class="sec" onclick="mantMes(-1)">‹</button><b>${MESES[mMes[1]][0].toUpperCase()+MESES[mMes[1]].slice(1)} ${mMes[0]}</b><button class="sec" onclick="mantMes(1)">›</button></div>
  <div class="mu" style="font-size:12px;margin:4px 0 6px">${delMes.length} mantenimiento${delMes.length==1?"":"s"} este mes · toca un día para ver sus posiciones</div>${calHTML()}</div>
  ${mSel!=h?`<div class="card"><div class="mhoyt" style="color:var(--tx)">📅 ${fLarga(mSel)}</div>${ls.length?listaTerm(ls):`<div class="mu" style="margin-top:6px">Sin mantenimientos este día.</div>`}</div>`:""}
  ${admin?`<details class="card malta" ${mAltaAb?"open":""} ontoggle="mAltaAb=this.open"><summary><b>Alta manual forzada</b>${noRe.length?` <span class="mnoren">${noRe.length} no realizada${noRe.length>1?"s":""}</span>`:""}</summary>${noRe.length?`<details class="mnore" ${mNoReAb?"open":""} ontoggle="mNoReAb=this.open"><summary>✕ No realizadas en ${MESES[mMes[1]]} ${mMes[0]} · cancelado por Operaciones (${noRe.length})</summary><div class="mu" style="font-size:12px;margin:4px 0">Pendientes de nueva programación por el SGC.</div>${noRe.map(x=>`<div class="mnorf">${chip(x)}<div class="mnori"><b>${fCorta(x.fecha)}</b>${x.hora_ini?` · ${esc(x.hora_ini)}${x.hora_fin?"–"+esc(x.hora_fin):""}`:""}${x.ref?` · ${esc(x.ref)}`:""}${(()=>{const c=reproDe(x);return c.length?`<br><span class="mrpr">↻ Reprogramada al ${c.map(z=>fCorta(z.fecha)).join(", ")}</span>`:""})()}<br><span class="mu">${esc(x.tecnico||"")}</span></div><div class="mrepc"><button class="sec mrep" onclick="mantRepro('${x.id}')">Reprogramar</button><button class="sec mrdel" title="Volver a pendiente" aria-label="Quitar de no realizadas y volver a pendiente" onclick="mantDeshCanc('${x.id}')">${typeof IC=="function"?IC("trash"):"🗑"}</button></div></div>`).join("")}</details>`:""}<div class="mu" style="font-size:12px;margin-top:6px">Posiciones separadas por comas; añade M o S detrás si es distinto del tipo elegido (ej. 502, 504 S).</div>
-  <div class="grid" style="margin-top:6px"><div><label>Fecha</label><input id="ma_f" type="date" value="${mSel}"></div><div><label>Tipo</label><select id="ma_t"><option value="M">Mensual</option><option value="S">Semestral</option></select></div></div>
+  <div class="grid" style="margin-top:6px"><div><label>Fecha</label><input id="ma_f" type="date" value="${mSel}"></div><div><label>Tipo</label><select id="ma_t"><option value="M">Mensual</option><option value="S">Semestral</option><option value="C">Correctivo</option></select></div></div>
   <label>Posiciones</label><input id="ma_p" inputmode="numeric" placeholder="Ej. 502, 504, 528 S"><button class="pri" style="margin-top:10px;width:100%" onclick="mantManual()">Añadir al calendario</button>
   ${delMes.length?`<button class="sec" style="margin-top:8px;width:100%;color:#d32f2f;border-color:#d32f2f" onclick="mantBorraMes()">🗑 Borrar todo ${MESES[mMes[1]]} ${mMes[0]}</button>`:""}</details>`:""}`;
  if(!mCarg)mantCarga().then(()=>{if(view=="mant")vMant()})}
@@ -122,9 +122,9 @@ window.mantManual=async()=>{const f=$("#ma_f").value,t=$("#ma_t").value,p=$("#ma
 /* ---------- reconocimiento de posiciones y fechas ---------- */
 function posSet(){const m=new Map();(typeof POS!="undefined"?POS:[]).forEach(p=>m.set(String(p).toUpperCase(),String(p)));return m}
 function posDeTexto(txt,tipoDef){const P=posSet();const out=[];const U=String(txt||"").toUpperCase();
- const re=/\b(T\s?\d{1,3}|\d{3})\b(\s*[\(\-\/]?\s*(MENSUAL|SEMESTRAL|MENS|SEM|M|S)\b)?/g;let m;
- const lt=/SEMESTRAL|\bSEM\b/.test(U)?"S":/MENSUAL|\bMENS\b/.test(U)?"M":tipoDef;
- while((m=re.exec(U))){const k=m[1].replace(/\s/g,"");const p=P.get(k);if(!p)continue;const ts=m[3];const t=ts?(ts[0]=="S"?"S":"M"):lt;
+ const re=/\b(T\s?\d{1,3}|\d{3})\b(\s*[\(\-\/]?\s*(MENSUAL|SEMESTRAL|CORRECTIVO|MENS|SEM|CORR|M|S|C)\b)?/g;let m;
+ const lt=/SEMESTRAL|\bSEM\b/.test(U)?"S":/MENSUAL|\bMENS\b/.test(U)?"M":/CORRECTIV/.test(U)?"C":tipoDef;
+ while((m=re.exec(U))){const k=m[1].replace(/\s/g,"");const p=P.get(k);if(!p)continue;const ts=m[3];const t=ts?(ts[0]=="S"?"S":ts[0]=="C"?"C":"M"):lt;
   if(!out.some(x=>x.pos==p&&x.tipo==t))out.push({pos:p,tipo:t})}return out}
 const MES_RE=/\b(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|SET|OCT|NOV|DIC)[A-Z]*\b/;
 const MES_IX={ENE:0,FEB:1,MAR:2,ABR:3,MAY:4,JUN:5,JUL:6,AGO:7,SEP:8,SET:8,OCT:9,NOV:10,DIC:11};
@@ -136,8 +136,8 @@ function fechaDe(linea,y0,m0){const U=linea.toUpperCase().normalize("NFD").repla
  if((m=/^\s*(?:DIA\s*)?(\d{1,2})\s*[:\-\|\.]/.exec(U))){const d=+m[1];if(d>=1&&d<=31)return {f:iso(new Date(y0,m0,d)),q:m[0]}}
  return null}
 /* Posiciones libres (alta manual): «502, T30, 576/577 S» */
-function posLibres(txt,tipoDef){const out=[];String(txt||"").toUpperCase().split(/[,;\n]+/).forEach(it=>{const m=/^\s*(T?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\d{1,3}[A-Z]?)*)\s*(?:[\(\-]?\s*(MENSUAL|SEMESTRAL|M|S)\b)?/.exec(it);
- if(!m)return;const pos=m[1].replace(/\s+/g,"");const t=m[2]?(m[2][0]=="S"?"S":"M"):tipoDef;if(!out.some(x=>x.pos==pos&&x.tipo==t))out.push({pos,tipo:t})});return out}
+function posLibres(txt,tipoDef){const out=[];String(txt||"").toUpperCase().split(/[,;\n]+/).forEach(it=>{const m=/^\s*(T?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\d{1,3}[A-Z]?)*)\s*(?:[\(\-]?\s*(MENSUAL|SEMESTRAL|CORRECTIVO|M|S|C)\b)?/.exec(it);
+ if(!m)return;const pos=m[1].replace(/\s+/g,"");const t=m[2]?(m[2][0]=="S"?"S":m[2][0]=="C"?"C":"M"):tipoDef;if(!out.some(x=>x.pos==pos&&x.tipo==t))out.push({pos,tipo:t})});return out}
 const NORM=t=>String(t||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 /* Línea tipo «Inop SIN AVO posición T30 (E81) 20:30 LT a 23:30 LT [SIN MOVER PASARELA]» */
 function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I").replace(/§/g,"5").replace(/(POSICI\S{0,3}\W{0,3})T[IL]([A-Z])?(?=\s*[\/\-(]|\s|$)/,"$1T1$2");const m=/POSICI[O0E6]?N\W{0,3}(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
@@ -145,7 +145,7 @@ function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I").replace(/§/g,"5").r
  const h=/(\d{1,2})\s*[:.,\-]?\s*(\d{2})\s*(?:L\s*[TI])?\s*(?:A|-|HASTA)\s*(\d{1,2})\s*[:.,\-]?\s*(\d{2})/.exec(resto);
  let ps=pos;const rf=r?r[1].trim().replace(/£/g,"E").replace(/\$/g,"S").replace(/^([A-Z])\s*[I|L]\s*(\d)/,"$11$2").replace(/^([A-Z])\s+(\d)/,"$1$2"):"";if(/^[B-E]\d/i.test(rf)&&!/^T/.test(ps)){if(/^1\d\d$/.test(ps))ps="T"+ps.slice(1);else if(/^\d{1,2}$/.test(ps))ps="T"+ps}
  return {pos:ps,ref:rf||null,hora_ini:h?h[1].padStart(2,"0")+":"+h[2]:null,hora_fin:h?h[3].padStart(2,"0")+":"+h[4]:null,notas:/SIN\s*MOVER/.test(resto)?"SIN MOVER PASARELA":null}}
-const tipoCab=l=>{const U=NORM(l);if(/PREVENTIV|POSICI/.test(U))return null;return /SEMESTRAL/.test(U)?"S":/MENSUAL/.test(U)?"M":null};
+const tipoCab=l=>{const U=NORM(l);if(/PREVENTIV|POSICI/.test(U))return null;return /SEMESTRAL/.test(U)?"S":/MENSUAL/.test(U)?"M":/CORRECTIV/.test(U)?"C":null};
 function añade(por,f,it){if(!por.has(f))por.set(f,[]);const a=por.get(f);if(!a.some(x=>x.pos==it.pos&&x.tipo==it.tipo))a.push(it)}
 /* Texto en orden de lectura (PDF, Excel, CSV o foto sin geometría útil) */
 function analiza(texto,y0,m0,tipoDef){const por=new Map();let cur=null,tipo=tipoDef,sueltas=0,buf=[],ult=null;
@@ -189,10 +189,10 @@ function analizaGeo(lines,y0,m0,tipoDef){const L=lines.map(l=>({t:l.text,y:(l.bb
  const A=anclas(lines,y0,m0,ix);F=fusionaAnclas(F.map(d=>({f:d.f,y:d.y})).concat(A.fs),A.dias);
  if(!F.length)return null;
  /* límites de día: cada «MENSUALES» y cada «SEMESTRALES» que sigue a otro «SEMESTRALES»; si entre dos fechas no hay límite, se parte a mitad */
- let B=cabs.filter((c,i)=>tipoCab(c.t)=="M"||(i>0&&tipoCab(cabs[i-1].t)=="S")).map(c=>c.y-4);
+ const ORD={M:0,S:1,C:2};let B=cabs.filter((c,i)=>tipoCab(c.t)=="M"||(i>0&&ORD[tipoCab(c.t)]<=ORD[tipoCab(cabs[i-1].t)])).map(c=>c.y-4);
  /* v187: entre dos días consecutivos (etiqueta centrada en su caja) el corte es su «MENSUALES»; si no tiene, su último «SEMESTRALES» */
  for(let k=0;k+1<F.length;k++){const a=F[k],b=F[k+1];if(dif(a.f,b.f)!=1)continue;const en=cabs.filter(c=>c.y>a.y&&c.y<b.y);
-  const cm=en.find(c=>tipoCab(c.t)=="M"),cs=en.filter(c=>tipoCab(c.t)=="S").pop();const cut=cm?cm.y-4:cs?cs.y-4:(a.y+b.y)/2;
+  const cm=en.find(c=>tipoCab(c.t)=="M"),cs=en.filter(c=>tipoCab(c.t)!="M").pop();const cut=cm?cm.y-4:cs?cs.y-4:(a.y+b.y)/2;
   B=B.filter(x=>!(x>a.y&&x<b.y));B.push(cut)}
  for(let k=0;k+1<F.length;k++){if(!B.some(b=>b>F[k].y&&b<F[k+1].y))B.push((F[k].y+F[k+1].y)/2)}B.sort((a,b)=>a-b);
  const tramo=y=>{let k=0;B.forEach((b,i)=>{if(y>=b)k=i+1});return k};
@@ -209,7 +209,7 @@ function itTxt(x){return `${x.pos} ${x.tipo}${x.hora_ini?` ${x.hora_ini}-${x.hor
 function aTexto(por){return [...por.keys()].sort().map(f=>`${f}: ${por.get(f).map(itTxt).join("; ")}`).join("\n")}
 function canonico(txt){const filas=[],mal=[];String(txt||"").split(/\r?\n/).forEach((l,i)=>{if(!l.trim())return;const m=/^\s*(\d{4}-\d{2}-\d{2})\s*[:|]\s*(.*)$/.exec(l);
   if(!m){mal.push(i+1);return}const items=m[2].includes(";")||/\d{1,2}:\d{2}/.test(m[2])?m[2].split(";"):m[2].split(",");
-  items.forEach(it=>{const k=/^\s*(T?\d{1,3}[A-Z]?(?:[\/\-]T?\d{1,3}[A-Z]?)*)\s*(M|S)?\b\s*(?:(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})?)?\s*(?:\(([^)]*)\))?\s*(.*)$/i.exec(it);if(!k)return;
+  items.forEach(it=>{const k=/^\s*(T?\d{1,3}[A-Z]?(?:[\/\-]T?\d{1,3}[A-Z]?)*)\s*(M|S|C)?\b\s*(?:(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})?)?\s*(?:\(([^)]*)\))?\s*(.*)$/i.exec(it);if(!k)return;
    filas.push({fecha:m[1],pos:k[1].toUpperCase(),tipo:(k[2]||"M").toUpperCase(),hora_ini:k[3]||null,hora_fin:k[4]||null,ref:k[5]?k[5].trim():null,notas:k[6]&&k[6].trim()?k[6].trim():null,origen:"importado"})})});return {filas,mal}}
 /* ---------- lectura de archivos ---------- */
 function carga(src,ok){return new Promise((res,rej)=>{if(ok()){res();return}const s=document.createElement("script");s.src=src;s.onload=()=>res();s.onerror=()=>rej(new Error("No se pudo cargar "+src));document.head.appendChild(s)})}
@@ -242,7 +242,7 @@ window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");
  $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Importar programa de mantenimiento</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>
  <div class="mu" style="font-size:12px">Sube la foto del cuadro, un PDF, un Excel o un CSV. La app lee las fechas y las posiciones; revisa el resultado antes de guardar.</div>
  <div class="grid" style="margin-top:6px"><div><label>Mes del programa</label><select id="mi_mes" onchange="mantImpMes(this.value)">${op.map(([y,m])=>`<option value="${y}-${m}" ${y==mImpMes[0]&&m==mImpMes[1]?"selected":""}>${MESES[m]} ${y}</option>`).join("")}</select></div>
- <div><label>Tipo por defecto</label><select id="mi_tipo" onchange="mImpTipoSet(this.value)"><option value="M" ${mImpTipo=="M"?"selected":""}>Mensual</option><option value="S" ${mImpTipo=="S"?"selected":""}>Semestral</option></select></div></div>
+ <div><label>Tipo por defecto</label><select id="mi_tipo" onchange="mImpTipoSet(this.value)"><option value="M" ${mImpTipo=="M"?"selected":""}>Mensual</option><option value="S" ${mImpTipo=="S"?"selected":""}>Semestral</option><option value="C" ${mImpTipo=="C"?"selected":""}>Correctivo</option></select></div></div>
  <label class="pri mfile">📷 Foto / archivo<input type="file" hidden accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" onchange="mantImpFile(this.files[0])"></label>
  <div id="mi_est" class="mu" style="font-size:12px;margin-top:6px"></div>
  <label>Nº de evento de mantenimiento AENA (SGC)</label><input id="mi_evt" inputmode="numeric" placeholder="Ej. 127318" value="${esc(mEvt)}" oninput="mEvtSet(this.value)">
@@ -306,6 +306,7 @@ function dashMantCaja(){const pinta=()=>{if(view!="dash")return;const old=docume
 .mley{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin-top:8px}
 .mchip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;font-size:12px;border:1.5px solid var(--pr);color:var(--pr);background:color-mix(in srgb,var(--pr) 10%,transparent)}
 .mchip i{font-style:normal;font-weight:800;font-size:10px;opacity:.85}.mchip.s{border-color:#ef6c00;color:#ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}
+.mchip.c{border-color:#c62828;color:#c62828;background:color-mix(in srgb,#c62828 10%,transparent)}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
 .mchip.cx{border-color:#9e9e9e;color:#757575;background:color-mix(in srgb,#9e9e9e 12%,transparent);text-decoration:line-through}.mmini.cx{background:#9e9e9e;text-decoration:line-through}
 .mfila.cx{opacity:.85}.mizq{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none;width:86px}.mizq .mchip.g{font-size:13px;padding:4px 8px;max-width:100%;box-sizing:border-box}.mest{font-size:10.5px;color:var(--mu);text-align:center;line-height:1.25;overflow-wrap:anywhere}.mest.ok{color:#2e9e44;font-weight:600}.mest.cx{color:#757575;font-weight:600}
@@ -329,7 +330,7 @@ function dashMantCaja(){const pinta=()=>{if(view!="dash")return;const old=docume
 .mdia{min-height:62px;min-width:0;border:1px solid var(--bd);border-radius:8px;background:var(--card);padding:2px;display:flex;flex-direction:column;align-items:stretch;gap:1px;margin:0;width:auto;color:var(--tx);font:inherit;cursor:pointer;overflow:hidden}
 .mdia .mnum{font-size:11px;font-weight:700;text-align:left;padding-left:2px}.mdia.hoy{border:2px solid #2e9e44}.mdia.hoy .mnum{color:#2e9e44}.mdia.sel{outline:2px solid var(--pr);outline-offset:-2px}
 .mdia.tiene{background:color-mix(in srgb,var(--pr) 6%,var(--card))}.mdia.todo{background:color-mix(in srgb,#2e9e44 8%,var(--card))}
-.mmini{font-size:8.5px;font-weight:700;border-radius:3px;padding:0 1px;text-align:center;letter-spacing:-.2px;color:#fff;background:var(--pr);line-height:1.35;white-space:nowrap;overflow:hidden}.mmini.s{background:#ef6c00}.mmini.ok{background:#2e9e44}.mmas{font-size:9.5px;color:var(--mu)}
+.mmini{font-size:8.5px;font-weight:700;border-radius:3px;padding:0 1px;text-align:center;letter-spacing:-.2px;color:#fff;background:var(--pr);line-height:1.35;white-space:nowrap;overflow:hidden}.mmini.s{background:#ef6c00}.mmini.c{background:#c62828}.mmini.ok{background:#2e9e44}.mmas{font-size:9.5px;color:var(--mu)}
 .mhora{font-size:12px;color:var(--mu);margin-top:1px}.mnota{font-size:12px;font-weight:700;color:#d32f2f;margin-top:2px}
 .mhdr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}.mevt{font-size:12px;font-weight:600;color:var(--mu);white-space:nowrap}.mevt b{color:var(--tx);font-size:14px;letter-spacing:.5px}
 .mcaja{border-top:1px solid var(--bd)}.mcaja .mfila{border-top:none;padding:12px 0;gap:8px}.mcaja.ab{background:color-mix(in srgb,var(--pr) 3%,transparent);margin:0 -12px;padding:0 12px 12px;border-radius:10px}
