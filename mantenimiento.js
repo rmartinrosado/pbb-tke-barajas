@@ -1,4 +1,4 @@
-/* ===== Mantenimiento preventivo PBB (v40) =====
+/* ===== Mantenimiento preventivo PBB (v40 · lector de foto v187) =====
  Programa de mantenimientos M (mensual) y S (semestral) por posición y día, guardado en Supabase (tabla «mantenimientos»).
  - Pestaña «Mant.»: hoy, calendario del mes y detalle del día. Técnicos y admin marcan «Hecho».
  - Inicio: aviso con las posiciones que tocan hoy.
@@ -140,7 +140,7 @@ function posLibres(txt,tipoDef){const out=[];String(txt||"").toUpperCase().split
  if(!m)return;const pos=m[1].replace(/\s+/g,"");const t=m[2]?(m[2][0]=="S"?"S":"M"):tipoDef;if(!out.some(x=>x.pos==pos&&x.tipo==t))out.push({pos,tipo:t})});return out}
 const NORM=t=>String(t||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 /* Línea tipo «Inop SIN AVO posición T30 (E81) 20:30 LT a 23:30 LT [SIN MOVER PASARELA]» */
-function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I");const m=/POSICI[O0E6]?N\W{0,3}(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
+function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I").replace(/§/g,"5").replace(/(POSICI\S{0,3}\W{0,3})T[IL]([A-Z])?(?=\s*[\/\-(]|\s|$)/,"$1T1$2");const m=/POSICI[O0E6]?N\W{0,3}(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
  const pos=m[1].replace(/\s+/g,"");const resto=U.slice(m.index+m[0].length);const r=/\(([^)]{1,20})\)/.exec(resto);
  const h=/(\d{1,2})\s*[:.,\-]?\s*(\d{2})\s*(?:L\s*[TI])?\s*(?:A|-|HASTA)\s*(\d{1,2})\s*[:.,\-]?\s*(\d{2})/.exec(resto);
  let ps=pos;const rf=r?r[1].trim().replace(/£/g,"E").replace(/\$/g,"S").replace(/^([A-Z])\s*[I|L]\s*(\d)/,"$11$2").replace(/^([A-Z])\s+(\d)/,"$1$2"):"";if(/^[B-E]\d/i.test(rf)&&!/^T/.test(ps)){if(/^1\d\d$/.test(ps))ps="T"+ps.slice(1);else if(/^\d{1,2}$/.test(ps))ps="T"+ps}
@@ -154,6 +154,28 @@ function analiza(texto,y0,m0,tipoDef){const por=new Map();let cur=null,tipo=tipo
   const it=itemLinea(l);if(!it&&ult&&/MOVER\s*PASARELA/.test(NORM(l))){ult.notas="SIN MOVER PASARELA";return}
   const ps=it?[Object.assign(it,{tipo})]:posDeTexto(l,tipo);if(!ps.length)return;ult=ps[ps.length-1];if(!cur){buf.push(...ps);return}ps.forEach(p=>añade(por,cur,p))});
  sueltas=buf.length;return {txt:aTexto(por),sueltas}}
+/* v187: etiquetas de día (LUNES…DOMINGO) y fechas sueltas de la columna izquierda */
+const DIAS_N=["LUNES","MARTES","MIERCOLES","JUEVES","VIERNES","SABADO","DOMINGO"];
+function lev(a,b){const d=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=d[0];d[0]=i;for(let j=1;j<=b.length;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]==b[j-1]?0:1));p=t}}return d[b.length]}
+function diaIx(w){const U=NORM(w).replace(/[^A-Z]/g,"");if(U.length<4)return -1;let bi=-1,bd=9;DIAS_N.forEach((k,i)=>{const d=lev(U,k);if(d<bd){bd=d;bi=i}});return bd<=(DIAS_N[bi].length>=7?2:1)?bi:-1}
+const sumaD=(f,n)=>{const[a,b,c]=f.split("-").map(Number);return iso(new Date(a,b-1,c+n))};
+const dif=(f,g)=>Math.round((new Date(g+"T12:00")-new Date(f+"T12:00"))/864e5);
+const lunesDe=f=>{const d=new Date(f+"T12:00");return sumaD(f,-((d.getDay()+6)%7))};
+function fechaIzq(t,y0,m0){const fd=fechaDe(t,y0,m0);if(fd)return fd.f;
+ const U=NORM(t).replace(/[OQ]/g,"0").replace(/[LIT|!]/g,"1");const m=/(\d{1,2})\D{1,2}(\d{1,2})\D{1,2}(20\d\d)/.exec(U);
+ if(m){const d=+m[1],mm=+m[2];if(d>=1&&d<=31&&mm>=1&&mm<=12)return iso(new Date(+m[3],mm-1,d))}return null}
+function anclas(lines,y0,m0,ix){const fs=[],dias=[];(lines||[]).forEach(l=>{if(!l||!l.bbox)return;
+ const ws=(l.words&&l.words.length?l.words:[l]).filter(w=>w.bbox&&w.bbox.x1<=ix-4);if(!ws.length)return;
+ const y=ws.reduce((s,w)=>s+(w.bbox.y0+w.bbox.y1)/2,0)/ws.length;let resto=[];
+ ws.forEach(w=>{const i=diaIx(w.text);if(i>=0)dias.push({y:(w.bbox.y0+w.bbox.y1)/2,di:i});else resto.push(w.text)});
+ const f=fechaIzq(resto.join(" "),y0,m0);if(f&&Math.abs(+f.slice(0,4)-y0)<=1)fs.push({f,y})});return {fs,dias}}
+/* Junta fechas y nombres de día: la semana sale de las fechas leídas y cada nombre de día da la suya. Quita repetidas y las que van fuera de orden. */
+function fusionaAnclas(fs,dias){const cnt=new Map();fs.forEach(d=>{const l=lunesDe(d.f);cnt.set(l,(cnt.get(l)||0)+1)});
+ let lun=null,mx=0;cnt.forEach((n,l)=>{if(n>mx){mx=n;lun=l}});
+ let todo=fs.filter(d=>!lun||lunesDe(d.f)==lun||cnt.get(lunesDe(d.f))>=2);if(lun)dias.forEach(d=>todo.push({f:sumaD(lun,d.di),y:d.y}));
+ const g=new Map();todo.forEach(d=>{if(!g.has(d.f))g.set(d.f,[]);g.get(d.f).push(d.y)});
+ let r=[...g].map(([f,ys])=>({f,y:ys.reduce((a,b)=>a+b,0)/ys.length})).sort((a,b)=>a.y-b.y);
+ const out=[];r.forEach(d=>{if(!out.length||d.f>out[out.length-1].f)out.push(d)});return out}
 /* Foto: usa la posición de cada línea en la imagen. Cada día empieza en «Mantenimientos MENSUALES»; la fecha (columna izquierda)
  cae dentro de la franja vertical de su día; el tipo es la última cabecera MENSUALES/SEMESTRALES por encima de la línea. */
 function analizaGeo(lines,y0,m0,tipoDef){const L=lines.map(l=>({t:l.text,y:(l.bbox.y0+l.bbox.y1)/2,x:l.bbox.x0})).sort((a,b)=>a.y-b.y);
@@ -161,10 +183,17 @@ function analizaGeo(lines,y0,m0,tipoDef){const L=lines.map(l=>({t:l.text,y:(l.bb
  /* fechas de la columna izquierda (la más cercana en x a la columna de cabeceras/posiciones) */
  const ix=its.map(l=>l.x).sort((a,b)=>a-b)[its.length>>1];
  let F=L.map(l=>{const fd=itemLinea(l.t)?null:fechaDe(l.t,y0,m0);return fd?{f:fd.f,y:l.y,x:l.x}:null}).filter(Boolean).filter(d=>d.x<ix);
- if(!F.length)return null;const fx=F.map(d=>d.x).sort((a,b)=>a-b)[F.length>>1];F=F.filter(d=>Math.abs(d.x-fx)<Math.max(120,Math.abs(ix-fx)*.6));
- const vistos=new Set();F=F.filter(d=>!vistos.has(d.f)&&vistos.add(d.f)).sort((a,b)=>a.y-b.y);if(!F.length)return null;
+ if(F.length){const fx=F.map(d=>d.x).sort((a,b)=>a-b)[F.length>>1];F=F.filter(d=>Math.abs(d.x-fx)<Math.max(120,Math.abs(ix-fx)*.6))}
+ /* v187: anclas de día leídas palabra a palabra en la columna izquierda, aunque el OCR junte «DOMINGO» o «08/11/2026»
+    con la línea de la derecha (antes esas fechas se perdían y el día se pegaba al anterior) */
+ const A=anclas(lines,y0,m0,ix);F=fusionaAnclas(F.map(d=>({f:d.f,y:d.y})).concat(A.fs),A.dias);
+ if(!F.length)return null;
  /* límites de día: cada «MENSUALES» y cada «SEMESTRALES» que sigue a otro «SEMESTRALES»; si entre dos fechas no hay límite, se parte a mitad */
  let B=cabs.filter((c,i)=>tipoCab(c.t)=="M"||(i>0&&tipoCab(cabs[i-1].t)=="S")).map(c=>c.y-4);
+ /* v187: entre dos días consecutivos (etiqueta centrada en su caja) el corte es su «MENSUALES»; si no tiene, su último «SEMESTRALES» */
+ for(let k=0;k+1<F.length;k++){const a=F[k],b=F[k+1];if(dif(a.f,b.f)!=1)continue;const en=cabs.filter(c=>c.y>a.y&&c.y<b.y);
+  const cm=en.find(c=>tipoCab(c.t)=="M"),cs=en.filter(c=>tipoCab(c.t)=="S").pop();const cut=cm?cm.y-4:cs?cs.y-4:(a.y+b.y)/2;
+  B=B.filter(x=>!(x>a.y&&x<b.y));B.push(cut)}
  for(let k=0;k+1<F.length;k++){if(!B.some(b=>b>F[k].y&&b<F[k+1].y))B.push((F[k].y+F[k+1].y)/2)}B.sort((a,b)=>a-b);
  const tramo=y=>{let k=0;B.forEach((b,i)=>{if(y>=b)k=i+1});return k};
  const fT=new Map();F.forEach(d=>{const k=tramo(d.y);if(!fT.has(k))fT.set(k,d.f)});
@@ -186,7 +215,13 @@ function canonico(txt){const filas=[],mal=[];String(txt||"").split(/\r?\n/).forE
 function carga(src,ok){return new Promise((res,rej)=>{if(ok()){res();return}const s=document.createElement("script");s.src=src;s.onload=()=>res();s.onerror=()=>rej(new Error("No se pudo cargar "+src));document.head.appendChild(s)})}
 function imgCanvas(file,giro){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const im=new Image();im.onload=()=>{const k=Math.min(1,2600/Math.max(im.width,im.height));
  const w=Math.round(im.width*k),h=Math.round(im.height*k);const c=document.createElement("canvas");const r=giro%180!=0;c.width=r?h:w;c.height=r?w:h;const x=c.getContext("2d");
- x.translate(c.width/2,c.height/2);x.rotate(giro*Math.PI/180);x.drawImage(im,-w/2,-h/2,w,h);URL.revokeObjectURL(u);res(c)};im.onerror=rej;im.src=u})}
+ x.translate(c.width/2,c.height/2);x.rotate(giro*Math.PI/180);x.drawImage(im,-w/2,-h/2,w,h);URL.revokeObjectURL(u);try{aclara(c)}catch(e){}res(c)};im.onerror=rej;im.src=u})}
+/* v187: corrige la iluminación (sombra o fondo gris de las filas): divide cada píxel por el fondo local */
+function aclara(c){const W=c.width,H=c.height,x=c.getContext("2d");const id=x.getImageData(0,0,W,H),p=id.data;
+ const sw=Math.max(8,Math.round(W/24)),sh=Math.max(8,Math.round(H/24));const s=document.createElement("canvas");s.width=sw;s.height=sh;const sx=s.getContext("2d");
+ sx.imageSmoothingQuality="high";sx.drawImage(c,0,0,sw,sh);const b=document.createElement("canvas");b.width=W;b.height=H;const bx=b.getContext("2d");bx.filter="blur(1px)";bx.imageSmoothingEnabled=true;bx.drawImage(s,0,0,W,H);
+ const q=bx.getImageData(0,0,W,H).data;for(let i=0;i<p.length;i+=4){const g=.299*p[i]+.587*p[i+1]+.114*p[i+2],f=.299*q[i]+.587*q[i+1]+.114*q[i+2];
+  const v=Math.max(0,Math.min(255,g/Math.max(f,1)*275));p[i]=p[i+1]=p[i+2]=v}x.putImageData(id,0,0)}
 async function textoImagen(file,prog){await carga("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js",()=>window.Tesseract);
  const w=await Tesseract.createWorker("spa",1,{logger:m=>{if(m.status=="recognizing text")prog(Math.round(m.progress*100))}});let mejor=null;
  try{for(const g of [0,90,270,180]){prog(0,g);const c=await imgCanvas(file,g);const r=await w.recognize(c);const n=(NORM(r.data.text).match(/POSICI[O0E6]?N/g)||[]).length;
