@@ -4364,9 +4364,9 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
  const o=card;card=function(i){let h=o(i);if(!(tecnico||admin)||!i.act)return h;
   const btn=`<button class="sec gbdel actdel" title="Borrar actuación" aria-label="Borrar actuación" onclick="delAct('${i.id}')">${IC('trash')}</button>`;
   const lin=`<div class="mu" style="white-space:pre-wrap"><b>Actuación:</b> ${esc(i.act)}</div>`;
-  const g='<div class="gfrow">'+btn;if(h.indexOf(g)<0||h.indexOf(lin)<0)return h;
-  h=h.replace(g,'<div class="gfrow">');return h.replace(lin,`<div class="actlin">${lin}${btn}</div>`)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v202"}})();
+  if(h.indexOf(btn)<0||h.indexOf(lin)<0)return h; /* v203: también con «Actuación guiada» */
+  h=h.replace(btn,"");return h.replace(lin,`<div class="actlin">${lin}${btn}</div>`)}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v203"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
