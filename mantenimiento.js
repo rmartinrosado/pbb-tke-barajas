@@ -1,4 +1,4 @@
-/* ===== Mantenimiento preventivo PBB (v40 · lector de foto v187 · correctivos C v188 · parpadeo v189-v191) =====
+/* ===== Mantenimiento preventivo PBB (v40 · lector de foto v187 · correctivos C v188 · parpadeo v189-v192) =====
  Programa de mantenimientos M (mensual) y S (semestral) por posición y día, guardado en Supabase (tabla «mantenimientos»).
  - Pestaña «Mant.»: hoy, calendario del mes y detalle del día. Técnicos y admin marcan «Hecho».
  - Inicio: aviso con las posiciones que tocan hoy.
@@ -307,10 +307,10 @@ function dashMantCaja(){const pinta=()=>{if(view!="dash")return;const old=docume
 .mchip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;font-size:12px;border:1.5px solid var(--pr);color:var(--pr);background:color-mix(in srgb,var(--pr) 10%,transparent)}
 .mchip i{font-style:normal;font-weight:800;font-size:10px;opacity:.85}.mchip.s{border-color:#ef6c00;color:#ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}
 .mchip.c{border-color:#c62828;color:#c62828;background:color-mix(in srgb,#c62828 10%,transparent)}
-/* v189: al desplegar las posiciones, parpadea el nº de la posición (solo correctivos pendientes); «Correctivo» fijo en rojo negrita.
+/* v189: al desplegar las posiciones, parpadea el nº de la posición (solo correctivos pendientes) y el texto «Correctivo» en rojo negrita.
    El desfase --mbd mantiene el ritmo aunque se repinte la lista con el refresco automático. */
 @keyframes mblink{0%,55%{opacity:1}70%,90%{opacity:.15}100%{opacity:1}}
-.mfila:not(.ok):not(.cx) .mizq .mchip.c b{animation:mblink 1.2s ease-in-out infinite;animation-delay:var(--mbd,0ms)}
+.mfila:not(.ok):not(.cx) .mizq .mchip.c b,.mfila:not(.ok):not(.cx) .mcorr{animation:mblink 1.2s ease-in-out infinite;animation-delay:var(--mbd,0ms)}
 .mcorr{color:#c62828;font-weight:800}
 @media (prefers-reduced-motion:reduce){.mfila .mizq .mchip b,.mfila .mcorr{animation:none}}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
