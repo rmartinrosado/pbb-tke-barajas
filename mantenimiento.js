@@ -1,4 +1,4 @@
-/* ===== Mantenimiento preventivo PBB (v40 · lector de foto v187 · correctivos C v188 · parpadeo v189-v192) =====
+/* ===== Mantenimiento preventivo PBB (v40 · lector de foto v187 · correctivos C v188 · parpadeo v189-v193) =====
  Programa de mantenimientos M (mensual) y S (semestral) por posición y día, guardado en Supabase (tabla «mantenimientos»).
  - Pestaña «Mant.»: hoy, calendario del mes y detalle del día. Técnicos y admin marcan «Hecho».
  - Inicio: aviso con las posiciones que tocan hoy.
@@ -33,8 +33,11 @@ async function mantCarga(forzar){if(mCarg&&!forzar)return;if(typeof sb=="undefin
 window.mantCarga=mantCarga;
 
 /* ---------- vista principal ---------- */
+/* v193: desfase del parpadeo según la hora, para que no salte al repintar con el refresco automático */
+const mbd=()=>` style="--mbd:-${Date.now()%1200}ms"`;
 function chip(x,grande){const ok=x.estado=="hecho",cx=x.estado=="cancelado";
- return `<span class="mchip ${x.tipo=="S"?"s":x.tipo=="C"?"c":"m"} ${ok?"ok":""} ${cx?"cx":""} ${grande?"g":""}"><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":cx?"✕":""}</span>`}
+ const pa=x.tipo=="C"&&x.estado=="pendiente";
+ return `<span class="mchip ${x.tipo=="S"?"s":x.tipo=="C"?"c":"m"} ${ok?"ok":""} ${cx?"cx":""} ${grande?"g":""} ${pa?"mparp":""}"${pa?mbd():""}><b>${esc(String(x.pos))}</b><i>${x.tipo}</i>${ok?"✔":cx?"✕":""}</span>`}
 /* v40: cada posición del día es una caja desplegable con «Incidencias anteriores» (OT del mes previo en esa posición)
  y «Trabajos realizados» (cuaderno de notas del mantenimiento). Al guardar las notas la caja se pliega. */
 window.mAltaAb=false;window.mNoReAb=false;
@@ -75,7 +78,7 @@ window.mantTrab=async id=>{const v=(id in mBorr?mBorr[id]:"").trim();const x=MAN
 function calHTML(){const[y,m]=mMes;const pri=new Date(y,m,1);const off=(pri.getDay()+6)%7;const nd=new Date(y,m+1,0).getDate();const h=hoy();
  let c=DIAS.map(d=>`<div class="mcab">${d}</div>`).join("");for(let k=0;k<off;k++)c+=`<div></div>`;
  for(let d=1;d<=nd;d++){const s=iso(new Date(y,m,d));const l=delDia(s);const pend=l.filter(x=>x.estado=="pendiente").length;
-  c+=`<button class="mdia ${s==h?"hoy":""} ${s==mSel?"sel":""} ${l.length?(pend?"tiene":"todo"):""}" onclick="mantDia('${s}')"><span class="mnum">${d}</span>${l.map(x=>`<span class="mmini ${x.tipo=="S"?"s":x.tipo=="C"?"c":"m"} ${x.estado=="hecho"?"ok":x.estado=="cancelado"?"cx":""}">${esc(String(x.pos))}</span>`).join("")}</button>`}
+  c+=`<button class="mdia ${s==h?"hoy":""} ${s==mSel?"sel":""} ${l.length?(pend?"tiene":"todo"):""}" onclick="mantDia('${s}')"><span class="mnum">${d}</span>${l.map(x=>`<span class="mmini ${x.tipo=="S"?"s":x.tipo=="C"?"c":"m"} ${x.estado=="hecho"?"ok":x.estado=="cancelado"?"cx":""} ${x.tipo=="C"&&x.estado=="pendiente"?"mparp":""}"${x.tipo=="C"&&x.estado=="pendiente"?mbd():""}>${esc(String(x.pos))}</span>`).join("")}</button>`}
  return `<div class="mcal">${c}</div>`}
 function vMant(){if(!mMes){const d=new Date();mMes=[d.getFullYear(),d.getMonth()]}if(!mSel)mSel=hoy();
  const h=hoy(),lh=delDia(h),ls=delDia(mSel);const pend=lh.filter(x=>x.estado=="pendiente").length;
@@ -310,9 +313,9 @@ function dashMantCaja(){const pinta=()=>{if(view!="dash")return;const old=docume
 /* v189: al desplegar las posiciones, parpadea el nº de la posición (solo correctivos pendientes) y el texto «Correctivo» en rojo negrita.
    El desfase --mbd mantiene el ritmo aunque se repinte la lista con el refresco automático. */
 @keyframes mblink{0%,55%{opacity:1}70%,90%{opacity:.15}100%{opacity:1}}
-.mfila:not(.ok):not(.cx) .mizq .mchip.c b,.mfila:not(.ok):not(.cx) .mcorr{animation:mblink 1.2s ease-in-out infinite;animation-delay:var(--mbd,0ms)}
+.mchip.mparp b,.mmini.mparp,.mfila:not(.ok):not(.cx) .mcorr{animation:mblink 1.2s ease-in-out infinite;animation-delay:var(--mbd,0ms)}
 .mcorr{color:#c62828;font-weight:800}
-@media (prefers-reduced-motion:reduce){.mfila .mizq .mchip b,.mfila .mcorr{animation:none}}
+@media (prefers-reduced-motion:reduce){.mchip.mparp b,.mmini.mparp,.mfila .mcorr{animation:none}}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
 .mchip.cx{border-color:#9e9e9e;color:#757575;background:color-mix(in srgb,#9e9e9e 12%,transparent);text-decoration:line-through}.mmini.cx{background:#9e9e9e;text-decoration:line-through}
 .mfila.cx{opacity:.85}.mizq{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none;width:86px}.mizq .mchip.g{font-size:13px;padding:4px 8px;max-width:100%;box-sizing:border-box}.mest{font-size:10.5px;color:var(--mu);text-align:center;line-height:1.25;overflow-wrap:anywhere}.mest.ok{color:#2e9e44;font-weight:600}.mest.cx{color:#757575;font-weight:600}
