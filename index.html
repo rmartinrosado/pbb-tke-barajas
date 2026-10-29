@@ -4386,6 +4386,38 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 header .lcol{justify-content:center;gap:6px;margin-right:12px}header .lcol .bapag{margin:0;width:46px;height:46px}header .lcol .bapag svg{width:24px;height:24px}`;document.head.appendChild(st)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v205"}})();
 </script>
+<script>
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v206"}})();
+/* ===== v206: cabecera ordenada.
+   · Logo TKE en la misma línea que el título y los botones de modo A·O·T.
+   · «PBB TKE Barajas» (y el correo · rol) centrados con la columna del modo (el centro de la cabecera, donde va «Administrador»).
+   · Botón de apagado a la izquierda, bajo el logo, con el número de versión debajo. ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+header{align-items:flex-start!important;position:sticky}
+header .lcol{position:static;margin-right:10px}header .lcol .logo{display:block}
+header .lcol .bapag{position:absolute;left:14px;top:var(--pwt,58px)}
+#hver{position:absolute;left:14px;width:46px;top:calc(var(--pwt,58px) + 50px);text-align:center;font-size:10.5px;font-weight:600;color:var(--tx);opacity:.85;pointer-events:none}
+header>div:nth-child(2){text-align:center}header>div:nth-child(2) h1{display:block;width:max-content;max-width:100%;margin:0 auto}header>div:nth-child(2) small{display:block;width:max-content;max-width:none;white-space:nowrap;font-size:11.5px;margin:0 auto}
+header .hb{align-self:flex-start}
+#mbar .mrow2{margin-left:56px;width:calc(100% - 56px);max-width:calc(100% - 56px);box-sizing:border-box}`;document.head.appendChild(st);
+ const ver=()=>{const h=document.querySelector("header");const sm=document.querySelector("header small");if(!h||!sm)return;
+  let v=document.getElementById("hver");if(!v){v=document.createElement("div");v.id="hver";h.appendChild(v)}
+  const m=/\s*·\s*(v\d+)\s*$/.exec(sm.textContent);if(m){sm.textContent=sm.textContent.slice(0,m.index);v.textContent=m[1]}
+  let u=false;try{u=!!user}catch(e){}v.style.display=u?"block":"none"};
+ const centra=()=>{const h=document.querySelector("header");if(!h)return;const mid=h.children[1],lc=h.querySelector(".lcol"),hb=h.querySelector(".hb"),lg=h.querySelector(".logo");
+  if(!mid||!lc||!hb)return;const H=h.getBoundingClientRect(),mr=h.querySelector("#mbar .mmode"),MR=mr&&mr.offsetParent?mr.getBoundingClientRect():null,cx=MR&&MR.width?MR.left+MR.width/2:H.left+H.width/2; /* centro de la columna del modo */
+  const izq=(lg||lc).getBoundingClientRect().right+6,der=hb.getBoundingClientRect().left-6;
+  const h1=mid.querySelector("h1"),sm=mid.querySelector("small");
+  if(sm){sm.style.marginTop="";const hbB=hb.getBoundingClientRect().bottom,smT=sm.getBoundingClientRect().top;if(smT<hbB+2)sm.style.marginTop=Math.ceil(hbB+2-smT)+"px"}
+  if(h1){h1.style.transform="";const r=h1.getBoundingClientRect();let d=cx-(r.left+r.width/2);if(r.right+d>der)d-=r.right+d-der;if(r.left+d<izq)d+=izq-(r.left+d);h1.style.transform=`translateX(${Math.round(d)}px)`}
+  if(sm){sm.style.transform="";const r=sm.getBoundingClientRect();let d=cx-(r.left+r.width/2);const mx=H.right-14,mn=H.left+64;if(r.right+d>mx)d-=r.right+d-mx;if(r.left+d<mn)d+=mn-(r.left+d);sm.style.transform=`translateX(${Math.round(d)}px)`}
+  if(lg&&h1){lg.style.transform="";const a=lg.getBoundingClientRect(),c=h1.getBoundingClientRect();lg.style.transform=`translateY(${Math.round((c.top+c.height/2)-(a.top+a.height/2))}px)`}
+  if(lg){const t=lg.getBoundingClientRect().bottom-H.top+4;h.style.setProperty("--pwt",Math.round(t)+"px")}};
+ const todo=()=>{try{ver();centra()}catch(e){}};
+ const o=cab;cab=function(){o.apply(this,arguments);todo()};
+ addEventListener("resize",todo);addEventListener("load",todo);setInterval(todo,1500);todo();
+ const smo=new MutationObserver(()=>{const sm=document.querySelector("header small");if(sm&&/·\s*v\d+\s*$/.test(sm.textContent))todo()});const sm0=document.querySelector("header small");if(sm0)smo.observe(sm0,{childList:true,characterData:true,subtree:true})})();
+</script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
 <script src="pdf-hz.js?v=1"></script>
