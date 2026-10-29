@@ -1,4 +1,5 @@
-/* ===== v179: Análisis de la OT de tipo HZ (convertidor 400 Hz · conector PDS 400) =====
+/* v180: recogida de la manguera con el conector insertado (armario AO: desbloqueo de PAS + IN) o desconectado (IN del conector; a 4 m del final, desde el AO).
+ ===== v179: Análisis de la OT de tipo HZ (convertidor 400 Hz · conector PDS 400) =====
  Las OT HZ no tienen relación con la capota ni con las señales del PLC de la pasarela (PAS).
  Antes, «No recoge cable» casaba con «Capota izq/dcha recoger» del E-A1 por la palabra «recoge».
  Ahora, en las OT HZ (sin PAS):
@@ -16,6 +17,7 @@ const CAPOTA=/capota|toldo|fuelle|\bC-S1[56]\b|\bE-Q4(\.1)?\b|\bC-M4(\.1)?\b|\bE
 const MAP=[
  [/cable|manguera|enrolla|bobina|carrete|tambor/," manguera enrollador"],
  [/recog|no entra|no sube|no enrolla|guarda/," recoge IN"],
+ [/insertad|conectad|enchufad|enganchad|metido|armario|\bao\b|desbloque|arrastr|recogedor|4 ?m/," recogida conector insertado armario AO desbloqueo"],
  [/suelta|no sale|no baja|desenrolla|no despliega|no da cable/," suelta OUT"],
  [/potencia|tension|corriente|no da|sin salida|no alimenta|no carga/," potencia"],
  [/^(?!.*(90\s*%|noventa)).*(piloto|\bled\b|\bluz\b|lampara)/," piloto LED"],

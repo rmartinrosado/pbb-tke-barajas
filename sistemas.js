@@ -216,10 +216,13 @@ HZ:[
   "LED rojo «Power ON» = contactor cerrado y tensión en A, B y C."]},
  {s:"Pulsadores y enrollador",f:[1],c:[
   "ON / OFF actúan sobre el contactor; IN / OUT mueven el motor del enrollador (IN hilo 2, OUT hilo 3, común 9).",
+  "Con el conector INSERTADO en el avión el IN del conector no recoge (seguridad de arrastre): recoger desde el armario AO exterior con desbloqueo de PAS + botón IN.",
+  "Con el conector DESCONECTADO: recoger solo con el IN del conector, sin arrastrar la manguera por el suelo; a 4 m del final del recorrido terminar desde el armario AO.",
   "No recoge (IN): OFF pulsado y LED rojo apagado, sensor 90 % no «pegado», hombre muerto y desbloqueo de pasarela activos."]},
  {s:"Interfaz con la PBB",f:[],c:[
   "Convertidor en servicio → E-A2 mód. 3 LED 2 · 90 % conector → E-A2 mód. 3 LED 3 (○ con el convertidor parado y el cable recogido).",
   "Cable 400 Hz extendido → P-A5 mód. 1 LED 2 (○ con el cable recogido).",
+  "Desbloqueo PBB AO (armario AO) → E-X61:13 → E-A3 DIN02 (borna 2.1, «BYPASS AO») · seta AO → E-X61:16 → E-A3 DIN01 (folios 11 y 60).",
   "Bloqueo con el 400 Hz parado y recogido → contacto en el equipo o manguera CBTH-X61 ↔ E-X61."]}
 ],
 AAP:[]
