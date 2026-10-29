@@ -3,16 +3,18 @@
   · 1 final de carrera de rodillo H-S1 (arriba) = único FC de PARO de giro, el mismo para derecha e izquierda (E-A8 DIS05).
   · 4 inductivos en dos columnas × dos filas:
      fila alta  (banda lisa): límite de giro H-B3 (izq.) · H-B4 (dcha.) → tapados dentro de la almena, libres al pasar su extremo.
-     fila baja  (pestañas):   contaje H-B1 · H-B2 → columnas separadas 10,5° = ¾ de paso (cuadratura: 4 flancos por pestaña, 3,5° por flanco).
+     fila baja  (pestañas):   contaje H-B1 · H-B2 → columnas separadas 100 mm = 20° (medido en campo 29/10/2026; 4 flancos por pestaña, 3,5° de media).
+ MEDIDAS DE CAMPO (29/10/2026): pestaña 35 mm, hueco 35 mm (paso 70 mm = 14° → radio de almena ≈ 286 mm), 13 pestañas,
+ separación entre columnas de inductivos 100 mm (= 20°), resalte 70 mm (= 14°), distancia inductivo–almena 2 mm.
  La almena (banda de inox con 13 pestañas de 14°, 182°) gira con el tren de ruedas; en cada extremo un RESALTE hacia fuera
  a la altura del rodillo pisa el FC unos grados después de que el inductivo de límite de ese lado haya cortado (respaldo). */
 (function(){
 const H=(t,a)=>{const e=document.createElementNS("http://www.w3.org/2000/svg",t);for(const k in a)e.setAttribute(k,a[k]);return e};
 const N=13, P=14, W=P/2;            // 13 pestañas, paso 14° (pestaña 7° + hueco 7°)
 const E=N*P/2-0.5;                   // fin de la banda lisa (±90,5°)
-const R=10;                          // ancho angular del resalte (±90,5…±100,5°)
-const FL=P/4;                        // grados por flanco con H-B1+H-B2 (3,5°)
-const SC=0.375*P;                    // columna del soporte: ±5,25° (separación 10,5° = ¾ de paso → cuadratura)
+const R=14;                          // resalte 70 mm medido = 14° (±90,5…±104,5°)
+const FL=P/4;                        // grados por flanco de media con H-B1+H-B2 (3,5°; con columnas a 20° los flancos quedan a 6° y 1°)
+const SC=10;                         // columna del soporte: ±10° (100 mm medidos entre columnas = 20° con radio ≈ 286 mm)
 const V=20;
 const nf=x=>String(Math.round(x*100)/100).replace(".",",");
 // Los 4 inductivos del soporte fijo (grados desde el eje de la pasarela, horario +). Columna izq.: H-B3 + H-B1 · columna dcha.: H-B4 + H-B2
@@ -30,7 +32,7 @@ function init(el){
  <div class="gsim-bt"><button data-a="play">⏸ Pausa</button><button data-m="-1">◀ Izquierda</button><button data-m="0">0°</button><button data-m="1">Derecha ▶</button></div>
  <div class="gsim-bt"><button data-f="B3">⚠ Fallo H-B3</button><button data-f="B4">⚠ Fallo H-B4</button><button data-r="1">↺ Rearme FC</button></div>
  <label class="gsim-vel"><span>🐢</span><input type="range" min="1" max="40" step="1" value="${V}" aria-label="Velocidad de la simulación"><span>🐇</span><b>${V} °/s</b></label>
- <div class="mu" style="font-size:11px;margin-top:4px"><b>Soporte fijo: 5 elementos.</b> Arriba el <b>FC de rodillo H-S1</b> (único, paro de giro en los dos sentidos). Debajo, 4 inductivos en dos columnas separadas ${nf(2*SC)}° (¾ de paso): <b>fila alta límite</b> H-B3 izq. · H-B4 dcha. (tapados por la banda lisa, se liberan al pasar su extremo y el PLC corta ese sentido); <b>fila baja contaje</b> H-B1 · H-B2 (leen las 13 pestañas en cuadratura, cada flanco = ${nf(FL)}°). Inductivo tapado = LED encendido. Si el de límite no actúa (botón ⚠), ${nf(SC)}° después el resalte pisa el rodillo y abre el FC.</div>`;
+ <div class="mu" style="font-size:11px;margin-top:4px"><b>Soporte fijo: 5 elementos.</b> Arriba el <b>FC de rodillo H-S1</b> (único, paro de giro en los dos sentidos). Debajo, 4 inductivos en dos columnas separadas 100 mm = ${nf(2*SC)}°: <b>fila alta límite</b> H-B3 izq. · H-B4 dcha. (tapados por la banda lisa, se liberan al pasar su extremo y el PLC corta ese sentido); <b>fila baja contaje</b> H-B1 · H-B2 (leen las 13 pestañas en cuadratura, cada flanco = ${nf(FL)}°). Inductivo tapado = LED encendido. Si el de límite no actúa (botón ⚠), ${nf(SC)}° después el resalte pisa el rodillo y abre el FC.</div>`;
  const svg=el.querySelector("svg"),row=el.querySelector(".gsim-row"),st=el.querySelector(".gsim-st");
  const T=(x,y,txt,a,p)=>{const t=H("text",Object.assign({x,y,"font-size":7.5,fill:"var(--mu)"},a||{}));t.textContent=txt;(p||svg).append(t);return t};
 
@@ -81,7 +83,7 @@ function init(el){
  const tLim=T(296,146,"",{"text-anchor":"middle","font-size":8.5,fill:"#e5534b","font-weight":700});
  const tLim2=T(296,156,"",{"text-anchor":"middle","font-size":7,fill:"#e5534b"});
  [[`${N} × ${P}° = ${N*P}°`,1],[`flanco = ${nf(FL)}°`],[`columnas a ±${nf(SC)}°`],[`lím. inductivo ±${nf(E-SC)}°`],[`FC (resalte) ±${nf(E)}°`,0,"#e5534b"],[`±${Math.floor((E-SC)/FL)} flancos hasta límite`]].forEach((x,i)=>T(250,180+i*10,x[0],{"font-size":6.3,fill:x[2]||"currentColor","font-weight":x[1]?700:400}));
- T(296,252,"1 mm < d < 4 mm",{"text-anchor":"middle","font-size":7.5,fill:"var(--ac)","font-weight":700});
+ T(296,252,"d = 2 mm (medido)",{"text-anchor":"middle","font-size":7.5,fill:"var(--ac)","font-weight":700});
  T(296,261,"inductivo–almena",{"text-anchor":"middle","font-size":6.5});
 
  // ===== ALZADO DESARROLLADO (la almena pasa por detrás del soporte) =====
