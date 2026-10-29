@@ -4368,6 +4368,18 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
   h=h.replace(btn,"");return h.replace(lin,`<div class="actlin">${lin}${btn}</div>`)}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v203"}})();
 </script>
+<script>
+/* ===== v204: cabecera · botón de APAGADO (rojo, del tamaño del SOS) debajo de «Cerrar sesión»; al pulsarlo se cierra la sesión
+   (pide confirmación, igual que «Cerrar sesión»). Se ve cuando se ve «Cerrar sesión». ===== */
+(function(){const st=document.createElement("style");st.textContent=`.bapag{display:none;width:48px;height:48px;padding:0;margin:2px 0 0;border:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f2726b,#d32f2f 70%);color:#fff;box-shadow:0 2px 6px #d32f2f66;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bapag svg{width:26px;height:26px;stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round}.bapag:active{transform:scale(.94);filter:brightness(.9)}`;document.head.appendChild(st);
+ const pon=()=>{const bs=document.getElementById("bsal");if(!bs)return;let b=document.getElementById("bapag");
+  if(!b){bs.insertAdjacentHTML("afterend",`<button type="button" id="bapag" class="bapag" title="Apagar · cerrar sesión" aria-label="Apagar: cerrar sesión" onclick="salir()"><svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 6.6a8 8 0 1 0 11.4 0"/></svg></button>`);b=document.getElementById("bapag")}
+  const ver=getComputedStyle(bs).display!="none";b.style.display=ver?"flex":"none"};
+ const o=barra;barra=function(){const r=o.apply(this,arguments);try{pon()}catch(e){}return r};
+ setInterval(()=>{try{pon()}catch(e){}},1000);pon()})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v204"}})();
+</script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
 <script src="pdf-hz.js?v=1"></script>
