@@ -1,4 +1,4 @@
-/* ===== Mantenimiento preventivo PBB (v40 · lector de foto v187 · correctivos C v188) =====
+/* ===== Mantenimiento preventivo PBB (v40 · lector de foto v187 · correctivos C v188 · parpadeo v189) =====
  Programa de mantenimientos M (mensual) y S (semestral) por posición y día, guardado en Supabase (tabla «mantenimientos»).
  - Pestaña «Mant.»: hoy, calendario del mes y detalle del día. Técnicos y admin marcan «Hecho».
  - Inicio: aviso con las posiciones que tocan hoy.
@@ -62,7 +62,7 @@ function filaDia(x){const ok=x.estado=="hecho",cx=x.estado=="cancelado";const ab
  const est=ok?`<div class="mest ok">Hecho${x.tecnico?" · "+esc(x.tecnico):""}${fh}</div>`:cx?`<div class="mest cx">✕ No realizada${x.tecnico?" · "+esc(x.tecnico):""}${fh}</div>`:`<div class="mest">Pendiente</div>`;
  const bot=`${puede()&&!cx?`<button class="${ok?"sec":"pri"} mbtn" onclick="mantHecho('${x.id}',${ok?0:1})">${ok?"Deshacer":"✔ Hecho"}</button>`:""}${admin?`<button class="sec mdel" aria-label="Borrar" onclick="mantBorra('${x.id}')">✕</button>`:""}`;
  const canc=puede()&&!ok?`<label class="mcanc"><input type="checkbox" ${cx?"checked":""} onchange="mantCanc('${x.id}',this.checked)"><span>Cancelado por Operaciones</span></label>`:"";
- return `<div class="mcaja ${ab?"ab":""}"><div class="mfila ${ok?"ok":""} ${cx?"cx":""}"><div class="mizq">${chip(x,true)}${est}</div><div class="mfinfo" onclick="mantTog('${x.id}')" style="cursor:pointer"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":x.tipo=="C"?"Correctivo":"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}<div class="mtog">${ab?"▲ Plegar":`▼ ${x.trabajos?"📝 Trabajos anotados · ":""}Ver incidencias y trabajos`}</div></div>
+ return `<div class="mcaja ${ab?"ab":""}" style="--mbd:-${Date.now()%1200}ms"><div class="mfila ${ok?"ok":""} ${cx?"cx":""}"><div class="mizq">${chip(x,true)}${est}</div><div class="mfinfo" onclick="mantTog('${x.id}')" style="cursor:pointer"><b>PBB ${esc(String(x.pos))}</b> · ${x.tipo=="S"?"Semestral":x.tipo=="C"?`<span class="mcorr">Correctivo</span>`:"Mensual"}${x.hora_ini?`<div class="mhora">🕒 ${esc(x.hora_ini)}${x.hora_fin?" – "+esc(x.hora_fin):""} LT${x.ref?` · ${esc(x.ref)}`:""}</div>`:x.ref?`<div class="mhora">${esc(x.ref)}</div>`:""}${x.notas?`<div class="mnota">⚠️ ${esc(x.notas)}</div>`:""}<div class="mtog">${ab?"▲ Plegar":`▼ ${x.trabajos?"📝 Trabajos anotados · ":""}Ver incidencias y trabajos`}</div></div>
  ${bot||canc?`<div class="mder">${bot?`<div class="mderb">${bot}</div>`:""}${canc}</div>`:""}</div>
  ${ab?`<div class="mcuerpo">${cajaInc(x)}${cajaHidr(x)}${cajaTrab(x)}</div>`:""}</div>`}
 window.mantTog=id=>{const x=MANT.find(z=>z.id==id);if(!x)return;if(abierta(x)){mAb.delete(id);mCerr.add(id)}else{mCerr.delete(id);mAb.add(id)}vMant()};
@@ -307,6 +307,12 @@ function dashMantCaja(){const pinta=()=>{if(view!="dash")return;const old=docume
 .mchip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;font-size:12px;border:1.5px solid var(--pr);color:var(--pr);background:color-mix(in srgb,var(--pr) 10%,transparent)}
 .mchip i{font-style:normal;font-weight:800;font-size:10px;opacity:.85}.mchip.s{border-color:#ef6c00;color:#ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}
 .mchip.c{border-color:#c62828;color:#c62828;background:color-mix(in srgb,#c62828 10%,transparent)}
+/* v189: al desplegar las posiciones, parpadea el nº de la posición (pendientes) y el texto «Correctivo» en rojo negrita.
+   El desfase --mbd mantiene el ritmo aunque se repinte la lista con el refresco automático. */
+@keyframes mblink{0%,55%{opacity:1}70%,90%{opacity:.15}100%{opacity:1}}
+.mfila:not(.ok):not(.cx) .mizq .mchip b,.mfila:not(.ok):not(.cx) .mcorr{animation:mblink 1.2s ease-in-out infinite;animation-delay:var(--mbd,0ms)}
+.mcorr{color:#c62828;font-weight:800}
+@media (prefers-reduced-motion:reduce){.mfila .mizq .mchip b,.mfila .mcorr{animation:none}}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
 .mchip.cx{border-color:#9e9e9e;color:#757575;background:color-mix(in srgb,#9e9e9e 12%,transparent);text-decoration:line-through}.mmini.cx{background:#9e9e9e;text-decoration:line-through}
 .mfila.cx{opacity:.85}.mizq{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none;width:86px}.mizq .mchip.g{font-size:13px;padding:4px 8px;max-width:100%;box-sizing:border-box}.mest{font-size:10.5px;color:var(--mu);text-align:center;line-height:1.25;overflow-wrap:anywhere}.mest.ok{color:#2e9e44;font-weight:600}.mest.cx{color:#757575;font-weight:600}
