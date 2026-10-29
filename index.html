@@ -4206,7 +4206,7 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
   if(fijo(el))return false;
   const sel=window.getSelection&&getSelection();if(sel&&String(sel).length)return false;
   return true};
- const abre=()=>{if(navigator.vibrate)try{navigator.vibrate(30)}catch(e){}go("new")};
+ const abre=()=>{if(navigator.vibrate)try{navigator.vibrate(30)}catch(e){}go("new");const n=document.getElementById("f_posn");if(n){try{n.focus({preventScroll:true})}catch(e){n.focus()}n.select&&n.select()}};
  let ini=null,ult={t:0,x:0,y:0};
  document.addEventListener("touchstart",e=>{ini=e.touches.length==1?{x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()}:null},{passive:true});
  document.addEventListener("touchmove",e=>{if(!ini)return;const t=e.touches[0];if(!t||Math.hypot(t.clientX-ini.x,t.clientY-ini.y)>12)ini=null},{passive:true});
@@ -4220,6 +4220,8 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
  document.addEventListener("dblclick",e=>{if(vale(e.target)){e.preventDefault();abre()}});
 })();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v175"}})();
+/* v176: el doble toque abre Registrar OT con el teclado ya puesto en la casilla «Teclear nº» de la Posición PBB */
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v176"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
