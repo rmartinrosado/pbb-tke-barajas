@@ -4344,6 +4344,32 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 /* v199: «Teclear nº» no se vacía al teclear posiciones de T123 (T5, T16…). Sigue el diagnóstico temporal de v197. */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v199"}})();
 </script>
+<script>
+/* ===== v200: «Teclear nº» · no salta de terminal con la primera cifra. Antes, en T4S, al teclear «5» (de 507, 508…) la app
+   elegía la T5 de T123, cambiaba de terminal y la casilla perdía el foco: había que volver a tocarla. Ahora:
+   1) si en el terminal elegido hay una PBB con ese número exacto, se elige;
+   2) si en el terminal elegido hay PBB que empiezan por esas cifras, espera a que sigas tecleando (no cambia de terminal);
+   3) solo si en el terminal elegido no hay nada, busca el número exacto en otro terminal y cambia a él.
+   Mientras no hay coincidencia exacta, la lista vuelve a «Elegir PBB…». ===== */
+(function(){
+ const nom=x=>String(x),sinT=x=>String(x).replace(/^T/i,"");
+ const exacta=(v,t)=>POS.find(x=>termDe(x)==t&&(nom(x)==v||nom(x)=="T"+v));
+ const empieza=(v,t)=>POS.some(x=>termDe(x)==t&&sinT(x).startsWith(v)&&sinT(x)!==v);
+ posTeclea=function(){const n=$("#f_posn"),s=$("#f_pos"),m=$("#f_posm");if(!n||!s)return;const v=n.value.replace(/\D/g,"");if(n.value!==v)n.value=v;
+  n.classList.remove("mal");if(m){m.textContent="";m.style.color=""}
+  const limpia=()=>{if(s.value){s.value="";remForm()}};
+  if(!v){limpia();return}
+  let p=exacta(v,nTerm);
+  if(p===undefined&&empieza(v,nTerm)){limpia();if(m)m.textContent=`${nTerm} · sigue tecleando…`;return}
+  if(p===undefined){for(const t of ["T4","T4S","T123"]){if(t==nTerm)continue;const q=exacta(v,t);if(q!==undefined){p=q;break}}}
+  if(p===undefined){limpia();const k=POS.some(x=>sinT(x).startsWith(v));if(!k){n.classList.add("mal");if(m){m.textContent=`La PBB ${v} no está dada de alta`;m.style.color="#d32f2f"}}else if(m)m.textContent="sigue tecleando…";return}
+  const t=termDe(p),ps=String(p);
+  if(t!=nTerm){const f=document.activeElement===n;nTermSet(t);if(f&&document.activeElement!==n){try{n.focus({preventScroll:true})}catch(e){n.focus()}}}
+  if(s.value!==ps){s.value=ps;remForm()}
+  if(m)m.textContent=`PBB ${ps} · ${t}${esRem(ps)?" · remota":""}`};
+})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v200"}})();
+</script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
 <script src="pdf-hz.js?v=1"></script>
