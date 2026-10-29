@@ -4195,6 +4195,31 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v173"}})();
 /* v174: simulación de la almena según fotos del soporte: solo 5 elementos en el soporte fijo (FC de rodillo H-S1 arriba + 4 inductivos en 2 columnas × 2 filas), resalte a la altura del rodillo, planta con el soporte dibujado y límites recalculados (inductivo ±85,25°, FC ±90,5°) */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v174"}})();
+/* ===== v175: doble toque en cualquier pantalla → abre «Registrar OT» (nueva OT).
+   No actúa sobre botones, enlaces, campos de texto, imágenes, planos, animaciones con zoom ni ventanas superpuestas; ni si ya se está en Registrar OT ===== */
+(function(){
+ const NO="button,a,input,select,textarea,label,[contenteditable],[onclick],img,canvas,svg,video,.gzw,#nav,nav";
+ const fijo=el=>{for(let n=el;n&&n!==document.body;n=n.parentElement){if(getComputedStyle(n).position=="fixed")return true}return false};
+ const vale=el=>{try{if(!user)return false}catch(e){return false}
+  if(typeof view!="undefined"&&view=="new")return false;
+  if(!el||!el.closest||el.closest(NO))return false;
+  if(fijo(el))return false;
+  const sel=window.getSelection&&getSelection();if(sel&&String(sel).length)return false;
+  return true};
+ const abre=()=>{if(navigator.vibrate)try{navigator.vibrate(30)}catch(e){}go("new")};
+ let ini=null,ult={t:0,x:0,y:0};
+ document.addEventListener("touchstart",e=>{ini=e.touches.length==1?{x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()}:null},{passive:true});
+ document.addEventListener("touchmove",e=>{if(!ini)return;const t=e.touches[0];if(!t||Math.hypot(t.clientX-ini.x,t.clientY-ini.y)>12)ini=null},{passive:true});
+ document.addEventListener("touchend",e=>{if(!ini||e.touches.length)return;const a=ini;ini=null;
+  if(Date.now()-a.t>350){ult.t=0;return}
+  if(!vale(e.target)){ult.t=0;return}
+  const t=Date.now();
+  if(t-ult.t<350&&Math.hypot(a.x-ult.x,a.y-ult.y)<40){ult.t=0;e.preventDefault();abre()}
+  else ult={t,x:a.x,y:a.y}},{passive:false});
+ /* ordenador: doble clic */
+ document.addEventListener("dblclick",e=>{if(vale(e.target)){e.preventDefault();abre()}});
+})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v175"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 </body></html>
