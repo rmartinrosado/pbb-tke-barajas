@@ -4434,11 +4434,18 @@ header .hb{align-self:flex-start}
    const P=typeof puentesOT=="function"?puentesOT(i):[];if(P.length)return "puente provisional: "+P.map(x=>x.nom).filter(Boolean).slice(0,2).join(" / ");
    const H=typeof hidrOT=="function"?hidrOT(i):null;if(H)return "hidráulica";return null}catch(e){return null}};
  window.otPrimAct=motivo;
- const o=card;card=function(i){let h=o(i);const m=motivo(i);if(!m)return h;
-  h=h.replace(/(<b>PBB [^<]*<span class="tag">[^<]*<\/span>)/,`$1<span class="pactt" title="Primera actuación en campo">🔌</span>`);
-  const ban=`<div class="pact" role="button" tabindex="0" onclick="event.stopPropagation();sosVa('${i.id}')"><span class="pacti">🔌</span><span>PRIMERA ACTUACIÓN EN CAMPO<small>${esc(m)}</small></span><span class="pactv">›</span></div>`;
+  /* v208: también la «1ª OPCIÓN RÁPIDA · RESET DE PASARELA» (zapata, fallo de autonivelación, sensores neutrales: reset-pbb.js) */
+  const rapida=i=>{try{return typeof resetAplica=="function"&&resetAplica(i)}catch(e){return false}};
+  const rqe=i=>{const t=(typeof segNorm=="function"?segNorm:(x=>String(x).toLowerCase()))([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));const a=[];if(/zapata/.test(t))a.push("zapata activada");if(/autonivel|auto[- ]?nivel|nivelacion/.test(t))a.push("fallo de autonivelación");if(/neutral/.test(t))a.push("sensores neutrales");return a.join(" / ")};
+  window.otRapVa=function(id){const i=inc.find(x=>x.id==id);if(!i)return;if(motivo(i)){sosVa(id);return}
+   gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(typeof gTipoOT=="function")gTipo=gTipoOT(i);if(view!="tec")go("tec");else vTec();
+   setTimeout(()=>{const d=document.getElementById("greset");if(d)d.scrollIntoView({block:"start",behavior:"smooth"})},150)};
+  const o=card;card=function(i){let h=o(i);const m=motivo(i),r=rapida(i);if(!m&&!r)return h;
+   const tit=r?"1ª ACTUACIÓN RÁPIDA EN CAMPO · RESET DE PASARELA":"PRIMERA ACTUACIÓN EN CAMPO",sub=[r?rqe(i):"",m||""].filter(Boolean).join(" · ");
+  h=h.replace(/(<b>PBB [^<]*<span class="tag">[^<]*<\/span>)/,`$1<span class="pactt" title="Primera actuación en campo">${r&&!m?"⚡":"🔌"}</span>`);
+  const ban=`<div class="pact" role="button" tabindex="0" onclick="event.stopPropagation();otRapVa('${i.id}')"><span class="pacti">${r&&!m?"⚡":"🔌"}</span><span>${tit}<small>${esc(sub)}</small></span><span class="pactv">›</span></div>`;
   const re=/(<div class="mu">Inicio [\s\S]*?<\/div>)/;return re.test(h)?h.replace(re,"$1"+ban):h.replace(/(<p style="margin:6px 0">[\s\S]*?<\/p>)/,"$1"+ban)}})();
-(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v207"}})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v208"}})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
