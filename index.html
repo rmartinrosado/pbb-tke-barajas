@@ -4318,6 +4318,23 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 })();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v196"}})();
 </script>
+<script>
+/* ===== v197 (TEMPORAL, diagnóstico): registro en pantalla de lo que pasa en «Teclear nº» al tocarla (solo admin, en Registrar OT) ===== */
+(function(){const L=[];let t0=0,orig=null;
+ const box=()=>{if(typeof view=="undefined"||view!="new"||typeof admin=="undefined"||!admin)return null;let b=document.getElementById("dbgpos");
+  const w=document.querySelector(".posw");if(!w)return null;if(!b){b=document.createElement("div");b.id="dbgpos";b.style.cssText="font:11px/1.35 ui-monospace,Menlo,monospace;background:#fff8e1;border:1px dashed #f9a825;border-radius:6px;padding:4px 6px;margin-top:6px;color:#5d4037;white-space:pre-wrap;word-break:break-all;max-height:150px;overflow:auto";
+   const m=document.getElementById("f_posm")||w;m.after(b)}return b};
+ const ae=()=>{const a=document.activeElement;return a?(a.id||a.tagName):"-"};
+ const log=t=>{const n=Date.now();if(!t0||n-t0>8000)L.length=0,t0=n;L.push(((n-t0)/1000).toFixed(2)+"s "+t+" · foco="+ae());if(L.length>16)L.shift();const b=box();if(b)b.textContent="DIAGNÓSTICO (temporal)\n"+L.join("\n")};
+ const es=e=>e.target&&e.target.id=="f_posn";
+ ["touchstart","touchend","pointerdown","mousedown","click","focusin","focusout","beforeinput","input","keydown"].forEach(ev=>document.addEventListener(ev,e=>{if(!es(e)&&!/focus/.test(ev))return;if(/focus/.test(ev)&&!es(e)&&!(e.relatedTarget&&e.relatedTarget.id=="f_posn"))return;
+  log(ev+(ev=="keydown"?" "+e.key:"")+(ev=="input"?" val="+e.target.value:"")+(e.defaultPrevented?" [prevenido]":"")+(ev.startsWith("focus")?" de "+(e.target.id||e.target.tagName):""))},true));
+ ["touchend","click","mousedown"].forEach(ev=>document.addEventListener(ev,e=>{if(es(e)&&e.defaultPrevented)log(ev+" PREVENIDO por otro código")},false));
+ new MutationObserver(()=>{const n=document.getElementById("f_posn");if(n&&orig&&n!==orig&&document.contains(n))log("⚠️ casilla REEMPLAZADA (repintado)");orig=n;box()}).observe(document.body,{childList:true,subtree:true});
+ setInterval(()=>{const b=box();if(b&&!b.textContent)b.textContent="DIAGNÓSTICO (temporal): toca una vez «Teclear nº» y escribe un número"},700);
+})();
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v197"}})();
+</script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
 <script src="pdf-hz.js?v=1"></script>
