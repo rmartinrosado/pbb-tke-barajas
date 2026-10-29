@@ -4453,6 +4453,26 @@ header .hb{align-self:flex-start}
  const i=inc.find(x=>x.id==id);if(ab&&i&&i.estado=="cerrada"){try{if(typeof closeSheet=="function")closeSheet()}catch(e){}go("dash");scrollTo(0,0)}return r}})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v209"}})();
 </script>
+<script>
+/* ===== v210: aviso «Nueva versión disponible» para todos los usuarios (técnicos incluidos).
+ La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
+ Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
+ IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
+const APP_VER=210;
+(function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
+(function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
+async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
+ try{if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.update().catch(()=>{})))}}catch(e){}
+ location.replace(location.pathname+"?v="+Date.now())}
+let nvOculta=0;
+async function nvComprueba(){if(document.hidden||document.getElementById("nvBar"))return;
+ try{const r=await fetch("version.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;const j=await r.json();const v=parseInt(String(j.v).replace(/\D/g,""),10);
+  if(!(v>APP_VER)||v==nvOculta)return;
+  const b=document.createElement("div");b.id="nvBar";b.innerHTML=`<span>Nueva versión v${v} disponible</span><button onclick="nvActualiza()">Actualizar</button><button class="nvx" aria-label="Más tarde" onclick="nvOculta=${v};this.parentNode.remove()">✕</button>`;document.body.appendChild(b)}catch(e){}}
+setTimeout(nvComprueba,4000);setInterval(nvComprueba,600000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(nvComprueba,1500)});
+try{if(/[?&]v=\d/.test(location.search))history.replaceState(null,"",location.pathname)}catch(e){}
+</script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
 <script src="pdf-hz.js?v=1"></script>
