@@ -13,7 +13,7 @@ const FAM=[
  ["Auxiliares, cámaras y medidas",/^(Iluminación|Cámaras|Sistemas auxiliares|Medidas analógicas)/i],
  ["PBB 507 · plano propio",/^PBB 507 ·/i],
 ];
-const FIJAS=new Set(["SEG","COT","INS","CIE","CAM","SIS"]);
+const FIJAS=new Set(["SEG","COT","INS","CIE","SIS"]); /* v235: CAM (Cámaras RCS) va dentro de «Auxiliares, cámaras y medidas» */
 const EMO=/^[\s\u{1F300}-\u{1FAFF}☀-➿️‍]+/u;
 const abiertos=new Set();
 const titulo=d=>{const b=d.querySelector(":scope > summary > b");if(!b)return"";
@@ -30,7 +30,9 @@ function agrupa(){
  const grupos=new Map();
  cajas.forEach(d=>{const f=familia(tit.get(d),todas);if(!f)return;if(!grupos.has(f))grupos.set(f,[]);grupos.get(f).push(d)});
  const tipo=typeof gTipo!="undefined"?gTipo:"";
- grupos.forEach((ds,f)=>{if(ds.length<2)return;
+ grupos.forEach((ds,f)=>{const cam=ds.find(d=>d.dataset.k=="CAM");if(ds.length<2&&!cam)return;
+  /* v235: Cámaras RCS es un caso más del grupo: va al final y el grupo se queda donde estaban sus otros casos */
+  if(cam&&ds.length>1){ds.splice(ds.indexOf(cam),1);ds.push(cam)}
   const g=document.createElement("details");g.className="card ggrp";g.dataset.g=tipo+"|"+f;
   const ic=typeof zonaIcono=="function"&&typeof sistemaDe=="function"?zonaIcono(sistemaDe(tit.get(ds[0]),tipo)):"";
   const hechos=ds.reduce((a,d)=>{const m=(d.querySelector(":scope > summary").textContent.match(/\((\d+)\/(\d+)\)/)||[0,0,0]);return[a[0]+ +m[1],a[1]+ +m[2]]},[0,0]);
