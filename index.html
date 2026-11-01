@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=238;
+const APP_VER=239;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5056,7 +5056,11 @@ html.p234,html.p234 body{overflow:hidden!important;overscroll-behavior:none;heig
 #otsc>.card:first-child{margin-top:0}`;document.head.appendChild(st);
  let pos=0,ocupado=false;
  const hayAb=()=>{try{return Array.isArray(inc)&&inc.some(i=>i&&i.estado=="abierta")}catch(e){return false}};
- const alto=w=>{try{const vh=(window.visualViewport&&visualViewport.height)||innerHeight;const h=Math.max(120,Math.round(vh-w.getBoundingClientRect().top))+"px";if(w.style.height!==h)w.style.height=h}catch(e){}};
+ /* v239: la caja de fichas va fija desde el borde inferior del panel hasta el borde inferior de la pantalla (bottom:0).
+    Ya no depende de la altura de pantalla que da el iPhone (en la PWA instalada a veces llegaba mal y cortaba la ficha). */
+ const alto=w=>{try{const f=document.getElementById("pfix");if(!f)return;const r=f.getBoundingClientRect();
+  const v={position:"fixed",top:Math.round(r.bottom)+"px",left:Math.round(r.left)+"px",width:Math.round(r.width)+"px",bottom:"0px",height:"auto",zIndex:"1"};
+  for(const k in v)if(w.style[k]!==v[k])w.style[k]=v[k]}catch(e){}};
  const aplica=()=>{if(ocupado)return;ocupado=true;try{const a=document.getElementById("app");const r=document.documentElement;
   const f=document.getElementById("pfix");
   if(!a||typeof view=="undefined"||view!="dash"||!f||!hayAb()){r.classList.remove("p234");return}
@@ -5070,6 +5074,8 @@ html.p234,html.p234 body{overflow:hidden!important;overscroll-behavior:none;heig
  new MutationObserver(aplica).observe(document.getElementById("app"),{childList:true});
  addEventListener("resize",()=>{const w=document.getElementById("otsc");if(w)alto(w)});
  try{visualViewport&&visualViewport.addEventListener("resize",()=>{const w=document.getElementById("otsc");if(w)alto(w)})}catch(e){}
+ try{const ro=new ResizeObserver(()=>{const w=document.getElementById("otsc");if(w)alto(w)});let vis=null;
+  setInterval(()=>{const f=document.getElementById("pfix");if(f&&f!==vis){if(vis)ro.unobserve(vis);ro.observe(f);vis=f}},300)}catch(e){}
  setInterval(aplica,1000);aplica()})();
 </script>
 <script>
