@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=227;
+const APP_VER=229;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4905,5 +4905,55 @@ header.hk>*:not(#hk){display:none!important}
  const o=vDash;vDash=function(){const r=o.apply(this,arguments);aplica();return r};
  new MutationObserver(()=>{if(document.getElementById("pfix")&&!document.getElementById("pmini"))aplica()}).observe(document.getElementById("app"),{childList:true});
  setInterval(aplica,1500);aplica()})();
+</script>
+<script>
+/* ===== v229: la rejilla de abajo se aplica en los tres modos (Admin, Técnico y Operador) y, al hacer scroll,
+   el panel se oculta del todo (sin la línea compacta): solo queda fijo el rótulo «Órdenes de Trabajo Abiertas». =====
+   ===== v228: modo Administrador. Rejilla del Panel de control en dos columnas:
+   OT abiertas | OT cerradas · Registrar OT | Importar OT · Seguimiento OT | Claude · SOS | Mantenimiento.
+   Solo cambia la colocación (los mismos botones con la misma lógica). Técnico y Operador quedan como estaban.
+   Con el panel encogido al hacer scroll sigue mandando la línea compacta (#pmini). ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+#pfix.adm9{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch}
+#pfix.adm9>#pctl,#pfix.adm9>#pmini,#pfix.adm9>h3{grid-column:1/-1}
+#pfix.adm9>#pctl{order:0}#pfix.adm9>#pmini{order:20}#pfix.adm9>h3{order:21}
+#pfix.adm9>.grid{display:contents}
+#pfix.adm9 .kpi,#pfix.adm9 .grid>button.btn,#pfix.adm9 #dmpres{margin:0!important;min-height:66px;height:100%;box-sizing:border-box;width:auto!important}
+#pfix.adm9 .kpi:not(.sosk){order:1}
+#pfix.adm9 .a9reg{order:3}#pfix.adm9 #oibtn{order:4}#pfix.adm9 .segdedob{order:5}#pfix.adm9 .a9cla{order:6}
+#pfix.adm9 .sosk{order:7}#pfix.adm9 #dmpres{order:8}
+#pfix.adm9 .grid>button.btn{padding:10px 12px!important;gap:10px}
+#pfix.adm9 .a9cla img{height:30px!important;padding:5px 8px!important}
+#pfix.adm9 .sosk{display:flex!important;align-items:center;justify-content:center;padding:4px!important}
+#pfix.adm9 .sosk img{width:56px!important;height:56px!important}
+#pfix.adm9 #dmpres{display:flex;align-items:center;gap:10px;padding:10px 12px!important}
+#pfix.adm9 #dmpres .dmi{width:44px!important;height:44px!important;flex:none;display:grid;place-items:center}
+#pfix.adm9 #dmpres .dmi svg{width:26px!important;height:26px!important}
+#pfix.adm9 #dmpres .dmt{min-width:0}#pfix.adm9 #dmpres .dmt b{font-size:14px!important;line-height:1.2;display:block}
+#pfix.adm9 #dmpres .dmt small,#pfix.adm9 #dmpres .dmc{display:none!important}
+#pfix.pmin #pmini{display:none!important}
+#pfix.adm9.noimp .a9reg{grid-column:1/-1}#pfix.pmin>h3{margin-top:6px!important}`;document.head.appendChild(st);
+ const aplica=()=>{try{const f=document.getElementById("pfix");if(!f)return;const on=typeof view!="undefined"&&view=="dash";f.classList.toggle("adm9",on);if(!on)return;f.classList.toggle("noimp",!f.querySelector("#oibtn"));
+  f.querySelectorAll(".grid>button.btn").forEach(b=>{const oc=b.getAttribute("onclick")||"";if(/go\('new'\)/.test(oc))b.classList.add("a9reg");else if(/resTec/.test(oc))b.classList.add("a9cla")});
+  const d=f.querySelector("#dmpres .dmt b");if(d&&d.textContent.trim()=="Mantenimiento preventivo")d.textContent="Mantenimiento"}catch(e){}};
+ const o=vDash;vDash=function(){const r=o.apply(this,arguments);aplica();return r};
+ setInterval(aplica,1500);aplica()})();
+</script>
+<script>
+/* ===== v229: el turno elegido debe corresponder a la hora actual (Mañana 07-15 · Tarde 15-23 · Noche 23-07).
+   Se admite entrar hasta 30 min antes del turno siguiente. Antes se podía elegir cualquiera y, p. ej., «Mañana»
+   a las 20:38 quedaba activo hasta el día siguiente a las 15:00. Una sesión guardada con un turno que no toca
+   se borra al abrir la app y se pide el turno de ahora. ===== */
+(function(){
+ const TS=[["Mañana",7],["Tarde",15],["Noche",23]];
+ const actual=d=>{const h=d.getHours();return h>=7&&h<15?"Mañana":h>=15&&h<23?"Tarde":"Noche"};
+ window.turnoPermitido=function(t){const d=new Date();if(t==actual(d))return true;const x=new Date(d.getTime()+30*60000);return t==actual(x)};
+ window.turnoAhora=()=>actual(new Date());
+ const H={"Mañana":"07:00–15:00","Tarde":"15:00–23:00","Noche":"23:00–07:00"};
+ const os=selTurno;selTurno=function(t){if(!turnoPermitido(t)){const a=turnoAhora();msg(`Ahora es turno de ${a} (${H[a]}). No se puede entrar en el turno ${t}.`);return}return os.apply(this,arguments)};
+ /* en la hoja de turnos se resalta el turno que toca */
+ new MutationObserver(()=>{try{document.querySelectorAll('#sheetc button[onclick^="selTurno("]').forEach(b=>{const m=(b.getAttribute("onclick")||"").match(/selTurno\('([^']+)'\)/);if(!m)return;const ok=turnoPermitido(m[1]);b.style.opacity=ok?"":"0.35";b.style.borderColor=ok?"#2fd36b":""})}catch(e){}}).observe(document.getElementById("sheetc")||document.body,{childList:true,subtree:true});
+ setTimeout(()=>{try{if(typeof user!="undefined"&&user&&turno&&!admin&&!turnoPermitido(turno)){const t=turno;turno="";tecNombre="";render();msg(`El turno ${t} no corresponde a la hora actual. Introduce el turno de ahora (${turnoAhora()}).`)}}catch(e){}},3000);
+})();
 </script>
 </body></html>
