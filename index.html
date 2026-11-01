@@ -74,7 +74,7 @@ function go(v,f){if(v=="plans"&&!admin)return;view=v;if(f)filtro=f;render();scro
 const P={home:'M3 11l9-8 9 8v10H3z',plus:'M12 5v14M5 12h14',list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',plans:'M4 4h16v16H4zM4 9h16M9 9v11',mult:'M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM8.5 4.5h7v4h-7zM12 11a3 3 0 1 0 0 6a3 3 0 1 0 0-6M12 14l1.6-1.6M9 20h.01M15 20h.01',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.2-.5-.5-2.2z',check:'M5 12l5 5 9-10',ia:'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z'};
 P.plc='M4.5 2.5h15a2.5 2.5 0 0 1 2.5 2.5v14a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 19V5a2.5 2.5 0 0 1 2.5-2.5zM5 5.5h14v7.5H5zM7 11.3V7.2h1.3a1.05 1.05 0 0 1 0 2.1H7M10.6 7.2v4.1h1.8M17.2 7.7a2 2 0 1 0 0 3.1M5 15.8h3.4v2.7H5zM10.3 15.8h3.4v2.7h-3.4zM15.6 15.8H19v2.7h-3.4z';
 const IC=k=>`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${P[k]}"/></svg>`;
-function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||admin))||(view=="tec"&&!(tecnico||admin)))view="dash";
+function render(){if(typeof cab=="function")cab();if((view=="plans"&&!(tecnico||admin))||(view=="tec"&&!(tecnico||admin)&&!(typeof sosActivo=="function"&&sosActivo())))view="dash";
  $("#modo").classList.toggle("on",tecnico);$("#mo").classList.toggle("on",!tecnico&&!admin);$("#adm").classList.toggle("on",admin);
  const tabs=[["dash",IC('home'),"Inicio"],["new",IC('plus'),"Nueva"],["track",`<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M9.5 3l1.9 5.4L17 10.3l-5.6 1.9L9.5 17.6l-1.9-5.4L2 10.3l5.6-1.9z"/><path d="M18 13.5l1.1 3 3 1.1-3 1.1-1.1 3-1.1-3-3-1.1 3-1.1z"/></svg>`,"Seguimiento OT"]];if(tecnico||admin)tabs.push(["plans",IC('plans'),"Planos"]);
  if(tecnico||admin)tabs.push(["tec",IC('tool'),"Guía"]);
@@ -4438,7 +4438,7 @@ header .hb{align-self:flex-start}
   /* v208: también la «1ª OPCIÓN RÁPIDA · RESET DE PASARELA» (zapata, fallo de autonivelación, sensores neutrales: reset-pbb.js) */
   const rapida=i=>{try{return typeof resetAplica=="function"&&resetAplica(i)}catch(e){return false}};
   const rqe=i=>{const t=(typeof segNorm=="function"?segNorm:(x=>String(x).toLowerCase()))([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));const a=[];if(/zapata/.test(t))a.push("zapata activada");if(/autonivel|auto[- ]?nivel|nivelacion/.test(t))a.push("fallo de autonivelación");if(/neutral/.test(t))a.push("sensores neutrales");return a.join(" / ")};
-  window.otRapVa=function(id){const i=inc.find(x=>x.id==id);if(!i)return;if(motivo(i)){sosVa(id);return}
+  window.otRapVa=function(id){const i=inc.find(x=>x.id==id);if(!i)return;if(motivo(i)||!(tecnico||admin)){sosVa(id);return}
    gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(typeof gTipoOT=="function")gTipo=gTipoOT(i);if(view!="tec")go("tec");else vTec();
    setTimeout(()=>{const d=document.getElementById("greset");if(d)d.scrollIntoView({block:"start",behavior:"smooth"})},150)};
   const o=card;card=function(i){let h=o(i);const m=motivo(i),r=rapida(i);if(!m&&!r)return h;
@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=224;
+const APP_VER=225;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
