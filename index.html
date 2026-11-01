@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=217;
+const APP_VER=218;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4648,7 +4648,7 @@ iframe{border-radius:4px}
    if(!restaurado){restaurado=true;
     if(SES.email&&SES.email==user.email&&SES.m){window.__sesRest=true;
      if(SES.m=="a"&&rol=="admin"){admin=true;tecnico=false}
-     else if(SES.m=="t"&&rol!="operador"){admin=false;tecnico=true}
+     else if(SES.m=="t"){admin=false;tecnico=true}
      else if(SES.m=="o"){admin=false;tecnico=false}
      if(SES.turno&&SES.fin&&Date.now()<SES.fin){turno=SES.turno;tecNombre=SES.tec||""}
      else if(SES.turno){avisoFin=`El turno ${SES.turno} terminó a las ${hm(SES.fin)}. Introduce el turno nuevo y sus integrantes.`;SES.turno="";SES.tec="";SES.integ=null;turno="";tecNombre=""}
@@ -4666,10 +4666,10 @@ iframe{border-radius:4px}
     Solo técnicos dados de alta (los del turno arriba, el resto debajo). Mínimo un integrante validado por turno.
     En modo Técnico el que ha entrado ya está validado (entró con su código). */
  window.pideInteg=async function(){if(!turno||!tecNombre)return;
-  const ok=new Map();(SES.integ||[]).forEach(n=>ok.set(n,true));if(tecnico&&tecNombre)ok.set(tecNombre,true);
+  const ok=new Map();(SES.integ||[]).forEach(n=>ok.set(n,true));if(tecNombre)ok.set(tecNombre,true);
   let L=[],todos=[],pend="";
   const pinta=()=>{const del=L.filter(n=>!ok.has(n)),otros=todos.filter(n=>!L.includes(n)&&!ok.has(n));
-   const fila=(n,v)=>`<div class="itr2 ${v?"ok":""}"><span class="itn">${v?"✔ ":""}${esc(n)}${tecnico&&n==tecNombre?' <small class="mu">(tú)</small>':""}</span>${v?(tecnico&&n==tecNombre?'<small class="mu">validado</small>':`<button class="sec itq" data-n="${esc(n)}">Quitar</button>`):`<button class="sec itv" data-n="${esc(n)}">Validar</button>`}</div>`;
+   const fila=(n,v)=>`<div class="itr2 ${v?"ok":""}"><span class="itn">${v?"✔ ":""}${esc(n)}${n==tecNombre?' <small class="mu">(tú)</small>':""}</span>${v?(n==tecNombre?'<small class="mu">validado</small>':`<button class="sec itq" data-n="${esc(n)}">Quitar</button>`):`<button class="sec itv" data-n="${esc(n)}">Validar</button>`}</div>`;
    $("#sheetc").innerHTML=`<h3 style="margin:0">Integrantes · Turno ${esc(turno)}</h3>
    <div class="mu" style="margin-top:6px">Obligatorio: mínimo <b>un integrante validado</b>. Cada integrante se valida con su código de técnico. El turno termina a las <b>${hm(SES.fin||finDe(turno))}</b>.</div>
    <label>Validados (${ok.size})</label><div class="itl">${[...ok.keys()].map(n=>fila(n,true)).join("")||'<div class="mu" style="padding:10px 0">Ninguno todavía.</div>'}</div>
@@ -4743,6 +4743,20 @@ iframe{border-radius:4px}
 #app .dmpres.tkb .dmi svg{width:30px!important;height:30px!important;display:block}`;document.head.appendChild(st);
  /* centrado del turno: la cabecera se recoloca con el texto nuevo */
  try{barra()}catch(e){}})();
+</script>
+<script>
+/* ===== v218: Operador y Técnico con el MISMO acceso: turno → nombre → código de ese integrante.
+   Cualquier integrante puede elegir O o T (ya no depende del rol de la cuenta). Administrador: solo RAUL (rmartinrosado@gmail.com). ===== */
+(function(){
+ let accO=false;
+ const pide=()=>{$("#sheetc").innerHTML=`<h3 style="margin:0">Acceso ${accO?"Operador":"Técnico"}</h3><label>Selecciona tu turno</label><div class="grid" style="grid-template-columns:1fr 1fr 1fr">${["Mañana","Tarde","Noche"].map(t=>`<button class="btn" style="justify-content:center;padding:14px 4px" onclick="selTurno('${t}')">${t}</button>`).join("")}</div><button class="sec" style="width:100%;margin-top:12px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"};
+ pedirTec=function(){accO=false;pide()};
+ pedirTurnoO=function(){accO=true;pide()};
+ const ol=loginTec;loginTec=async function(){const o=accO;const r=await ol.apply(this,arguments);
+  try{if(o&&turno&&tecNombre&&tecnico){tecnico=false;admin=false;render();msg(tecNombre+" · Turno "+turno+" · Operador")}}catch(e){}return r};
+ /* el rótulo del turno en la hoja de nombre y código dice el modo que se está abriendo */
+ new MutationObserver(()=>{try{const h=document.querySelector("#sheetc>h3");if(accO&&h&&/^Técnico · Turno /.test(h.textContent))h.textContent=h.textContent.replace(/^Técnico/,"Operador")}catch(e){}}).observe(document.getElementById("sheetc")||document.body,{childList:true,subtree:true});
+})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
