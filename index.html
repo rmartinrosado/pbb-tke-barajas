@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=231;
+const APP_VER=232;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5014,5 +5014,38 @@ html.p230ns,html.p230ns body{overflow:hidden!important;overscroll-behavior:none;
  const rr=render;render=function(){const r=rr.apply(this,arguments);aplica();return r};
  new MutationObserver(()=>{clearTimeout(window.__p230);window.__p230=setTimeout(aplica,30)}).observe(document.getElementById("app"),{childList:true,subtree:true});
  setInterval(aplica,1500);aplica()})();
+</script>
+<script>
+/* ===== v232: pilotos del panel, botón de Claude y cambio de modo sin volver a identificarse.
+   · Piloto de OT abiertas: gris con 0; amarillo parpadeando cada segundo con OT abiertas.
+   · Piloto de OT cerradas: gris con 0; rojo fijo con OT cerradas.
+   · Botón de Claude del panel: logotipo nuevo (estrella naranja + «Claude» claro para el fondo oscuro) y debajo «Resolución IA».
+   · Cambiar de modo (Técnico ⇄ Operador, o desde Admin) sin cerrar sesión: se mantienen turno, técnico e integrantes,
+     sin volver a pedir turno ni códigos. Cambiar integrantes sigue pidiendo el código de cada uno («⇄ Turno»). ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+#app .tkled.l232{animation:none!important;box-shadow:none!important;background:#4a4f5a!important;opacity:1!important}
+#app .tkled.l232.am{background:#ffd21f!important;box-shadow:0 0 8px #ffd21f!important;animation:l232b 1s steps(1,end) infinite!important}
+#app .tkled.l232.ro{background:#e5342b!important;box-shadow:0 0 8px #e5342b!important}
+@keyframes l232b{0%{opacity:1}50%{opacity:.12}}
+#app button.cl232{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:6px!important;padding:8px 6px!important;text-align:center!important}
+#app button.cl232 img.cl232i{height:24px!important;width:auto!important;max-width:100%!important;background:none!important;padding:0!important;border-radius:0!important;margin:0!important;display:block!important}
+#app button.cl232 .cl232t{display:block!important;font-size:12px;font-weight:600;letter-spacing:.3px;line-height:1.1;color:var(--tx,#e9ecf1)}`;document.head.appendChild(st);
+ const num=k=>{const b=k.querySelector("b");return parseInt((b&&b.textContent)||"0",10)||0};
+ const aplica=()=>{try{if(typeof view=="undefined"||view!="dash")return;const a=document.getElementById("app");if(!a)return;
+  a.querySelectorAll(".kpi:not(.sosk)").forEach(k=>{const l=k.querySelector(".tkled");if(!l)return;const n=num(k),ce=/cerrad/i.test(k.textContent);
+   l.classList.add("l232");l.classList.toggle("am",!ce&&n>0);l.classList.toggle("ro",ce&&n>0)});
+  a.querySelectorAll("button.btn").forEach(b=>{if(!/resTec\(\)/.test(b.getAttribute("onclick")||"")||b.closest(".card:not(.btn)"))return;
+   if(b.dataset.v232)return;b.dataset.v232="1";b.classList.add("cl232");b.setAttribute("aria-label","Claude · Resolución IA");
+   b.innerHTML=`<img class="cl232i" src="claude-logo-ia.png" alt="Claude"><span class="cl232t">Resolución IA</span>`})}catch(e){}};
+ const o=vDash;vDash=function(){const r=o.apply(this,arguments);aplica();return r};
+ new MutationObserver(()=>{clearTimeout(window.__p232);window.__p232=setTimeout(aplica,20)}).observe(document.getElementById("app"),{childList:true,subtree:true,characterData:true});
+ setInterval(aplica,1000);aplica();
+ /* cambio de modo sin pedir otra vez turno ni códigos si la sesión del turno sigue abierta */
+ const ot=toggleModo;toggleModo=function(){try{
+  if(!tecnico&&typeof identificado=="function"&&identificado()){admin=false;tecnico=true;closeSheet();view="dash";filtro="todas";ptxt="";render();scrollTo(0,0);
+   msg(tecNombre+" · Turno "+turno+" · Técnico");return}}catch(e){}
+  return ot.apply(this,arguments)};
+ const os=setO;setO=function(){const r=os.apply(this,arguments);try{if(typeof identificado=="function"&&identificado())msg(tecNombre+" · Turno "+turno+" · Operador")}catch(e){}return r};
+})();
 </script>
 </body></html>
