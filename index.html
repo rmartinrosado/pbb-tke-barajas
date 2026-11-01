@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=235;
+const APP_VER=236;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5070,5 +5070,36 @@ html.p234,html.p234 body{overflow:hidden!important;overscroll-behavior:none;heig
  addEventListener("resize",()=>{const w=document.getElementById("otsc");if(w)alto(w)});
  try{visualViewport&&visualViewport.addEventListener("resize",()=>{const w=document.getElementById("otsc");if(w)alto(w)})}catch(e){}
  setInterval(aplica,1000);aplica()})();
+</script>
+<script>
+/* ===== v236: si la PWA se cierra sin querer (modo Técnico u Operador), al abrirla se reanuda la sesión del turno
+   (turno, técnico, integrantes, modo y pantalla) sin pedir nada. La sesión guardada se aplica ANTES de que salte el
+   bloqueo de «Identificación obligatoria» (antes se restauraba tarde y la hoja «Acceso Técnico» ya se había abierto).
+   Cerrar turno (⇄ Turno) o cerrar sesión (botón de apagado) es intencionado: se borra la sesión guardada y se pide
+   de nuevo turno e integrantes. ===== */
+(function(){
+ const sesValida=()=>{try{const S=window.SES;return !!(S&&typeof user!="undefined"&&user&&S.email==user.email&&S.turno&&S.tec&&S.fin&&Date.now()<S.fin&&(S.m=="t"||S.m=="o"||S.m=="a"))}catch(e){return false}};
+ const restaura=()=>{try{if(typeof user=="undefined"||!user||admin||identificado()||!sesValida())return false;const S=window.SES;
+  turno=S.turno;tecNombre=S.tec;
+  if(S.m=="a"&&rol=="admin"){admin=true;tecnico=false}else{admin=false;tecnico=S.m=="t"}
+  if(S.view&&S.view!="new"&&typeof view!="undefined")view=S.view;
+  const h=document.querySelector("#sheetc>h3");if(h&&/^(Acceso|Identificaci|Técnico · Turno|Operador · Turno)/.test(h.textContent))closeSheet();
+  return true}catch(e){return false}};
+ const ol=lockUI;lockUI=function(){restaura();return ol.apply(this,arguments)};
+ const orr=render;render=function(){restaura();return orr.apply(this,arguments)};
+ /* ninguna parte de la app debe abrir la hoja de acceso si hay una sesión de turno guardada y válida */
+ const pt=pedirTec;pedirTec=function(){if(restaura()){try{render()}catch(e){}return}return pt.apply(this,arguments)};
+ const po=pedirTurnoO;pedirTurnoO=function(){if(restaura()){try{render()}catch(e){}return}return po.apply(this,arguments)};
+ /* por si la hoja se abrió antes de que llegara la sesión: cerrarla en cuanto se pueda restaurar */
+ const vig=setInterval(()=>{try{if(typeof user=="undefined"||!user)return;if(restaura()){try{render()}catch(e){}}
+  if(identificado()){const h=document.querySelector("#sheetc>h3"),sh=document.getElementById("sheet");
+   if(sh&&sh.style.display=="flex"&&h&&/^(Acceso|Identificaci)/.test(h.textContent)&&sesValida()&&window.SES.turno==turno)closeSheet();
+   const lk=document.getElementById("lock");if(lk&&lk.style.display=="flex"&&!lk.querySelector(".itlk"))lk.style.display="none"}}catch(e){}},300);
+ setTimeout(()=>clearInterval(vig),20000);
+ /* cierre de sesión intencionado: olvidar el turno guardado */
+ salir=async function(){if(!confirm("¿Cerrar sesión?"))return;try{localStorage.removeItem("pbb_ses")}catch(e){}
+  try{if(window.SES)Object.keys(window.SES).forEach(k=>delete window.SES[k])}catch(e){}
+  try{await sb.auth.signOut()}catch(e){}location.reload()};
+})();
 </script>
 </body></html>
