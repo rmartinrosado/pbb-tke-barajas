@@ -5,7 +5,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#0e1014">
 <meta name="apple-mobile-web-app-title" content="PBB TKE">
 <style>
 :root{--bg:#f6f2fa;--card:#fff;--tx:#1d1526;--mu:#6d6478;--pr:#7a12b5;--ac:#f0700a;--g:linear-gradient(90deg,#7a12b5,#f0700a);--prt:#fff;--ok:#7a12b5;--wa:#7a12b5;--bd:#e3dbec;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
@@ -4458,7 +4458,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=213;
+const APP_VER=214;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4574,6 +4574,52 @@ try{if(/[?&]v=\d/.test(location.search))history.replaceState(null,"",location.pa
  const o=render;render=function(){const r=o.apply(this,arguments);try{pon()}catch(e){}return r};
  let tt=0;new MutationObserver(()=>{clearTimeout(tt);tt=setTimeout(()=>{try{pon()}catch(e){}},30)}).observe(document.body,{childList:true,subtree:true});
  try{pon()}catch(e){}})();
+</script>
+<script>
+/* ===== v214: estilo «Panel técnico» (opción B) en TODA la PWA: Guía de campo, Seguimiento OT, registro, resolución,
+   hojas emergentes y formularios. Tema grafito fijo (también con el móvil en modo claro), acentos naranja y morado TKE,
+   bordes finos, esquinas rectas de 6 px, rótulos y etiquetas en tipografía de máquina. Se respetan los colores de estado
+   (tarjetas verde/amarilla/roja, cajas rojas de seguridad, LED del PLC). ===== */
+(function(){
+ try{document.documentElement.setAttribute("data-theme","dark")}catch(e){}
+ const st=document.createElement("style");st.textContent=`
+:root,:root[data-theme],:root:not([data-theme=light]){--bg:#0e1014!important;--card:#171a20!important;--bd:#2a2f38!important;--tx:#e9ecf1!important;--mu:#8a93a3!important;--pr:#a24dff!important;--ac:#ff7a1a!important;--prt:#fff!important;--ok:#a24dff!important;--wa:#a24dff!important;--hdov:rgba(10,11,14,.8)!important;--tkmo:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:dark}
+body{background:var(--bg)!important;color:var(--tx)}
+header{border-bottom:2px solid var(--ac)!important;border-image:none!important}
+.card{border-radius:6px!important;box-shadow:none!important;border:1px solid var(--bd)}
+main h3,#sheetc h3{font-family:var(--tkmo);font-size:13px!important;font-weight:700!important;letter-spacing:1.2px;text-transform:uppercase}
+main .card>h3:first-child{display:flex;align-items:center;gap:8px;color:var(--tx)}
+main .card>h3:first-child::before{content:"";width:4px;height:14px;background:var(--ac);border-radius:1px;flex:none}
+label{font-family:var(--tkmo);font-size:10.5px!important;letter-spacing:1px;text-transform:uppercase;color:var(--mu)!important}
+label.gpaso,label.gsim-vel,.gpaso,.pchk label{font-family:inherit;text-transform:none;letter-spacing:0}
+label.gpaso{font-size:14px!important;color:var(--tx)!important}
+input,select,textarea{background:#0b0c10!important;border:1px solid var(--bd)!important;border-radius:4px!important;color:var(--tx)!important}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac)!important;box-shadow:0 0 0 2px #ff7a1a33}
+input[type=checkbox],input[type=radio]{accent-color:var(--ac)}
+.pri{background:var(--ac)!important;color:#111!important;border-radius:4px!important;font-weight:800!important;letter-spacing:.6px;text-transform:uppercase;font-size:14px!important}
+.pri:disabled{opacity:.4}
+.sec{background:var(--card);border:1px solid var(--bd)!important;border-radius:4px!important;color:var(--tx)}
+.sec:active,.pri:active,.btn:active{filter:brightness(1.15)}
+.btn{background:var(--card)!important;border:1px solid var(--bd)!important;border-left:3px solid var(--ac)!important;border-radius:6px!important;color:var(--tx)!important}
+.btn span{color:var(--ac)}
+.tag{border-radius:3px!important;font-family:var(--tkmo);letter-spacing:.5px;background:#a24dff!important}
+.ab,.ce{font-family:var(--tkmo)}
+.mu{color:var(--mu)}
+#sheet{background:#000a!important}#sheet>div{background:var(--card)!important;border-top:2px solid var(--ac);border-radius:8px 8px 0 0!important}
+details.gd,details.ggrp{border-radius:6px!important}
+details.gd>summary,details.ggrp>summary{font-weight:700}
+details.ggrp>summary b{font-family:var(--tkmo);font-size:13.5px!important;letter-spacing:1px;text-transform:uppercase}
+.gpl{border-radius:4px!important;color:var(--ac)!important;border-color:#ff7a1a66!important;background:#ff7a1a0f!important}
+.gpaso input{accent-color:var(--ac)!important}
+.gsim{background:#0b0c10!important;border-color:var(--bd)!important;border-radius:6px!important}
+.gsim-bt button{border-radius:4px!important;font-family:var(--tkmo);font-size:11.5px!important;letter-spacing:.3px}
+.gsim-row{font-family:var(--tkmo);color:var(--ac)!important}
+.cacts button,.cacts .sec{border-radius:4px!important}
+.bqbox{border-radius:6px!important;border:1px solid var(--ac)!important;background:#0b0c10!important}
+.ctd{border-radius:4px!important;font-family:var(--tkmo);font-size:13px!important}
+iframe{border-radius:4px}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#2a2f38;border-radius:3px}`;document.head.appendChild(st);
+})();
 </script>
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
