@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=220;
+const APP_VER=221;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4766,4 +4766,70 @@ iframe{border-radius:4px}
 <script src="guia-grupos.js?v=1"></script>
 <script src="hz-analisis.js?v=2"></script>
 <script src="pdf-hz.js?v=1"></script>
+<script>
+/* ===== v221: cabecera nueva «Tira de iconos» (opción 2).
+   · Línea 1: logo TKE · «PBB TKE Barajas» + versión · apagado (rojo, pequeño).
+   · Línea 2 (solo admin rmartinrosado@gmail.com o RAUL MARTIN): iconos cuadrados con rótulo pequeño.
+     Técnico · Operador · Admin (el modo activo en naranja) y, según el modo: Turno (T/O) o ＋PBB · Técnicos · Exportar · Actualizar (A).
+   · Línea 3: turno con horario e integrantes en verde (resto de técnicos: con botón ⇄ para el cambio de turno).
+   · Sin foto de fondo ni correo. Los botones llaman a los mismos controles de antes (ocultos), así no cambia nada de la lógica. ===== */
+(function(){
+ const st=document.createElement("style");st.textContent=`
+header.hk{display:block!important;min-height:0!important;padding:8px 12px 9px!important;background:var(--card)!important}
+header.hk>*:not(#hk){display:none!important}
+#hk .hk1{display:flex;align-items:center;gap:10px}
+#hk .hklg{height:30px;width:auto;flex:none;display:block}
+#hk .hkt{flex:1;min-width:0;text-align:center;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hk .hkt .hkv{font-size:11px;font-weight:500;color:var(--mu);margin-left:5px}
+#hk .hkoff{width:38px;height:38px;flex:none;border-radius:50%;border:0;padding:0;background:#d32f2f;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#hk .hkoff svg{width:19px;height:19px;stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round}
+#hk .hkoff:active,#hk .hki:active{transform:scale(.94)}
+#hk .hk2{display:grid;gap:4px;margin-top:8px}
+#hk .hki{height:50px;min-width:0;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0 1px;font:600 9.5px/1.1 system-ui,sans-serif;letter-spacing:-.2px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#hk .hk2.n7 .hki{font-size:8.6px}#hk .hki span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hk .hki svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#hk .hki.on{border-color:var(--ac);color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,var(--bg))}
+#hk .hki.ok{border-color:#2f8a4a;color:#2fd36b}
+#hk .hk3{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:7px;font:700 11.5px/1.3 var(--tkmo,ui-monospace,monospace);letter-spacing:.3px;color:#2fd36b;text-align:center}
+#hk .hk3 b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#hk .hk3 button{flex:none;height:26px;border:1px solid var(--ac);border-radius:6px;background:transparent;color:var(--ac);font:700 11px var(--tkmo,ui-monospace,monospace);padding:0 8px;cursor:pointer}`;
+ document.head.appendChild(st);
+ const ic={
+  tec:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',
+  ope:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  adm:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+  tur:'<path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/>',
+  pbb:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8.5v7M8.5 12h7"/>',
+  tcs:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.7c2 .7 3.5 2.4 3.5 5.3"/>',
+  exp:'<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/>',
+  act:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'};
+ const HOR={"Mañana":"07–15","Tarde":"15–23","Noche":"23–07"};
+ const q=s=>document.querySelector(s);
+ /* pulsa el control original (oculto) para que haga exactamente lo mismo que antes */
+ window.hkPulsa=function(sel){const e=q(sel);if(e)e.click()};
+ window.hkMadm=function(i){const e=document.querySelectorAll("#mbar .madm button")[i];if(e)e.click()};
+ const B=(icon,txt,act,on,cls)=>`<button type="button" class="hki${on?" on":""}${cls?" "+cls:""}" aria-label="${txt}" onclick="${act}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic[icon]}</svg><span>${txt}</span></button>`;
+ let ult="";
+ const pinta=()=>{try{
+  const h=q("header");if(!h)return;h.classList.add("hk");
+  let u=false;try{u=!!user}catch(e){}
+  let vb=false;try{vb=u&&typeof verBarra=="function"&&verBarra()}catch(e){}
+  let ad=false,te=false,tu="",tn="";try{ad=!!admin;te=!!tecnico;tu=turno||"";tn=tecNombre||""}catch(e){}
+  const lg=q("header .logo");const src=lg?lg.getAttribute("src"):"";
+  let x=`<div class="hk1">${src?`<img class="hklg" alt="TKE" src="${src}">`:""}<div class="hkt">PBB TKE Barajas<span class="hkv">v${typeof APP_VER!="undefined"?APP_VER:""}</span></div>${u?`<button type="button" class="hkoff" aria-label="Apagar: cerrar sesión" title="Apagar · cerrar sesión" onclick="salir()"><svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 6.6a8 8 0 1 0 11.4 0"/></svg></button>`:""}</div>`;
+  if(vb){const it=[B("tec","Técnico","hkPulsa('#modo')",te&&!ad),B("ope","Operador","hkPulsa('#mo')",!te&&!ad),B("adm","Admin","hkPulsa('#adm')",ad)];
+   if(ad){const n=document.querySelectorAll("#mbar .madm button").length;
+    if(n>0)it.push(B("pbb","＋ PBB","hkMadm(0)"));if(n>1)it.push(B("tcs","Técnicos","hkMadm(1)"));if(n>2)it.push(B("exp","Exportar","hkMadm(2)"));if(n>3)it.push(B("act","Actualizar","hkMadm(3)",false,"ok"))}
+   else if(q("#mbar .tcbtn"))it.push(B("tur","Turno","hkPulsa('#mbar .tcbtn')"));
+   x+=`<div class="hk2${it.length>6?" n7":""}" style="grid-template-columns:repeat(${it.length},minmax(0,1fr))">${it.join("")}</div>`}
+  if(u&&tu){const mi=q("#mbar .mintg");const li=(mi&&mi.textContent.trim())||tn;
+   const ex=!vb&&!ad&&q("#mbar .tcbtn")?`<button type="button" onclick="hkPulsa('#mbar .tcbtn')">⇄ Turno</button>`:"";
+   x+=`<div class="hk3"><b>${esc(String(tu).toUpperCase())} ${HOR[tu]||""}${li?" · "+esc(String(li).toUpperCase()):""}</b>${ex}</div>`}
+  else if(u&&!vb&&tn)x+=`<div class="hk3"><b>${esc(String(tn).toUpperCase())}</b></div>`;
+  if(x===ult&&q("#hk"))return;ult=x;
+  let k=q("#hk");if(!k){k=document.createElement("div");k.id="hk";h.prepend(k)}k.innerHTML=x}catch(e){}};
+ const o=cab;cab=function(){const r=o.apply(this,arguments);pinta();return r};
+ const ob=barra;barra=function(){const r=ob.apply(this,arguments);pinta();return r};
+ addEventListener("load",pinta);setInterval(pinta,1500);pinta()})();
+</script>
 </body></html>
