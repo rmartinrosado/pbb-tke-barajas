@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=226;
+const APP_VER=227;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4526,7 +4526,7 @@ try{if(/[?&]v=\d/.test(location.search))history.replaceState(null,"",location.pa
 #app .sosgrid.tkb .kpi{background:var(--tkg)!important;border:1px solid var(--tkbd)!important;border-radius:6px!important;position:relative;text-align:left;padding:10px 12px!important;color:var(--tkmu)!important;font:600 10px/1.2 var(--tkmo)!important;letter-spacing:1px!important;text-transform:uppercase}
 #app .sosgrid.tkb .kpi b{font:700 30px/1.15 var(--tkmo)!important;color:#e9ecf1!important;margin-top:6px;letter-spacing:0!important}
 #app .sosgrid.tkb .kpi .tkled{position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%}
-.tkled.o{background:var(--tkor);box-shadow:0 0 8px var(--tkor)}.tkled.g{background:#2fd36b;box-shadow:0 0 8px #2fd36b}
+.tkled.o{background:var(--tkor);box-shadow:0 0 8px var(--tkor)}.tkled.o.vac{background:#4a4f5a;box-shadow:none}.tkled.o.act{animation:tkledp 1s ease-in-out infinite}@keyframes tkledp{0%,100%{opacity:1}50%{opacity:.15}}.tkled.g{background:#2fd36b;box-shadow:0 0 8px #2fd36b}
 #app .sosgrid.tkb .sosk{border:2px solid #e5342b!important;background:repeating-linear-gradient(135deg,#2a0d0d 0 8px,#3a1010 8px 16px)!important;padding:4px!important;display:flex;align-items:center;justify-content:center}
 #app .grid.tkbt{gap:8px!important}
 #app .grid.tkbt>button.btn{background:var(--tkg)!important;border:1px solid var(--tkbd)!important;border-radius:6px!important;padding:10px!important;display:flex!important;align-items:center;gap:10px;min-height:66px;text-align:left;color:#e9ecf1!important;box-shadow:none!important}
@@ -4561,6 +4561,8 @@ try{if(/[?&]v=\d/.test(location.search))history.replaceState(null,"",location.pa
   if(view!="dash")return;const app=document.getElementById("app");if(!app)return;
   const sg=app.querySelector(".sosgrid");if(sg){sg.classList.add("tkb");
    sg.querySelectorAll(".kpi:not(.sosk)").forEach(k=>{if(!k.querySelector(".tkled"))k.insertAdjacentHTML("afterbegin",`<span class="tkled ${/cerrad/i.test(k.textContent)?"g":"o"}"></span>`);
+    /* v227: el piloto naranja parpadea con OT abiertas y queda apagado (gris) con 00 */
+    {const l=k.querySelector(".tkled.o"),b=k.querySelector("b");if(l){const n=parseInt((b&&b.textContent)||"0",10)||0;l.classList.toggle("act",n>0);l.classList.toggle("vac",n==0)}}
     const b=k.querySelector("b");if(b&&/^\d$/.test(b.textContent.trim()))b.textContent="0"+b.textContent.trim()})}
   const g=[...app.querySelectorAll(":scope>.grid")].find(x=>x.querySelector("button.btn"));
   if(g){g.classList.add("tkbt");g.querySelectorAll(":scope>button.btn:not([data-tkb])").forEach(b=>{
