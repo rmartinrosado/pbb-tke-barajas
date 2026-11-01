@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=232;
+const APP_VER=233;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4897,11 +4897,9 @@ header.hk>*:not(#hk){display:none!important}
   if(!f||view!="dash"||!hayA){if(a)a.style.minHeight="";if(f)f.classList.remove("pmin");comp=false;return}
   mini(f);
   /* encoger al bajar; desplegar solo al volver arriba del todo (sin ir y venir) */
-  const y=scrollY||document.documentElement.scrollTop||0;
-  if(!comp&&y>12)comp=true;else if(comp&&y<=0)comp=false;
-  f.classList.toggle("pmin",comp);
-  /* que siempre quede recorrido de scroll para no saltar de golpe al panel completo */
-  a.style.minHeight="calc(100vh + 160px)"}catch(e){}};
+  /* v233: el panel (rejilla de 8) queda siempre fijo y entero; solo se desplazan las fichas de OT */
+  comp=false;f.classList.remove("pmin");if(a.style.minHeight)a.style.minHeight="";
+  if((scrollY||0)<=0){const t=Math.round(f.getBoundingClientRect().top)+"px";if(f.style.top!==t)f.style.top=t} /* fijo justo donde está, sin saltito al empezar el scroll */}catch(e){}};
  addEventListener("scroll",aplica,{passive:true});
  const o=vDash;vDash=function(){const r=o.apply(this,arguments);aplica();return r};
  new MutationObserver(()=>{if(document.getElementById("pfix")&&!document.getElementById("pmini"))aplica()}).observe(document.getElementById("app"),{childList:true});
