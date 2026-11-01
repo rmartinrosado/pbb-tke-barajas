@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=215;
+const APP_VER=216;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4700,8 +4700,12 @@ iframe{border-radius:4px}
   $("#sheetc").innerHTML=`<h3 style="margin:0">Cambio de turno</h3><div class="mu" style="margin-top:6px">Turno actual: <b>${esc(turno)}</b> · ${esc(tecNombre)}${SES.integ&&SES.integ.length?` · ${SES.integ.length} integrante${SES.integ.length>1?"s":""}`:""}.<br>Cierre automático a las ${hm(SES.fin||finDe(turno))}. Al cambiarlo a mano se cierra ahora y se piden turno nuevo e integrantes.</div>
   <button class="pri" style="margin-top:14px" onclick="closeSheet();tcManual()">Cerrar turno y cambiar</button>
   <button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet();pideInteg()">Solo cambiar integrantes</button>
+  <button class="sec" style="width:100%;margin-top:8px" onclick="tcPrueba()">🔔 Probar aviso de turno en este móvil</button>
   <button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"};
  window.tcManual=()=>cierra(false);
+ window.tcPrueba=async()=>{try{const r=await pushReg;const sub=r&&await r.pushManager.getSubscription();if(!sub){pushAlta(true);msg("Activa primero los avisos en este móvil");return}
+  const x=await fetch(SUPABASE_URL+"/functions/v1/aviso-llegada",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pruebaTurno:true,endpoint:sub.endpoint})});
+  const d=await x.json();msg(d.enviados?"Aviso de turno enviado: bloquea el móvil y espera unos segundos":"No se pudo enviar el aviso de prueba")}catch(e){msg("No se pudo enviar el aviso de prueba")}};
  setInterval(()=>{try{if(typeof user=="undefined"||!user||!turno||!SES.fin)return;if(Date.now()>=SES.fin)cierra(true)}catch(e){}},15000);
  document.addEventListener("visibilitychange",()=>{try{if(!document.hidden&&user&&turno&&SES.fin&&Date.now()>=SES.fin)cierra(true)}catch(e){}});
  /* 5) cabecera: turno, técnicos e integrantes centrados con el modo; botón de cambio de turno */

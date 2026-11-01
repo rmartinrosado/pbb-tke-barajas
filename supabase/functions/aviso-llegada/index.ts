@@ -6,6 +6,9 @@ import webpush from "npm:web-push@3.6.7";
 // 1 minuto para el tiempo de llegada, envía una notificación push a todos los móviles suscritos.
 // Claves VAPID en la tabla privada public.push_config; suscripciones en public.push_subs;
 // avisos ya enviados en public.push_avisos (uno por OT).
+// v215: además, a las 06:55, 14:55 y 22:55 (hora de Madrid) envía el aviso de CAMBIO DE TURNO
+// (cierre del turno Noche, Mañana y Tarde), una sola vez por cierre (clave «turno-AAAA-MM-DD-HHMM» en push_avisos).
+const CIERRES: Record<number, string> = { 6: "Noche", 14: "Mañana", 22: "Tarde" };
 const LLEG: Record<string, number> = { PAS: 10, HZ: 15, AAA: 15, AAP: 15, SVGA: 15, Sigma: 15 };
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
@@ -55,7 +58,35 @@ Deno.serve(async (req) => {
     return json({ enviados: r.ok, errores: r.errores });
   }
 
+  // Prueba del aviso de cambio de turno: solo al móvil que la pide
+  if (body.pruebaTurno && body.endpoint) {
+    const { data } = await sb.from("push_subs").select("*").eq("endpoint", body.endpoint);
+    const r = await enviar(data || [], { title: "⏰ Cambio de turno · prueba", body: "Así llegará el aviso de cierre de turno (06:55 · 14:55 · 22:55).", tag: "turno" });
+    return json({ enviados: r.ok, errores: r.errores });
+  }
+
   const ahora = Date.now();
+  // Cambio de turno: de HH:55 a HH:59 (por si alguna ejecución de pg_cron se retrasa), una sola vez
+  let turnoRes: unknown = null;
+  {
+    const p = partes(ahora);
+    const sale = CIERRES[p.hour];
+    if (sale && p.minute >= 55) {
+      const clave = `turno-${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}-${String(p.hour).padStart(2, "0")}55`;
+      const { data: subsT } = await sb.from("push_subs").select("*");
+      const { error } = await sb.from("push_avisos").insert({ inc_id: clave, destinos: (subsT || []).length });
+      if (!error) {
+        const hh = `${String(p.hour).padStart(2, "0")}:55`;
+        const r = await enviar(subsT || [], {
+          title: `⏰ Cambio de turno · ${hh}`,
+          body: `Se cierra el turno de ${sale}. Abre la app e introduce el turno nuevo y sus integrantes.`,
+          tag: "turno",
+        });
+        turnoRes = { clave, enviados: r.ok, errores: r.errores.length };
+      }
+    }
+  }
+
   const { data: ots } = await sb.from("incidencias").select("id,datos").eq("estado", "abierta");
   const due: { id: string; i: any; fin: number }[] = [];
   for (const r of ots || []) {
@@ -63,7 +94,7 @@ Deno.serve(async (req) => {
     const fin = limite(r.id, i); if (fin == null) continue;
     const rest = fin - ahora; if (rest <= 75e3 && rest > -3600e3) due.push({ id: r.id, i, fin });
   }
-  if (!due.length) return json({ pendientes: 0 });
+  if (!due.length) return json({ pendientes: 0, turno: turnoRes });
 
   const { data: hechos } = await sb.from("push_avisos").select("inc_id").in("inc_id", due.map((d) => d.id));
   const ya = new Set((hechos || []).map((h: any) => h.inc_id));
@@ -81,5 +112,5 @@ Deno.serve(async (req) => {
     });
     res.push({ id: d.id, enviados: r.ok, errores: r.errores.length });
   }
-  return json({ avisos: res });
+  return json({ avisos: res, turno: turnoRes });
 });
