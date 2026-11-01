@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=230;
+const APP_VER=231;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4852,7 +4852,7 @@ header.hk>*:not(#hk){display:none!important}
  const alto=()=>{const h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hkh",Math.round(h.getBoundingClientRect().height)+"px")};
  const fija=()=>{try{alto();if(view!="dash")return;const a=document.getElementById("app");if(!a||document.getElementById("pfix"))return;
   const ks=[...a.children];const i=ks.findIndex(e=>e.tagName=="H3"&&/rdenes de trabajo abiertas/i.test(e.textContent));if(i<0)return;
-  if(!ks.slice(i+1).some(e=>e.classList.contains("card")))return; /* solo con OT abiertas */
+  if(!ks.slice(i+1).some(e=>e.classList.contains("card")&&!e.classList.contains("mu")))return; /* solo con OT abiertas (v231: «Sin averías abiertas» no cuenta) */
   const w=document.createElement("div");w.id="pfix";a.insertBefore(w,ks[0]);ks.slice(0,i+1).forEach(e=>w.appendChild(e))}catch(e){}};
  const o=vDash;vDash=function(){const r=o.apply(this,arguments);fija();return r};
  new MutationObserver(fija).observe(document.getElementById("app"),{childList:true});
@@ -4893,7 +4893,8 @@ header.hk>*:not(#hk){display:none!important}
   if(m.innerHTML!==x)m.innerHTML=x};
  let comp=false;
  const aplica=()=>{try{const f=document.getElementById("pfix");const a=document.getElementById("app");
-  if(!f||view!="dash"){if(a)a.style.minHeight="";return}
+  let hayA=false;try{hayA=Array.isArray(inc)&&inc.some(i=>i&&i.estado=="abierta")}catch(e){}
+  if(!f||view!="dash"||!hayA){if(a)a.style.minHeight="";if(f)f.classList.remove("pmin");comp=false;return}
   mini(f);
   /* encoger al bajar; desplegar solo al volver arriba del todo (sin ir y venir) */
   const y=scrollY||document.documentElement.scrollTop||0;
@@ -4980,6 +4981,7 @@ header.hk>*:not(#hk){display:none!important}
 .p230 #dmpres .dmi svg{width:26px!important;height:26px!important}
 .p230 #dmpres .dmt{min-width:0}.p230 #dmpres .dmt b{font-size:14px!important;line-height:1.2;display:block}
 .p230 #dmpres .dmt small,.p230 #dmpres .dmc{display:none!important}
+html,body,#app,#pfix{overflow-anchor:none}
 html.p230ns,html.p230ns body{overflow:hidden!important;overscroll-behavior:none;height:100%}`;document.head.appendChild(st);
  const hayAb=()=>{try{return Array.isArray(inc)&&inc.some(i=>i&&i.estado=="abierta")}catch(e){return false}};
  const oc=b=>b.getAttribute("onclick")||"";
@@ -4989,7 +4991,7 @@ html.p230ns,html.p230ns body{overflow:hidden!important;overscroll-behavior:none;
   if(!a||typeof view=="undefined"||view!="dash"){bloqueo(false);document.querySelectorAll(".p230").forEach(e=>e.classList.remove("p230"));return}
   bloqueo(!hayAb());
   const C=document.getElementById("pfix")||a;
-  [...a.children].forEach(e=>{if(e!==C)e.classList.remove("p230")});C.classList.add("p230");
+  if(C!==a)a.classList.remove("p230");[...a.children].forEach(e=>{if(e!==C)e.classList.remove("p230")});C.classList.add("p230");
   const ks=[...C.children];const ih=ks.findIndex(e=>e.tagName=="H3"&&/rdenes de trabajo abiertas/i.test(e.textContent));
   ks.forEach((e,i)=>{e.classList.toggle("p230t",ih>=0&&i>=ih);
    if((ih<0||i<ih)&&(e.classList.contains("grid")||e.classList.contains("sosgrid")))e.classList.add("p230g")});
