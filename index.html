@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=216;
+const APP_VER=217;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4662,20 +4662,36 @@ iframe{border-radius:4px}
   return r};
  /* 3) integrantes obligatorios */
  const faltaInteg=()=>typeof user!="undefined"&&user&&!admin&&turno&&tecNombre&&!(SES.integ&&SES.integ.length);
- window.pideInteg=async function(){if(!turno||!tecNombre)return;const sel=new Set((SES.integ&&SES.integ.length?SES.integ:[tecNombre]));
-  const pinta=l=>{const nombres=[...new Set([tecNombre,...l,...sel])];
+ /* v217: cada integrante se valida con SU código de técnico (función verificar_tecnico de Supabase).
+    Solo técnicos dados de alta (los del turno arriba, el resto debajo). Mínimo un integrante validado por turno.
+    En modo Técnico el que ha entrado ya está validado (entró con su código). */
+ window.pideInteg=async function(){if(!turno||!tecNombre)return;
+  const ok=new Map();(SES.integ||[]).forEach(n=>ok.set(n,true));if(tecnico&&tecNombre)ok.set(tecNombre,true);
+  let L=[],todos=[],pend="";
+  const pinta=()=>{const del=L.filter(n=>!ok.has(n)),otros=todos.filter(n=>!L.includes(n)&&!ok.has(n));
+   const fila=(n,v)=>`<div class="itr2 ${v?"ok":""}"><span class="itn">${v?"✔ ":""}${esc(n)}${tecnico&&n==tecNombre?' <small class="mu">(tú)</small>':""}</span>${v?(tecnico&&n==tecNombre?'<small class="mu">validado</small>':`<button class="sec itq" data-n="${esc(n)}">Quitar</button>`):`<button class="sec itv" data-n="${esc(n)}">Validar</button>`}</div>`;
    $("#sheetc").innerHTML=`<h3 style="margin:0">Integrantes · Turno ${esc(turno)}</h3>
-   <div class="mu" style="margin-top:6px">Obligatorio. Marca todos los técnicos que trabajan en este turno. El turno termina a las <b>${hm(SES.fin||finDe(turno))}</b>.</div>
-   <div class="itl">${nombres.map(n=>`<label class="gpaso itr"><input type="checkbox" data-n="${esc(n)}" ${sel.has(n)?"checked":""} ${n==tecNombre?"disabled":""}><span>${esc(n)}${n==tecNombre?' <small class="mu">(tú)</small>':""}</span></label>`).join("")}</div>
-   <label>Añadir otro integrante</label><div class="row" style="flex-wrap:nowrap"><input id="it_n" autocomplete="off" placeholder="Nombre y apellido"><button class="sec" style="flex:none;padding:10px 14px" onclick="itAdd()">Añadir</button></div>
-   <button class="pri" style="margin-top:14px" onclick="itOk()">Confirmar integrantes</button>`;
+   <div class="mu" style="margin-top:6px">Obligatorio: mínimo <b>un integrante validado</b>. Cada integrante se valida con su código de técnico. El turno termina a las <b>${hm(SES.fin||finDe(turno))}</b>.</div>
+   <label>Validados (${ok.size})</label><div class="itl">${[...ok.keys()].map(n=>fila(n,true)).join("")||'<div class="mu" style="padding:10px 0">Ninguno todavía.</div>'}</div>
+   ${pend?`<div class="itcod"><label>Código de ${esc(pend)}</label><div class="row" style="flex-wrap:nowrap"><input id="it_c" type="password" inputmode="numeric" autocomplete="off"><button class="pri" style="width:auto;flex:none;padding:10px 16px;margin:0" onclick="itCod()">Validar</button></div><button class="sec" style="width:100%;margin-top:6px" onclick="itCancel()">Cancelar</button></div>`:""}
+   <label>Técnicos del turno ${esc(turno)}</label><div class="itl">${del.map(n=>fila(n,false)).join("")||'<div class="mu" style="padding:10px 0">Sin más técnicos en este turno.</div>'}</div>
+   ${otros.length?`<details class="itot"><summary class="mu" style="margin-top:10px;cursor:pointer">Técnicos de otros turnos (${otros.length})</summary><div class="itl">${otros.map(n=>fila(n,false)).join("")}</div></details>`:""}
+   <button class="pri" style="margin-top:14px" ${ok.size?"":"disabled"} onclick="itOk()">Confirmar integrantes (${ok.size})</button>`;
    $("#sheet").style.display="flex";
-   document.querySelectorAll(".itr input").forEach(c=>c.onchange=()=>{c.checked?sel.add(c.dataset.n):sel.delete(c.dataset.n)})};
-  window.itAdd=()=>{const v=($("#it_n").value||"").trim().replace(/\s+/g," ");if(!v)return;sel.add(v.toUpperCase()==v?v:v);pinta(window._itL||[])};
-  window.itOk=()=>{sel.add(tecNombre);const l=[...sel].filter(Boolean);if(!l.length){msg("Indica los integrantes del turno");return}
+   document.querySelectorAll(".itv").forEach(b=>b.onclick=()=>{pend=b.dataset.n;pinta();setTimeout(()=>{const c=$("#it_c");if(c)c.focus()},50)});
+   document.querySelectorAll(".itq").forEach(b=>b.onclick=()=>{ok.delete(b.dataset.n);pinta()});
+   const c=$("#it_c");if(c)c.onkeydown=e=>{if(e.key=="Enter")itCod()}};
+  window.itCancel=()=>{pend="";pinta()};
+  window.itCod=async()=>{const n=pend,cod=($("#it_c")||{}).value||"";if(!n)return;if(!cod){msg("Introduce el código de "+n);return}
+   const filas=(window._itRows||[]).filter(x=>claveN(x.nombre)==claveN(n));let v=false,err="";
+   for(const f of filas){try{const r=await sb.rpc("verificar_tecnico",{p_id:f.id,p_codigo:cod});if(r.error){err=r.error.message;continue}if(r.data===true){v=true;break}}catch(e){err=String(e)}}
+   if(!v){msg(err?"Error al comprobar el código: "+err:"Código incorrecto para "+n);const x=$("#it_c");if(x){x.value="";x.focus()}return}
+   ok.set(n,true);pend="";pinta();msg(n+" validado")};
+  window.itOk=()=>{const l=[...ok.keys()];if(!l.length){msg("Mínimo un integrante validado por turno");return}
    SES.integ=l;guarda();closeSheet();render();msg(`Turno ${turno} · ${l.length} integrante${l.length>1?"s":""}`)};
-  window._itL=[];pinta([]);
-  try{const r=await listaTec();if(r&&r.data){window._itL=unicos(r.data.filter(x=>x.turno==turno));if(document.querySelector(".itl"))pinta(window._itL)}}catch(e){}};
+  $("#sheetc").innerHTML=`<h3 style="margin:0">Integrantes · Turno ${esc(turno)}</h3><div class="mu" style="margin-top:8px">Cargando técnicos…</div>`;$("#sheet").style.display="flex";
+  try{const r=await listaTec();if(r&&r.data){window._itRows=r.data;L=unicos(r.data.filter(x=>x.turno==turno));todos=unicos(r.data)}else if(r&&r.err)msg("No se pudo cargar la lista de técnicos: "+r.err)}catch(e){}
+  pinta()};
  const ol=lockUI;lockUI=function(){const r=ol.apply(this,arguments);try{
   const d=document.getElementById("lock");if(!d)return r;
   if(faltaInteg()){d.style.display="flex";
@@ -4721,7 +4737,7 @@ iframe{border-radius:4px}
 #mbar .mrowt .tkme{max-width:calc(100% - 150px);overflow:hidden;text-overflow:ellipsis}
 #mbar .mrowt .tcbtn{position:absolute;right:0;top:50%;transform:translateY(-50%);color:var(--ac)!important;border-color:var(--ac)!important;font-weight:700;font-family:var(--tkmo,monospace);font-size:11px!important;padding:3px 8px!important}
 .itr input:checked+span{text-decoration:none!important;color:var(--tx)!important}
-.itl{margin-top:10px;border:1px solid var(--bd);border-radius:6px;padding:0 10px;max-height:40vh;overflow:auto}.itl .itr:last-child{border-bottom:0}
+.itr2{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}.itr2:last-child{border-bottom:0}.itr2.ok .itn{color:#2fd36b;font-weight:700}.itr2 .sec{padding:6px 12px;flex:none}.itcod{margin-top:10px;padding:10px;border:1px solid var(--ac);border-radius:6px}.itl{margin-top:6px;border:1px solid var(--bd);border-radius:6px;padding:0 10px;max-height:40vh;overflow:auto}.itl .itr:last-child{border-bottom:0}
 #tcAl{position:fixed;inset:0;background:#000b;z-index:61;display:flex;align-items:center;justify-content:center;padding:16px}#tcAl .card{max-width:400px;width:100%;border:2px solid var(--ac)!important}
 .ctd{background:#a24dff1a!important;color:#e9ecf1!important;border:1px solid #a24dff55}.ctdw{background:#facc1522!important;color:#facc15!important;border-color:#facc1566}.ctdx{background:#dc262622!important;color:#f87171!important;border-color:#dc262666}
 #app .dmpres.tkb .dmi svg{width:30px!important;height:30px!important;display:block}`;document.head.appendChild(st);
