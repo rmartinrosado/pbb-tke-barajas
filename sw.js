@@ -1,10 +1,10 @@
-/* Service worker PBB TKE Barajas: solo notificaciones push (no guarda caché, para no frenar las actualizaciones) */
+/* Service worker PBB TKE Maintenance: solo notificaciones push (no guarda caché, para no frenar las actualizaciones) */
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 self.addEventListener("push", e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { title: "PBB TKE", body: e.data ? e.data.text() : "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "PBB TKE Barajas", {
+  e.waitUntil(self.registration.showNotification(d.title || "PBB TKE Maintenance", {
     body: d.body || "",
     tag: d.tag || "pbb",
     renotify: true,
