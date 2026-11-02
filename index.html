@@ -3211,22 +3211,29 @@ function bqAplica(){if(view!="track")return;const q0=bqNorm(bqOT),q=q0||bqF;let 
  document.querySelectorAll("#app .card.ot[data-oid]").forEach(c=>{const i=inc.find(x=>x.id==c.dataset.oid);let ok=!!i&&bqCasa(i,q0)&&(!bqF||String(i.fecha||"").slice(0,10)==bqF);if(ok&&!q&&!otVisible(i,w)){ok=false;oc++}c.style.display=ok?"":"none";if(ok)n++});
  const fd=$("#bqf_x");if(fd)fd.style.visibility=bqF?"visible":"hidden";const fb=$("#bqf_box");if(fb)fb.classList.toggle("on",!!bqF);
  const r=$("#bq_res");if(r)r.textContent=q?(n?`${n} OT encontrada${n>1?"s":""}${bqF?" del "+bqFTxt(bqF):""}`:(bqF&&!q0?"Ninguna OT el "+bqFTxt(bqF):"Ninguna OT con ese Nº de orden o posición"+(bqF?" el "+bqFTxt(bqF):""))):(oc?`${oc} OT cerrada${oc>1?"s":""} de otros turnos oculta${oc>1?"s":""} · búscalas por Nº de orden o posición`:"");
- const x=$("#bq_x");if(x)x.style.visibility=q?"visible":"hidden";
+ const x=$("#bq_x");if(x)x.style.visibility=q0?"visible":"hidden";
  const sin=[...document.querySelectorAll("#app > .card.mu")].find(c=>/Sin resultados/.test(c.textContent));if(sin&&q)sin.style.display="none";
  let vac=$("#bq_vac");if(!q&&oc&&!n){if(!vac){vac=document.createElement("div");vac.id="bq_vac";vac.className="card mu";vac.textContent="No hay OT abiertas ni del turno "+w.n.toLowerCase()+". Busca una OT anterior por su Nº de orden o posición.";$("#app").appendChild(vac)}vac.style.display=""}else if(vac)vac.style.display="none"}
 function bqIn(v){bqOT=v;bqAplica()}
 function bqBorra(){bqOT="";const e=$("#bq");if(e){e.value="";e.focus()}bqAplica()}
 (function(){const o=vTrack;vTrack=function(){const r=o.apply(this,arguments);const c=document.querySelector("#app .card");if(!c||$("#bq"))return r;
  const h=c.querySelector("h3");const w=document.createElement("div");w.className="bqw";
- w.innerHTML=`<div class="bqrow"><div class="bqbox"><span class="bqlupa">🔍</span><input id="bq" type="search" inputmode="numeric" autocomplete="off" enterkeyhint="search" placeholder="Nº orden o PBB (ej. 600500 · 528)" value="${esc(bqOT)}" oninput="bqIn(this.value)" onkeydown="if(event.key=='Enter')this.blur()"><button type="button" id="bq_x" class="bqx" aria-label="Borrar búsqueda" onclick="bqBorra()">✕</button></div><div id="bqf_box" class="bqbox bqfb"><span class="bqlupa">📅</span><input id="bqf" type="date" aria-label="Buscar OT por fecha" value="${esc(bqF)}" onchange="bqF=this.value;bqAplica()"><button type="button" id="bqf_x" class="bqx" aria-label="Quitar fecha" onclick="bqF='';const e=$('#bqf');if(e)e.value='';bqAplica()">✕</button></div></div><div id="bq_res" class="mu bqres"></div>`;
+ w.innerHTML=`<div class="bqrow"><div class="bqbox"><span class="bqlupa">🔍</span><input id="bq" type="search" inputmode="numeric" autocomplete="off" enterkeyhint="search" placeholder="Nº orden o PBB" value="${esc(bqOT)}" oninput="bqIn(this.value)" onkeydown="if(event.key=='Enter')this.blur()"><button type="button" id="bq_x" class="bqx" aria-label="Borrar búsqueda" onclick="bqBorra()">✕</button></div><div id="bqf_box" class="bqbox bqfb"><span class="bqlupa">📅</span><span class="bqfl">Fecha</span><input id="bqf" type="date" aria-label="Buscar OT por fecha" value="${esc(bqF)}" onchange="bqF=this.value;bqAplica()"><button type="button" id="bqf_x" class="bqx" aria-label="Quitar fecha" onclick="bqF='';const e=$('#bqf');if(e)e.value='';bqAplica()">✕</button></div></div><div id="bq_res" class="mu bqres"></div>`;
  if(h)h.insertAdjacentElement("afterend",w);else c.prepend(w);setTimeout(bqAplica,0);return r}})();
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);if(view=="track")setTimeout(bqAplica,0);return r}})();
 (function(){const st=document.createElement("style");st.textContent=`.bqw{margin:8px 0 4px}.bqbox{display:flex;align-items:center;gap:6px;border:2px solid var(--pr);border-radius:12px;padding:2px 6px 2px 10px;background:var(--card)}
 .bqbox input{flex:1;min-width:0;border:0!important;background:transparent!important;font-size:18px;font-weight:600;padding:10px 4px;outline:none;box-shadow:none!important}.bqbox input::-webkit-search-cancel-button{display:none}.bqbox input::placeholder{font-size:13.5px;font-weight:600;letter-spacing:-.1px}
 .bqlupa{font-size:18px}.bqx{width:auto!important;margin:0!important;padding:6px 10px!important;border:0!important;background:transparent!important;color:var(--mu)!important;font-size:18px;visibility:hidden}.bqres{font-size:12px;margin-top:4px;min-height:14px}
-.bqrow{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:6px;align-items:stretch}.bqrow .bqbox{min-width:0}
+.bqrow{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:6px;align-items:stretch}.bqrow .bqbox{min-width:0}
 .bqfb{padding:2px 2px 2px 8px;gap:2px}.bqfb .bqlupa{font-size:16px}.bqfb input{font-size:14px!important;padding:10px 0!important;min-width:0;width:100%;-webkit-appearance:none;appearance:none;color:var(--tx,#e8eaed)}.bqfb .bqx{padding:6px 6px!important;font-size:15px}
-.bqfb:not(.on){border-color:var(--bd,#2a2f38)}.bqrow .bqbox:first-child input::placeholder{font-size:12px}`;document.head.appendChild(st)})();
+.bqfb:not(.on){border-color:var(--bd,#2a2f38)}
+.bqfb{position:relative}.bqfl{position:absolute;left:38px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700;color:var(--mu,#8a93a3);pointer-events:none}
+.bqfb.on .bqfl{display:none}.bqfb:not(.on) input{color:transparent!important}.bqfb:not(.on) input::-webkit-datetime-edit{color:transparent}
+#bq::placeholder{font-size:14px!important;font-weight:700!important;letter-spacing:-.2px}
+.bqrow .bqbox:first-child{padding-left:8px}.bqrow .bqbox:first-child .bqlupa{font-size:16px}
+.bqrow .bqbox .bqx{padding:6px 4px!important}
+.bqrow .bqbox:first-child .bqx[style*="hidden"]{display:none}
+.bqfb input{font-size:13px!important}.bqfb input::-webkit-calendar-picker-indicator{margin:0;padding:0;width:14px}.bqrow .bqbox:first-child input::placeholder{font-size:12px}`;document.head.appendChild(st)})();
 </script>
 <script src="mantenimiento.js?v=65"></script><script src="importar-ot.js?v=250"></script>
 <script>/* ===== v49: botones de la tarjeta OT en una sola línea (Editar, borrar, varita, polímetro, PLC, FOTO PLC) ===== */
@@ -4467,7 +4474,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=257;
+const APP_VER=258;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
