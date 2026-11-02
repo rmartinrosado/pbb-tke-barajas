@@ -60,15 +60,23 @@ function deRevision(t){const ok=[],mal=[];String(t||"").split(/\r?\n/).forEach((
   if(!pos){mal.push(i+1);return}const hs=(c[3]||"").split(/\s+/).map(hh);
   ok.push({pos,tipo:tipoOK(c[1])||"PAS",orden:ordenDe(c[2]),hIni:hs[0]||"",hLle:hs[1]||"",hCie:hs[2]||"",desc:c[4]||"",integ:c[5]||""})});return {ok,mal}}
 
+/* v250: correcciones tras la lectura IA · PAS solo cifras (J/S→5, l/I→1, O→0) · fecha nunca futura ni de años atrás · integrantes ajustados a los técnicos dados de alta */
+function posOK(p){let u=String(p||"").toUpperCase().replace(/\s/g,"");if(/^T\d/.test(u))return u;
+ const c=u.replace(/[JS]/g,"5").replace(/[LI|]/g,"1").replace(/O/g,"0").replace(/B/g,"8").replace(/Z/g,"2");return /^[\d\/-]+$/.test(c)?c:u}
+function fechaOK(f){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(f||"");if(!m)return f;const hoyD=new Date(),y=hoyD.getFullYear();let a=+m[1];
+ if(a!=y&&a!=y-1)a=y;let d=new Date(a,+m[2]-1,+m[3]);if(d>hoyD&&a==y)a=y-1;return a+"-"+m[2]+"-"+m[3]}
+function lev(a,b){const v=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let p=v[0];v[0]=i;for(let j=1;j<=b.length;j++){const t=v[j];v[j]=Math.min(v[j]+1,v[j-1]+1,p+(a[i-1]==b[j-1]?0:1));p=t}}return v[b.length]}
+function integOK(t){const L=[...new Set(TEC.map(n=>NORM(n).trim()).filter(Boolean))];if(!L.length)return t;
+ return String(t||"").split(/\s*,\s*/).filter(Boolean).map(n=>{const u=NORM(n).trim();if(L.includes(u))return u;let b=null,bd=99;L.forEach(x=>{const d=lev(u,x);if(d<bd){bd=d;b=x}});return b&&bd<=Math.max(1,Math.floor(u.length/3))?b:n}).join(", ")}
 /* v43: lectura de la foto con Claude (función Supabase «leer-hoja»); si no está disponible, OCR local */
 async function claudeLee(file,set){set("Analizando la hoja manuscrita línea a línea…");const c=await giro(file,0);const k=Math.min(1,2000/Math.max(c.width,c.height));
  const z=document.createElement("canvas");z.width=Math.round(c.width*k);z.height=Math.round(c.height*k);z.getContext("2d").drawImage(c,0,0,z.width,z.height);
  const img=z.toDataURL("image/jpeg",.85).split(",")[1];
  const r=await Promise.race([sb.functions.invoke("leer-hoja",{body:{img,tipo:"image/jpeg",pos:(typeof POS!="undefined"?POS:[]).map(String),tec:TEC}}),new Promise((_,no)=>setTimeout(()=>no(new Error("el lector IA tarda demasiado")),120000))]);
  if(r.error||!r.data||!Array.isArray(r.data.ots)){let m="";try{const j=r.error&&r.error.context&&await r.error.context.json();m=j&&(j.error=="sin_clave"?"sin_clave":j.mensaje)||""}catch(e){}throw new Error(m||"no disponible")}
- const d=r.data;R.lector=d.lector||"";if(d.fecha&&/^\d{4}-\d{2}-\d{2}$/.test(d.fecha))R.fecha=d.fecha;
- (d.turnos||[]).forEach(t=>{const n=turnoTxt(t.turno);if(n&&t.integrantes)R.turnos[n]=limpiaInteg(t.integrantes)});
- const dudas=[];const ots=d.ots.filter(o=>o&&o.pos).map(o=>{if(o.dudas)dudas.push(`${o.pos}: ${o.dudas}`);return {pos:String(o.pos).toUpperCase().replace(/\s/g,""),tipo:tipoOK(o.tipo)||"PAS",orden:ordenDe(o.orden)||String(o.orden||"").replace(/\D/g,""),hIni:hh(o.hIni),hLle:hh(o.hLle),hCie:hh(o.hCie),desc:String(o.desc||"").trim(),integ:"",fecha:""}});
+ const d=r.data;R.lector=d.lector||"";if(d.fecha&&/^\d{4}-\d{2}-\d{2}$/.test(d.fecha))R.fecha=fechaOK(d.fecha);
+ (d.turnos||[]).forEach(t=>{const n=turnoTxt(t.turno);if(n&&t.integrantes)R.turnos[n]=integOK(limpiaInteg(t.integrantes))});
+ const dudas=[];const ots=d.ots.filter(o=>o&&o.pos).map(o=>{if(o.dudas)dudas.push(`${o.pos}: ${o.dudas}`);return {pos:posOK(o.pos),tipo:tipoOK(o.tipo)||"PAS",orden:ordenDe(o.orden)||String(o.orden||"").replace(/\D/g,""),hIni:hh(o.hIni),hLle:hh(o.hLle),hCie:hh(o.hCie),desc:String(o.desc||"").trim(),integ:"",fecha:""}});
  ots.dudas=dudas;return ots}
 async function cargaTec(){try{const r=await sb.from("tecnicos").select("nombre");TEC=(r.data||[]).map(x=>x.nombre).filter(Boolean)}catch(e){}}
 function libScript(src,ok){return new Promise((res,rej)=>{if(ok()){res();return}const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("No se pudo cargar "+src));document.head.appendChild(s)})}
