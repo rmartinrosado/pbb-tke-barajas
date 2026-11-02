@@ -4467,7 +4467,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=253;
+const APP_VER=254;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5296,6 +5296,13 @@ html.lt #app .grid.tkbt>button.btn .tbt small,html.lt #app button.btn .tbt small
 html.lt #app .grid.tkbt>button.btn .tbi{color:#c24f00!important;border-color:#d65800!important;background:#fff1e6!important}
 html.lt #app .grid.tkbt>button.btn.dstar .tbi{color:#15803d!important;border-color:#16a34a!important;background:#e8f7ee!important}
 html.lt #app button.cl232 .cl232t{color:#0b0d12!important;font-weight:800!important;font-size:13px!important}
+/* v254: cuenta atrás de llegada y pilotos del panel bien visibles en claro */
+html.lt #app .ctd{background:#f1e8ff!important;color:#2d0b5c!important;border:1.5px solid #7b1fd8!important;font-weight:700!important}
+html.lt #app .ctd b{color:#1a0640!important}
+html.lt #app .ctd.ctdw{background:#fff1b8!important;color:#6b4e00!important;border-color:#d4a400!important}
+html.lt #app .ctd.ctdx{background:#fdecec!important;color:#9b1111!important;border-color:#dc2626!important}
+html.lt #app .tkled.l232.am{background:#e6b800!important;box-shadow:0 0 0 2px #8a6d00,0 0 8px #e6b800!important}
+html.lt #app .tkled.l232{box-shadow:0 0 0 1.5px #00000033}
 /* EXTERIOR (pleno sol): más contraste y trazo más grueso */
 html.lt.ext,html.lt.ext:root[data-theme]{--bg:#ffffff!important;--bd:#5b6472!important;--tkbd:#5b6472!important;--mu:#1f252e!important;--tkmu:#1f252e!important;--tx:#000!important}
 html.lt.ext body{font-weight:500}
