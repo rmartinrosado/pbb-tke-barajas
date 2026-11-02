@@ -4132,7 +4132,9 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
    Las cerradas (rojas) van al final, ordenadas por fecha y hora de cierre (la más reciente primero) ===== */
 (function(){
  const col=(l,v)=>`<span class="ohc"><small>${l}</small><b>${esc(v||"–")}</b></span>`;
- const txt=i=>{if(i.estado=="abierta"&&!i.hLle){if(!i.hIni||llegFin(i)==null)return`<span class="ohb ohv">${col("INICIO",i.hIni)}</span>`;
+ const txt=i=>{if(i.estado=="abierta"&&i.espera){const f=String(i.fecha||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
+   return`<span class="ohb ohe">${col("ABIERTA DESDE",(f?f[3]+"/"+f[2]:"–")+(i.hIni?" · "+i.hIni:""))}</span>`} /* v243: en espera, fecha de apertura en vez de la cuenta */
+  if(i.estado=="abierta"&&!i.hLle){if(!i.hIni||llegFin(i)==null)return`<span class="ohb ohv">${col("INICIO",i.hIni)}</span>`;
    const r=Math.round((llegFin(i)-Date.now())/1000),a=Math.abs(r),mm=Math.floor(a/60),ss=String(a%60).padStart(2,"0");
    return r>=0?`<span class="ohb ohv${r<=60?" ohw":""}">${col("LLEGADA",mm+":"+ss)}</span>`:`<span class="ohb ohx">${col("FUERA",`+${mm}:${ss}`)}</span>`}
   return i.estado=="abierta"?`<span class="ohb ohy">${col("INI",i.hIni)}${col("LLE",i.hLle)}</span>`:`<span class="ohb ohr">${col("INI",i.hIni)}${col("LLE",i.hLle)}${col("CIE",i.hCie)}</span>`};
@@ -4459,7 +4461,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=242;
+const APP_VER=243;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5022,6 +5024,8 @@ html.p230ns,html.p230ns body{overflow:hidden!important;overscroll-behavior:none;
    · Cambiar de modo (Técnico ⇄ Operador, o desde Admin) sin cerrar sesión: se mantienen turno, técnico e integrantes,
      sin volver a pedir turno ni códigos. Cambiar integrantes sigue pidiendo el código de cada uno («⇄ Turno»). ===== */
 (function(){const st=document.createElement("style");st.textContent=`
+#app .kpi .tkled:not(.l232){background:#4a4f5a!important;box-shadow:none!important;animation:none!important;opacity:1!important}
+#app .ohb.ohe{border-color:#3b9eff!important;background:#3b9eff1a!important;color:#8cc4ff!important}#app .ohb.ohe small{color:#8cc4ff!important}#app .ohb.ohe b{color:#cfe6ff!important;white-space:nowrap}
 #app .tkled.l232{animation:none!important;box-shadow:none!important;background:#4a4f5a!important}
 #app .tkled.l232:not(.am){opacity:1!important}
 #app .tkled.l232.am{background:#ffd21f!important;box-shadow:0 0 8px #ffd21f!important;animation:l232b 1s steps(1,end) infinite!important}
