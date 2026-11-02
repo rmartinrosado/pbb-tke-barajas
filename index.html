@@ -4467,7 +4467,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=252;
+const APP_VER=253;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5319,5 +5319,12 @@ html.ext .hkext{background:#ffd54a;color:#1b1400;border-color:#ffd54a;box-shadow
   b.addEventListener("click",e=>{e.stopPropagation();temaExt()});o.before(b);aplica()}catch(e){}};
  if(MQ){try{MQ.addEventListener("change",aplica)}catch(e){try{MQ.addListener(aplica)}catch(x){}}}
  aplica();pon();new MutationObserver(pon).observe(document.body,{childList:true,subtree:true})})();
+</script>
+<script>
+/* ===== v253: la caja de la hora de inicio (y cualquier hora o fecha) no se sale por la derecha en iPhone ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+#app input[type=time],#app input[type=date],#sheetc input[type=time],#sheetc input[type=date]{box-sizing:border-box!important;max-width:100%!important;min-width:0!important;-webkit-appearance:none;appearance:none}
+#app input[type=time]:not(.hrow>input),#app input[type=date]:not(.bqfb input){width:100%!important;display:block}
+#app input[type=time]::-webkit-date-and-time-value,#app input[type=date]::-webkit-date-and-time-value{text-align:center;min-width:0}`;document.head.appendChild(st)})();
 </script>
 </body></html>
