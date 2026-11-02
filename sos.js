@@ -47,7 +47,7 @@ const st=document.createElement("style");st.textContent=`.sosw{display:flex;just
 .sosmid{flex:1 1 0;min-width:0;display:flex;justify-content:center;align-items:center}.sosmid+.cacr{margin-left:0!important}
 .sosb{width:40px!important;height:40px;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important;border-radius:50%;cursor:pointer;flex:none}
 .sosb img{width:40px;height:40px;display:block;border-radius:50%;filter:drop-shadow(0 2px 4px rgba(198,40,40,.4));animation:sosparp 2s ease-in-out infinite}@keyframes sosparp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.92)}}.sosb:active img{transform:scale(.94)}
-#app.sosmode>*:not(#sosbar):not(#greset):not(#gpte):not(#gsegl):not(#ghidr):not(#soscasos){display:none!important}
+#app.sosmode>*:not(#sosbar):not(#greset):not(#gpte):not(#gsegl):not(#ghidr):not(#soscasos):not(#gcroq){display:none!important}
 .sosbar{display:flex;align-items:center;gap:10px;border:2px solid #c62828!important}.sosbar img{width:40px;height:40px;flex:none}.sosbar>div{flex:1;min-width:0}.sosbar button{width:auto;margin:0;padding:8px 10px;font-size:13px;flex:none}`;document.head.appendChild(st);
 })();
 /* ===== v71: SOS rápido en Inicio (junto a OT abiertas / OT cerradas) =====
