@@ -47,9 +47,21 @@ async function conGemini(key: string, img: string, tipo: string, prompt: string)
   return (d.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join("");
 }
 
+// v247: las claves también pueden estar cifradas en el Vault de Supabase (función clave_lector, solo service_role).
+async function deVault(n: string): Promise<string> {
+  try {
+    const u = Deno.env.get("SUPABASE_URL"), k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!u || !k) return "";
+    const r = await fetch(`${u}/rest/v1/rpc/clave_lector`, { method: "POST", headers: { apikey: k, Authorization: `Bearer ${k}`, "Content-Type": "application/json" }, body: JSON.stringify({ n }) });
+    if (!r.ok) return "";
+    const v = await r.json();
+    return typeof v === "string" ? v : "";
+  } catch { return ""; }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  const ka = Deno.env.get("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY");
+  const ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
   if (!ka && !kg) return json({ error: "sin_clave", mensaje: "Falta una clave de lectura (GEMINI_API_KEY gratuita o ANTHROPIC_API_KEY) en Supabase" }, 503);
   try {
     const { img, tipo, pos = [], tec = [] } = await req.json();
