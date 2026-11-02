@@ -61,12 +61,12 @@ function deRevision(t){const ok=[],mal=[];String(t||"").split(/\r?\n/).forEach((
   ok.push({pos,tipo:tipoOK(c[1])||"PAS",orden:ordenDe(c[2]),hIni:hs[0]||"",hLle:hs[1]||"",hCie:hs[2]||"",desc:c[4]||"",integ:c[5]||""})});return {ok,mal}}
 
 /* v43: lectura de la foto con Claude (función Supabase «leer-hoja»); si no está disponible, OCR local */
-async function claudeLee(file,set){set("Leyendo la hoja con Claude…");const c=await giro(file,0);const k=Math.min(1,2000/Math.max(c.width,c.height));
+async function claudeLee(file,set){set("Analizando la hoja manuscrita línea a línea…");const c=await giro(file,0);const k=Math.min(1,2000/Math.max(c.width,c.height));
  const z=document.createElement("canvas");z.width=Math.round(c.width*k);z.height=Math.round(c.height*k);z.getContext("2d").drawImage(c,0,0,z.width,z.height);
  const img=z.toDataURL("image/jpeg",.85).split(",")[1];
  const r=await sb.functions.invoke("leer-hoja",{body:{img,tipo:"image/jpeg",pos:(typeof POS!="undefined"?POS:[]).map(String),tec:TEC}});
  if(r.error||!r.data||!Array.isArray(r.data.ots)){let m="";try{const j=r.error&&r.error.context&&await r.error.context.json();m=j&&(j.error=="sin_clave"?"sin_clave":j.mensaje)||""}catch(e){}throw new Error(m||"no disponible")}
- const d=r.data;if(d.fecha&&/^\d{4}-\d{2}-\d{2}$/.test(d.fecha))R.fecha=d.fecha;
+ const d=r.data;R.lector=d.lector||"";if(d.fecha&&/^\d{4}-\d{2}-\d{2}$/.test(d.fecha))R.fecha=d.fecha;
  (d.turnos||[]).forEach(t=>{const n=turnoTxt(t.turno);if(n&&t.integrantes)R.turnos[n]=limpiaInteg(t.integrantes)});
  const dudas=[];const ots=d.ots.filter(o=>o&&o.pos).map(o=>{if(o.dudas)dudas.push(`${o.pos}: ${o.dudas}`);return {pos:String(o.pos).toUpperCase().replace(/\s/g,""),tipo:tipoOK(o.tipo)||"PAS",orden:ordenDe(o.orden)||String(o.orden||"").replace(/\D/g,""),hIni:hh(o.hIni),hLle:hh(o.hLle),hCie:hh(o.hCie),desc:String(o.desc||"").trim(),integ:"",fecha:""}});
  ots.dudas=dudas;return ots}
@@ -108,15 +108,18 @@ window.otImp=async()=>{if(!(typeof admin!="undefined"&&admin)&&!(typeof tecnico!
  <label class="pri oifile">📷 Foto / archivo de la hoja<input type="file" hidden accept="image/*,.pdf,.csv,.txt,.xlsx,.xls" onchange="otImpFile(this.files[0])"></label>
  <div id="oi_est" class="mu" style="font-size:12px;margin-top:6px"></div>
  <div id="oi_foto" class="oifoto" style="display:none"><div class="oifb"><button class="sec" onclick="otZoom(-.5)" aria-label="Alejar">−</button><span id="oi_zv">100%</span><button class="sec" onclick="otZoom(.5)" aria-label="Acercar">+</button><button class="sec" onclick="otGiro()" aria-label="Girar foto">⟳</button><button class="sec" onclick="otFotoAlto()" aria-label="Agrandar o reducir el visor">↕</button></div><div class="oifs" id="oi_fs"><img id="oi_img" alt="Hoja de OT"></div></div>
- <div class="grid"><div><label>Fecha de la hoja</label><input id="oi_f" type="date" value="${R.fecha}" onchange="otR('fecha',this.value)"></div><div></div></div>
- <div class="oig3">${TURNOS.map(t=>`<div><label>${t}</label><input id="oi_tu_${t}" value="${esc(R.turnos[t]||"")}" placeholder="Integrantes" list="oi_tl" oninput="otTu('${t}',this.value)"></div>`).join("")}</div>
+ <div class="grid oifd"><div><label>Fecha de la hoja</label><input id="oi_f" type="date" value="${R.fecha}" onchange="otR('fecha',this.value)"></div><div><label>&nbsp;</label><button type="button" class="pri oidesc" onclick="otDescarga()">Descargar Hoja OT</button></div></div>
  <datalist id="oi_tl">${TEC.map(n=>`<option value="${esc(n)}">`).join("")}</datalist><datalist id="oi_pl">${(typeof POS!="undefined"?POS:[]).map(p=>`<option value="${esc(String(p))}">`).join("")}</datalist>
- <div class="row" style="margin-top:12px;align-items:center"><b>OT de la hoja</b><span id="oi_prev" class="mu" style="font-size:12px"></span></div>
+ <div class="row" style="margin-top:12px;align-items:center"><b>Añadir Registro Manual OT</b><span id="oi_prev" class="mu" style="font-size:12px"></span></div>
  <div id="oi_rows"></div>
- <button class="sec" style="margin-top:8px;width:100%" onclick="otAnade()">＋ Añadir OT</button>
+ <button class="sec" style="margin-top:8px;width:100%" onclick="otAnade()">＋ Añadir línea OT</button>
  <button class="pri" style="margin-top:10px;width:100%" onclick="otImpGuarda()">Guardar OT en la app</button>`;
  $("#sheet").style.display="flex";pintaFoto();pintaFilas()};
 window.otR=(k,v)=>{R[k]=v};
+/* v246: «Descargar Hoja OT» · analiza todas las líneas manuscritas de la foto y las pone como OT nuevas (una por línea) para revisarlas y guardarlas */
+window.otDescarga=()=>{if(R.ocup){msg("Ya se está leyendo la hoja…");return}
+ if(R.file){if(R.rows.some(o=>o.pos)&&!confirm("Se volverá a analizar la hoja y se sustituirán las líneas actuales. ¿Seguir?"))return;otImpFile(R.file);return}
+ const i=document.querySelector("#sheetc .oifile input[type=file]");if(i)i.click()};
 /* «831» → 08:31 · «1215» → 12:15 · «8.31» → 08:31 */
 window.fmtH=v=>{const t=String(v||"").trim();if(!t)return "";const m=/^(\d{1,2})\D+(\d{2})$/.exec(t);if(m)return hh(m[1]+":"+m[2]);const d=t.replace(/\D/g,"");if(d.length==3||d.length==4)return hh(d.slice(0,-2)+":"+d.slice(-2));return t};
 window.otTu=(t,v)=>{R.turnos[t]=v.trim();R.rows.forEach((o,k)=>{const i=document.querySelector(`#oir${k} input[list="oi_tl"]`);if(i)i.placeholder=integDef(k)||"Los del turno"})};
@@ -131,10 +134,10 @@ window.otGiro=()=>{R.giro=((R.giro||0)+90)%360;pintaFoto()};
 window.otFotoAlto=()=>{const e=$("#oi_fs");if(e)e.classList.toggle("alto")};
 function prev(){const e=$("#oi_prev");if(!e)return;const ok=R.rows.filter(o=>o.pos);const nr=[...new Set(ok.map(o=>o.pos).filter(p=>!posReg(p)))];const so=ok.filter(o=>!/^\d{6}$/.test(o.orden)).length;
  e.innerHTML=`${ok.length} OT${nr.length?` · <span style="color:#ef6c00">no dadas de alta: ${nr.join(", ")}</span>`:""}${so?` · <span style="color:#d32f2f">${so} sin nº OT válido</span>`:""}`}
-window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;const st=$("#oi_est");const set=t=>{if(st)st.textContent=t};R.fecha="";R.turno="";R.integ="";R.turnos={};
+window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;R.file=file;const st=$("#oi_est");let set=t=>{if(st)st.textContent=t};R.fecha="";R.turno="";R.integ="";R.turnos={};
  if(/^image\//.test(file.type)){if(R.foto)URL.revokeObjectURL(R.foto);R.foto=URL.createObjectURL(file);R.zoom=1;R.giro=0;pintaFoto()}
  try{const n=file.name.toLowerCase();let ots=[];
-  if(/^image\//.test(file.type)){try{ots=await claudeLee(file,set)}catch(e){set("Leyendo la foto con el lector local… (con letra a mano falla bastante: corrige mirando la foto)");ots=deLineas(await ocr(file,set))}}
+  if(/^image\//.test(file.type)){try{ots=await claudeLee(file,set)}catch(e){const sc=/sin_clave/.test(e&&e.message||"");set((sc?"⚠️ Falta la clave del lector IA en Supabase. ":"⚠️ Lector IA no disponible ("+(e&&e.message||e)+"). ")+"Leyendo con el lector local… (con letra a mano falla bastante: corrige mirando la foto)");R.local=true;ots=deLineas(await ocr(file,set))}}
   else if(n.endsWith(".pdf")){set("Leyendo PDF…");ots=deLineas(await pdfTxt(file))}
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");ots=deTabla(await excelFilas(file))}
   else{const t=await file.text();ots=t.includes(";")||t.includes(",")?deTabla(csvFilas(t)):deLineas(t)}
@@ -142,7 +145,8 @@ window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;const st=$("#o
   if(!Object.keys(R.turnos).length&&R.integ&&R.turno)R.turnos[R.turno]=R.integ;
   R.rows=ots.map(o=>({pos:o.pos,tipo:o.tipo||"PAS",orden:o.orden||"",hIni:o.hIni||"",hLle:o.hLle||"",hCie:o.hCie||"",desc:o.desc||"",integ:""}));
   const a=$("#oi_f");if(a)a.value=R.fecha;TURNOS.forEach(t=>{const i=$("#oi_tu_"+t);if(i)i.value=R.turnos[t]||""});pintaFilas();
-  set(ots.length?`Leída «${file.name}»: ${ots.length} OT. Revisa cada una con la foto antes de guardar.${ots.dudas&&ots.dudas.length?" ⚠️ Dudas — "+ots.dudas.join(" · "):""}`:`No he reconocido OT en «${file.name}». Añádelas con «＋ Añadir OT» mirando la foto.`);window._otOCR=ots}
+  if(R.local){R.local=false;const e0=$("#oi_est");const pre=e0?e0.textContent.split("Leyendo con")[0]:"";set=t=>{if(st)st.textContent=pre+t}}
+  set(ots.length?`Leída «${file.name}»: ${ots.length} OT. Revisa cada una con la foto antes de guardar.${ots.dudas&&ots.dudas.length?" ⚠️ Dudas — "+ots.dudas.join(" · "):""}`:`No he reconocido OT en «${file.name}». Añádelas con «＋ Añadir línea OT» mirando la foto.`);window._otOCR=ots}
  catch(e){set("Error al leer el archivo: "+(e.message||e))}finally{R.ocup=false}};
 window.otImpGuarda=async()=>{const ok=R.rows.filter(o=>o.pos);if(!ok.length){msg("No hay OT que importar");return}
  const sinH=ok.filter(o=>!o.hIni).length;if(sinH&&!confirm(`${sinH} OT sin hora de inicio. ¿Guardar igualmente?`))return;
@@ -167,6 +171,7 @@ window.otImpGuarda=async()=>{const ok=R.rows.filter(o=>o.pos);if(!ok.length){msg
 .oirow{border:1px solid var(--bd);border-radius:10px;padding:8px 10px;margin-top:8px;background:var(--card)}.oirh{display:flex;align-items:center;gap:8px}.oin{background:var(--pr);color:#fff;border-radius:999px;min-width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
 .oidel{margin-left:auto!important;width:auto!important;padding:3px 10px!important;color:#d32f2f!important;border-color:#d32f2f!important}.oiw{border-color:#ef6c00!important;background:color-mix(in srgb,#ef6c00 8%,transparent)!important}
 .oirow textarea{width:100%;box-sizing:border-box}
+.oifd{align-items:end}.oifd>div{min-width:0}.oidesc{width:100%!important;margin:0!important;padding:12px 6px!important;font-weight:700;white-space:nowrap;font-size:14px}
 .oifile{display:flex!important;justify-content:center;align-items:center;margin-top:12px;padding:12px;border-radius:10px;cursor:pointer;font-weight:700}`;document.head.appendChild(st)})();
 window._otTest={deLineas,deTabla,deRevision,R:()=>R};
 })();

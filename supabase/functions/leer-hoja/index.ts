@@ -14,31 +14,53 @@ Reglas: transcribe fielmente; horas en HH:MM (8:31 → 08:31); deja "" si una ce
 Responde SOLO con JSON, sin texto alrededor:
 {"fecha":"AAAA-MM-DD","turnos":[{"turno":"Noche|Mañana|Tarde","integrantes":"NOMBRE, NOMBRE"}],"ots":[{"pos":"","tipo":"","orden":"","hIni":"","hLle":"","hCie":"","desc":"","dudas":""}]}`;
 
+// v246: si no hay ANTHROPIC_API_KEY, usa Google Gemini (GEMINI_API_KEY, capa gratuita de Google AI Studio).
+async function conClaude(key: string, img: string, tipo: string, prompt: string) {
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({
+      model: Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5-5",
+      max_tokens: 4000,
+      messages: [{ role: "user", content: [
+        { type: "image", source: { type: "base64", media_type: tipo || "image/jpeg", data: img } },
+        { type: "text", text: prompt },
+      ] }],
+    }),
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d?.error?.message || r.statusText);
+  return (d.content || []).map((c: { text?: string }) => c.text || "").join("");
+}
+async function conGemini(key: string, img: string, tipo: string, prompt: string) {
+  const model = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: "POST",
+    headers: { "x-goog-api-key": key, "content-type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [{ inline_data: { mime_type: tipo || "image/jpeg", data: img } }, { text: prompt }] }],
+      generationConfig: { temperature: 0, responseMimeType: "application/json" },
+    }),
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d?.error?.message || r.statusText);
+  return (d.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join("");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  const key = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!key) return json({ error: "sin_clave", mensaje: "Falta la clave ANTHROPIC_API_KEY en Supabase" }, 503);
+  const ka = Deno.env.get("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY");
+  if (!ka && !kg) return json({ error: "sin_clave", mensaje: "Falta una clave de lectura (GEMINI_API_KEY gratuita o ANTHROPIC_API_KEY) en Supabase" }, 503);
   try {
     const { img, tipo, pos = [], tec = [] } = await req.json();
     if (!img) return json({ error: "sin_imagen" }, 400);
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({
-        model: Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5-5",
-        max_tokens: 4000,
-        messages: [{ role: "user", content: [
-          { type: "image", source: { type: "base64", media_type: tipo || "image/jpeg", data: img } },
-          { type: "text", text: PROMPT(pos, tec) },
-        ] }],
-      }),
-    });
-    const d = await r.json();
-    if (!r.ok) return json({ error: "api", mensaje: d?.error?.message || r.statusText }, 502);
-    const t = (d.content || []).map((c: { text?: string }) => c.text || "").join("");
+    const prompt = PROMPT(pos, tec) + "\nLee TODAS las líneas escritas de la tabla, una OT por línea, en el orden de la hoja, sin saltarte ninguna.";
+    let t = "";
+    try { t = ka ? await conClaude(ka, img, tipo, prompt) : await conGemini(kg!, img, tipo, prompt); }
+    catch (e) { return json({ error: "api", mensaje: String((e as Error).message || e) }, 502); }
     const m = t.match(/\{[\s\S]*\}/);
     if (!m) return json({ error: "formato", mensaje: "Respuesta sin JSON", texto: t }, 502);
-    return json(JSON.parse(m[0]));
+    return json({ ...JSON.parse(m[0]), lector: ka ? "Claude" : "Gemini" });
   } catch (e) {
     return json({ error: "excepcion", mensaje: String(e) }, 500);
   }

@@ -3222,7 +3222,7 @@ function bqBorra(){bqOT="";const e=$("#bq");if(e){e.value="";e.focus()}bqAplica(
 .bqbox input{flex:1;min-width:0;border:0!important;background:transparent!important;font-size:18px;font-weight:600;padding:10px 4px;outline:none;box-shadow:none!important}.bqbox input::-webkit-search-cancel-button{display:none}.bqbox input::placeholder{font-size:13.5px;font-weight:600;letter-spacing:-.1px}
 .bqlupa{font-size:18px}.bqx{width:auto!important;margin:0!important;padding:6px 10px!important;border:0!important;background:transparent!important;color:var(--mu)!important;font-size:18px;visibility:hidden}.bqres{font-size:12px;margin-top:4px;min-height:14px}`;document.head.appendChild(st)})();
 </script>
-<script src="mantenimiento.js?v=65"></script><script src="importar-ot.js?v=44"></script>
+<script src="mantenimiento.js?v=65"></script><script src="importar-ot.js?v=246"></script>
 <script>/* ===== v49: botones de la tarjeta OT en una sola línea (Editar, borrar, varita, polímetro, PLC, FOTO PLC) ===== */
 (function(){const st=document.createElement("style");st.textContent=`.cacts{flex-wrap:nowrap!important;gap:5px!important}
 .cacl,.cacr{flex-wrap:nowrap!important;gap:5px!important;min-width:0}.cacr{margin-left:auto}
@@ -4461,7 +4461,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=245;
+const APP_VER=246;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
