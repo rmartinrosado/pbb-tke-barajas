@@ -4474,7 +4474,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=269;
+const APP_VER=270;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5402,7 +5402,51 @@ html.ext .hkext{background:#ffd54a;color:#1b1400;border-color:#ffd54a;box-shadow
 html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!important;font-size:9px!important;overflow:hidden;text-overflow:clip;padding-right:6px!important}
 @media(max-width:374px){html body #app .kpi.kpi.kesp.kesp{font-size:8px!important;letter-spacing:-.2px!important}}`;document.head.appendChild(st)})();
 </script>
-<script src="puente-croquis.js?v=269"></script>
+<script>
+/* ===== v270: Panel de control a media altura (opción 2 elegida el 03/11/2026): contadores apilados en una columna a la izquierda
+   (OT abiertas · OT cerradas · OT S/Condiciones) y a la derecha los 6 botones en 2 columnas y 3 filas:
+   Registrar OT | Seguimiento OT · Importar OT | Mantenimiento · Claude | SOS. Mismos botones, pilotos y lógica; solo cambia la colocación.
+   Si falta una pieza de una pareja (p. ej. Importar en Operador) la otra ocupa las dos columnas. ===== */
+(function(){const P=["html body #app #pfix.p230","html body #app#app.p230"];
+ const R=(sel,css)=>P.map(p=>sel.split(",").map(x=>p+" "+x.trim()).join(",")).join(",")+"{"+css+"}";
+ const S=(css)=>P.join(",")+"{"+css+"}";
+ const H=46;
+ const st=document.createElement("style");st.textContent=[
+ S(`grid-template-columns:104px minmax(0,1fr) minmax(0,1fr)!important;gap:5px!important;row-gap:5px!important`),
+ R(`#pctl`,`grid-column:1/-1!important;grid-row:1!important;margin:0 0 3px!important`),
+ R(`.p230i`,`min-height:0!important;height:${H}px!important;max-height:${H}px!important;overflow:hidden`),
+ /* contadores: columna izquierda, número y rótulo en línea */
+ R(`.kpi.p230-1:not(.sosk)`,`grid-column:1!important;grid-row:2!important`),
+ R(`.kpi.p230-2:not(.sosk):not(.kesp)`,`grid-column:1!important;grid-row:3!important`),
+ R(`.kpi.kesp`,`grid-column:1!important;grid-row:4!important`),
+ R(`.kpi:not(.sosk)`,`display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;padding:0 4px 0 8px!important;font-size:8.5px!important;line-height:1.15!important;letter-spacing:.6px!important;text-align:left!important;white-space:normal!important;position:relative`),
+ R(`.kpi.kpi.kesp.kesp`,`white-space:normal!important;font-size:8px!important;letter-spacing:0!important;padding-right:3px!important`),
+ R(`.kpi:not(.sosk) b`,`font-size:20px!important;line-height:1!important;flex:none;margin:0!important`),
+ R(`.kpi:not(.sosk) .tkled`,`top:6px!important;right:6px!important;width:7px!important;height:7px!important`),
+ /* botones: columnas 2 y 3 */
+ R(`.p230-3`,`grid-column:2!important;grid-row:2!important`),R(`.p230-4`,`grid-column:3!important;grid-row:2!important`),
+ R(`.p230-5`,`grid-column:2!important;grid-row:3!important`),R(`.p230-6`,`grid-column:3!important;grid-row:3!important`),
+ R(`.p230-7`,`grid-column:2!important;grid-row:4!important`),R(`.p230-8.sosk`,`grid-column:3!important;grid-row:4!important`),
+ R(`.p230-3.p230w,.p230-4.p230w,.p230-5.p230w,.p230-6.p230w,.p230-7.p230w,.p230-8.p230w`,`grid-column:2/4!important`),
+ R(`.p230g>button.btn`,`padding:0 8px!important;gap:7px!important;font-size:12.5px!important;line-height:1.1!important;align-items:center!important`),
+ R(`.p230g>button.btn>span:first-child svg`,`width:19px!important;height:19px!important`),
+ R(`button.cl232`,`gap:3px!important;padding:3px 6px!important;justify-content:center!important`),
+ R(`button.cl232 img.cl232i`,`height:17px!important`),
+ R(`button.cl232 .cl232t`,`font-size:10px!important`),
+ R(`.sosk`,`padding:2px!important`),R(`.sosk img`,`width:38px!important;height:38px!important`),
+ R(`#dmpres`,`padding:0 8px!important;gap:7px!important`),
+ R(`#dmpres .dmi`,`width:28px!important;height:28px!important`),R(`#dmpres .dmi svg`,`width:18px!important;height:18px!important`),
+ R(`#dmpres .dmt b`,`font-size:12.5px!important;white-space:nowrap;overflow:hidden`),
+ R(`#pmini`,`display:none!important`),
+ "@media(max-width:380px){"+R(`.p230g>button.btn`,`padding:0 5px!important;gap:5px!important;font-size:11.5px!important`)+R(`.p230g>button.btn>span:first-child svg`,`width:17px!important;height:17px!important`)+R(`#dmpres`,`padding:0 5px!important;gap:5px!important`)+R(`#dmpres .dmt b`,`font-size:11.5px!important`)+"}"
+ ].join("\n");document.head.appendChild(st);
+ /* rótulos cortos donde no caben */
+ const cortos=()=>{try{if(typeof view=="undefined"||view!="dash")return;const m=document.querySelector("#app #dmpres"),d=m&&m.querySelector(".dmt b");if(!d||!/^Manten/.test(d.textContent.trim()))return;const t=m.classList.contains("p230w")?"Mantenimiento":"Mantenim.";if(d.textContent!==t)d.textContent=t}catch(e){}};
+ const o=vDash;vDash=function(){const r=o.apply(this,arguments);cortos();return r};
+ new MutationObserver(cortos).observe(document.getElementById("app"),{childList:true,subtree:true});
+ setInterval(cortos,1500);cortos()})();
+</script>
+<script src="puente-croquis.js?v=270"></script>
 <script>
 /* ===== v267: CROQUIS DEL PUENTE en la Guía de campo · cuando la OT tiene primera actuación en campo por LÍMITE, entre la caja SOS y la
    de «Primera actuación en campo» se dibuja el bloque exacto del módulo del PLC (colores reales de E-A… / P-A…), con el cable del puente
