@@ -4461,7 +4461,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=243;
+const APP_VER=244;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5159,7 +5159,7 @@ header.hk [class*="hkb"],header.hk .hkic,header.hk button:not(.hkoff){backdrop-f
  /* ficha de OT */
  const oc=card;card=function(i){let h=oc(i);try{if(!i||i.estado!="abierta")return h;
   const m=h.match(/<span class="ab"[^>]*>ABIERTA<\/span>/);if(!m)return h;
-  const bt=i.espera?`<button type="button" class="espb rea" onclick="event.stopPropagation();otEspera('${i.id}',false)">Reanudar</button><span class="ab esptag">S/CONDICIONES</span>`
+  const bt=i.espera?`<span class="ab esptag espgo" role="button" tabindex="0" title="Reanudar OT" aria-label="Reanudar OT (vuelve a abierta)" onclick="event.stopPropagation();event.preventDefault();espReanuda('${i.id}')">S/CONDICIONES</span>`
    :`<button type="button" class="espb" onclick="event.stopPropagation();otEspera('${i.id}',true)">Espera de Condiciones</button>${m[0]}`;
   h=h.replace(m[0],`<span class="espw">${bt}</span>`);
   if(i.espera){h=h.replace(/class="card(?=[\s"])/,'class="card espc');
@@ -5188,7 +5188,23 @@ header.hk [class*="hkb"],header.hk .hkic,header.hk button:not(.hkoff){backdrop-f
 #app .row.ohrow>.espw>.espb{grid-column:2;grid-row:2;justify-self:center;margin:0}
 #app .row.ohrow>.espw>.ab{grid-column:3;grid-row:1;align-self:center;justify-self:center}
 #app .row.ohrow>.espw::after{grid-column:3;grid-row:2;justify-self:center;align-self:center;text-align:center;margin:0!important;line-height:1}`;document.head.appendChild(st);
- const marca=()=>{try{document.querySelectorAll("#app .row").forEach(r=>{const on=!!(r.querySelector(":scope>.ohm")&&r.querySelector(":scope>.espw>.espb"));if(r.classList.contains("ohrow")!==on)r.classList.toggle("ohrow",on)})}catch(e){}};
+ const marca=()=>{try{document.querySelectorAll("#app .row").forEach(r=>{const on=!!(r.querySelector(":scope>.ohm")&&r.querySelector(":scope>.espw>.espb,:scope>.espw>.espgo"));if(r.classList.contains("ohrow")!==on)r.classList.toggle("ohrow",on)})}catch(e){}};
  new MutationObserver(marca).observe(document.getElementById("app"),{childList:true,subtree:true});setInterval(marca,1000);marca()})();
+</script>
+<script>
+/* ===== v244: OT en espera de condiciones · sin botón «Reanudar»: se reanuda (y la ficha se despliega) pulsando el rótulo azul
+   «S/CONDICIONES», que parpadea cada segundo. La línea de la PBB queda centrada a la altura de S/CONDICIONES. ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+@keyframes espBlink{0%,49.9%{opacity:1}50%,100%{opacity:.25}}
+.esptag.espgo{cursor:pointer;animation:espBlink 1s infinite;-webkit-tap-highlight-color:transparent;user-select:none}
+.esptag.espgo:active{transform:scale(.94)}
+#app .row.ohrow.ohesp>b{grid-row:1!important}
+#app .row.ohrow.ohesp>.espw>.ab{grid-row:1!important}`;document.head.appendChild(st);
+ window.espReanuda=function(id){try{segAb.add(String(id));segPl.delete(String(id))}catch(e){}otEspera(id,false)};
+ const sinc=()=>{try{const d=-(Date.now()%1000)+"ms";document.querySelectorAll("#app .esptag.espgo").forEach(t=>{if(t.style.animationDelay!==d&&!t.dataset.sy){t.dataset.sy=1;t.style.animationDelay=d}});
+  document.querySelectorAll("#app .row").forEach(r=>{const on=!!(r.querySelector(":scope>.ohm")&&r.querySelector(":scope>.espw>.espgo"));
+   if(on&&!r.classList.contains("ohrow"))r.classList.add("ohrow");if(r.classList.contains("ohesp")!==on)r.classList.toggle("ohesp",on)})}catch(e){}};
+ document.addEventListener("keydown",e=>{const t=e.target;if(t&&t.classList&&t.classList.contains("espgo")&&(e.key=="Enter"||e.key==" ")){e.preventDefault();t.click()}});
+ new MutationObserver(sinc).observe(document.getElementById("app"),{childList:true,subtree:true});setInterval(sinc,1000);sinc()})();
 </script>
 </body></html>
