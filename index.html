@@ -4461,7 +4461,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=244;
+const APP_VER=245;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5206,5 +5206,41 @@ header.hk [class*="hkb"],header.hk .hkic,header.hk button:not(.hkoff){backdrop-f
    if(on&&!r.classList.contains("ohrow"))r.classList.add("ohrow");if(r.classList.contains("ohesp")!==on)r.classList.toggle("ohesp",on)})}catch(e){}};
  document.addEventListener("keydown",e=>{const t=e.target;if(t&&t.classList&&t.classList.contains("espgo")&&(e.key=="Enter"||e.key==" ")){e.preventDefault();t.click()}});
  new MutationObserver(sinc).observe(document.getElementById("app"),{childList:true,subtree:true});setInterval(sinc,1000);sinc()})();
+</script>
+<script>
+/* ===== v245: Editar registro · el Estado admite también «S/Condiciones» (OT abierta en espera de condiciones).
+   La hoja de edición (y todas las hojas) queda siempre centrada: sin desplazamiento lateral al arrastrar el dedo; solo scroll vertical. ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+#sheet{overflow:hidden!important;overscroll-behavior:contain;touch-action:pan-y}
+#sheet>div{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;margin:0 auto!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+#sheetc,#sheetc *{box-sizing:border-box;max-width:100%}
+#sheetc input,#sheetc select,#sheetc textarea{min-width:0!important}
+#sheetc input[type=date],#sheetc input[type=time]{-webkit-appearance:none;appearance:none;width:100%;display:block}
+#sheetc .hrow>input[type=time]{width:auto}
+#e_est.espsel{color:#8cc4ff;border-color:#3b9eff!important}
+html.sheetab,html.sheetab body{overflow:hidden!important;overscroll-behavior:none}`;document.head.appendChild(st);
+ const sh=document.getElementById("sheet"),bx=sh&&sh.firstElementChild;
+ /* fijar: nunca desplazamiento horizontal */
+ const fija=()=>{try{if(bx&&bx.scrollLeft)bx.scrollLeft=0;const c=document.getElementById("sheetc");if(c&&c.scrollLeft)c.scrollLeft=0;if(window.scrollX)window.scrollTo(0,window.scrollY)}catch(e){}};
+ if(bx){bx.addEventListener("scroll",fija,{passive:true});
+  let x0=0,y0=0;bx.addEventListener("touchstart",e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
+  bx.addEventListener("touchmove",e=>{if(e.touches.length!=1)return;const t=e.touches[0],dx=Math.abs(t.clientX-x0),dy=Math.abs(t.clientY-y0);
+   if(dx>dy&&!e.target.closest("textarea,input[type=range]"))e.preventDefault()},{passive:false})}
+ if(sh){sh.addEventListener("touchmove",e=>{if(!e.target.closest("#sheet>div"))e.preventDefault()},{passive:false});
+  new MutationObserver(()=>{document.documentElement.classList.toggle("sheetab",sh.style.display&&sh.style.display!="none");fija()}).observe(sh,{attributes:true,attributeFilter:["style"]})}
+ window.addEventListener("scroll",()=>{if(window.scrollX)window.scrollTo(0,window.scrollY)},{passive:true});
+ /* Estado con S/Condiciones */
+ const pinta=s=>{if(s)s.classList.toggle("espsel",s.value=="espera")};
+ const oe=editar;editar=function(id){const r=oe.apply(this,arguments);try{const i=inc.find(x=>x.id==id),s=$("#e_est");
+  if(s&&i&&![...s.options].some(o=>o.value=="espera")){s.querySelector('option[value="abierta"]').insertAdjacentHTML("afterend",'<option value="espera">S/Condiciones</option>');
+   if(i.estado=="abierta"&&i.espera)s.value="espera";pinta(s);s.addEventListener("change",()=>pinta(s))}fija();if(bx)bx.scrollTop=0}catch(e){}return r};
+ const og=guardaEdit;guardaEdit=function(id){const s=$("#e_est"),i=inc.find(x=>x.id==id);if(!s||!i)return og.apply(this,arguments);
+  const v=s.value,eraEsp=!!i.espera;if(v=="espera")s.value="abierta";
+  const r=og.apply(this,arguments);
+  if(sh&&sh.style.display=="none"){/* guardado */
+   if(v=="espera"){i.espera=true;if(!eraEsp||!i.hEsp)i.hEsp=ahora();try{llegCalla()}catch(e){}}else{i.espera=false;delete i.hEsp}
+   if(v=="espera"||eraEsp){sv("pbb_inc",inc);render()}}
+  else if(v=="espera")s.value="espera";
+  return r}})();
 </script>
 </body></html>
