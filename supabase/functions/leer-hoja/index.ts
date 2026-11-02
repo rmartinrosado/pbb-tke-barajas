@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // Lee con Claude (visión) la foto de la hoja TKE de registro de OT escrita a mano y devuelve JSON.
 // Necesita el secreto ANTHROPIC_API_KEY en el proyecto Supabase. Llamada desde la PWA (usuario con sesión).
-const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Max-Age": "86400", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-api-version, x-region, prefer, accept, accept-language, content-language" };
 const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 
 const PROMPT = (pos: string[], tec: string[]) => `Eres el lector de la hoja de registro de OT de TKE para las pasarelas PBB del aeropuerto de Madrid Barajas. La foto puede estar girada y la letra es manuscrita.
@@ -60,16 +60,21 @@ async function deVault(n: string): Promise<string> {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method === "OPTIONS") {
+    const h = req.headers.get("access-control-request-headers");
+    return new Response("ok", { headers: h ? { ...cors, "Access-Control-Allow-Headers": h } : cors });
+  }
   const ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
   if (!ka && !kg) return json({ error: "sin_clave", mensaje: "Falta una clave de lectura (GEMINI_API_KEY gratuita o ANTHROPIC_API_KEY) en Supabase" }, 503);
   try {
     const { img, tipo, pos = [], tec = [] } = await req.json();
     if (!img) return json({ error: "sin_imagen" }, 400);
+    console.log(`leer-hoja: imagen ${Math.round(img.length / 1024)} KB · lector ${ka ? "Claude" : "Gemini"}`);
     const prompt = PROMPT(pos, tec) + "\nLee TODAS las líneas escritas de la tabla, una OT por línea, en el orden de la hoja, sin saltarte ninguna.";
     let t = "";
     try { t = ka ? await conClaude(ka, img, tipo, prompt) : await conGemini(kg!, img, tipo, prompt); }
-    catch (e) { return json({ error: "api", mensaje: String((e as Error).message || e) }, 502); }
+    catch (e) { console.log("leer-hoja: error del lector", String((e as Error).message || e)); return json({ error: "api", mensaje: String((e as Error).message || e) }, 502); }
+    console.log(`leer-hoja: respuesta ${t.length} caracteres`);
     const m = t.match(/\{[\s\S]*\}/);
     if (!m) return json({ error: "formato", mensaje: "Respuesta sin JSON", texto: t }, 502);
     return json({ ...JSON.parse(m[0]), lector: ka ? "Claude" : "Gemini" });
