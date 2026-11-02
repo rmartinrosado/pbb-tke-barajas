@@ -4467,7 +4467,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=250;
+const APP_VER=251;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5248,5 +5248,70 @@ html.sheetab,html.sheetab body{overflow:hidden!important;overscroll-behavior:non
    if(v=="espera"||eraEsp){sv("pbb_inc",inc);render()}}
   else if(v=="espera")s.value="espera";
   return r}})();
+</script>
+<script>
+/* ===== v251: tema DÍA / EXTERIOR.
+   · Por defecto la PWA sigue el modo del teléfono: modo claro → tema día (fondo claro, letra oscura); modo oscuro → grafito de siempre.
+   · Botón ☀️ en la cabecera (junto al apagado): fuerza el modo EXTERIOR (alto contraste para pleno sol) en cualquier momento;
+     se vuelve a pulsar para quitarlo. Se recuerda en este móvil.
+   · Se mantienen los colores de estado (verde / amarillo / rojo, cajas de seguridad), más intensos en claro. ===== */
+(function(){
+ const MQ=window.matchMedia?matchMedia("(prefers-color-scheme: light)"):null;
+ let ext=false;try{ext=localStorage.getItem("pbb_ext")=="1"}catch(e){}
+ const st=document.createElement("style");st.textContent=`
+html.lt,html.lt:root,html.lt:root[data-theme],html.lt:root:not([data-theme=light]){--bg:#eef0f3!important;--card:#ffffff!important;--bd:#b4bbc7!important;--tx:#0b0d12!important;--mu:#3a414d!important;--pr:#7b1fd8!important;--ac:#d65800!important;--prt:#fff!important;--ok:#7b1fd8!important;--wa:#7b1fd8!important;--tkg:#ffffff!important;--tkbd:#b4bbc7!important;--tkmu:#3a414d!important;--tkor:#d65800!important;--tkpu:#7b1fd8!important;--btn:#f7f8fa;color-scheme:light}
+html.lt header{--bg:#0e1014!important;--card:#171a20!important;--bd:#2a2f38!important;--tx:#e9ecf1!important;--mu:#8a93a3!important;--pr:#a24dff!important;--ac:#ff7a1a!important;--tkg:#171a20!important;--tkbd:#2a2f38!important;--tkmu:#8a93a3!important;--tkor:#ff7a1a!important;--tkpu:#9b3dff!important;--btn:#171a20;color-scheme:dark}
+html.lt body{background:var(--bg)!important;color:var(--tx)!important}
+html.lt body::before{opacity:.06!important}
+html.lt :is(.card,.kpi,.btn,#dmpres,.oirow,details.card):not(header *){background:var(--card)!important;color:var(--tx)!important;border-color:var(--bd)!important}
+html.lt #app .sosgrid.tkb .kpi.kpi b,html.lt #app .kpi.kpi.kpi b{color:var(--tx)!important}
+html.lt #app :is(.kpi,.btn,.dmpres):not(header *){color:var(--tx)!important}
+html.lt #app .dmpres .dmt b,html.lt #app .dmpres .dmt{color:var(--tx)!important}
+html.lt :is(input,select,textarea,.bqbox):not(header *){background:#fff!important;color:var(--tx)!important;border-color:var(--bd)!important}
+html.lt .bqbox:not(.bqfb){border-color:var(--ac)!important}html.lt .bqfb.on{border-color:var(--ac)!important}
+html.lt :is(input,textarea)::placeholder{color:#6b7280!important}
+html.lt :is(button.sec,.sec):not(header *){background:var(--btn)!important;color:var(--tx)!important;border-color:var(--bd)!important}
+html.lt nav#nav,html.lt nav#nav button{background:#ffffff!important;color:var(--tx)!important;border-color:var(--bd)!important}
+html.lt :is(.mu,label):not(header *){color:var(--mu)!important}
+html.lt :is(h2,h3):not(header *){color:var(--tx)!important}
+html.lt #sheet>div,html.lt #sheetc{background:var(--card)!important;color:var(--tx)!important}
+html.lt .espnota{color:#0b57b0!important}
+html.lt .espb{color:#0b57b0!important;background:#e3efff!important}
+html.lt #app img[src*="claude-wordmark"],html.lt #app img[src*="claude-logo"]{filter:invert(1) hue-rotate(180deg) saturate(1.3)}
+/* recuadros de tiempo de la ficha */
+html.lt .ohb{background:#fff!important}
+html.lt .ohb small{color:inherit!important;opacity:.85}
+html.lt .ohv{color:#0f6b2a!important;border-color:#16a34a!important;background:#e8f7ee!important}
+html.lt .ohy{color:#7a5b00!important;border-color:#d4a400!important;background:#fff6d6!important}
+html.lt :is(.ohr,.ohx){color:#a01616!important;border-color:#dc2626!important;background:#fdecec!important}
+html.lt .ohe{color:#0b57b0!important;border-color:#2b7de9!important;background:#e6f0ff!important}
+html.lt #app .ohb.ohe.ohe{color:#0b57b0!important;border-color:#2b7de9!important;background:#e6f0ff!important}html.lt #app .ohb.ohe.ohe :is(b,small){color:#0b3f86!important}
+html.lt #app [style*="color:#facc15"]{color:#8a6500!important}
+html.lt .ohw{color:#8a6500!important;background:#fff1b8!important}
+html.lt .ctdw{background:#fff1b8!important;color:#7a5b00!important;border-color:#d4a400!important}
+html.lt #app .ohb :is(b,small){color:inherit}
+/* EXTERIOR (pleno sol): más contraste y trazo más grueso */
+html.lt.ext,html.lt.ext:root[data-theme]{--bg:#ffffff!important;--bd:#5b6472!important;--tkbd:#5b6472!important;--mu:#1f252e!important;--tkmu:#1f252e!important;--tx:#000!important}
+html.lt.ext body{font-weight:500}
+html.lt.ext :is(.card,.kpi,.btn,input,select,textarea,button.sec,.bqbox):not(header *){border-width:2px!important}
+html.lt.ext :is(.mu,label):not(header *){font-weight:600!important}
+html.lt.ext :is(b,strong):not(header *){font-weight:800!important}
+/* botón ☀️ */
+.hkext{width:38px;height:38px;flex:none;border-radius:999px;border:1.5px solid #ffffff55;background:#00000059;color:#ffd54a;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 8px 0 auto;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hkext svg{width:22px;height:22px}
+html.ext .hkext{background:#ffd54a;color:#1b1400;border-color:#ffd54a;box-shadow:0 0 10px #ffd54a99}
+.hkext:active{transform:scale(.92)}`;
+ document.head.appendChild(st);
+ let meta=document.querySelector('meta[name="theme-color"]');
+ const aplica=()=>{const lt=ext||(MQ?MQ.matches:false);const h=document.documentElement;h.classList.toggle("lt",lt);h.classList.toggle("ext",ext);
+  try{h.setAttribute("data-theme",lt?"light":"dark")}catch(e){}if(meta)meta.setAttribute("content",lt?"#eef0f3":"#0e1014");
+  const b=document.querySelector(".hkext");if(b){b.setAttribute("aria-pressed",ext?"true":"false");b.title=ext?"Modo exterior activado (pulsa para quitarlo)":"Modo exterior (pleno sol)"}};
+ window.temaExt=function(){ext=!ext;try{localStorage.setItem("pbb_ext",ext?"1":"0")}catch(e){}aplica();try{msg(ext?"☀️ Modo exterior activado":"Modo exterior desactivado · sigue el modo del teléfono")}catch(e){}};
+ const SOL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>';
+ const pon=()=>{try{const o=document.querySelector(".hk1 .hkoff");if(!o||o.parentElement.querySelector(".hkext"))return;
+  const b=document.createElement("button");b.type="button";b.className="hkext";b.setAttribute("aria-label","Modo exterior (pleno sol)");b.innerHTML=SOL;
+  b.addEventListener("click",e=>{e.stopPropagation();temaExt()});o.before(b);aplica()}catch(e){}};
+ if(MQ){try{MQ.addEventListener("change",aplica)}catch(e){try{MQ.addListener(aplica)}catch(x){}}}
+ aplica();pon();new MutationObserver(pon).observe(document.body,{childList:true,subtree:true})})();
 </script>
 </body></html>
