@@ -2560,7 +2560,7 @@ function llegTxt(i){const f=llegFin(i);if(f==null)return"";const r=Math.round((f
 function llegCls(i){const f=llegFin(i),r=f==null?999:(f-Date.now())/1000;return r<0?"ctd ctdx":r<=60?"ctd ctdw":"ctd"}
 function llegada(id){const i=inc.find(x=>x.id==id);if(!i)return;i.hLle=ahora();sv("pbb_inc",inc);render();msg(`Llegada registrada a las ${i.hLle} · OT ${i.orden}`)}
 (function(){const o=card;card=function(i){let h=o(i);if(!llegPend(i)||llegFin(i)==null)return h;
- const box=`<div class="${llegCls(i)}" data-ctd="${i.id}">${llegTxt(i)}</div>${(tecnico||admin)?`<button class="sec" style="width:100%;margin-top:6px;padding:9px" onclick="llegada('${i.id}')">He llegado a la posición</button>`:""}`;
+ const box=`<div class="${llegCls(i)}" data-ctd="${i.id}">${llegTxt(i)}</div><button class="sec" style="width:100%;margin-top:6px;padding:9px" onclick="llegada('${i.id}')">He llegado a la posición</button>`;
  return h.replace(/(<div class="mu">Inicio [^<]*<\/div>)/,"$1"+box)}})();
 (function(){const st=document.createElement("style");st.textContent=`.ctd{margin-top:6px;padding:8px 10px;border-radius:8px;background:#efe7fb;color:#3b1170;font-size:14px}.ctdw{background:#fff1d6;color:#7a4300;animation:ctdp 1s infinite}.ctdx{background:#fde2e2;color:#9b1111}@keyframes ctdp{50%{opacity:.55}}
 #llegAl{position:fixed;inset:0;background:#000a;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px}#llegAl .card{max-width:400px;width:100%;border:3px solid #d33}`;document.head.appendChild(st)})();
@@ -4474,7 +4474,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=265;
+const APP_VER=266;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
