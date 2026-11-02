@@ -139,18 +139,15 @@ mo.observe(document.documentElement,{childList:true,subtree:true,characterData:t
 const om=window.msg;if(typeof om=="function")window.msg=function(t,...r){return om.call(this,EN?(tr(t)||t):t,...r)};
 const oc=window.confirm.bind(window),oa=window.alert.bind(window);
 window.confirm=t=>oc(EN?(tr(t)||t):t);window.alert=t=>oa(EN?(tr(t)||t):t);
-/* botón EN/ES */
-const st=document.createElement("style");st.textContent=`#hk .hk1 .hkt{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:14px!important;letter-spacing:-.2px;white-space:nowrap}#hk .hk1 .hkt .hkv{font-size:10.5px!important}#hk .hk1 .hklg{max-width:68px!important;height:auto}
-.hklang{width:34px;height:34px;flex:none;border-radius:999px;border:1.5px solid #ffffff55;background:#00000059;color:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 8px 0 0;cursor:pointer;font:800 12px/1 system-ui,sans-serif;letter-spacing:.3px;-webkit-tap-highlight-color:transparent}
-.hklang.en{background:#1d4ed8;border-color:#93c5fd}.hklang:active{transform:scale(.92)}.hkext{margin-left:auto!important;margin-right:6px!important;width:34px!important;height:34px!important}.hkext svg{width:20px!important;height:20px!important}.hklang{margin-right:6px}
-.hk1 .hklang{order:0}`;document.head.appendChild(st);
-const pinta=b=>{b.textContent=EN?"EN":"ES";b.classList.toggle("en",EN);b.title=EN?"Language: English (tap for Spanish)":"Idioma: español (pulsa para inglés)";b.setAttribute("aria-label",b.title)};
-const pon=()=>{try{const s=document.querySelector(".hk1 .hkext")||document.querySelector(".hk1 .hkoff");if(!s||s.parentElement.querySelector(".hklang"))return;
- const b=document.createElement("button");b.type="button";b.className="hklang";b.addEventListener("click",e=>{e.stopPropagation();cambia()});
- const ext=s.parentElement.querySelector(".hkext");(ext||s).after(b);if(ext){/* EN/ES entre el sol y el apagado */}pinta(b)}catch(e){}};
+/* v262: sin botón propio · el cambio ES/EN se hace pulsando el LOGO TKE de la cabecera (el título queda centrado como antes) */
+const st=document.createElement("style");st.textContent=`#hk .hk1 .hklg{cursor:pointer;-webkit-tap-highlight-color:transparent}#hk .hk1 .hklg:active{transform:scale(.94)}
+html[lang=en] #hk .hk1 .hklg{filter:drop-shadow(0 0 5px #3b82f6) drop-shadow(0 0 1px #93c5fd)}`;document.head.appendChild(st);
+const pinta=()=>{const l=document.querySelector("#hk .hk1 .hklg");if(l){l.title=EN?"Language: English · tap the logo for Spanish":"Idioma: español · pulsa el logo para inglés";l.setAttribute("role","button");l.setAttribute("aria-label",l.title)}};
+document.addEventListener("click",e=>{const l=e.target.closest&&e.target.closest("#hk .hk1 .hklg");if(!l)return;e.stopPropagation();e.preventDefault();cambia()},true);
+const pon=pinta;
 window.cambia=function(){EN=!EN;try{localStorage.setItem("pbb_lang",EN?"en":"es")}catch(e){}document.documentElement.lang=EN?"en":"es";
- if(EN)pasa(document.body);else vuelve();document.querySelectorAll(".hklang").forEach(pinta);
- try{om&&om(EN?"English (technical) · test version: some texts may still be in Spanish":"Idioma: español")}catch(e){}};
+ if(EN)pasa(document.body);else vuelve();pinta();
+ try{om&&om(EN?"English (technical) · tap the TKE logo to switch back to Spanish":"Idioma: español · pulsa el logo TKE para inglés")}catch(e){}};
 document.documentElement.lang=EN?"en":"es";
 new MutationObserver(pon).observe(document.body,{childList:true,subtree:true});pon();if(EN)pasa(document.body);
 window._i18n={tr,D};
