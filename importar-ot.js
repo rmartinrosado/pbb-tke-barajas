@@ -144,7 +144,9 @@ function prev(){const e=$("#oi_prev");if(!e)return;const ok=R.rows.filter(o=>o.p
 window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;R.file=file;const st=$("#oi_est");let set=t=>{if(st)st.textContent=t;const m=/(\d{1,3})%/.exec(t||"");if(m&&/lector local|Leyendo la hoja…/.test(t)){R.pgReal=true;pgPon(+m[1])}};pgIni();let okN=0;R.fecha="";R.turno="";R.integ="";R.turnos={};
  if(/^image\//.test(file.type)){if(R.foto)URL.revokeObjectURL(R.foto);R.foto=URL.createObjectURL(file);R.zoom=1;R.giro=0;pintaFoto()}
  try{const n=file.name.toLowerCase();let ots=[];
-  if(/^image\//.test(file.type)){try{ots=await claudeLee(file,set)}catch(e){const sc=/sin_clave/.test(e&&e.message||"");set((sc?"⚠️ Falta la clave del lector IA en Supabase. ":"⚠️ Lector IA no disponible ("+(e&&e.message||e)+"). ")+"Leyendo con el lector local… (con letra a mano falla bastante: corrige mirando la foto)");R.local=true;ots=deLineas(await ocr(file,set))}}
+  if(/^image\//.test(file.type)){try{ots=await claudeLee(file,set)}catch(e){const sc=/sin_clave/.test(e&&e.message||"");
+   /* v249: con letra a mano el lector local lee basura: no se usa ni se guarda nada; se reintenta con «Cargar Hoja OT» */
+   R.ocup=false;pgFin(false);set((sc?"⚠️ Falta la clave del lector IA en Supabase.":"⚠️ No se ha podido leer la hoja: "+(e&&e.message||e))+" No se ha guardado nada. Vuelve a pulsar «Cargar Hoja OT» en unos minutos.");return}}
   else if(n.endsWith(".pdf")){set("Leyendo PDF…");ots=deLineas(await pdfTxt(file))}
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");ots=deTabla(await excelFilas(file))}
   else{const t=await file.text();ots=t.includes(";")||t.includes(",")?deTabla(csvFilas(t)):deLineas(t)}

@@ -32,19 +32,31 @@ async function conClaude(key: string, img: string, tipo: string, prompt: string)
   if (!r.ok) throw new Error(d?.error?.message || r.statusText);
   return (d.content || []).map((c: { text?: string }) => c.text || "").join("");
 }
+// v249: Gemini con reintentos y modelos de reserva si el modelo está saturado (503/429/500).
 async function conGemini(key: string, img: string, tipo: string, prompt: string) {
-  const model = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: "POST",
-    headers: { "x-goog-api-key": key, "content-type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ inline_data: { mime_type: tipo || "image/jpeg", data: img } }, { text: prompt }] }],
-      generationConfig: { temperature: 0, responseMimeType: "application/json" },
-    }),
-  });
-  const d = await r.json();
-  if (!r.ok) throw new Error(d?.error?.message || r.statusText);
-  return (d.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join("");
+  const env = Deno.env.get("GEMINI_MODEL");
+  const modelos = [...new Set([env, "gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest", "gemini-2.5-flash-lite"].filter(Boolean) as string[])];
+  let ult = "";
+  for (const model of modelos) {
+    for (let k = 0; k < 2; k++) {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: "POST",
+        headers: { "x-goog-api-key": key, "content-type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ inline_data: { mime_type: tipo || "image/jpeg", data: img } }, { text: prompt }] }],
+          generationConfig: { temperature: 0, responseMimeType: "application/json" },
+        }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) { console.log(`leer-hoja: leído con ${model}`); return (d.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join(""); }
+      ult = `${model}: ${d?.error?.message || r.statusText}`;
+      console.log("leer-hoja: intento fallido", r.status, ult);
+      if (r.status === 404 || r.status === 400) break; // modelo no disponible: pasa al siguiente
+      if (![429, 500, 503].includes(r.status)) throw new Error(ult);
+      await new Promise((ok) => setTimeout(ok, 1500 * (k + 1)));
+    }
+  }
+  throw new Error("Lector saturado, prueba en unos minutos (" + ult + ")");
 }
 
 // v247: las claves también pueden estar cifradas en el Vault de Supabase (función clave_lector, solo service_role).
