@@ -162,6 +162,6 @@ function v5(o){
  <path class="wire2" d="${d}"/><path class="wire" d="${d}"/>${fer(xa+side*8,ya+6)}${fer(xb+side*8,yb+6)}
  <g font-weight="800"><text x="${lx}" y="${ya+3}" font-size="15" class="hi">${esc(o.b1)}</text><text x="${lx}" y="${ya+19}" font-size="10.5" class="mu">${esc(o.k1)}</text>
  <text x="${lx}" y="${yb+3}" font-size="15" class="hi">${esc(o.b2)}</text><text x="${lx}" y="${yb+19}" font-size="10.5" class="mu">${esc(o.k2)}</text></g>
- <text x="12" y="${H-8}" font-size="10" class="mu">${safe?`Con el puente, el LED ${n1} debe encenderse`:"Con el puente, el LED de la entrada debe encenderse"}</text></svg>`}
+ <text x="12" y="${H-8}" font-size="10" class="mu">${safe?`Con el puente, el LED ${n1} debe encenderse`:"Con el puente, el LED de la entrada se enciende"}</text></svg>`}
 window.croquisPuente=function(o,v){css();o=Object.assign({mod:"E-A8",ch:8,b1:"8.1",b2:"8.2",k1:"IN08S",k2:"UT2",d:"F.C. INCLINACIÓN"},o||{});return (v==5?v5:v==4?v4:v==2?v2:v==3?v3:v1)(o)};
 })();
