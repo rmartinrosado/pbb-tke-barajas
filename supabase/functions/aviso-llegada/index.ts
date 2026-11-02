@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
   const { data: ots } = await sb.from("incidencias").select("id,datos").eq("estado", "abierta");
   const due: { id: string; i: any; fin: number }[] = [];
   for (const r of ots || []) {
-    const i = r.datos || {}; if (i.hLle || !i.hIni) continue;
+    const i = r.datos || {}; if (i.hLle || !i.hIni || i.espera) continue; // v240: sin aviso en espera de condiciones
     const fin = limite(r.id, i); if (fin == null) continue;
     const rest = fin - ahora; if (rest <= 75e3 && rest > -3600e3) due.push({ id: r.id, i, fin });
   }

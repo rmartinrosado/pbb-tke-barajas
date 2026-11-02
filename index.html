@@ -2554,7 +2554,7 @@ const hTras=(a,b)=>((b-a)%1440+1440)%1440<=720; /* b no es anterior a a (admite 
 const LLEG_MIN={PAS:10,HZ:15,AAA:15,AAP:15,SVGA:15,Sigma:15};
 function llegMin(i){const t=[i.tipo,...(i.equipos||[])].map(k=>LLEG_MIN[k]).filter(Boolean);return t.length?Math.min(...t):15}
 function llegFin(i){const c=+i.id;if(!isFinite(c)||c<1e12)return null;return c+llegMin(i)*60e3} /* v5: desde que se guarda la OT */
-const llegPend=i=>i&&i.estado=="abierta"&&!i.hLle&&!!i.hIni;
+const llegPend=i=>i&&i.estado=="abierta"&&!i.espera&&!i.hLle&&!!i.hIni;
 function llegTxt(i){const f=llegFin(i);if(f==null)return"";const r=Math.round((f-Date.now())/1000),a=Math.abs(r),mm=Math.floor(a/60),ss=String(a%60).padStart(2,"0");
  return r>=0?`⏱ Llegada: quedan <b>${mm}:${ss}</b> (${llegMin(i)} min)`:`⚠ Fuera de tiempo de llegada: <b>+${mm}:${ss}</b> · Llamar a CGA`}
 function llegCls(i){const f=llegFin(i),r=f==null?999:(f-Date.now())/1000;return r<0?"ctd ctdx":r<=60?"ctd ctdw":"ctd"}
@@ -4459,7 +4459,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=239;
+const APP_VER=240;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4995,6 +4995,7 @@ html.p230ns,html.p230ns body{overflow:hidden!important;overscroll-behavior:none;
    if((ih<0||i<ih)&&(e.classList.contains("grid")||e.classList.contains("sosgrid")))e.classList.add("p230g")});
   const it={};
   C.querySelectorAll(".p230g>*").forEach(e=>{if(e.classList.contains("p230g"))return;
+   if(e.classList.contains("kesp")){for(let k=1;k<=9;k++)e.classList.toggle("p230-"+k,k==2);e.classList.add("p230i");return}
    let n=9;
    if(e.classList.contains("sosk"))n=8;
    else if(e.classList.contains("kpi"))n=/cerrad/i.test(e.textContent)?2:1;
@@ -5032,7 +5033,7 @@ html.p230ns,html.p230ns body{overflow:hidden!important;overscroll-behavior:none;
  const num=k=>{const b=k.querySelector("b");return parseInt((b&&b.textContent)||"0",10)||0};
  const aplica=()=>{try{if(typeof view=="undefined"||view!="dash")return;const a=document.getElementById("app");if(!a)return;
   a.querySelectorAll(".kpi:not(.sosk)").forEach(k=>{const l=k.querySelector(".tkled");if(!l)return;const n=num(k),ce=/cerrad/i.test(k.textContent);
-   l.classList.add("l232");l.classList.toggle("am",!ce&&n>0);l.classList.toggle("ro",ce&&n>0)});
+   const es=k.classList.contains("kesp");l.classList.add("l232");l.classList.toggle("am",!ce&&!es&&n>0);l.classList.toggle("ro",ce&&n>0);l.classList.toggle("az",es&&n>0)});
   a.querySelectorAll("button.btn").forEach(b=>{if(!/resTec\(\)/.test(b.getAttribute("onclick")||"")||b.closest(".card:not(.btn)"))return;
    if(b.dataset.v232)return;b.dataset.v232="1";b.classList.add("cl232");b.setAttribute("aria-label","Claude · Resolución IA");
    b.innerHTML=`<img class="cl232i" src="claude-logo-ia.png" alt="Claude"><span class="cl232t">Resolución IA</span>`})}catch(e){}};
@@ -5115,5 +5116,60 @@ html.p234,html.p234 body{overflow:hidden!important;overscroll-behavior:none;heig
 header.hk{background:linear-gradient(180deg,rgba(14,16,20,.50) 0%,rgba(14,16,20,.62) 55%,rgba(14,16,20,.85) 100%),url("cabecera-pbb.webp") center 45%/cover no-repeat,var(--card)!important}
 header.hk .hkt{text-shadow:0 1px 4px #000c}
 header.hk [class*="hkb"],header.hk .hkic,header.hk button:not(.hkoff){backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}`;document.head.appendChild(st)})();
+</script>
+<script>
+/* ===== v240: estado «Espera de condiciones» (S/Condiciones).
+   · La OT sigue abierta (estado «abierta» en la base de datos) con datos.espera=true y la hora hEsp: no se cierra ni se resuelve
+     hasta la resolución o el cierre por CGA; interviene el personal especialista del sistema.
+   · Panel de control: fila de tres contadores OT abiertas | OT cerradas | OT S/Condiciones (mismo aspecto).
+     «OT abiertas» cuenta solo las activas; las de espera van en su contador (piloto azul fijo; gris con 0).
+   · Ficha de OT abierta: botón «Espera de Condiciones» en la primera línea, junto al estado. En espera el estado pasa a
+     «S/CONDICIONES» y el botón a «Reanudar» (vuelve a abierta). Sin cuenta atrás ni alarma de llegada mientras espera.
+   · Seguimiento OT: aparecen como «S/CONDICIONES», con filtro propio; el cierre (Cierre CGA) es igual que en las abiertas. ===== */
+(function(){const st=document.createElement("style");st.textContent=`
+.p230{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+.p230 .p230i{grid-column:span 3!important}.p230 .p230w{grid-column:1/-1!important}
+.p230 .kpi:not(.sosk).p230i{grid-column:span 2!important}
+.p230 .kpi.kesp{order:2!important}
+#app .kpi:not(.sosk){padding:10px 9px!important;min-width:0}
+#app .kpi:not(.sosk) b{font-size:28px!important}
+#app .kpi.kesp{line-height:1.25!important}
+#app .tkled.l232.az{background:#3b9eff!important;box-shadow:0 0 8px #3b9eff!important}
+.espw{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto;min-width:0;max-width:100%}
+.espw .esptag{font-size:10.5px!important;letter-spacing:.4px!important;padding:3px 6px!important;white-space:nowrap}
+.espb{border:1px solid #3b9eff;background:#3b9eff1f;color:#8cc4ff;border-radius:6px;padding:5px 8px;font:700 11px/1.15 system-ui,sans-serif;letter-spacing:.2px;cursor:pointer;white-space:nowrap}
+.espb.rea{border-color:var(--bd,#2a2f38);background:transparent;color:var(--mu,#8a93a3)}
+.espb:active{transform:scale(.95)}
+.esptag{background:#3b9eff!important;color:#06121f!important;border-color:#3b9eff!important}
+#app .card.espc,#app details.card.espc,.card.espc{border:1px solid #3b9eff!important;border-left:4px solid #3b9eff!important;animation:none!important;box-shadow:none!important}
+.espnota{margin-top:4px;font-size:12.5px;color:#8cc4ff}`;document.head.appendChild(st);
+ const act=()=>inc.filter(i=>i.estado=="abierta"&&!i.espera).length,esp=()=>inc.filter(i=>i.estado=="abierta"&&i.espera).length;
+ const d2=n=>String(n).padStart(2,"0");
+ /* panel: contador nuevo y «OT abiertas» solo con las activas */
+ const ponKpi=()=>{try{if(view!="dash")return;const a=document.getElementById("app");if(!a)return;
+  const ks=[...a.querySelectorAll(".kpi:not(.sosk)")];const kab=ks.find(k=>/abiert/i.test(k.textContent)),kce=ks.find(k=>/cerrad/i.test(k.textContent));if(!kab||!kce)return;
+  const b=kab.querySelector("b");const t=d2(act());if(b&&b.textContent.trim()!==t)b.textContent=t;
+  let ke=a.querySelector(".kpi.kesp");if(!ke){ke=document.createElement("div");ke.className="card kpi kesp";ke.innerHTML=`<b>00</b>OT S/Condiciones`;kce.after(ke)}
+  const be=ke.querySelector("b"),te=d2(esp());if(be.textContent.trim()!==te)be.textContent=te}catch(e){}};
+ const o=vDash;vDash=function(){const r=o.apply(this,arguments);ponKpi();return r};
+ /* ficha de OT */
+ const oc=card;card=function(i){let h=oc(i);try{if(!i||i.estado!="abierta")return h;
+  const m=h.match(/<span class="ab"[^>]*>ABIERTA<\/span>/);if(!m)return h;
+  const bt=i.espera?`<button type="button" class="espb rea" onclick="event.stopPropagation();otEspera('${i.id}',false)">Reanudar</button><span class="ab esptag">S/CONDICIONES</span>`
+   :`<button type="button" class="espb" onclick="event.stopPropagation();otEspera('${i.id}',true)">Espera de Condiciones</button>${m[0]}`;
+  h=h.replace(m[0],`<span class="espw">${bt}</span>`);
+  if(i.espera){h=h.replace(/class="card(?=[\s"])/,'class="card espc');
+   h=h.replace(/(<div class="mu">Nº Orden CGA:)/,`<div class="espnota">⏸ En espera de condiciones${i.hEsp?" desde las "+esc(i.hEsp):""} · pendiente de resolución o cierre por CGA · personal especialista del sistema</div>$1`)}}catch(e){}return h};
+ window.otEspera=function(id,on){const i=inc.find(x=>x.id==id);if(!i||i.estado!="abierta")return;
+  if(on){i.espera=true;i.hEsp=ahora();try{llegCalla()}catch(e){}}else{i.espera=false;delete i.hEsp}
+  sv("pbb_inc",inc);render();msg(on?`OT ${i.orden||""} · PBB ${i.pos} en espera de condiciones`:`OT ${i.orden||""} · PBB ${i.pos} reanudada (abierta)`)};
+ /* Seguimiento: filtro «S/Condiciones» */
+ const ot=vTrack;vTrack=function(){if(filtro!="espera")return ot.apply(this,arguments);
+  const g=inc;try{inc=g.filter(i=>i.estado=="abierta"&&i.espera);filtro="todas";return ot.apply(this,arguments)}finally{inc=g;filtro="espera";
+   const s=document.querySelector('#app select[onchange^="filtro="]');if(s){if(![...s.options].some(o=>o.value=="espera"))s.insertAdjacentHTML("beforeend",'<option value="espera">S/Condiciones</option>');s.value="espera"}}};
+ const ponOpt=()=>{try{if(view!="track")return;const s=document.querySelector('#app select[onchange^="filtro="]');if(s&&![...s.options].some(o=>o.value=="espera")){
+  s.insertAdjacentHTML("beforeend",'<option value="espera">S/Condiciones</option>');if(filtro=="espera")s.value="espera"}}catch(e){}};
+ new MutationObserver(()=>{ponKpi();ponOpt()}).observe(document.getElementById("app"),{childList:true,subtree:true});
+ setInterval(()=>{ponKpi();ponOpt()},1000);ponKpi()})();
 </script>
 </body></html>
