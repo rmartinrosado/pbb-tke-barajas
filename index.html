@@ -4333,7 +4333,7 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 /* ===== v194: Inicio · con OT abiertas, el dedo dibujado a mano (el mismo del SOS) sobre la caja «Seguimiento OT», señalando que se pulse.
    Sin OT abiertas no se dibuja. ===== */
 (function(){const st=document.createElement("style");st.textContent=`#app button.segdedob{position:relative;overflow:visible}
-#app button.segdedob .segdedo{position:absolute;right:4px;bottom:-14px;top:auto;left:auto;width:72px;height:54px;margin:0;color:var(--pr);opacity:.7;z-index:3;pointer-events:none}
+#app button.segdedob .segdedo{position:absolute;right:4px;bottom:-14px;top:auto;left:auto;width:50px;height:38px;margin:0;color:var(--pr);opacity:.7;z-index:3;pointer-events:none}
 #app button.segdedob .segdedo .otfl{display:none}`;document.head.appendChild(st);
  const hayAb=()=>{try{return Array.isArray(inc)&&inc.some(i=>i&&i.estado=="abierta")}catch(e){return false}};
  const pon=()=>{if(typeof view!="undefined"&&view!="dash")return;if(!window.OT_DEDO)return;
@@ -4346,17 +4346,17 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 </script>
 <script>
 /* ===== v195: el dedo de «Seguimiento OT» se coloca con la punta encima de la segunda «e» de «Seguimiento» y parpadea cada segundo ===== */
-(function(){const st=document.createElement("style");st.textContent=`#app button.segdedob .segdedo{right:auto;bottom:auto;opacity:.8;animation:segblink 1s linear infinite;animation-delay:var(--sgd,0ms)}
-#app button.segdedob .segdedo .otmano{animation-duration:1s;animation-delay:var(--sgd,0ms)}#app button.segdedob .segdedo .otray{animation-duration:1s;animation-delay:var(--sgd,0ms)}
+(function(){const st=document.createElement("style");st.textContent=`#app button.segdedob .segdedo{right:auto;bottom:auto;opacity:.8;animation:segblink 1.5s linear infinite;animation-delay:var(--sgd,0ms)}
+#app button.segdedob .segdedo .otmano{animation-duration:1.5s;animation-delay:var(--sgd,0ms)}#app button.segdedob .segdedo .otray{animation-duration:1.5s;animation-delay:var(--sgd,0ms)}
 @keyframes segblink{0%,55%{opacity:.85}62%,94%{opacity:0}100%{opacity:.85}}
 @media (prefers-reduced-motion:reduce){#app button.segdedob .segdedo{animation:none}}`;document.head.appendChild(st);
- const W=72,S=W/120,TX=53,TY=26; /* punta del índice en el dibujo (viewBox 120×90, mano girada −28°) */
+ const W=50,S=W/120,TX=53,TY=26; /* v301: mano más pequeña (antes 72 px) */ /* punta del índice en el dibujo (viewBox 120×90, mano girada −28°) */
  const coloca=()=>{const d=document.querySelector("#app button.segdedob .segdedo");if(!d)return;const b=d.parentElement;
   const tw=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let n,tn=null;while(n=tw.nextNode()){if(/Seguimiento/.test(n.nodeValue)){tn=n;break}}if(!tn)return;
-  const i=tn.nodeValue.indexOf("Seguimiento")+7;const r=document.createRange();r.setStart(tn,i);r.setEnd(tn,i+1);
+  const i=tn.nodeValue.indexOf("Seguimiento")+9; /* v301: punta sobre la «t» de Seguimiento (antes la segunda «e») */const r=document.createRange();r.setStart(tn,i);r.setEnd(tn,i+1);
   const e=r.getBoundingClientRect(),bb=b.getBoundingClientRect();if(!e.width)return;
   const l=Math.round(e.left-bb.left+e.width/2-TX*S),t=Math.round(e.top-bb.top+e.height*.55-TY*S);
-  const ns=`left:${l}px;top:${t}px;--sgd:-${Date.now()%1000}ms`;if(d.dataset.pos!=l+","+t){d.dataset.pos=l+","+t;d.setAttribute("style",ns)}};
+  const ns=`left:${l}px;top:${t}px;--sgd:-${Date.now()%1500}ms`;if(d.dataset.pos!=l+","+t){d.dataset.pos=l+","+t;d.setAttribute("style",ns)}};
  new MutationObserver(()=>{try{coloca()}catch(e){}}).observe(document.body,{childList:true,subtree:true});
  addEventListener("resize",()=>{try{const d=document.querySelector("#app .segdedo");if(d)d.dataset.pos="";coloca()}catch(e){}});
  setTimeout(coloca,300)})();
@@ -4519,7 +4519,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=300;
+const APP_VER=301;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
