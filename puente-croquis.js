@@ -155,7 +155,11 @@ function v5(o){
  const lx=X0+SW+44,lead=(x,y)=>`<path d="M${lx-6} ${y} H${x+16}" stroke="var(--pk-hi)" stroke-width="1.4" stroke-dasharray="4 3"/>`;
  return `<svg class="pzk" viewBox="0 0 ${W} ${H}" role="img" aria-label="Puente provisional ${esc(o.b1)} – ${esc(o.b2)} en ${esc(id)}">
  <text x="12" y="22" font-size="15" font-weight="800">${esc(id)} · puente ${esc(o.b1)} → ${esc(o.b2)}</text>
- <text x="12" y="40" font-size="11" class="mu">${esc(String(o.d).length>40?String(o.d).slice(0,39)+"…":o.d)}</text>
+ ${(()=>{/* v305: descripción ajustada al ancho, en hasta dos líneas (antes se cortaba a 40 letras con «…») */
+  const M=54,pal=String(o.d||"").replace(/\s+/g," ").trim().split(" "),L=[""];
+  pal.forEach(w=>{const k=L.length-1;if(!L[k])L[k]=w;else if((L[k]+" "+w).length<=M)L[k]+=" "+w;else L.push(w)});
+  if(L.length>2){L.length=2;L[1]=L[1].slice(0,M-1).replace(/\s+\S*$/,"")+"…"}
+  return L.map((t,i)=>`<text x="12" y="${L.length>1?37+i*13:40}" style="font-size:10.5px" class="mu">${esc(t)}</text>`).join("")})()}
  ${g}
  <circle class="ring" cx="${(xa+xb)/2}" cy="${(ya+yb)/2}" r="${Math.max(48,Math.abs(yb-ya)/2+30)}"/>
  ${lead(Math.max(xa,xb),ya)}${lead(Math.max(xa,xb),yb)}
