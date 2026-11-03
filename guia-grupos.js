@@ -7,9 +7,9 @@
 const FAM=[
  ["Hidráulica y elevación",/^(Hidráulica ·|No sube \/ no baja|Esquema hidráulico)/i],
  ["Traslación y giro de ruedas",/^(No traslada|Límite de traslación|Traslación con alimentación)/i],
- ["Seguridades, rearme y antiatrapamientos",/^(PBB sin tensión|Pupitre encendido|Antiatrapamiento|Zapata|Radar de ala)/i],
+ ["Seguridades y rearme",/^(PBB sin tensión|Pupitre encendido|Antiatrapamiento|Zapata|Radar de ala)/i],
  ["Cabina, capota y portón",/^(Cabina \/|Fallo de autonivelación|Capota|Portón|Sirena de cabina)/i],
- ["Equipos de servicio (A/A, 400 Hz, carro)",/^(Bloqueada por equipos|Bloqueo carro|PAS bloqueada por carro)/i],
+ ["Equipos A/A, 400 Hz y carro",/^(Bloqueada por equipos|Bloqueo carro|PAS bloqueada por carro)/i],
  ["Auxiliares, cámaras y medidas",/^(Iluminación|Cámaras|Sistemas auxiliares|Medidas analógicas)/i],
  ["PBB 507 · plano propio",/^PBB 507 ·/i],
 ];
