@@ -4508,7 +4508,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=273;
+const APP_VER=274;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5303,6 +5303,14 @@ html.sheetab,html.sheetab body{overflow:hidden!important;overscroll-behavior:non
 html.lt,html.lt:root,html.lt:root[data-theme],html.lt:root:not([data-theme=light]){--bg:#eef0f3!important;--card:#ffffff!important;--bd:#b4bbc7!important;--tx:#0b0d12!important;--mu:#3a414d!important;--pr:#7b1fd8!important;--ac:#d65800!important;--prt:#fff!important;--ok:#7b1fd8!important;--wa:#7b1fd8!important;--tkg:#ffffff!important;--tkbd:#b4bbc7!important;--tkmu:#3a414d!important;--tkor:#d65800!important;--tkpu:#7b1fd8!important;--btn:#f7f8fa;color-scheme:light}
 html.lt header{--bg:#0e1014!important;--card:#171a20!important;--bd:#2a2f38!important;--tx:#e9ecf1!important;--mu:#8a93a3!important;--pr:#a24dff!important;--ac:#ff7a1a!important;--tkg:#171a20!important;--tkbd:#2a2f38!important;--tkmu:#8a93a3!important;--tkor:#ff7a1a!important;--tkpu:#9b3dff!important;--btn:#171a20;color-scheme:dark}
 html.lt body{background:var(--bg)!important;color:var(--tx)!important}
+/* v274: ANIMACIONES (brazo autonivelador, almena, hidráulica) con fondo CLARO en modo claro: antes quedaban sobre fondo negro
+   y los textos (oscuros en modo claro) no se leían. Gris muy claro para que las piezas blancas del dibujo se distingan. */
+html.lt .gsim,html.lt .gsim .gzw{background:#f3f5f8!important;border-color:var(--bd)!important;color:var(--tx)!important}
+html.lt .gsim :is(.gsim-h,.gsim-st,.gzh,.gsim-vel){color:var(--tx)!important}
+html.lt .gsim .gzh{color:var(--mu)!important}
+html.lt .gsim-bt button:not(.on){background:#ffffff!important;color:var(--tx)!important;border-color:var(--pr)!important}
+html.lt .gsim-bt button.on{background:var(--pr)!important;color:#fff!important}
+html.lt .gsim svg text:not([fill]):not([style*=fill]){fill:var(--tx)}
 html.lt body::before{opacity:.06!important}
 /* v255: las tarjetas de OT NO llevan fondo ni borde con !important, para que sigan funcionando los parpadeos (verde, amarillo) y los bordes de color */
 html.lt :is(.kpi,.btn,#dmpres,.oirow):not(header *){background:var(--card)!important;color:var(--tx)!important;border-color:var(--bd)!important}
