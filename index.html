@@ -1616,8 +1616,14 @@ gInsHTML=function(){let h=_gInsHTML53();
  const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);if(!S)return h;
  h=h.replace(/<label>Módulo · armario E<\/label>[\s\S]*?(?=<div class="mu" style="font-size:12px;margin-top:6px"><b>)/,"")
   .replace(/<label>Señal<\/label><select[\s\S]*?<\/select>\s*<div class="mu" style="font-size:11px;margin-top:2px">[^<]*<\/div>/,
-   `<div class="insdirh"><div><b>${esc(S.t)}</b><div class="mu" style="font-size:12px">${esc(gIMod)} · Mód. ${S.k} · LED ${S.l}${S.led?" · IN "+esc(S.led):""}</div></div><button class="sec" onclick="insVerMods=true;gPintaIns()">Cambiar señal</button></div>`);
+   `<div class="insdirh"><div><b>${esc(S.t)}</b><div class="mu" style="font-size:12px">${esc(gIMod)} · Mód. ${S.k} · LED ${S.l}${S.led?" · IN "+esc(S.led):""}</div></div><button class="sec" onclick="insCambiaSig()">Elegir otra señal</button></div>`);
  return h};
+/* v287: «Elegir otra señal» (antes «Cambiar señal»): abre la rejilla de módulos PLC y el desplegable de señales
+   y desplaza la vista hasta ellos, para que se vea el cambio (antes se abrían más arriba y parecía que no hacía nada) */
+function insCambiaSig(){insVerMods=true;gPintaIns();
+ requestAnimationFrame(()=>{const c=document.getElementById("g_ins");if(!c)return;const l=[...c.querySelectorAll("label")].find(x=>/^Módulo/.test(x.textContent.trim()));
+  if(!l)return;const o=c.closest(".insov");const h=o&&o.querySelector(".insh,header,.inscab");
+  l.style.scrollMarginTop=((h&&h.offsetHeight)||80)+12+"px";l.scrollIntoView({block:"start",behavior:"smooth"})})}
 const _gPintaIns53=gPintaIns;
 gPintaIns=function(){if(insOv&&insTipo=="HZ"){const c=$("#g_ins");if(!c)return;const o=c.closest(".insov");const y=o.scrollTop;c.innerHTML=hzInsHTML();o.scrollTop=y;return}
  if(insOv&&insTipo!="PAS"){const c=$("#g_ins");if(c)c.innerHTML=insSinHTML();return}
@@ -4508,7 +4514,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=286;
+const APP_VER=287;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
