@@ -89,7 +89,8 @@ async function claudeLee(file,set){set("Analizando la hoja manuscrita línea a l
 /* v289: convierte la respuesta JSON del lector (Gemini en Supabase o Claude copiado y pegado) en OT */
 function deIA(d){if(!d||!Array.isArray(d.ots))throw new Error("la respuesta no tiene la lista de OT");R.lector=d.lector||R.lector||"";R.reserva=!!d.reserva;if(d.fecha&&/^\d{4}-\d{2}-\d{2}$/.test(d.fecha))R.fecha=fechaOK(d.fecha);
  (d.turnos||[]).forEach(t=>{const n=turnoTxt(t.turno);if(n&&t.integrantes)R.turnos[n]=integOK(limpiaInteg(t.integrantes))});
- const dudas=[];const ots=d.ots.filter(o=>o&&o.pos).map(o=>{if(o.dudas)dudas.push(`${o.pos}: ${o.dudas}`);return {pos:posOK(o.pos),tipo:tipoOK(o.tipo)||"PAS",orden:ordenDe(o.orden)||String(o.orden||"").replace(/\D/g,""),hIni:hh(o.hIni),hLle:hh(o.hLle),hCie:hh(o.hCie),desc:String(o.desc||"").trim(),integ:"",fecha:""}});
+ const dudas=[];const hz=/^HZ$/i.test(String(d.hoja||"").trim()); /* v290: hoja «Avisos de 400 Hertzios» → SIEMPRE tipo HZ */
+ const ots=d.ots.filter(o=>o&&o.pos).map(o=>{if(o.dudas)dudas.push(`${o.pos}: ${o.dudas}`);const fo=/^\d{4}-\d{2}-\d{2}$/.test(o.fecha||"")?fechaOK(o.fecha):"";return {fecha:fo,pos:posOK(o.pos),tipo:hz?"HZ":(tipoOK(o.tipo)||"PAS"),orden:ordenDe(o.orden)||String(o.orden||"").replace(/\D/g,""),hIni:hh(o.hIni),hLle:hh(o.hLle),hCie:hh(o.hCie),desc:String(o.desc||"").trim(),integ:""}});R.hojaHZ=hz;
  ots.dudas=dudas;return ots}
 async function cargaTec(){try{const r=await sb.from("tecnicos").select("nombre");TEC=(r.data||[]).map(x=>x.nombre).filter(Boolean)}catch(e){}}
 function libScript(src,ok){return new Promise((res,rej)=>{if(ok()){res();return}const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("No se pudo cargar "+src));document.head.appendChild(s)})}
@@ -112,7 +113,7 @@ function turnoFila(k){const r=R.rows;for(let j=k;j>=0;j--){const t=turnoHora(r[j
 const integDef=k=>R.turnos[turnoFila(k)]||R.integ||"";
 const tOpt=v=>["PAS","AAA","AAP","AAC","AAR","HZ","SVGA","Sigma"].map(t=>`<option ${t==v?"selected":""}>${t}</option>`).join("");
 function filaHTML(o,k){const t=turnoFila(k);
- return `<div class="oirow" id="oir${k}"><div class="oirh"><b class="oin">${k+1}</b><span class="mu" style="font-size:12px">${t?"Turno "+t:""}</span><button class="sec oidel" aria-label="Quitar OT" onclick="otQuita(${k})">✕</button></div>
+ return `<div class="oirow" id="oir${k}"><div class="oirh"><b class="oin">${k+1}</b><span class="mu" style="font-size:12px">${t?"Turno "+t:""}${o.fecha?` · ${o.fecha.slice(8)}/${o.fecha.slice(5,7)}`:""}${o.tipo=="HZ"&&R.hojaHZ?" · 400 Hz":""}</span><button class="sec oidel" aria-label="Quitar OT" onclick="otQuita(${k})">✕</button></div>
  <div class="oig3"><div><label>PAS</label><input value="${esc(o.pos)}" list="oi_pl" autocapitalize="characters" oninput="otC(${k},'pos',this.value)" class="${o.pos&&!posReg(o.pos)?"oiw":""}"></div>
  <div><label>Tipo</label><select onchange="otC(${k},'tipo',this.value)">${tOpt(o.tipo)}</select></div>
  <div><label>Nº OT</label><input value="${esc(o.orden)}" inputmode="numeric" maxlength="6" oninput="otC(${k},'orden',this.value.replace(/\\D/g,''))" class="${o.orden&&!/^\d{6}$/.test(o.orden)?"oiw":""}"></div></div>
@@ -171,11 +172,11 @@ function prev(){const e=$("#oi_prev");if(!e)return;const ok=R.rows.filter(o=>o.p
 /* v289: pone las OT leídas en la pantalla de revisión (común a foto, archivo y respuesta pegada de Claude) */
 function ponOts(ots,nombre,set){const fs=ots.map(o=>o.fecha).filter(Boolean);if(!R.fecha&&fs.length)R.fecha=fs[0];if(!R.fecha)R.fecha=hoy();
   if(!Object.keys(R.turnos).length&&R.integ&&R.turno)R.turnos[R.turno]=R.integ;
-  R.rows=ots.map(o=>({pos:o.pos,tipo:o.tipo||"PAS",orden:o.orden||"",hIni:o.hIni||"",hLle:o.hLle||"",hCie:o.hCie||"",desc:o.desc||"",integ:""}));
+  R.rows=ots.map(o=>({pos:o.pos,tipo:o.tipo||"PAS",orden:o.orden||"",hIni:o.hIni||"",hLle:o.hLle||"",hCie:o.hCie||"",desc:o.desc||"",integ:"",fecha:o.fecha||""}));
   const a=$("#oi_f");if(a)a.value=R.fecha;pintaFilas();
   const av=[];ots.forEach((o,k)=>{const t=[o.hIni,o.hLle,o.hCie].filter(Boolean);for(let j=1;j<t.length;j++)if(t[j]<t[j-1]){av.push(`línea ${k+1}: horas desordenadas`);break}
    if(o.orden&&!/^\d{6}$/.test(o.orden))av.push(`línea ${k+1}: nº OT de ${o.orden.length} cifras`)});
-  set(ots.length?`Leída «${nombre}»${R.lector?" ("+R.lector+")":""}: ${ots.length} OT. Revisa cada una con la foto antes de guardar.${R.reserva?" ⚠️ Leída con el modelo de reserva (menos preciso): repásala con más cuidado.":""}${ots.dudas&&ots.dudas.length?" ⚠️ Dudas — "+ots.dudas.join(" · "):""}${av.length?" ⚠️ Revisar — "+av.join(" · "):""}`:`No he reconocido OT en «${nombre}». Añádelas con «＋ Añadir línea OT» mirando la foto.`);window._otOCR=ots;return ots.length}
+  set(ots.length?`Leída «${nombre}»${R.lector?" ("+R.lector+")":""}: ${ots.length} OT. Revisa cada una con la foto antes de guardar.${R.hojaHZ?" Hoja de avisos de 400 Hz: todas las OT van como tipo HZ.":""}${R.reserva?" ⚠️ Leída con el modelo de reserva (menos preciso): repásala con más cuidado.":""}${ots.dudas&&ots.dudas.length?" ⚠️ Dudas — "+ots.dudas.join(" · "):""}${av.length?" ⚠️ Revisar — "+av.join(" · "):""}`:`No he reconocido OT en «${nombre}». Añádelas con «＋ Añadir línea OT» mirando la foto.`);window._otOCR=ots;return ots.length}
 /* v289: lectura con Claude sin API de pago: la PWA copia las instrucciones y comparte la foto con la app de Claude;
    la respuesta (JSON) se pega en la PWA y pasa por las mismas correcciones que la lectura automática */
 function promptCl(){const P=(typeof POS!="undefined"?POS:[]).map(String),T=[...new Set(TEC.map(n=>NORM(n).trim()).filter(Boolean))];
@@ -183,8 +184,10 @@ function promptCl(){const P=(typeof POS!="undefined"?POS:[]).map(String),T=[...n
 Cabecera: FECHA | TURNO (Noche, Mañana, Tarde) | INTEGRANTES (solo nombres de: ${T.join(", ")||"—"}).
 Columnas de la tabla: PAS (posición, 3 cifras o dos como 504/508; posiciones dadas de alta: ${P.join(", ")}) | TIPO (PAS, AAA, AAP, AAC, AAR, HZ, SVGA, Sigma; GUIA = SVGA; SAI = PAS) | NUMERO DE OT (6 cifras, empieza por 59, 60 o 61) | H. INICIO | H. LLEGADA | H. FINAL (HH:MM) | ACTUACION, INCIDENCIA U OBSERVACIONES (transcripción literal; si sigue en otra línea o en el margen, únela a su fila).
 Las notas fuera de la tabla no son OT. Si dudas de algo, pon tu mejor lectura y explícalo en "dudas".
+Si la hoja es «ORDENES DE TRABAJO AVISOS DE 400 HERTZIOS» pon "hoja":"HZ" y "tipo":"HZ" en TODAS las OT (nunca PAS). Cada OT son dos filas: POSICION | S. SERVICIO | FECHA | H. AVISO | H. INICIO | H. FIN | MODELO | MATRICULA | ALARMA | MANGUERAS | CONSUMO | PORTATIL | HORA PORT. y debajo OBSERVACIONES. pos = POSICION; orden = S. SERVICIO; fecha = FECHA de la fila (AAAA-MM-DD); hIni = H. AVISO; hLle = H. INICIO; hCie = H. FIN; desc = OBSERVACIONES + "Modelo … · Matrícula … · Alarma … · Mangueras … · Consumo … · Portátil …" (solo los rellenos) + la nota del pie si la observación lleva una llamada como (X). Integrantes: los NOMBRE de MAÑANA, TARDE y NOCHE.
+Si no, es la hoja normal: "hoja":"PAS" y "fecha" de cada OT vacía.
 Responde SOLO con este JSON, sin texto antes ni después:
-{"fecha":"AAAA-MM-DD","turnos":[{"turno":"Noche|Mañana|Tarde","integrantes":"NOMBRE, NOMBRE"}],"ots":[{"pos":"","tipo":"","orden":"","hIni":"","hLle":"","hCie":"","desc":"","dudas":""}]}`}
+{"hoja":"PAS|HZ","fecha":"AAAA-MM-DD","turnos":[{"turno":"Noche|Mañana|Tarde","integrantes":"NOMBRE, NOMBRE"}],"ots":[{"pos":"","tipo":"","orden":"","fecha":"","hIni":"","hLle":"","hCie":"","desc":"","dudas":""}]}`}
 async function prepCl(){if(R.clFile||!R.fotoF)return;try{const z=await fotoIA(R.fotoF);const b=await new Promise(ok=>z.toBlob(ok,"image/jpeg",.9));R.clFile=new File([b],"hoja-OT.jpg",{type:"image/jpeg"})}catch(e){}}
 window.otClaude=async()=>{if(!TEC.length)await cargaTec();const t=promptCl();let cop=false;
  try{await navigator.clipboard.writeText(t);cop=true}catch(e){}
@@ -199,7 +202,7 @@ window.otClaudePega=()=>{const x=$("#oi_cltx");const t=x?x.value:"";const m=t.ma
  let d;try{d=JSON.parse(m[0])}catch(e){msg("La respuesta pegada no está completa: copia todo el bloque { … }");return}
  try{R.fecha="";R.turnos={};R.lector="Claude";const ots=deIA({...d,lector:"Claude",reserva:false});if(ponOts(ots,"respuesta de Claude",set)>0){pgPon(100,"ok");const b=$("#oi_cb");if(b){b.classList.add("oiok");b.textContent="✓ OK"}if(x)x.value="";
   const dl=document.querySelector("#sheetc details.oicl");if(dl)dl.open=false}}catch(e){msg("No se pudo aplicar: "+(e.message||e))}};
-window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;R.file=file;R.lector="";R.clFile=null;const st=$("#oi_est");let set=t=>{if(st)st.textContent=t;const m=/(\d{1,3})%/.exec(t||"");if(m&&/lector local|Leyendo la hoja…/.test(t)){R.pgReal=true;pgPon(+m[1])}};pgIni();let okN=0;R.fecha="";R.turno="";R.integ="";R.turnos={};
+window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;R.file=file;R.lector="";R.hojaHZ=false;R.clFile=null;const st=$("#oi_est");let set=t=>{if(st)st.textContent=t;const m=/(\d{1,3})%/.exec(t||"");if(m&&/lector local|Leyendo la hoja…/.test(t)){R.pgReal=true;pgPon(+m[1])}};pgIni();let okN=0;R.fecha="";R.turno="";R.integ="";R.turnos={};
  if(/^image\//.test(file.type)&&file!==R.fotoF){if(R.foto)URL.revokeObjectURL(R.foto);R.foto=URL.createObjectURL(file);R.fotoF=file;R.zoom=1;R.giro=0;pintaFoto()}R.clFile=null;setTimeout(prepCl,50); /* v281: al recargar la misma foto se conserva el giro */
  try{const n=file.name.toLowerCase();let ots=[];
   if(/^image\//.test(file.type)){try{ots=await claudeLee(file,set)}catch(e){const sc=/sin_clave/.test(e&&e.message||"");
@@ -214,9 +217,9 @@ window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;R.file=file;R.
 window.otImpGuarda=async()=>{const ok=R.rows.filter(o=>o.pos);if(!ok.length){msg("No hay OT que importar");return}
  const sinH=ok.filter(o=>!o.hIni).length;if(sinH&&!R.auto&&!confirm(`${sinH} OT sin hora de inicio. ¿Guardar igualmente?`))return;
  const f=R.fecha||hoy();let n=0,dup=0;const base=Date.now();
- R.rows.forEach((o,k)=>{if(!o.pos)return;const ya=inc.some(i=>(o.orden&&String(i.orden)==o.orden)||(i.pos==o.pos&&i.fecha==f&&o.hIni&&i.hIni==o.hIni));if(ya){dup++;return}
-  const integ=(o.integ||integDef(k)).trim();const tu=turnoFila(k);const cerr=!!o.hCie||f<hoy();
-  inc.unshift({id:String(base+k),pos:o.pos,tipo:o.tipo,equipos:[o.tipo],orden:o.orden,rep:"CGA",desc:o.desc.trim(),hIni:o.hIni,hLle:o.hLle,hCie:o.hCie,act:"",obs:"",fecha:f,estado:cerr?"cerrada":"abierta",
+ R.rows.forEach((o,k)=>{if(!o.pos)return;const fr=o.fecha||f; /* v290: fecha propia de la fila (hoja de 400 Hz) */const ya=inc.some(i=>(o.orden&&String(i.orden)==o.orden)||(i.pos==o.pos&&i.fecha==fr&&o.hIni&&i.hIni==o.hIni));if(ya){dup++;return}
+  const integ=(o.integ||integDef(k)).trim();const tu=turnoFila(k);const cerr=!!o.hCie||fr<hoy();
+  inc.unshift({id:String(base+k),pos:o.pos,tipo:o.tipo,equipos:[o.tipo],orden:o.orden,rep:"CGA",desc:o.desc.trim(),hIni:o.hIni,hLle:o.hLle,hCie:o.hCie,act:"",obs:"",fecha:fr,estado:cerr?"cerrada":"abierta",
    turno:tu||undefined,tecnico:integ||undefined,integrantes:integ||undefined,origen:"hoja importada"});n++});
  sv("pbb_inc",inc);closeSheet();if(R.foto)URL.revokeObjectURL(R.foto);R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{},rows:[],zoom:1};msg(`${n} OT importada${n==1?"":"s"}${dup?` · ${dup} ya existía${dup==1?"":"n"}`:""}`);go("dash");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});const m=document.querySelector("main");if(m)m.scrollTop=0}catch(e){}},80)};
 

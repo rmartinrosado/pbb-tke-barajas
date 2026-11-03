@@ -3,6 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 // Lee con IA (visión) la foto de la hoja TKE de registro de OT escrita a mano y devuelve JSON.
 // Claves: ANTHROPIC_API_KEY o GEMINI_API_KEY (secretos o Vault). Llamada desde la PWA (usuario con sesión).
 //
+// v290: también lee la hoja «ORDENES DE TRABAJO AVISOS DE 400 HERTZIOS» (siempre tipo HZ).
 // v289 (03/11/2026) · rehecho tras los fallos de hoy (logs):
 //  · gemini-flash-latest tardaba más de 100 s con razonamiento «medium» o daba 503 (saturado) y la lectura se cortaba;
 //    solo acababa leyendo gemini-flash-lite, que lee peor la letra a mano.
@@ -25,6 +26,15 @@ ESTRUCTURA DE LA HOJA
   7 ACTUACION, INCIDENCIA U OBSERVACIONES = texto libre; puede seguir en la línea de abajo o salirse por el margen derecho: únelo a la OT de su fila.
 · Notas sueltas fuera de la tabla (márgenes, encima de la cabecera) NO son OT.
 
+HAY DOS MODELOS DE HOJA. Mira el título impreso y pon "hoja":
+· "PAS" = hoja de registro de OT con columnas PAS | TIPO | NUMERO DE OT | H. INICIO | H. LLEGADA | H. FINAL | ACTUACION (la descrita arriba).
+· "HZ" = hoja «ORDENES DE TRABAJO AVISOS DE 400 HERTZIOS» (convertidores de 400 Hz). Es SIEMPRE de tipo HZ: pon "tipo":"HZ" en TODAS sus OT, nunca PAS.
+  Cabecera: MAÑANA / TARDE / NOCHE con su fecha al lado (p. ej. 23-10-26) y NOMBRE: técnicos de cada turno (en el mismo orden MAÑANA, TARDE, NOCHE).
+  Cada OT ocupa DOS filas impresas: una fila POSICION | S. SERVICIO | FECHA | H. AVISO | H. INICIO | H. FIN | MODELO | MATRICULA | ALARMA | MANGUERAS | CONSUMO | PORTATIL | HORA PORT., y debajo la fila OBSERVACIONES (texto libre que puede ocupar toda la anchura).
+  Correspondencia: pos = POSICION; orden = S. SERVICIO (6 cifras); fecha = FECHA de esa fila (dd/mm, año de la cabecera) en AAAA-MM-DD; hIni = H. AVISO; hLle = H. INICIO; hCie = H. FIN;
+  desc = OBSERVACIONES de esa OT y, detrás, los datos rellenos de la fila con su nombre: "Modelo A330 · Matrícula EC-MNL · Alarma … · Mangueras … · Consumo … · Portátil … · Hora port. …" (omite los vacíos o con guion).
+  Si una observación lleva una llamada como (X) o (*) y abajo de la hoja hay una nota con la misma llamada, añade el texto de esa nota al final de la desc de esa OT.
+
 DATOS DE REFERENCIA
 · Posiciones dadas de alta (para desambiguar cifras dudosas): ${pos.join(", ") || "—"}.
 · Técnicos dados de alta: ${[...new Set(tec.map((t) => String(t).trim().toUpperCase()))].join(", ") || "—"}. Los INTEGRANTES deben ser nombres de esta lista: compara letra a letra y por longitud (ALEX 4 letras, ALBERTO 7) y elige el que mejor encaje.
@@ -39,21 +49,22 @@ CÓMO LEER
 6. Si dudas de una cifra o palabra, pon tu mejor lectura y explícalo en "dudas" (p. ej. "orden 601298 o 601293").
 7. Antes de responder, repasa la foto otra vez fila a fila comparando con tu transcripción y corrige los fallos.
 
-Responde SOLO con JSON:
-{"fecha":"AAAA-MM-DD","turnos":[{"turno":"Noche|Mañana|Tarde","integrantes":"NOMBRE, NOMBRE"}],"ots":[{"pos":"","tipo":"","orden":"","hIni":"","hLle":"","hCie":"","desc":"","dudas":""}]}`;
+Responde SOLO con JSON ("fecha" de cada OT solo si la hoja la trae por fila; si no, ""):
+{"hoja":"PAS|HZ","fecha":"AAAA-MM-DD","turnos":[{"turno":"Noche|Mañana|Tarde","integrantes":"NOMBRE, NOMBRE"}],"ots":[{"pos":"","tipo":"","orden":"","fecha":"","hIni":"","hLle":"","hCie":"","desc":"","dudas":""}]}`;
 
 const SCHEMA = {
   type: "OBJECT",
   properties: {
+    hoja: { type: "STRING", enum: ["PAS", "HZ"] },
     fecha: { type: "STRING" },
     turnos: { type: "ARRAY", items: { type: "OBJECT", properties: { turno: { type: "STRING" }, integrantes: { type: "STRING" } }, required: ["turno", "integrantes"] } },
     ots: { type: "ARRAY", items: { type: "OBJECT", properties: {
-      pos: { type: "STRING" }, tipo: { type: "STRING" }, orden: { type: "STRING" }, hIni: { type: "STRING" }, hLle: { type: "STRING" },
+      pos: { type: "STRING" }, tipo: { type: "STRING" }, orden: { type: "STRING" }, fecha: { type: "STRING" }, hIni: { type: "STRING" }, hLle: { type: "STRING" },
       hCie: { type: "STRING" }, desc: { type: "STRING" }, dudas: { type: "STRING" },
-    }, required: ["pos", "tipo", "orden", "hIni", "hLle", "hCie", "desc", "dudas"], propertyOrdering: ["pos", "tipo", "orden", "hIni", "hLle", "hCie", "desc", "dudas"] } },
+    }, required: ["pos", "tipo", "orden", "fecha", "hIni", "hLle", "hCie", "desc", "dudas"], propertyOrdering: ["pos", "tipo", "orden", "fecha", "hIni", "hLle", "hCie", "desc", "dudas"] } },
   },
-  required: ["fecha", "turnos", "ots"],
-  propertyOrdering: ["fecha", "turnos", "ots"],
+  required: ["hoja", "fecha", "turnos", "ots"],
+  propertyOrdering: ["hoja", "fecha", "turnos", "ots"],
 };
 
 async function conClaude(key: string, img: string, tipo: string, prompt: string) {
@@ -201,6 +212,8 @@ Deno.serve(async (req) => {
     const m = t.match(/\{[\s\S]*\}/);
     if (!m) return json({ error: "formato", mensaje: "Respuesta sin JSON", texto: t }, 502);
     let o; try { o = JSON.parse(m[0]); } catch { return json({ error: "formato", mensaje: "El lector devolvió un JSON incompleto; vuelve a cargar la hoja" }, 502); }
+    // v290: la hoja de avisos de 400 Hz es SIEMPRE de tipo HZ
+    if (o && o.hoja === "HZ" && Array.isArray(o.ots)) { o.hoja = "HZ"; o.ots.forEach((x: { tipo?: string }) => { x.tipo = "HZ"; }); }
     return json({ ...o, lector: ka ? "Claude" : "Gemini " + modelo, reserva: lite });
   } catch (e) {
     return json({ error: "excepcion", mensaje: String(e) }, 500);
