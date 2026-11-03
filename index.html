@@ -4519,7 +4519,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=297;
+const APP_VER=298;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5097,7 +5097,7 @@ html.p230ns,html.p230ns body{overflow:hidden!important;overscroll-behavior:none;
 #app .kpi .tkled:not(.l232){background:#4a4f5a!important;box-shadow:none!important;animation:none!important;opacity:1!important}
 #app .ohb.ohe{border-color:#3b9eff!important;background:#3b9eff1a!important;color:#8cc4ff!important}#app .ohb.ohe small{color:#8cc4ff!important}#app .ohb.ohe b{color:#cfe6ff!important;white-space:nowrap}
 #app .tkled.l232{animation:none!important;box-shadow:none!important;background:#4a4f5a!important}
-#app .tkled.l232:not(.am){opacity:1!important}
+#app .tkled.l232:not(.am):not(.az){opacity:1!important} /* v298: la de espera (az) también parpadea */
 #app .tkled.l232.am{background:#ffd21f!important;box-shadow:0 0 8px #ffd21f!important;animation:l232b 1s steps(1,end) infinite!important}
 #app .tkled.l232.ro{background:#e5342b!important;box-shadow:0 0 8px #e5342b!important}
 @keyframes l232b{0%{opacity:1}50%{opacity:.12}}
@@ -5558,7 +5558,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  `html #app .tkled.l232.am,html.lt #app .tkled.l232.am{background:#2fd36b!important;box-shadow:0 0 8px #2fd36b!important}`,
  `html.lt #app .tkled.l232.am{box-shadow:0 0 0 2px #1a7a3c,0 0 8px #2fd36b!important}`,
  `html #app .tkled.l232.ro{background:#e5342b!important;box-shadow:0 0 8px #e5342b!important}`,
- `html #app .tkled.l232.az,html.lt #app .tkled.l232.az{background:#ffd21f!important;box-shadow:0 0 8px #ffd21f!important;animation:none!important;opacity:1!important}`,
+ `html #app .tkled.l232.az,html.lt #app .tkled.l232.az{background:#ffd21f!important;box-shadow:0 0 8px #ffd21f!important}`,
  `html.lt #app .tkled.l232.az{background:#e6b800!important;box-shadow:0 0 0 2px #8a6d00,0 0 8px #e6b800!important}`,
  /* v286: Espera de condiciones en amarillo PARPADEANDO cada segundo (como las abiertas) */
  `html #app .tkled.l232.az,html.lt #app .tkled.l232.az{animation:l232b 1s steps(1,end) infinite!important}`,
