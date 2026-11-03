@@ -258,6 +258,9 @@ window.hidrSimHTML=m=>`<div class="gsim" data-sim="hidr_${m||"rep"}"></div>`;
 /* croquis de cada procedimiento: el mismo esquema con la maniobra que toca */
 try{const nota=["Toca una válvula para ver qué hace, su bobina, la salida del PLC y qué medir.","Arriba, los botones cambian la maniobra: se ilumina por dónde va el aceite y qué bobinas tienen tensión.","Posiciones según el esquema hidráulico de la descripción técnica (pág. 20)."];
  [["rep","Reposo"],["sub","Subir"],["baj","Bajar"],["rap","Bajada rápida"],["man","Sin corriente · bomba manual"]].forEach(([m,t])=>{CROQ["hidr_"+m]={i:"🛢️",f:44,t:"Esquema hidráulico interactivo · "+t,sim:"hidr_"+m,n:nota}})}catch(e){console.warn("hidraulica croquis",e)}
+/* v278: el caso general «No sube / no baja (elevación)» también lleva la animación del esquema hidráulico (empieza en Subir;
+   con los botones de arriba se pasa a Bajar, Bajada rápida o Sin corriente) */
+try{["PAS"].forEach(t=>{const S=(GUIA.tipos[t]&&GUIA.tipos[t].s||[]).find(x=>/^No sube \/ no baja/i.test(x.t));if(S&&!S.cro)S.cro="hidr_sub"})}catch(e){console.warn("hidraulica no sube/no baja",e)}
 
 /* ---------- primera actuación en campo (sin puentes) ---------- */
 const PRIM={
