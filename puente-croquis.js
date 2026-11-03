@@ -127,14 +127,14 @@ function v5(o){
  const id=o.mod,[bk,pk]=MODC[id]||["v","a"],B=BODY[bk],Pn=PAN[pk];
  const pa=/^(\d+)\.(\d)/.exec(o.b1)||[0,8,1],pb=/^(\d+)\.(\d)/.exec(o.b2)||[0,8,2];
  const n1=+pa[1],r1=+pa[2],n2=+pb[1],r2=+pb[2],blk=Math.ceil(n1/2),c1=(n1-1)%2,c2=(n2-1)%2;
- const SW=150,X0=70,TOP=58,W=X0+SW+130,H=462,F=c=>`style="fill:${c}"`;
+ const SW=150,X0=70,TOP=58,W=X0+SW+130,HM=462,H=484,F=c=>`style="fill:${c}"`;
  const n0=2*blk-1,cols=[n0,n0+1],cx=c=>X0+40+c*70,rowY=[0,250,310,368,414];
  const safe=bk=="y",nLed=safe?2:4;
  /* bloques vecinos (cortados) */
- const vec=(x,w)=>`<rect x="${x}" y="${TOP}" width="${w}" height="${H-TOP-24}" fill="${B[0]}" stroke="${B[1]}" opacity=".45"/>
+ const vec=(x,w)=>`<rect x="${x}" y="${TOP}" width="${w}" height="${HM-TOP-24}" fill="${B[0]}" stroke="${B[1]}" opacity=".45"/>
   <rect x="${x}" y="${TOP+26}" width="${w}" height="104" fill="${Pn[0]}" opacity=".35"/>`;
  let g=vec(X0-34,30)+vec(X0+SW+4,30);
- g+=`<rect x="${X0}" y="${TOP}" width="${SW}" height="${H-TOP-24}" rx="4" fill="${B[0]}" stroke="${B[1]}" stroke-width="1.5"/>
+ g+=`<rect x="${X0}" y="${TOP}" width="${SW}" height="${HM-TOP-24}" rx="4" fill="${B[0]}" stroke="${B[1]}" stroke-width="1.5"/>
  <rect x="${X0+8}" y="${TOP+6}" width="${SW-16}" height="14" rx="2" fill="#ffffff55"/>
  <rect x="${X0+12}" y="${TOP+26}" width="${SW-24}" height="104" rx="4" fill="${Pn[0]}" stroke="${Pn[1]}"/>
  <line x1="${X0+14}" y1="${TOP+48}" x2="${X0+SW-14}" y2="${TOP+48}" stroke="${Pn[1]}"/>
@@ -142,7 +142,7 @@ function v5(o){
  for(let k=0;k<nLed;k++){const ch=safe?cols[k]:(blk-1)*4+k+1,hit=safe?(ch==n1):false,lx=X0+36+(k%2)*78,ly=TOP+70+Math.floor(k/2)*30;
   g+=`<circle class="${hit?"led":""}" cx="${lx}" cy="${ly}" r="8" fill="${hit?"var(--pk-led)":"#5d5d5d"}" stroke="#222"/><text x="${lx+14}" y="${ly+4}" font-size="11" ${F("#111")} font-weight="700">${safe?ch:k+1}</text>`}
  /* conector */
- g+=`<rect x="${X0+8}" y="${TOP+150}" width="${SW-16}" height="${H-TOP-186}" rx="4" fill="${B[2]}" stroke="${B[1]}"/>
+ g+=`<rect x="${X0+8}" y="${TOP+150}" width="${SW-16}" height="${HM-TOP-186}" rx="4" fill="${B[2]}" stroke="${B[1]}"/>
  <rect x="${X0+8}" y="${rowY[3]-30}" width="${SW-16}" height="58" fill="#2f5fb0" opacity=".85"/><rect x="${X0+8}" y="${rowY[4]-30}" width="${SW-16}" height="46" fill="#2f8a3e" opacity=".85"/>`;
  for(let r=1;r<=4;r++)for(let c=0;c<2;c++){const n=cols[c],X=cx(c),Y=rowY[r],hit=(n==n1&&r==r1)||(n==n2&&r==r2);
   g+=`<text x="${X}" y="${Y-32}" font-size="13" text-anchor="middle" ${F(hit?"#c00000":(r>2?"#ffffff":B[3]))} font-weight="${hit?900:700}">${n}.${r}</text>
@@ -162,6 +162,6 @@ function v5(o){
  <path class="wire2" d="${d}"/><path class="wire" d="${d}"/>${fer(xa+side*8,ya+6)}${fer(xb+side*8,yb+6)}
  <g font-weight="800"><text x="${lx}" y="${ya+3}" font-size="15" class="hi">${esc(o.b1)}</text><text x="${lx}" y="${ya+19}" font-size="10.5" class="mu">${esc(o.k1)}</text>
  <text x="${lx}" y="${yb+3}" font-size="15" class="hi">${esc(o.b2)}</text><text x="${lx}" y="${yb+19}" font-size="10.5" class="mu">${esc(o.k2)}</text></g>
- <text x="12" y="${H-8}" font-size="10" class="mu">${safe?`Con el puente, el LED ${n1} debe encenderse`:"Con el puente, el LED de la entrada se enciende"}</text></svg>`}
+ <text x="${W/2}" y="${H-24}" text-anchor="middle" class="mu" style="font-size:12px"><tspan x="${W/2}">${safe?`Con el puente, el LED ${n1}`:"Con el puente, el LED de la entrada"}</tspan><tspan x="${W/2}" dy="15">${safe?"debe encenderse":"se enciende"}</tspan></text></svg>`} /* v303: texto bajo el dibujo centrado y en dos líneas para que entre en pantalla */
 window.croquisPuente=function(o,v){css();o=Object.assign({mod:"E-A8",ch:8,b1:"8.1",b2:"8.2",k1:"IN08S",k2:"UT2",d:"F.C. INCLINACIÓN"},o||{});return (v==5?v5:v==4?v4:v==2?v2:v==3?v3:v1)(o)};
 })();
