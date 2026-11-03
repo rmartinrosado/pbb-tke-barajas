@@ -9,6 +9,8 @@ const TIPOS=["SVGA","SIGMA","PAS","AAA","AAP","AAC","AAR","HZ"];
 const tipoOK=t=>{const u=NORM(t);if(/\bGU[I1L]A(DO)?\b|\bVDGS\b/.test(u))return "SVGA";const k=TIPOS.find(x=>new RegExp("\\b"+x+"\\b").test(u));return k?(k=="SIGMA"?"Sigma":k):(/\bSAI\b/.test(u)?"PAS":"")}; /* v289: GUIA = SVGA · SAI = PAS */
 const isoD=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const hh=s=>{const m=/(\d{1,2})\s*[:.h]\s*(\d{2})/.exec(String(s||""));return m&&+m[1]<24&&+m[2]<60?m[1].padStart(2,"0")+":"+m[2]:""};
+/* v291: una línea de la hoja vale aunque le falten casillas: lo que importa son las horas y las observaciones */
+const vale=o=>!!(o&&(String(o.pos||"").trim()||o.hIni||o.hLle||o.hCie||String(o.desc||"").trim()));
 let R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{},rows:[],zoom:1};let TEC=[];
 
 function fechaTxt(t){const U=NORM(t);let m;
@@ -90,7 +92,7 @@ async function claudeLee(file,set){set("Analizando la hoja manuscrita línea a l
 function deIA(d){if(!d||!Array.isArray(d.ots))throw new Error("la respuesta no tiene la lista de OT");R.lector=d.lector||R.lector||"";R.reserva=!!d.reserva;if(d.fecha&&/^\d{4}-\d{2}-\d{2}$/.test(d.fecha))R.fecha=fechaOK(d.fecha);
  (d.turnos||[]).forEach(t=>{const n=turnoTxt(t.turno);if(n&&t.integrantes)R.turnos[n]=integOK(limpiaInteg(t.integrantes))});
  const dudas=[];const hz=/^HZ$/i.test(String(d.hoja||"").trim()); /* v290: hoja «Avisos de 400 Hertzios» → SIEMPRE tipo HZ */
- const ots=d.ots.filter(o=>o&&o.pos).map(o=>{if(o.dudas)dudas.push(`${o.pos}: ${o.dudas}`);const fo=/^\d{4}-\d{2}-\d{2}$/.test(o.fecha||"")?fechaOK(o.fecha):"";return {fecha:fo,pos:posOK(o.pos),tipo:hz?"HZ":(tipoOK(o.tipo)||"PAS"),orden:ordenDe(o.orden)||String(o.orden||"").replace(/\D/g,""),hIni:hh(o.hIni),hLle:hh(o.hLle),hCie:hh(o.hCie),desc:String(o.desc||"").trim(),integ:""}});R.hojaHZ=hz;
+ const ots=d.ots.filter(vale).map(o=>{if(o.dudas)dudas.push(`${o.pos}: ${o.dudas}`);const fo=/^\d{4}-\d{2}-\d{2}$/.test(o.fecha||"")?fechaOK(o.fecha):"";return {fecha:fo,pos:posOK(o.pos),tipo:hz?"HZ":(tipoOK(o.tipo)||"PAS"),orden:ordenDe(o.orden)||String(o.orden||"").replace(/\D/g,""),hIni:hh(o.hIni),hLle:hh(o.hLle),hCie:hh(o.hCie),desc:String(o.desc||"").trim(),integ:""}});R.hojaHZ=hz;
  ots.dudas=dudas;return ots}
 async function cargaTec(){try{const r=await sb.from("tecnicos").select("nombre");TEC=(r.data||[]).map(x=>x.nombre).filter(Boolean)}catch(e){}}
 function libScript(src,ok){return new Promise((res,rej)=>{if(ok()){res();return}const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("No se pudo cargar "+src));document.head.appendChild(s)})}
@@ -153,7 +155,7 @@ const pgFin=ok=>{clearInterval(pgT);const b=$("#oi_cb");if(ok){pgPon(100,"ok");i
  else{pgPon(R.pg||0,"ko");if(b){b.disabled=false;b.classList.remove("oiok");b.textContent="Cargar Hoja OT"}}R.pgReal=false};
 /* v246: «Descargar Hoja OT» · analiza todas las líneas manuscritas de la foto y las pone como OT nuevas (una por línea) para revisarlas y guardarlas */
 window.otDescarga=()=>{if(R.ocup){msg("Ya se está leyendo la hoja…");return}
- if(R.file){if(R.rows.some(o=>o.pos)&&!confirm("Se volverá a analizar la hoja y se sustituirán las líneas actuales. ¿Seguir?"))return;otImpFile(R.file);return}
+ if(R.file){if(R.rows.some(vale)&&!confirm("Se volverá a analizar la hoja y se sustituirán las líneas actuales. ¿Seguir?"))return;otImpFile(R.file);return}
  const i=document.querySelector("#sheetc .oifile input[type=file]");if(i)i.click()};
 /* «831» → 08:31 · «1215» → 12:15 · «8.31» → 08:31 */
 window.fmtH=v=>{const t=String(v||"").trim();if(!t)return "";const m=/^(\d{1,2})\D+(\d{2})$/.exec(t);if(m)return hh(m[1]+":"+m[2]);const d=t.replace(/\D/g,"");if(d.length==3||d.length==4)return hh(d.slice(0,-2)+":"+d.slice(-2));return t};
@@ -167,7 +169,7 @@ window.otAnade=()=>{R.rows.push(vacia());pintaFilas();setTimeout(()=>{const e=$(
 window.otZoom=d=>{R.zoom=Math.max(1,Math.min(5,R.zoom+d));pintaFoto()};
 window.otGiro=()=>{R.giro=((R.giro||0)+90)%360;pintaFoto();R.clFile=null;setTimeout(prepCl,50)};
 window.otFotoAlto=()=>{const e=$("#oi_fs");if(e)e.classList.toggle("alto")};
-function prev(){const e=$("#oi_prev");if(!e)return;const ok=R.rows.filter(o=>o.pos);const nr=[...new Set(ok.map(o=>o.pos).filter(p=>!posReg(p)))];const so=ok.filter(o=>!/^\d{6}$/.test(o.orden)).length;
+function prev(){const e=$("#oi_prev");if(!e)return;const ok=R.rows.filter(vale);const nr=[...new Set(ok.map(o=>o.pos).filter(p=>p&&!posReg(p)))];const nr0=[...new Set(ok.map(o=>o.pos).filter(p=>!posReg(p)))];const so=ok.filter(o=>o.orden&&!/^\d{6}$/.test(o.orden)).length;
  e.innerHTML=`${ok.length} OT${nr.length?` · <span style="color:#ef6c00">no dadas de alta: ${nr.join(", ")}</span>`:""}${so?` · <span style="color:#d32f2f">${so} sin nº OT válido</span>`:""}`}
 /* v289: pone las OT leídas en la pantalla de revisión (común a foto, archivo y respuesta pegada de Claude) */
 function ponOts(ots,nombre,set){const fs=ots.map(o=>o.fecha).filter(Boolean);if(!R.fecha&&fs.length)R.fecha=fs[0];if(!R.fecha)R.fecha=hoy();
@@ -184,6 +186,7 @@ function promptCl(){const P=(typeof POS!="undefined"?POS:[]).map(String),T=[...n
 Cabecera: FECHA | TURNO (Noche, Mañana, Tarde) | INTEGRANTES (solo nombres de: ${T.join(", ")||"—"}).
 Columnas de la tabla: PAS (posición, 3 cifras o dos como 504/508; posiciones dadas de alta: ${P.join(", ")}) | TIPO (PAS, AAA, AAP, AAC, AAR, HZ, SVGA, Sigma; GUIA = SVGA; SAI = PAS) | NUMERO DE OT (6 cifras, empieza por 59, 60 o 61) | H. INICIO | H. LLEGADA | H. FINAL (HH:MM) | ACTUACION, INCIDENCIA U OBSERVACIONES (transcripción literal; si sigue en otra línea o en el margen, únela a su fila).
 Las notas fuera de la tabla no son OT. Si dudas de algo, pon tu mejor lectura y explícalo en "dudas".
+Si en una fila faltan casillas, devuélvela igual con esas casillas en "" (no lo comentes en dudas): lo que importa es leer bien las HORAS y las OBSERVACIONES.
 Si la hoja es «ORDENES DE TRABAJO AVISOS DE 400 HERTZIOS» pon "hoja":"HZ" y "tipo":"HZ" en TODAS las OT (nunca PAS). Cada OT son dos filas: POSICION | S. SERVICIO | FECHA | H. AVISO | H. INICIO | H. FIN | MODELO | MATRICULA | ALARMA | MANGUERAS | CONSUMO | PORTATIL | HORA PORT. y debajo OBSERVACIONES. pos = POSICION; orden = S. SERVICIO; fecha = FECHA de la fila (AAAA-MM-DD); hIni = H. AVISO; hLle = H. INICIO; hCie = H. FIN; desc = OBSERVACIONES + "Modelo … · Matrícula … · Alarma … · Mangueras … · Consumo … · Portátil …" (solo los rellenos) + la nota del pie si la observación lleva una llamada como (X). Integrantes: los NOMBRE de MAÑANA, TARDE y NOCHE.
 Si no, es la hoja normal: "hoja":"PAS" y "fecha" de cada OT vacía.
 Responde SOLO con este JSON, sin texto antes ni después:
@@ -212,12 +215,12 @@ window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;R.file=file;R.
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");ots=deTabla(await excelFilas(file))}
   else{const t=await file.text();ots=t.includes(";")||t.includes(",")?deTabla(csvFilas(t)):deLineas(t)}
   okN=ponOts(ots,file.name,set)}
- catch(e){set("Error al leer el archivo: "+(e.message||e))}finally{R.ocup=false;pgFin(okN>0&&R.rows.some(o=>o.pos));
-  if(okN>0&&R.rows.some(o=>o.pos))setTimeout(()=>{R.auto=true;try{otImpGuarda()}finally{R.auto=false}},1200)}};
-window.otImpGuarda=async()=>{const ok=R.rows.filter(o=>o.pos);if(!ok.length){msg("No hay OT que importar");return}
+ catch(e){set("Error al leer el archivo: "+(e.message||e))}finally{R.ocup=false;pgFin(okN>0&&R.rows.some(vale));
+  if(okN>0&&R.rows.some(vale))setTimeout(()=>{R.auto=true;try{otImpGuarda()}finally{R.auto=false}},1200)}};
+window.otImpGuarda=async()=>{const ok=R.rows.filter(vale);if(!ok.length){msg("No hay OT que importar");return}
  const sinH=ok.filter(o=>!o.hIni).length;if(sinH&&!R.auto&&!confirm(`${sinH} OT sin hora de inicio. ¿Guardar igualmente?`))return;
  const f=R.fecha||hoy();let n=0,dup=0;const base=Date.now();
- R.rows.forEach((o,k)=>{if(!o.pos)return;const fr=o.fecha||f; /* v290: fecha propia de la fila (hoja de 400 Hz) */const ya=inc.some(i=>(o.orden&&String(i.orden)==o.orden)||(i.pos==o.pos&&i.fecha==fr&&o.hIni&&i.hIni==o.hIni));if(ya){dup++;return}
+ R.rows.forEach((o,k)=>{if(!vale(o))return;const fr=o.fecha||f; /* v290: fecha propia de la fila (hoja de 400 Hz) */const ya=inc.some(i=>(o.orden&&String(i.orden)==o.orden)||(i.pos==o.pos&&i.fecha==fr&&o.hIni&&i.hIni==o.hIni));if(ya){dup++;return}
   const integ=(o.integ||integDef(k)).trim();const tu=turnoFila(k);const cerr=!!o.hCie||fr<hoy();
   inc.unshift({id:String(base+k),pos:o.pos,tipo:o.tipo,equipos:[o.tipo],orden:o.orden,rep:"CGA",desc:o.desc.trim(),hIni:o.hIni,hLle:o.hLle,hCie:o.hCie,act:"",obs:"",fecha:fr,estado:cerr?"cerrada":"abierta",
    turno:tu||undefined,tecnico:integ||undefined,integrantes:integ||undefined,origen:"hoja importada"});n++});

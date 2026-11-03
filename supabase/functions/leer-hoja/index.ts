@@ -3,6 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 // Lee con IA (visión) la foto de la hoja TKE de registro de OT escrita a mano y devuelve JSON.
 // Claves: ANTHROPIC_API_KEY o GEMINI_API_KEY (secretos o Vault). Llamada desde la PWA (usuario con sesión).
 //
+// v291: las filas con casillas vacías se devuelven igual; prioridad a horas y observaciones.
 // v290: también lee la hoja «ORDENES DE TRABAJO AVISOS DE 400 HERTZIOS» (siempre tipo HZ).
 // v289 (03/11/2026) · rehecho tras los fallos de hoy (logs):
 //  · gemini-flash-latest tardaba más de 100 s con razonamiento «medium» o daba 503 (saturado) y la lectura se cortaba;
@@ -47,7 +48,8 @@ CÓMO LEER
 4. Si una cifra está tachada y reescrita, usa la reescrita. Celda vacía = "". Horas en HH:MM (8:43 → 08:43).
 5. Actuación: transcribe lo escrito, en español, con mayúscula inicial, sin inventar ni resumir; mantén las abreviaturas (CBTH, SAI, MCB, FC…).
 6. Si dudas de una cifra o palabra, pon tu mejor lectura y explícalo en "dudas" (p. ej. "orden 601298 o 601293").
-7. Antes de responder, repasa la foto otra vez fila a fila comparando con tu transcripción y corrige los fallos.
+7. Si en una fila faltan casillas (posición, tipo, nº de OT, modelo, matrícula…), no pasa nada: devuélvela igual con esas casillas en "" y no lo comentes en "dudas". Lo que IMPORTA es leer bien las HORAS y las OBSERVACIONES / ACTUACIÓN: dedícales la máxima atención.
+8. Antes de responder, repasa la foto otra vez fila a fila comparando con tu transcripción y corrige los fallos.
 
 Responde SOLO con JSON ("fecha" de cada OT solo si la hoja la trae por fila; si no, ""):
 {"hoja":"PAS|HZ","fecha":"AAAA-MM-DD","turnos":[{"turno":"Noche|Mañana|Tarde","integrantes":"NOMBRE, NOMBRE"}],"ots":[{"pos":"","tipo":"","orden":"","fecha":"","hIni":"","hLle":"","hCie":"","desc":"","dudas":""}]}`;
