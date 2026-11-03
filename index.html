@@ -4207,8 +4207,8 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
  const st=document.createElement("style");st.textContent=`.ot .ohd{flex-wrap:nowrap;gap:6px}.ot .ohd>b{white-space:nowrap;font-size:15px}
 .ot .ohd .tag{font-size:11px;padding:2px 6px}.ot .ohd>span:last-child{box-sizing:border-box;width:86px;justify-content:center;font-size:10px;letter-spacing:.3px;padding:3px 4px;gap:4px;white-space:nowrap}
 .ohm{flex:1;display:flex;justify-content:flex-end;min-width:0}
-.ohb.ohr4{width:150px;justify-content:stretch;padding:0;gap:0;overflow:hidden}.ohr4 .ohc{flex:1 1 0;min-width:0;align-self:stretch;justify-content:center}.ohr4 .ohc b{font-size:10.5px;letter-spacing:0}
-.ohr4 .ohc+.ohc{border-left:1px solid color-mix(in srgb,currentColor 35%,transparent)}.ohr4 .ohf{flex:0 0 33px;border-right:1px solid currentColor}.ohr4 .ohf+.ohc{border-left:0}
+.ohb.ohr4{width:auto;flex:0 1 166px;min-width:144px;justify-content:stretch;padding:0;gap:0;overflow:hidden}.ohr4 .ohc{flex:1 1 0;min-width:0;align-self:stretch;justify-content:center}.ohr4 .ohc b{font-size:10.5px;letter-spacing:0}
+.ohr4 .ohc+.ohc{border-left:1px solid color-mix(in srgb,currentColor 35%,transparent)}.ohr4 .ohf{flex:1 1 0;border-right:1px solid currentColor}.ohr4 .ohf+.ohc{border-left:0}
 .ot .ohd>.ohm4~span:last-child{width:76px!important;font-size:9px!important;letter-spacing:0!important;padding:3px 2px!important}.ot .ohd>span.ohm::after{content:none;display:none}
 .ohb{box-sizing:border-box;width:118px;height:36px;flex:none;display:flex;align-items:center;justify-content:space-evenly;border-radius:8px;border:1px solid currentColor;font-variant-numeric:tabular-nums}
 .ohc{display:flex;flex-direction:column;align-items:center;line-height:1.05}.ohc small{font-size:8px;font-weight:700;opacity:.8;letter-spacing:.3px}.ohc b{font-size:11.5px;font-weight:800;letter-spacing:-.2px}
@@ -4519,7 +4519,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=298;
+const APP_VER=299;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
