@@ -69,11 +69,16 @@ function lev(a,b){const v=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i
 function integOK(t){const L=[...new Set(TEC.map(n=>NORM(n).trim()).filter(Boolean))];if(!L.length)return t;
  return String(t||"").split(/\s*,\s*/).filter(Boolean).map(n=>{const u=NORM(n).trim();if(L.includes(u))return u;let b=null,bd=99;L.forEach(x=>{const d=lev(u,x);if(d<bd){bd=d;b=x}});return b&&bd<=Math.max(1,Math.floor(u.length/3))?b:n}).join(", ")}
 /* v43: lectura de la foto con Claude (función Supabase «leer-hoja»); si no está disponible, OCR local */
-async function claudeLee(file,set){set("Analizando la hoja manuscrita línea a línea…");const c=await giro(file,0);const k=Math.min(1,2000/Math.max(c.width,c.height));
+/* v281: la foto va al lector con el giro del botón ⟳ (derecha se lee mejor), el móvil espera hasta 150 s (antes 120 s y se cortaba antes que el servidor)
+   y los errores del servidor salen con su motivo real (cupo, modelo, tiempo) en vez de «no disponible» */
+async function claudeLee(file,set){set("Analizando la hoja manuscrita línea a línea…");const c=await giro(file,R.giro||0);const k=Math.min(1,2200/Math.max(c.width,c.height));
  const z=document.createElement("canvas");z.width=Math.round(c.width*k);z.height=Math.round(c.height*k);z.getContext("2d").drawImage(c,0,0,z.width,z.height);
  const img=z.toDataURL("image/jpeg",.85).split(",")[1];
- const r=await Promise.race([sb.functions.invoke("leer-hoja",{body:{img,tipo:"image/jpeg",pos:(typeof POS!="undefined"?POS:[]).map(String),tec:TEC}}),new Promise((_,no)=>setTimeout(()=>no(new Error("el lector IA tarda demasiado")),120000))]);
- if(r.error||!r.data||!Array.isArray(r.data.ots)){let m="";try{const j=r.error&&r.error.context&&await r.error.context.json();m=j&&(j.error=="sin_clave"?"sin_clave":j.mensaje)||""}catch(e){}throw new Error(m||"no disponible")}
+ const r=await Promise.race([sb.functions.invoke("leer-hoja",{body:{img,tipo:"image/jpeg",pos:(typeof POS!="undefined"?POS:[]).map(String),tec:TEC}}),new Promise((_,no)=>setTimeout(()=>no(new Error("el lector IA tarda demasiado; prueba de nuevo")),150000))]);
+ if(r.error||!r.data||!Array.isArray(r.data.ots)){let m="";const cx=r.error&&r.error.context;const st=cx&&cx.status;try{const j=cx&&await cx.clone().json();m=j&&(j.error=="sin_clave"?"sin_clave":j.mensaje)||""}catch(e){}
+  if(!m&&cx){try{m=(await cx.text()).slice(0,160)}catch(e){}}
+  if(st==546||/WORKER_LIMIT|wall ?clock/i.test(m))m="el servidor cortó la lectura por tiempo";else if(st==401||st==403)m="sesión caducada: cierra y vuelve a entrar en la PWA";
+  else if(!m&&r.error)m=r.error.message||"";throw new Error(m||"no disponible")}
  const d=r.data;R.lector=d.lector||"";if(d.fecha&&/^\d{4}-\d{2}-\d{2}$/.test(d.fecha))R.fecha=fechaOK(d.fecha);
  (d.turnos||[]).forEach(t=>{const n=turnoTxt(t.turno);if(n&&t.integrantes)R.turnos[n]=integOK(limpiaInteg(t.integrantes))});
  const dudas=[];const ots=d.ots.filter(o=>o&&o.pos).map(o=>{if(o.dudas)dudas.push(`${o.pos}: ${o.dudas}`);return {pos:posOK(o.pos),tipo:tipoOK(o.tipo)||"PAS",orden:ordenDe(o.orden)||String(o.orden||"").replace(/\D/g,""),hIni:hh(o.hIni),hLle:hh(o.hLle),hCie:hh(o.hCie),desc:String(o.desc||"").trim(),integ:"",fecha:""}});
@@ -150,7 +155,7 @@ window.otFotoAlto=()=>{const e=$("#oi_fs");if(e)e.classList.toggle("alto")};
 function prev(){const e=$("#oi_prev");if(!e)return;const ok=R.rows.filter(o=>o.pos);const nr=[...new Set(ok.map(o=>o.pos).filter(p=>!posReg(p)))];const so=ok.filter(o=>!/^\d{6}$/.test(o.orden)).length;
  e.innerHTML=`${ok.length} OT${nr.length?` · <span style="color:#ef6c00">no dadas de alta: ${nr.join(", ")}</span>`:""}${so?` · <span style="color:#d32f2f">${so} sin nº OT válido</span>`:""}`}
 window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;R.file=file;const st=$("#oi_est");let set=t=>{if(st)st.textContent=t;const m=/(\d{1,3})%/.exec(t||"");if(m&&/lector local|Leyendo la hoja…/.test(t)){R.pgReal=true;pgPon(+m[1])}};pgIni();let okN=0;R.fecha="";R.turno="";R.integ="";R.turnos={};
- if(/^image\//.test(file.type)){if(R.foto)URL.revokeObjectURL(R.foto);R.foto=URL.createObjectURL(file);R.zoom=1;R.giro=0;pintaFoto()}
+ if(/^image\//.test(file.type)&&file!==R.fotoF){if(R.foto)URL.revokeObjectURL(R.foto);R.foto=URL.createObjectURL(file);R.fotoF=file;R.zoom=1;R.giro=0;pintaFoto()} /* v281: al recargar la misma foto se conserva el giro */
  try{const n=file.name.toLowerCase();let ots=[];
   if(/^image\//.test(file.type)){try{ots=await claudeLee(file,set)}catch(e){const sc=/sin_clave/.test(e&&e.message||"");
    /* v249: con letra a mano el lector local lee basura: no se usa ni se guarda nada; se reintenta con «Cargar Hoja OT» */
