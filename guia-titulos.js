@@ -35,3 +35,23 @@ try{compacta()}catch(e){}
 (function(){const st=document.createElement("style");st.textContent=`
 #app.gtit .card>h3,#app.gtit .card h3{font-family:inherit!important;font-size:15px!important;font-weight:700!important;letter-spacing:0!important;text-transform:none!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #app.gtit .pucab{font-family:inherit!important;font-size:15px!important;letter-spacing:0!important}`;document.head.appendChild(st)})();
+/* v282: si el título de una caja de la guía (sistemas, casos, grupos) no cabe entero en su línea, se reduce la tipografía
+   hasta que quepa completo (de 15 px hasta un mínimo de 11 px; solo por debajo de eso vuelve a salir «…»).
+   Se recalcula al desplegar una caja (los títulos ocultos miden 0), al girar el teléfono y al cambiar el contenido. */
+(function(){
+"use strict";
+const SEL="#app details:is(.gd,.ggrp,.anap,.otrel)>summary>b";
+const MAX=15,MIN=11;
+function ajusta(b){const w=b.clientWidth;if(!w)return; /* oculto: se ajusta al abrirse */
+ b.style.removeProperty("font-size");
+ if(b.scrollWidth<=w+1)return;
+ let f=MAX;while(f>MIN&&b.scrollWidth>w+1){f-=.5;b.style.setProperty("font-size",f+"px","important")}}
+function todo(raiz){(raiz||document).querySelectorAll(SEL).forEach(b=>{try{ajusta(b)}catch(e){}})}
+let pend=0;function prog(){if(pend)return;pend=1;requestAnimationFrame(()=>{pend=0;todo()})}
+/* al abrir una caja: ajustar los títulos que acaban de hacerse visibles */
+document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.open&&d.matches&&d.matches("details"))requestAnimationFrame(()=>todo(d))},true);
+addEventListener("resize",prog);addEventListener("orientationchange",()=>setTimeout(prog,200));
+let t=0;new MutationObserver(ms=>{if(t||!ms.some(m=>[...m.addedNodes].some(n=>n.nodeType==1&&!(n.closest&&n.closest(".gsim")))))return;t=setTimeout(()=>{t=0;prog()},200)}).observe(document.body,{childList:true,subtree:true});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(prog);
+prog();
+})();
