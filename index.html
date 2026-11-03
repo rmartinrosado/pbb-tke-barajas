@@ -4508,7 +4508,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=285;
+const APP_VER=286;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5536,7 +5536,14 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  `html.lt #app .tkled.l232.am{box-shadow:0 0 0 2px #1a7a3c,0 0 8px #2fd36b!important}`,
  `html #app .tkled.l232.ro{background:#e5342b!important;box-shadow:0 0 8px #e5342b!important}`,
  `html #app .tkled.l232.az,html.lt #app .tkled.l232.az{background:#ffd21f!important;box-shadow:0 0 8px #ffd21f!important;animation:none!important;opacity:1!important}`,
- `html.lt #app .tkled.l232.az{background:#e6b800!important;box-shadow:0 0 0 2px #8a6d00,0 0 8px #e6b800!important}`
+ `html.lt #app .tkled.l232.az{background:#e6b800!important;box-shadow:0 0 0 2px #8a6d00,0 0 8px #e6b800!important}`,
+ /* v286: Espera de condiciones en amarillo PARPADEANDO cada segundo (como las abiertas) */
+ `html #app .tkled.l232.az,html.lt #app .tkled.l232.az{animation:l232b 1s steps(1,end) infinite!important}`,
+ /* v286: subtítulo también en Mantenimiento Preventivo y en Claude */
+ R(`#dmpres .s286,button.cl232 .s286`,`display:block!important;font-size:8px!important;font-weight:500!important;line-height:1.3!important;letter-spacing:.5px!important;margin-top:2px!important;white-space:nowrap;color:var(--tkmu,var(--mu))`),
+ R(`button.cl232`,`gap:2px!important`),
+ `html.lt ${P[0]} .s286,html.lt ${P[1]} .s286{color:#2b313b!important;font-weight:700!important}`,
+ `html.ext ${P[0]} .s286,html.ext ${P[1]} .s286{color:#000!important;font-weight:800!important}`
  ].join("\n");document.head.appendChild(st);
  const SUB=[[/Registrar/,"OT · NUEVA"],[/Importar/,"OT HOJA · FOTO"],[/Seguimiento/,"OT · ESTADO"]];
  const pon=()=>{try{if(typeof view=="undefined"||view!="dash")return;
@@ -5547,7 +5554,10 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
    if(b.querySelector(".t285"))return;
    const tn=[...b.childNodes].find(n=>n.nodeType==3&&m[0].test(n.nodeValue));if(!tn)return;
    const sp=document.createElement("span");sp.className="t285";const bb=document.createElement("b");bb.textContent=tn.nodeValue.trim();
-   const sm=document.createElement("small");sm.textContent=m[1];sp.append(bb,sm);tn.replaceWith(sp)})}catch(e){}};
+   const sm=document.createElement("small");sm.textContent=m[1];sp.append(bb,sm);tn.replaceWith(sp)});
+  /* v286 */
+  const dt=document.querySelector("#app #dmpres .dmt");if(dt&&!dt.querySelector(".s286"))dt.insertAdjacentHTML("beforeend",'<span class="s286">PLAN · M · S · C</span>');
+  const cb=document.querySelector("#app .p230g>button.cl232");if(cb&&!cb.querySelector(".s286"))cb.insertAdjacentHTML("beforeend",'<span class="s286">OT · ANÁLISIS</span>')}catch(e){}};
  const o=vDash;vDash=function(){const r=o.apply(this,arguments);pon();return r};
  let t=0;new MutationObserver(()=>{if(t)return;t=setTimeout(()=>{t=0;pon()},40)}).observe(document.getElementById("app"),{childList:true,subtree:true});
  setInterval(pon,1500);pon()})();
