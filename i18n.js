@@ -19,7 +19,7 @@ const D={
 "Mantenimiento preventivo":"Preventive maintenance","Resolución IA":"AI resolution","RESOLUCIÓN IA":"AI RESOLUTION",
 "Claude · Resolución IA":"Claude · AI resolution","Claude · resolución IA":"Claude · AI resolution",
 "SOS: primera actuación en campo":"SOS: first field action","Órdenes de Trabajo Abiertas":"Open Work Orders",
-"Sin averías abiertas.":"No open faults.","No hay averías abiertas.":"No open faults.","Sin OT abiertas":"No open WOs",
+"Sin averías abiertas.":"No open faults.","Sin Órdenes de Trabajo abiertas.":"No open work orders.","No hay averías abiertas.":"No open faults.","Sin OT abiertas":"No open WOs",
 "Reg. OT":"New WO","Seg. OT":"Track WO","Res. OT":"AI res.","Inicio":"Home","Menú":"Menu","Abrir menú":"Open menu",
 "Planos":"Drawings","Planos y esquemas":"Drawings & schematics","Planos y documentación":"Drawings & documentation",
 "Guía":"Guide","Casos":"Cases","Calendario, posiciones del día y trabajos realizados":"Calendar, today's positions and work done",
