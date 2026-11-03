@@ -4519,7 +4519,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=303;
+const APP_VER=304;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5629,6 +5629,33 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
    ${ITEMS.map((x,k)=>`<label class="gpaso"><input type="checkbox" ${tx.includes(x[0])?"checked":""} onchange="adxMarca(${k},this.checked)"><span>${k<2?"<b>"+esc(x[0])+"</b><br><span class='mu' style='font-size:12px'>"+esc(x[1].replace(/^Revisión ZONA DE (MANDO|FUERZA): /,""))+"</span>":"<b>Actuación · "+esc(x[0])+"</b>"}</span></label>`).join("")}
    <div class="mu" style="font-size:11px;margin-top:4px">Lo marcado se añade a «Actuación».</div></details>`)}catch(e){console.warn("v297 resolver AAA",e)}return r};
  const st=document.createElement("style");st.textContent=`.adxb{border:1px solid #ef6c00;border-radius:10px;padding:8px 10px;margin:8px 0}.adxb>summary{cursor:pointer;font-weight:700;font-size:13px}`;document.head.appendChild(st)})();
+</script>
+<script>
+/* ===== v304: lista de técnicos sin cobertura (visto en un Android 7 al volver de reposo: «TypeError: Failed to fetch»).
+   No era un fallo de la base de datos: el móvil no llegaba al servidor (sin datos o Wi-Fi dormido).
+   · Se reintenta 3 veces (y se espera a recuperar la red) antes de dar error.
+   · Se guarda la última lista buena en el móvil: sin conexión se usa esa y se avisa.
+   · Si aun así falla: mensaje claro «sin conexión», botón «Reintentar» y reintento automático al volver la red
+     (ya no dice que el administrador ejecute el SQL, que confundía). ===== */
+(function(){
+ const K="pbb_tec_cache",red=e=>/fetch|network|load failed|timeout|abort/i.test(String(e&&(e.message||e)||""));
+ const espera=ms=>new Promise(r=>setTimeout(r,ms));
+ const conRed=()=>navigator.onLine!==false?Promise.resolve():new Promise(r=>{const f=()=>{removeEventListener("online",f);r()};addEventListener("online",f);setTimeout(f,6000)});
+ listaTec=async function(){let ult="";
+  for(let k=0;k<3;k++){try{await conRed();const r=await sb.from("tecnicos").select("id,nombre,turno,activo").order("nombre");
+    if(r.error){ult=r.error.message||String(r.error);if(!red(ult))return{err:ult}}
+    else{const d=(r.data||[]).filter(x=>x.activo!==false);try{localStorage.setItem(K,JSON.stringify(d))}catch(e){}return{data:d}}}
+   catch(e){ult=String(e&&(e.message||e))}await espera(1200*(k+1))}
+  try{const c=JSON.parse(localStorage.getItem(K)||"null");if(Array.isArray(c)&&c.length)return{data:c,offline:true}}catch(e){}
+  return{err:"SIN_RED",det:ult}};
+ const arregla=(fn,t)=>{const c=document.getElementById("sheetc");if(!c)return;
+  c.querySelectorAll(".mu").forEach(m=>{if(/No se pudo cargar la lista de técnicos \(SIN_RED\)/.test(m.textContent)){
+   m.innerHTML=`📶 <b>Sin conexión con el servidor.</b> Comprueba los datos móviles o el Wi-Fi. Se volverá a intentar solo al recuperar la red.<button class="pri" style="width:100%;margin-top:10px" onclick="${fn}('${t}')">Reintentar</button>`;m.style.color="#d32f2f";
+   const f=()=>{removeEventListener("online",f);const s=document.getElementById("sheet");if(s&&s.style.display!="none"&&document.getElementById("sheetc").textContent.includes("Sin conexión"))window[fn](t)};addEventListener("online",f)}})};
+ const nota=r=>{if(!r||!r.offline)return;const c=document.getElementById("sheetc");if(!c||c.querySelector(".tecoff"))return;const l=c.querySelector("label");if(l)l.insertAdjacentHTML("afterend",`<div class="mu tecoff" style="color:#ca8a04;margin:4px 0 8px">📶 Sin conexión: lista guardada en este móvil.</div>`)};
+ ["selTurno","selTurnoO"].forEach(fn=>{const o=window[fn];if(typeof o!="function")return;window[fn]=async function(t){let rr=null;const ol=listaTec;listaTec=async()=>(rr=await ol());try{const r=await o.apply(this,arguments);arregla(fn,t);nota(rr);return r}finally{listaTec=ol}};
+  try{eval(fn+"=window."+fn)}catch(e){}});
+})();
 </script>
 <script src="puente-croquis.js?v=303"></script><script src="guia-titulos.js?v=284"></script><script src="pdf-pellizco.js?v=280"></script>
 <script>
