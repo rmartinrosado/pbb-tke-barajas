@@ -41,3 +41,8 @@ try{compacta()}catch(e){}
 (function(){const st=document.createElement("style");st.textContent=`
 #app details:is(.gd,.ggrp,.anap,.otrel)>summary{min-height:44px!important}
 #app details:is(.gd,.ggrp,.anap,.otrel)>summary>b{white-space:normal!important;display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;text-wrap:balance;overflow:hidden!important;overflow-wrap:anywhere;line-height:1.3!important;font-size:15px!important}`;document.head.appendChild(st)})();
+/* v284: con título en dos líneas, la segunda empieza alineada con la primera (debajo de la primera letra, no del icono):
+   el icono queda en su propia columna a la izquierda, centrado en alto, y el texto con sangría fija a su derecha */
+(function(){const st=document.createElement("style");st.textContent=`
+#app details:is(.gd,.ggrp,.anap,.otrel)>summary>b.gzi{position:relative!important;padding-left:36px!important}
+#app details:is(.gd,.ggrp,.anap,.otrel)>summary>b.gzi>.zic{position:absolute!important;left:0;top:50%;transform:translateY(-50%);margin:0!important;line-height:0}`;document.head.appendChild(st)})();

@@ -76,7 +76,7 @@ function pinta(){if(typeof view!="undefined"&&view!="tec")return;const app=docum
   /* quita el emoji inicial (🎯 📹 🔍 📏 🧰) del título y el marcador 🎯 de avería relacionada */
   const t0=b.firstChild;if(t0&&t0.nodeType==3)t0.nodeValue=t0.nodeValue.replace(EMO,"");
   b.querySelectorAll(".anat").forEach(x=>{x.textContent="";x.classList.add("anadot")});
-  b.insertAdjacentHTML("afterbegin",zic(k));sm.dataset.zic=1})}
+  b.insertAdjacentHTML("afterbegin",zic(k));b.classList.add("gzi");sm.dataset.zic=1})}
 const oV=vTec;vTec=function(){const r=oV.apply(this,arguments);try{pinta()}catch(e){console.warn("iconos",e)}return r};
 /* cajas que se insertan después (puente, análisis…): repintar al abrir/cerrar */
 document.addEventListener("toggle",()=>{try{pinta()}catch(e){}},true);
