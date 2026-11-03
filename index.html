@@ -3254,7 +3254,7 @@ function bqBorra(){bqOT="";const e=$("#bq");if(e){e.value="";e.focus()}bqAplica(
 .bqrow .bqbox:first-child .bqx[style*="hidden"]{display:none}
 .bqfb input{font-size:13px!important}.bqfb input::-webkit-calendar-picker-indicator{margin:0;padding:0;width:14px}.bqrow .bqbox:first-child input::placeholder{font-size:12px}`;document.head.appendChild(st)})();
 </script>
-<script src="mantenimiento.js?v=65"></script><script src="importar-ot.js?v=291"></script>
+<script src="mantenimiento.js?v=65"></script><script src="importar-ot.js?v=297"></script>
 <script>/* ===== v49: botones de la tarjeta OT en una sola línea (Editar, borrar, varita, polímetro, PLC, FOTO PLC) ===== */
 (function(){const st=document.createElement("style");st.textContent=`.cacts{flex-wrap:nowrap!important;gap:5px!important}
 .cacl,.cacr{flex-wrap:nowrap!important;gap:5px!important;min-width:0}.cacr{margin-left:auto}
@@ -3445,7 +3445,7 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=2"></script><script src="sos.js?v=296"></script><script src="iconos.js?v=284"></script><script src="sim-brazo.js?v=4"></script><script src="sim-almena.js?v=275"></script><script>
+</script><script src="sistemas.js?v=297"></script><script src="sos.js?v=296"></script><script src="iconos.js?v=284"></script><script src="sim-brazo.js?v=4"></script><script src="sim-almena.js?v=275"></script><script>
 /* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
 function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
  msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
@@ -4519,7 +4519,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=296;
+const APP_VER=297;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5601,6 +5601,29 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  window.otBorraListaOK=()=>{if(!admin)return;const n=nCe();inc=inc.filter(i=>i.estado=="abierta");sv("pbb_inc",inc);closeSheet();render();msg(`${n} OT cerradas eliminadas`)};
  const o=render;render=function(){const r=o.apply(this,arguments);pon();return r};
  setInterval(pon,1500)})();
+</script>
+<script>
+/* ===== v297: AAA · máquina ADX sin alimentación: revisión de la ZONA DE MANDO y de la ZONA DE FUERZA
+   · Guía de campo (AAA): caso propio con las dos actuaciones «Rearmar DIF ZONA DE MANDO» y «Rearmar DIF ZONA DE FUERZA».
+   · Mapa de alimentaciones: entrada de la máquina AAA con las dos zonas.
+   · Resolución / cierre de OT de AAA: casillas de revisión y de las dos actuaciones, que pasan al campo Actuación. ===== */
+(function(){
+ const MANDO="Revisión ZONA DE MANDO: diferencial de mando (ID6 25 A 30 mA), FGT (6 A 2P), transformador 400/230 V, automáticos F1-F6 y fuente 24 Vdc (medir 24 V en clema 6).";
+ const FUERZA="Revisión ZONA DE FUERZA: interruptor general IG, relé de control de fases RCP, diferenciales ID1-ID4 (compresores) e ID5 (ventilador interior), magnetotérmicos FGG1-FGG4, FGVI y FGVE1-FGVE4.";
+ const A1="Rearmar DIF ZONA DE MANDO",A2="Rearmar DIF ZONA DE FUERZA";
+ try{const L=GUIA.tipos.AAA.s;if(!L.some(x=>x.adx)){const c={adx:1,t:"Máquina ADX sin alimentación · zona de mando y zona de fuerza",g:[1,1,5,1,5],
+  p:["Comprobar si la máquina ADX está sin alimentación: pilotos apagados y display sin tensión.",MANDO,FUERZA,"ACTUACIÓN 1 · "+A1+" (comprobar antes la causa del disparo).","ACTUACIÓN 2 · "+A2+" (comprobar antes la causa del disparo)."],r:"AAA pág. 1, 5 · zona de mando y zona de fuerza"};
+  L.push(c)} /* al final, para no mover el número de los casos existentes */}catch(e){console.warn("v297 guía AAA",e)}
+ try{if(Array.isArray(GUIA.alim)&&!GUIA.alim.some(a=>/ZONA DE MANDO/.test(a[1])))GUIA.alim.push(["Máquina ADX de AAA (aire acondicionado)","Sin alimentación → revisar las dos zonas del cuadro:\n• "+MANDO+"\n  Actuación: "+A1+".\n• "+FUERZA+"\n  Actuación: "+A2+"."])}catch(e){}
+ const esAAA=i=>!!i&&[i.tipo,...(i.equipos||[])].includes("AAA");
+ const ITEMS=[["Revisada zona de mando",MANDO],["Revisada zona de fuerza",FUERZA],[A1,A1],[A2,A2]];
+ window.adxMarca=(k,v)=>{const a=document.getElementById("r_a");if(!a)return;const t=ITEMS[k][0];let l=a.value.split("\n").filter(x=>x.trim()!==t);if(v)l.push(t);a.value=l.filter(x=>x.trim()).join("\n")};
+ const o=resolver;resolver=function(id){const r=o.apply(this,arguments);try{const i=inc.find(x=>x.id==id),a=document.getElementById("r_a");if(!esAAA(i)||!a||document.getElementById("adxBox"))return r;
+  const tx=a.value.split("\n").map(x=>x.trim());
+  a.insertAdjacentHTML("afterend",`<details id="adxBox" class="adxb"${/sin alimentaci|sin tensi|no arranca|apagad/i.test((i.desc||"")+" "+(i.def||""))?" open":""}><summary>⚡ Máquina ADX sin alimentación · zona de mando y zona de fuerza</summary>
+   ${ITEMS.map((x,k)=>`<label class="gpaso"><input type="checkbox" ${tx.includes(x[0])?"checked":""} onchange="adxMarca(${k},this.checked)"><span>${k<2?"<b>"+esc(x[0])+"</b><br><span class='mu' style='font-size:12px'>"+esc(x[1].replace(/^Revisión ZONA DE (MANDO|FUERZA): /,""))+"</span>":"<b>Actuación · "+esc(x[0])+"</b>"}</span></label>`).join("")}
+   <div class="mu" style="font-size:11px;margin-top:4px">Lo marcado se añade a «Actuación».</div></details>`)}catch(e){console.warn("v297 resolver AAA",e)}return r};
+ const st=document.createElement("style");st.textContent=`.adxb{border:1px solid #ef6c00;border-radius:10px;padding:8px 10px;margin:8px 0}.adxb>summary{cursor:pointer;font-weight:700;font-size:13px}`;document.head.appendChild(st)})();
 </script>
 <script src="puente-croquis.js?v=272"></script><script src="guia-titulos.js?v=284"></script><script src="pdf-pellizco.js?v=280"></script>
 <script>

@@ -159,6 +159,8 @@ PAS:[
 ],
 AAA:[
  {s:"Alimentación general y protecciones",f:[1,5],c:[
+  "MÁQUINA ADX SIN ALIMENTACIÓN · revisar la ZONA DE MANDO: diferencial de mando (ID6 25 A 30 mA), FGT (6 A 2P), transformador 400/230 V, automáticos F1-F6 y fuente 24 Vdc → actuación: «Rearmar DIF ZONA DE MANDO».",
+  "MÁQUINA ADX SIN ALIMENTACIÓN · revisar la ZONA DE FUERZA: interruptor general IG, relé de fases RCP, diferenciales de fuerza ID1-ID5 y magnetotérmicos FGG / FGVI / FGVE → actuación: «Rearmar DIF ZONA DE FUERZA».",
   "Interruptor general IG cerrado y relé de control de fases RCP correcto (falta o secuencia de fase → clema 27).",
   "Diferenciales ID1-ID4 (100 A 30 mA, módulos 1-4) e ID5 (80 A 300 mA, ventilador interior): alarma por clemas 11-14 y 26.",
   "Control: FGT (6 A 2P), diferencial ID6 (25 A 30 mA), transformador 400/230 V 1000 VA y automáticos F1-F6 (6 A).",

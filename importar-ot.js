@@ -10,6 +10,7 @@ const tipoOK=t=>{const u=NORM(t);if(/\bGU[I1L]A(DO)?\b|\bVDGS\b/.test(u))return 
 const isoD=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const hh=s=>{const m=/(\d{1,2})\s*[:.h]\s*(\d{2})/.exec(String(s||""));return m&&+m[1]<24&&+m[2]<60?m[1].padStart(2,"0")+":"+m[2]:""};
 /* v291: una línea de la hoja vale aunque le falten casillas: lo que importa son las horas y las observaciones */
+const enEspera=o=>!o.hLle||!o.hCie; /* v297: también cubre la línea sin ninguna hora */
 const vale=o=>!!(o&&(String(o.pos||"").trim()||o.hIni||o.hLle||o.hCie||String(o.desc||"").trim()));
 let R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{},rows:[],zoom:1};let TEC=[];
 
@@ -115,7 +116,7 @@ function turnoFila(k){const r=R.rows;for(let j=k;j>=0;j--){const t=turnoHora(r[j
 const integDef=k=>R.turnos[turnoFila(k)]||R.integ||"";
 const tOpt=v=>["PAS","AAA","AAP","AAC","AAR","HZ","SVGA","Sigma"].map(t=>`<option ${t==v?"selected":""}>${t}</option>`).join("");
 function filaHTML(o,k){const t=turnoFila(k);
- return `<div class="oirow" id="oir${k}"><div class="oirh"><b class="oin">${k+1}</b><span class="mu" style="font-size:12px">${t?"Turno "+t:""}${o.fecha?` · ${o.fecha.slice(8)}/${o.fecha.slice(5,7)}`:""}${o.tipo=="HZ"&&R.hojaHZ?" · 400 Hz":""}</span><button class="sec oidel" aria-label="Quitar OT" onclick="otQuita(${k})">✕</button></div>
+ return `<div class="oirow" id="oir${k}"><div class="oirh"><b class="oin">${k+1}</b><span class="mu" style="font-size:12px">${t?"Turno "+t:""}${o.fecha?` · ${o.fecha.slice(8)}/${o.fecha.slice(5,7)}`:""}${o.tipo=="HZ"&&R.hojaHZ?" · 400 Hz":""}${enEspera(o)?' · <b style="color:#ca8a04">→ Espera de condiciones</b>':""}</span><button class="sec oidel" aria-label="Quitar OT" onclick="otQuita(${k})">✕</button></div>
  <div class="oig3"><div><label>PAS</label><input value="${esc(o.pos)}" list="oi_pl" autocapitalize="characters" oninput="otC(${k},'pos',this.value)" class="${o.pos&&!posReg(o.pos)?"oiw":""}"></div>
  <div><label>Tipo</label><select onchange="otC(${k},'tipo',this.value)">${tOpt(o.tipo)}</select></div>
  <div><label>Nº OT</label><input value="${esc(o.orden)}" inputmode="numeric" maxlength="6" oninput="otC(${k},'orden',this.value.replace(/\\D/g,''))" class="${o.orden&&!/^\d{6}$/.test(o.orden)?"oiw":""}"></div></div>
@@ -219,12 +220,12 @@ window.otImpFile=async file=>{if(!file||R.ocup)return;R.ocup=true;R.file=file;R.
   if(okN>0&&R.rows.some(vale))setTimeout(()=>{R.auto=true;try{otImpGuarda()}finally{R.auto=false}},1200)}};
 window.otImpGuarda=async()=>{const ok=R.rows.filter(vale);if(!ok.length){msg("No hay OT que importar");return}
  const sinH=ok.filter(o=>!o.hIni).length;if(sinH&&!R.auto&&!confirm(`${sinH} OT sin hora de inicio. ¿Guardar igualmente?`))return;
- const f=R.fecha||hoy();let n=0,dup=0;const base=Date.now();
+ const f=R.fecha||hoy();let n=0,dup=0,ne=0;const base=Date.now();
  R.rows.forEach((o,k)=>{if(!vale(o))return;const fr=o.fecha||f; /* v290: fecha propia de la fila (hoja de 400 Hz) */const ya=inc.some(i=>(o.orden&&String(i.orden)==o.orden)||(i.pos==o.pos&&i.fecha==fr&&o.hIni&&i.hIni==o.hIni));if(ya){dup++;return}
-  const integ=(o.integ||integDef(k)).trim();const tu=turnoFila(k);const cerr=!!o.hCie||fr<hoy();
-  inc.unshift({id:String(base+k),pos:o.pos,tipo:o.tipo,equipos:[o.tipo],orden:o.orden,rep:"CGA",desc:o.desc.trim(),hIni:o.hIni,hLle:o.hLle,hCie:o.hCie,act:"",obs:"",fecha:fr,estado:cerr?"cerrada":"abierta",
+  const integ=(o.integ||integDef(k)).trim();const tu=turnoFila(k);const esp=enEspera(o),cerr=!esp; /* v297: sin horas, o sin llegada o sin cierre → espera de condiciones; con llegada y cierre → cerrada */if(esp)ne++;
+  inc.unshift({id:String(base+k),pos:o.pos,tipo:o.tipo,equipos:[o.tipo],orden:o.orden,rep:"CGA",desc:o.desc.trim(),hIni:o.hIni,hLle:o.hLle,hCie:o.hCie,act:"",obs:"",fecha:fr,estado:cerr?"cerrada":"abierta",...(esp?{espera:true,hEsp:o.hIni||(typeof ahora=="function"?ahora():"")}:{}),
    turno:tu||undefined,tecnico:integ||undefined,integrantes:integ||undefined,origen:"hoja importada"});n++});
- sv("pbb_inc",inc);closeSheet();if(R.foto)URL.revokeObjectURL(R.foto);R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{},rows:[],zoom:1};msg(`${n} OT importada${n==1?"":"s"}${dup?` · ${dup} ya existía${dup==1?"":"n"}`:""}`);go("dash");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});const m=document.querySelector("main");if(m)m.scrollTop=0}catch(e){}},80)};
+ sv("pbb_inc",inc);closeSheet();if(R.foto)URL.revokeObjectURL(R.foto);R={fecha:"",turno:"",integ:"",txt:"",ocup:false,turnos:{},rows:[],zoom:1};msg(`${n} OT importada${n==1?"":"s"}${ne?` · ${ne} en espera de condiciones (sin horas de llegada o cierre)`:""}${dup?` · ${dup} ya existía${dup==1?"":"n"}`:""}`);go("dash");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});const m=document.querySelector("main");if(m)m.scrollTop=0}catch(e){}},80)};
 
 /* botón en Inicio */
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);
