@@ -72,7 +72,7 @@ window.sosRap=function(){foto=null;fotoURL="";
  <label>Posición PBB</label><input id="sr_p" list="sr_pl" inputmode="numeric" placeholder="Ej. 544" autocomplete="off"><datalist id="sr_pl">${lista()}</datalist>
  <label>Alarma activada</label><select id="sr_a"><option value="">— Elige la alarma de la Magelis —</option>${SOS_AL.map(([g,l])=>`<optgroup label="${g}">${l.map(([n,v])=>`<option value="${esc(v)}">${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
  <details class="srtx"><summary class="mu">Escribir la alarma a mano (opcional)</summary><textarea id="sr_t" rows="2" placeholder="Ej. ZAPATA ACTIVADA · LÍMITE EXTENSIÓN"></textarea></details>
- <label>Foto de la Magelis / alarmas (apoyo)</label><label class="sec srfoto" for="sr_f">📷 Hacer o elegir foto</label><input id="sr_f" type="file" accept="image/*" capture="environment" style="display:none" onchange="sosFoto(this)">
+ <label>Foto de la Magelis / alarmas (apoyo)</label><label class="sec srfoto" for="sr_f">📷 Hacer o elegir foto</label><input id="sr_f" type="file" accept="image/*" style="display:none" onchange="sosFoto(this)">
  <div id="sr_pv"></div>
  <button class="pri" style="margin-top:12px;width:100%" onclick="sosAnaliza()">Ver primera actuación</button>
  <div id="sr_res"></div>

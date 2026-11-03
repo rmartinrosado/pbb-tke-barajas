@@ -144,7 +144,7 @@ function guardaPos(){const v=$("#n_p").value.trim();if(!v){msg("Introduce la pos
 let tFoto="";
 function resTec(sel){tFoto="";const ab=inc.filter(i=>i.estado=="abierta");const i=ab.find(x=>x.id==sel)||ab[0];
  $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Resolución IA</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>`+(i?`<label>Avería abierta</label><select id="t_sel" onchange="resTec(this.value)">${ab.map(x=>`<option value="${x.id}" ${x.id==i.id?"selected":""}>PBB ${x.pos} · ${x.tipo} · ${x.orden}</option>`).join("")}</select>
- <label>1 · Foto del estado del PLC</label><input id="t_foto" type="file" accept="image/*" capture="environment" onchange="prevFoto(this)"><img id="t_prev" ${i.plc?`src="${i.plc}"`:""} style="display:${i.plc?"block":"none"};width:100%;margin-top:8px;border-radius:6px">
+ <label>1 · Foto del estado del PLC</label><input id="t_foto" type="file" accept="image/*" onchange="prevFoto(this)"><img id="t_prev" ${i.plc?`src="${i.plc}"`:""} style="display:${i.plc?"block":"none"};width:100%;margin-top:8px;border-radius:6px">
  <label>2 · Definición de la avería</label><textarea id="t_def" rows="3" placeholder="Describe la avería observada">${esc(i.def)}</textarea>
  <button class="pri" style="margin-top:12px" onclick="guardaTec()">Guardar</button>`:`<div class="mu" style="margin:10px 0">No hay averías abiertas.</div>`)+`<a class="pri" href="${GPT}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:8px">Asistente GPT: diagnóstico y comprobaciones en campo</a><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cerrar</button>`;$("#sheet").style.display="flex";if(i&&!sel&&!i.plc){const f=$("#t_foto");if(f)f.click()}}
 function prevFoto(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,900/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);tFoto=c.toDataURL("image/jpeg",.6);const p=$("#t_prev");p.src=tFoto;p.style.display="block"};im.src=r.result};r.readAsDataURL(f)}
@@ -3445,7 +3445,7 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=2"></script><script src="sos.js?v=268"></script><script src="iconos.js?v=284"></script><script src="sim-brazo.js?v=4"></script><script src="sim-almena.js?v=275"></script><script>
+</script><script src="sistemas.js?v=2"></script><script src="sos.js?v=296"></script><script src="iconos.js?v=284"></script><script src="sim-brazo.js?v=4"></script><script src="sim-almena.js?v=275"></script><script>
 /* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
 function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
  msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
@@ -4519,7 +4519,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=295;
+const APP_VER=296;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
