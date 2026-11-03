@@ -313,9 +313,13 @@ function dashMantCaja(){const pinta=()=>{if(view!="dash")return;const old=docume
 /* v189: al desplegar las posiciones, parpadea el nº de la posición (solo correctivos pendientes) y el texto «Correctivo» en rojo negrita.
    El desfase --mbd mantiene el ritmo aunque se repinte la lista con el refresco automático. */
 @keyframes mblink{0%,55%{opacity:1}70%,90%{opacity:.15}100%{opacity:1}}
-.mchip.mparp b,.mmini.mparp,.mfila:not(.ok):not(.cx) .mcorr{animation:mblink 1.2s ease-in-out infinite;animation-delay:var(--mbd,0ms)}
+/* v302: el parpadeo con animación CSS se reiniciaba con cada repintado (refresco cada 5 s, abrir o cerrar un terminal) y cada elemento
+   iba a su ritmo, por eso se veía a saltos o fijo. Ahora un único reloj (clase «mbOff» en <html>) apaga y enciende a la vez
+   todos los correctivos pendientes: el nº de la posición en las píldoras y en el calendario y el texto «Correctivo». */
+.mchip.mparp b,.mmini.mparp,.mfila:not(.ok):not(.cx) .mcorr{animation:none!important;transition:opacity .15s linear}
+html.mbOff .mchip.mparp b,html.mbOff .mmini.mparp,html.mbOff .mfila:not(.ok):not(.cx) .mcorr{opacity:.12}
 .mcorr{color:#c62828;font-weight:800}
-@media (prefers-reduced-motion:reduce){.mchip.mparp b,.mmini.mparp,.mfila .mcorr{animation:none}}
+@media (prefers-reduced-motion:reduce){html.mbOff .mchip.mparp b,html.mbOff .mmini.mparp,html.mbOff .mfila .mcorr{opacity:1}}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
 .mchip.cx{border-color:#9e9e9e;color:#757575;background:color-mix(in srgb,#9e9e9e 12%,transparent);text-decoration:line-through}.mmini.cx{background:#9e9e9e;text-decoration:line-through}
 .mfila.cx{opacity:.85}.mizq{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none;width:86px}.mizq .mchip.g{font-size:13px;padding:4px 8px;max-width:100%;box-sizing:border-box}.mest{font-size:10.5px;color:var(--mu);text-align:center;line-height:1.25;overflow-wrap:anywhere}.mest.ok{color:#2e9e44;font-weight:600}.mest.cx{color:#757575;font-weight:600}
@@ -349,3 +353,6 @@ function dashMantCaja(){const pinta=()=>{if(view!="dash")return;const old=docume
 .mtrab{width:100%;box-sizing:border-box;min-height:120px;font-size:15px;line-height:1.45;background:repeating-linear-gradient(transparent 0 21px,color-mix(in srgb,var(--bd) 70%,transparent) 21px 22px);background-attachment:local}.mnotas{white-space:pre-wrap;font-size:14px}
 .mfile{display:flex!important;justify-content:center;align-items:center;margin-top:12px;padding:12px;border-radius:10px;cursor:pointer;font-weight:700}`;document.head.appendChild(st)})();
 })();
+/* v302: reloj único del parpadeo de correctivos: 0,8 s encendido · 0,4 s apagado (ciclo de 1,2 s), igual en todas las pantallas */
+(function(){if(window.__mbReloj)return;window.__mbReloj=1;const h=document.documentElement;
+ const tic=()=>{const t=Date.now()%1200;h.classList.toggle("mbOff",t>=800);setTimeout(tic,t>=800?1200-t:800-t)};tic()})();
