@@ -4474,7 +4474,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=271;
+const APP_VER=272;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5410,6 +5410,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 (function(){const P=["html body #app #pfix.p230","html body #app#app.p230"];
  const R=(sel,css)=>P.map(p=>sel.split(",").map(x=>p+" "+x.trim()).join(",")).join(",")+"{"+css+"}";
  const S=(css)=>P.join(",")+"{"+css+"}";
+ const PX=["html.ext body #app #pfix.p230","html.ext body #app#app.p230"];const X=(sel,css)=>PX.map(p=>sel.split(",").map(x=>p+" "+x.trim()).join(",")).join(",")+"{"+css+"}";
  const H=46;
  const st=document.createElement("style");st.textContent=[
  S(`grid-template-columns:104px minmax(0,1fr) minmax(0,1fr)!important;gap:5px!important;row-gap:5px!important`),
@@ -5449,19 +5450,31 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  R(`.kpi:not(.sosk) b`,`font-weight:600!important`),R(`.kpi:not(.sosk)`,`font-weight:500!important`),
  R(`#dmpres .dmt b`,`font-size:11px!important;letter-spacing:-.1px!important;font-weight:500!important;line-height:1.15!important;white-space:nowrap!important;overflow:visible!important`),
  R(`#dmpres .dmi`,`width:26px!important;height:26px!important`),
- "@media(max-width:380px){"+R(`.p230g>button.btn`,`padding:0 5px!important;gap:5px!important;font-size:11.5px!important`)+R(`.p230g>button.btn>span:first-child svg`,`width:17px!important;height:17px!important`)+R(`#dmpres`,`padding:0 5px!important;gap:5px!important`)+R(`#dmpres .dmt b`,`font-size:10px!important`)+R(`#dmpres .dmi`,`width:22px!important;height:22px!important`)+R(`.p230g>button.btn .tbt b`,`font-size:12px!important`)+R(`.p230g>button.btn .tbt small`,`font-size:7.5px!important;letter-spacing:.3px!important`)+"}"
+ /* v272: «OT Espera / Condiciones» ajustado a la caja */
+ R(`.kpi.kpi.kesp.kesp`,`font-size:8px!important;letter-spacing:.2px!important;padding-right:12px!important`),
+ R(`#oibtn .tbt small`,`letter-spacing:0!important`),
+ R(`.kpi.kesp .k272`,`display:block;white-space:nowrap;line-height:1.15`),
+ /* v272: modo EXTERIOR (botón ☀️): tipografías más resaltadas */
+ X(`.p230g>button.btn,.p230g>button.btn .tbt b,#dmpres .dmt b,button.cl232 .cl232t`,`font-weight:700!important;letter-spacing:-.2px!important`),
+ X(`.p230g>button.btn .tbt small`,`font-weight:800!important;color:#000!important;letter-spacing:.2px!important`),
+ X(`.kpi:not(.sosk)`,`font-weight:800!important;color:#000!important`),
+ X(`.kpi:not(.sosk) b`,`font-weight:800!important;color:#000!important`),
+ "@media(max-width:380px){"+R(`.p230g>button.btn`,`padding:0 5px!important;gap:5px!important;font-size:11.5px!important`)+R(`.p230g>button.btn>span:first-child svg`,`width:17px!important;height:17px!important`)+R(`#dmpres`,`padding:0 5px!important;gap:5px!important`)+R(`#dmpres .dmt b`,`font-size:10px!important`)+R(`#dmpres .dmi`,`width:22px!important;height:22px!important`)+R(`.p230g>button.btn .tbt b`,`font-size:12px!important`)+R(`.p230g>button.btn .tbt small`,`font-size:7.5px!important;letter-spacing:.3px!important`)+R(`#oibtn .tbt small`,`font-size:7px!important;letter-spacing:-.2px!important`)+X(`.p230g>button.btn .tbt b`,`font-size:11px!important`)+X(`#dmpres .dmt b`,`font-size:9.5px!important`)+"}"
  ].join("\n");document.head.appendChild(st);
  /* v271: sin «OT» al final de Registrar · Importar · Seguimiento; Mantenimiento en dos líneas «Mantenimiento / Preventivo» */
  const cortos=()=>{try{if(typeof view=="undefined"||view!="dash")return;const a=document.getElementById("app");if(!a)return;
   a.querySelectorAll(".p230g>button.btn").forEach(b=>{if(b.closest(".card:not(.btn)"))return;
    const tb=b.querySelector(".tbt>b");if(tb){const t=tb.textContent.replace(/\s+(hoja\s+de\s+)?OT\s*$/i,"");if(t!==tb.textContent)tb.textContent=t;return}
    [...b.childNodes].forEach(n=>{if(n.nodeType==3&&/\bOT\s*$/.test(n.textContent)&&/Registrar|Importar|Seguimiento/.test(n.textContent)){const t=n.textContent.replace(/\s+(hoja\s+de\s+)?OT\s*$/i,"");if(t!==n.textContent)n.textContent=t}})});
-  const d=a.querySelector("#dmpres .dmt b");if(d&&!d.querySelector("br.m271"))d.innerHTML='Mantenimiento<br class="m271">Preventivo'}catch(e){}};
+  const d=a.querySelector("#dmpres .dmt b");if(d&&!d.querySelector("br.m271"))d.innerHTML='Mantenimiento<br class="m271">Preventivo';
+  /* v272: contador «OT Espera / Condiciones» en dos líneas y subtítulo de Importar «OT HOJA · FOTO» */
+  const ke=a.querySelector(".kpi.kesp");if(ke&&!ke.querySelector(".k272"))[...ke.childNodes].forEach(n=>{if(n.nodeType==3&&/S\/Condiciones/i.test(n.textContent)){const sp=document.createElement("span");sp.className="k272";sp.innerHTML='OT Espera<br>Condiciones';n.replaceWith(sp)}});
+  const is=a.querySelector("#oibtn .tbt small");if(is&&is.textContent!=="OT HOJA · FOTO")is.textContent="OT HOJA · FOTO"}catch(e){}};
  const o=vDash;vDash=function(){const r=o.apply(this,arguments);cortos();return r};
  new MutationObserver(cortos).observe(document.getElementById("app"),{childList:true,subtree:true});
  setInterval(cortos,1500);cortos()})();
 </script>
-<script src="puente-croquis.js?v=271"></script>
+<script src="puente-croquis.js?v=272"></script>
 <script>
 /* ===== v267: CROQUIS DEL PUENTE en la Guía de campo · cuando la OT tiene primera actuación en campo por LÍMITE, entre la caja SOS y la
    de «Primera actuación en campo» se dibuja el bloque exacto del módulo del PLC (colores reales de E-A… / P-A…), con el cable del puente
