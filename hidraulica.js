@@ -261,6 +261,8 @@ try{const nota=["Toca una válvula para ver qué hace, su bobina, la salida del 
 /* v278: el caso general «No sube / no baja (elevación)» también lleva la animación del esquema hidráulico (empieza en Subir;
    con los botones de arriba se pasa a Bajar, Bajada rápida o Sin corriente) */
 try{["PAS"].forEach(t=>{const S=(GUIA.tipos[t]&&GUIA.tipos[t].s||[]).find(x=>/^No sube \/ no baja/i.test(x.t));if(S&&!S.cro)S.cro="hidr_sub"})}catch(e){console.warn("hidraulica no sube/no baja",e)}
+/* v279: «Cabina / brazo autonivelador / suelo basculante» → animación del brazo; «No traslada / fallo variador» → contaje de giro (almena) */
+try{const P=GUIA.tipos.PAS&&GUIA.tipos.PAS.s||[];[[/^Cabina \/ brazo autonivelador/i,"brazo"],[/^No traslada \/ fallo variador/i,"almena"]].forEach(([re,c])=>{const S=P.find(x=>re.test(x.t));if(S&&!S.cro&&CROQ[c])S.cro=c})}catch(e){console.warn("animaciones brazo/almena",e)}
 
 /* ---------- primera actuación en campo (sin puentes) ---------- */
 const PRIM={
