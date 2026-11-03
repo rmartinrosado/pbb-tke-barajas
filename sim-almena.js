@@ -29,8 +29,8 @@ function init(el){
  el.innerHTML=`<div class="gsim-h"><b>▶ Simulación del contaje de giro</b><span class="gsim-row"></span></div>
  <svg viewBox="0 0 340 652" role="img" aria-label="Almena con pestañas, soporte fijo con 1 final de carrera y 4 inductivos, y LED del PLC"></svg>
  <div class="gsim-st"></div>
- <div class="gsim-bt"><button data-a="play">⏸ Pausa</button><button data-m="-1">◀ Izquierda</button><button data-m="0">0°</button><button data-m="1">Derecha ▶</button></div>
- <div class="gsim-bt"><button data-f="B3">⚠ Fallo H-B3</button><button data-f="B4">⚠ Fallo H-B4</button><button data-r="1">↺ Rearme FC</button></div>
+ <div class="gsim-bt gal-bt gal-m"><button data-a="play">⏸ Pausa</button><button data-m="-1" title="Girar a la izquierda">◀ Izq.</button><button data-m="0">0°</button><button data-m="1" title="Girar a la derecha">Dcha. ▶</button></div>
+ <div class="gsim-bt gal-bt gal-f"><button data-f="B3" title="Fallo inductivo H-B3">⚠ Fallo B3</button><button data-f="B4" title="Fallo inductivo H-B4">⚠ Fallo B4</button><button data-r="1">↺ Rearme FC</button></div>
  <label class="gsim-vel"><span>🐢</span><input type="range" min="1" max="40" step="1" value="${V}" aria-label="Velocidad de la simulación"><span>🐇</span><b>${V} °/s</b></label>
  <div class="mu" style="font-size:11px;margin-top:4px"><b>Soporte fijo: 5 elementos.</b> Arriba el <b>FC de rodillo H-S1</b> (único, paro de giro en los dos sentidos). Debajo, 4 inductivos en dos columnas separadas 100 mm = ${nf(2*SC)}°: <b>fila alta límite</b> H-B3 izq. · H-B4 dcha. (tapados por la banda lisa, se liberan al pasar su extremo y el PLC corta ese sentido); <b>fila baja contaje</b> H-B1 · H-B2 (leen las 13 pestañas en cuadratura, cada flanco = ${nf(FL)}°). Inductivo tapado = LED encendido. Si el de límite no actúa (botón ⚠), ${nf(SC)}° después el resalte pisa el rodillo y abre el FC.</div>`;
  const svg=el.querySelector("svg"),row=el.querySelector(".gsim-row"),st=el.querySelector(".gsim-st");
@@ -205,7 +205,7 @@ function init(el){
   el.querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("on",x===b))});
  pinta();requestAnimationFrame(paso);
 }
-const css=document.createElement("style");css.textContent=".gsim-vel{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px}.gsim-vel input{flex:1;accent-color:var(--ac)}.gsim-vel b{min-width:44px;text-align:right;color:var(--ac)}.gsim-bt+.gsim-bt{margin-top:4px}";document.head.appendChild(css);
+const css=document.createElement("style");css.textContent=".gsim-vel{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px}.gsim-vel input{flex:1;accent-color:var(--ac)}.gsim-vel b{min-width:44px;text-align:right;color:var(--ac)}.gsim-bt+.gsim-bt{margin-top:4px}.gsim .gsim-bt.gal-bt{display:grid!important;gap:5px!important;flex-wrap:nowrap!important}.gsim .gal-m{grid-template-columns:repeat(4,1fr)}.gsim .gal-f{grid-template-columns:1fr 1fr 1fr;margin-top:5px}.gsim .gsim-bt.gal-bt button{width:100%!important;min-width:0!important;margin:0!important;padding:7px 1px!important;font-size:11.5px!important;letter-spacing:0!important;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;text-align:center;line-height:1.2}";document.head.appendChild(css);
 const scan=()=>document.querySelectorAll('.gsim[data-sim="almena"]:not([data-ok])').forEach(init);
 new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});scan();
 })();
