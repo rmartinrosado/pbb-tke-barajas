@@ -4519,7 +4519,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=299;
+const APP_VER=300;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5587,18 +5587,23 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  setInterval(pon,1500);pon()})();
 </script>
 <script>
-/* ===== v294: Seguimiento OT · botón «Borrar lista» (solo Administrador): elimina TODAS las OT cerradas, con confirmación.
-   Las abiertas y las de espera de condiciones no se tocan. ===== */
+/* ===== v294 → v300: Seguimiento OT · botón «Eliminar Lista» (solo Administrador): elimina las OT que muestra la lista
+   con los filtros de arriba (estado, posición, búsqueda y fecha), con confirmación. ===== */
 (function(){
- const nCe=()=>Array.isArray(inc)?inc.filter(i=>i.estado!="abierta").length:0;
+ const vis=()=>[...document.querySelectorAll("#app .card.ot[data-oid]")].filter(c=>c.offsetParent!==null&&getComputedStyle(c).display!="none").map(c=>inc.find(x=>x.id==c.dataset.oid)).filter(Boolean);
  const pon=()=>{try{if(typeof view=="undefined"||view!="track"||!admin)return;const c=[...document.querySelectorAll("#app>.card")].find(x=>/Seguimiento OT/i.test((x.querySelector("h3")||{}).textContent||""));if(!c)return;
-  let b=c.querySelector("#otBorraL");const n=nCe();const t=`🗑 Borrar lista · ${n} OT cerrada${n==1?"":"s"}`;
-  if(!b){b=document.createElement("button");b.id="otBorraL";b.type="button";b.className="sec";b.onclick=()=>otBorraLista();[["width","100%"],["margin-top","10px"],["color","#d32f2f"],["border-color","#d32f2f"],["font-weight","700"]].forEach(([k,v])=>b.style.setProperty(k,v,"important"));c.appendChild(b)}
-  if(b.textContent!==t)b.textContent=t;b.disabled=!n}catch(e){}};
- window.otBorraLista=()=>{if(!admin){msg("Solo el administrador puede borrar la lista");return}const n=nCe();if(!n){msg("No hay OT cerradas");return}
-  $("#sheetc").innerHTML=`<h3 style="margin:0">¿Borrar la lista de OT cerradas?</h3><div class="mu" style="margin-top:6px">Se eliminarán las <b>${n}</b> OT cerradas de todos los turnos y fechas. Las abiertas y las de espera de condiciones se mantienen. Esta acción no se puede deshacer (si quieres guardarlas antes, usa «Exportar»).</div>
-  <button class="pri" style="margin-top:14px;background:#d32f2f;border-color:#d32f2f" onclick="otBorraListaOK()">Eliminar ${n} OT cerradas</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"};
- window.otBorraListaOK=()=>{if(!admin)return;const n=nCe();inc=inc.filter(i=>i.estado=="abierta");sv("pbb_inc",inc);closeSheet();render();msg(`${n} OT cerradas eliminadas`)};
+  let b=c.querySelector("#otBorraL");
+  if(!b){b=document.createElement("button");b.id="otBorraL";b.type="button";b.className="sec";b.onclick=()=>otBorraLista();
+   [["width","100%"],["margin-top","10px"],["color","#d32f2f"],["border-color","#d32f2f"],["font-weight","700"],["display","flex"],["align-items","center"],["justify-content","center"],["gap","8px"]].forEach(([k,v])=>b.style.setProperty(k,v,"important"));
+   b.innerHTML=`<span style="display:inline-flex;width:20px;height:20px">${IC('trash')}</span>Eliminar Lista`;c.appendChild(b)}
+  const n=vis().length;b.disabled=!n;b.style.setProperty("opacity",n?"1":".5","important")}catch(e){}};
+ window.otBorraLista=()=>{if(!admin){msg("Solo el administrador puede eliminar la lista");return}const L=vis();if(!L.length){msg("La lista está vacía");return}
+  const ab=L.filter(i=>i.estado=="abierta"&&!i.espera).length,es=L.filter(i=>i.estado=="abierta"&&i.espera).length,ce=L.length-ab-es;
+  const det=[ce?`${ce} cerrada${ce==1?"":"s"}`:"",ab?`<b style="color:#d32f2f">${ab} abierta${ab==1?"":"s"}</b>`:"",es?`<b style="color:#ca8a04">${es} en espera de condiciones</b>`:""].filter(Boolean).join(" · ");
+  window._otBL=L.map(i=>i.id);
+  $("#sheetc").innerHTML=`<h3 style="margin:0">¿Eliminar la lista?</h3><div class="mu" style="margin-top:6px">Se eliminarán las <b>${L.length}</b> OT que se ven ahora en la lista con los filtros de arriba: ${det}. Esta acción no se puede deshacer (si quieres guardarlas antes, usa «Exportar»).</div>
+  <button class="pri" style="margin-top:14px" onclick="otBorraListaOK()">Eliminar ${L.length} OT</button><button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>`;$("#sheet").style.display="flex"};
+ window.otBorraListaOK=()=>{if(!admin)return;const ids=new Set(window._otBL||[]);const n=ids.size;if(!n){closeSheet();return}inc=inc.filter(i=>!ids.has(i.id));window._otBL=[];sv("pbb_inc",inc);closeSheet();render();msg(`${n} OT eliminada${n==1?"":"s"}`)};
  const o=render;render=function(){const r=o.apply(this,arguments);pon();return r};
  setInterval(pon,1500)})();
 </script>
