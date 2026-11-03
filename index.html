@@ -2986,7 +2986,20 @@ function puKey(mod,S){if(S.k&&S.l)return `${mod}|${S.k}|${S.l}`;const m=/^(\d+)\
  El sensor del portón C-S9 solo aparece en OT de portón: el portón bajado quita el bloqueo de traslación de la PAS y la llave de bypass no lo elimina. */
 const PU_REQ={"E-A8|1|1":/porton|persiana|enrollable|c-?s9/,"E-A9|3|1":/antiatrap|atrapamiento|barrera optica/,"E-A9|3|2":/antiatrap|atrapamiento|barrera optica/,
  "E-A9|1|2":/antiatrap|atrapamiento|barrera optica/,"E-A9|4|2":/antiatrap|atrapamiento|barrera optica/,"E-A10|2|2":/puerta (de )?servicio|escalera de servicio|ss-?b15/,
- "E-A3|3|2":/freno manual|desfrenad|palanca de freno|t-?s6/,"E-A3|3|4":/freno manual|desfrenad|palanca de freno|t-?s8/};
+ "E-A3|3|2":/freno manual|desfrenad|palanca de freno|t-?s6/,"E-A3|3|4":/freno manual|desfrenad|palanca de freno|t-?s8/,
+ /* v273: los bloqueos por equipos de servicio (E-A2) solo si la OT nombra ESE equipo. «Carro» a secas es el carro de RUEDAS
+    (bogie de traslación), no el carro de A/A: «borde de ruedas activado» ya no propone el bloqueo del carro de aire. */
+ "E-A2|2|4":/\b(aire|a\/a|aa|pca|pc ?air|climatiz\w*|maquina de aire)\b/,
+ "E-A2|3|1":/\bcarr(o|ito|ete|eta)s?\b[^.]{0,25}\b(aire|a\/a|aa|pca|pcair|climatiz\w*)\b|\bpc ?air\b|\b(aire|a\/a|aa|pca)\b[^.]{0,25}\bcarr(o|ito|ete|eta)s?\b|e-?s100/,
+ "E-A2|3|2":/\b400\b|convertidor|\bgpu\b/,"E-A2|3|3":/90 ?%|conector|\bpds\b/};
+/* v273: el Análisis de OT tampoco relaciona señales de equipos de servicio (A/A, carro A/A, 400 Hz, conector) que la OT no nombra:
+   el sinónimo «ruedas → carro» acercaba «Bloqueo PBB carro A/A» a una OT de bordes de ruedas. */
+const EQ_SIG=[[/carro a\/a/i,"E-A2|3|1"],[/a\/a|aire|pca|climatiz/i,"E-A2|2|4"],[/convertidor|400 ?hz/i,"E-A2|3|2"],[/90 ?%|conector/i,"E-A2|3|3"]];
+(function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r._eq||!i)return r;r._eq=1;const t=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
+ const fuera=x=>{const e=EQ_SIG.find(([re])=>re.test(x.S.t));return e&&!PU_REQ[e[1]].test(t)};const quit=r.rel.filter(fuera);if(!quit.length)return r;
+ r.rel=r.rel.filter(x=>!fuera(x));const tq=new Set();quit.forEach(x=>x.tg.forEach(g=>tq.add(g)));const tk=new Set();r.rel.forEach(x=>x.tg.forEach(g=>tk.add(g)));
+ r.elem=r.elem.filter(g=>!tq.has(g)||tk.has(g));const ms=new Set(r.rel.map(x=>x.mod));r.mods=r.mods.filter(m=>ms.has(m)||!quit.some(x=>x.mod==m));
+ r.guia=r.guia.filter(g=>!/equipos de servicio|carro a\/a|carro de aire/i.test(g.t)||EQ_SIG.some(([re,k])=>re.test(g.t)&&PU_REQ[k].test(t)));return r}})();
 function puentesOT(i){if(!i||i.estado!="abierta")return [];const R=anaOT(i);if(!R)return [];const pos=String(i.pos),out=[],vis=new Set();
  const txt=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
  R.rel.forEach(x=>{const key=puKey(x.mod,x.S);if(!key||vis.has(key)||!PUENTE[key])return;if(PU_REQ[key]&&!PU_REQ[key].test(txt))return;const t=PUENTE[key];
@@ -3265,6 +3278,27 @@ const PAS_CA_SI=GUIA.tipos.PAS.s.push({t:"PAS bloqueada por carro de aire (A/A)"
  if(!r.mods.includes("E-A2"))r.mods.unshift("E-A2");else r.mods=["E-A2"].concat(r.mods.filter(m=>m!="E-A2"));
  r.elem=["E-S100","E-X61"].concat(r.elem.filter(t=>!/^(E-S100|E-X61|C-S9|C-M6|E-Q8|E-K8[12])/.test(t)));
  return r}})();
+/* ===== v273: la OT NOMBRA elementos concretos → el Análisis y la Guía se ciñen a ELLOS (lectura exhaustiva de la descripción).
+   Elementos de seguridad / bloqueo que la OT no nombra (portón, barrera rotonda, zapata, bumper, seta AO, antiatrapamiento,
+   puerta de servicio, freno manual, bordes) se quitan; los nombrados se ponen los primeros con su señal del PLC y su caja de la guía.
+   Con un síntoma genérico («no traslada») el análisis sigue siendo amplio. ===== */
+const EL_FAM=[[/port[oó]n/i,/porton|persiana|enrollable|c-?s9/],[/barrera.*rotonda|rotonda.*barrera|r-?b4/i,/barrera|r-?b4/],[/zapata/i,/zapata/],
+ [/bumper/i,/bumper|parachoque|golpe|choque/],[/seta ao|setas? (de )?emergencia|\bsetas?\b/i,/\bsetas?\b|emergencia|\bparo\b|\bao\b/],[/antiatrap|barrera [oó]ptica/i,/antiatrap|atrapamiento|barrera optica/],
+ [/puerta (de )?servicio|ss-?b15/i,/puerta (de )?servicio|escalera de servicio|ss-?b15/],[/freno manual/i,/freno manual|desfrenad|palanca de freno|t-?s[68]/],[/bandas|\bbordes?\b/i,/borde|banda|t-?b[56]/]];
+function otNombra(i){if(!i)return false;const S=segOT(i);return !!((S&&(S.sen&&S.sen.length||S.lim))||esCarroAire(i)||EQ_SIG.some(([,k])=>k!="E-A2|2|4"&&PU_REQ[k].test(segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" ")))))}
+(function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r._nm||!i||!otNombra(i))return r;r._nm=1;const t=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
+ const ajeno=s=>{const fs=EL_FAM.filter(([re])=>re.test(s));return fs.length&&!fs.some(([,q])=>q.test(t))};
+ r.rel=r.rel.filter(x=>!ajeno(x.S.t));
+ const S=segOT(i);(S&&S.sen||[]).slice().reverse().forEach(e=>{const tag=e[3].split(/[ /(]/)[0];let hit=r.rel.find(x=>x.mod==e[0]&&(x.S.t.includes(tag)||x.tg.has(tag)));
+  if(!hit)Object.keys(RUTAS).forEach(m=>{if(m==e[0])(RUTAS[m].s||[]).forEach(s=>{if(!hit&&new RegExp(tag.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i").test(s.t+" "+(s.p||[]).map(q=>q.p).join(" ")))hit={mod:m,S:s,sc:99,tg:new Set([tag])}})});
+  if(hit){hit._otn=1;r.rel=[hit].concat(r.rel.filter(x=>x!==hit));r.mods=[e[0]].concat(r.mods.filter(m=>m!=e[0]));if(!r.elem.includes(tag))r.elem.unshift(tag)}});
+ const G=GUIA.tipos[r.tipo]||{s:[]};r.guia=r.guia.filter(g=>{const fs=EL_FAM.filter(([re])=>re.test(g.t));return !fs.length||fs.some(([,q])=>q.test(t))});
+ const nom=[];G.s.forEach((s,si)=>{const fs=EL_FAM.filter(([re])=>re.test(s.t));if(fs.some(([,q])=>q.test(t)))nom.push({si,t:s.t,sc:98})});
+ if(esCarroAire(i))nom.unshift(...r.guia.filter(g=>/carro de aire/i.test(g.t)));
+ /* si la OT solo nombra elementos (sin síntoma de maniobra), la guía no añade averías que la OT no describe */
+ const sint=/\bno (traslada|gira|sube|baja|eleva|extiende|recoge|retrae|rearma|arranca|responde|funciona|maniobra|se mueve)|fallo (de )?variador|no hace nada/.test(t);
+ r.guia=nom.concat(r.guia.filter(g=>!nom.some(n=>n.si==g.si)&&(!nom.length||sint||g.sc>=98)));
+ r.guia=r.guia.slice(0,4);return r}})();
 </script><script>
 /* ===== v51: botón Claude abajo en «Resolución»: copia Actuación + Observaciones (con los datos de la OT) y abre el proyecto PBB TKE ===== */
 function resClaude(id){const i=inc.find(x=>x.id==id);if(!i)return;
@@ -3673,7 +3707,7 @@ const POS_PROPIO=["504","507","508"];
 <script src="sai.js?v=1"></script>
 <script src="laser-ala.js?v=4"></script>
 <script src="hidraulica.js?v=9"></script>
-<script src="analisis-filtro.js?v=1"></script>
+<script src="analisis-filtro.js?v=273"></script>
 <script src="reset-pbb.js?v=2"></script>
 <script>
 /* ===== v101: PBB 507 (A380, plano propio T87911031230ES) y documentación nueva en la guía de campo: ver pbb507.js ===== */
@@ -4474,7 +4508,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=272;
+const APP_VER=273;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}

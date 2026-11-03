@@ -29,7 +29,7 @@ function relac(x,P){const S=x.S||{};
  try{const G=GUIA.tipos[r.tipo];const g=r.guia&&r.guia[0];const s=G&&g&&G.s[g.si];if(!s||!r.rel)return r;
   const tx=[s.t,...(s.p||[]),s.a||""].join(" ");const up=tx.toUpperCase();
   const P={tags:new Set((up.match(TAG)||[]).map(t=>t.replace(/'+$/,""))),leds:refsLed(tx),words:new Set(palabras(tx)),mods:new Set(up.match(/\b[EP]-A\d+\b/g)||[])};
-  const rel0=r.rel;let rel=rel0.filter(x=>relac(x,P));if(!rel.length)rel=rel0.slice(0,2);
+  const rel0=r.rel;let rel=rel0.filter(x=>x._otn||relac(x,P)); /* v273: los elementos que nombra la OT se quedan siempre */if(!rel.length)rel=rel0.slice(0,2);
   r.rel=rel;r.mods=[...new Set(rel.map(x=>x.mod))];
   const el0=r.elem||[];let el=el0.filter(t=>P.tags.has(t));
   if(!el.length){const vis=new Set();rel.forEach(x=>(x.tg||[]).forEach(t=>{if(util(t))vis.add(t)}));el=el0.filter(t=>vis.has(t)).slice(0,6)}
