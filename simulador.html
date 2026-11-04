@@ -118,7 +118,7 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 
 </head><body>
 <div class="wrap">
-  <a class="back" href="./">← Volver a la PWA</a>
+  <a class="back" href="./" id="volver">← Volver a la PWA</a>
   <header>
     <h1>Simulador de tensiones PBB</h1>
     <p class="sub">Valores esperados según el esquema general T87911031210ES rev. J (T4/T4S). Fase 1: E/S 24 V · Fase 2: potencia.</p>
@@ -350,6 +350,11 @@ pshow();
 
 sel=KEYS.find(k=>C[k].d==="BYPASS SEGURIDADES")||KEYS[0];
 mods();list();det();
+</script>
+<script>
+/* v313: dentro de la PWA (capa) «Volver» solo cierra la capa, sin recargar la PWA */
+(function(){const v=document.getElementById("volver");if(!v)return;let dentro=false;try{dentro=window.parent!==window&&window.parent.location.origin===location.origin}catch(e){}
+ if(dentro)v.addEventListener("click",e=>{e.preventDefault();window.parent.postMessage("cierraAnalisis",location.origin)})})();
 </script>
 <script src="borneros.js?v=312"></script>
 
