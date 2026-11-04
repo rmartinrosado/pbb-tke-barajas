@@ -35,7 +35,8 @@ window.segHTML=segHTML=function(i,S){let h=oh.apply(this,arguments);if(!S||!S.li
  try{const ini=h.indexOf('<div class="anal">Límites · puentes provisionales en el PLC</div>');if(ini<0)return h;
   let fin=h.indexOf('<div class="anal">Contactor de seguridades bloqueado',ini);if(fin<0)fin=h.indexOf('<div class="gnp"',ini);if(fin<0)fin=h.length;
   const otro=k=>{const its=k=="seg"?S.itSeg:S.itNor;if(!its.length)return "";
-   return `<details class="lmotro"><summary>${k=="seg"?"Si se para todo y caen los contactores de seguridad: <b>final de carrera de seguridad</b> (módulo amarillo E-A8)":"Si solo falla un sentido: <b>límite de trabajo</b> (módulo verde)"}</summary>${grupo(k,its)}</details>`};
+   let cq="";try{if(typeof croquisPuente=="function"&&window._croqLista){const ids=new Set(its.map(x=>x[0]+x[1]));cq=window._croqLista(i).filter(o=>ids.has(o.mod+o.b1)).map(o=>`<div class="lmcq">${croquisPuente(o,5)}</div>`).join("")}}catch(e){}
+   return `<details class="lmotro"><summary>2ª opción · ${k=="seg"?"Si se para todo y caen los contactores de seguridad: <b>final de carrera de seguridad</b> (módulo amarillo E-A8)":"Si solo falla un sentido: <b>límite de trabajo</b> (módulo verde)"}</summary>${cq}${grupo(k,its)}</details>`};
   const cuerpo=S.limMix?DIST+grupo("seg",S.itSeg)+grupo("nor",S.itNor):S.limT=="seg"?grupo("seg",S.itSeg)+otro("nor"):grupo("nor",S.itNor)+otro("seg");
   h=h.slice(0,ini)+cuerpo+h.slice(fin);
   const tit=S.limMix?"límite activado (seguridad o trabajo)":S.limT=="seg"?"final de carrera de seguridad pisado":"límite de trabajo activado";
@@ -52,7 +53,7 @@ const st=document.createElement("style");st.textContent=`
 .lmnor{border-color:#2e9e4f;background:color-mix(in srgb,#2e9e4f 9%,transparent)}
 .lmseg>.anal:first-child{color:#b08900}.lmnor>.anal:first-child{color:#2e9e4f}
 .lmg .lms{font-size:10.5px;opacity:.85}.lmd{margin:2px 0 4px}
-.lmotro{margin:8px 0}.lmotro>summary{cursor:pointer;font-size:13px;line-height:1.35;padding:6px 0}
+.lmotro{margin:8px 0}.lmcq{max-width:420px;margin:6px auto}.lmotro>summary{cursor:pointer;font-size:13px;line-height:1.35;padding:6px 0}
 .lmq{margin:8px 0;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--pr,#7b3fe4) 10%,transparent);font-size:13px;line-height:1.4}`;
 document.head.appendChild(st);
 })();
