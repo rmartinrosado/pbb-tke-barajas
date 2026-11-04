@@ -1132,7 +1132,7 @@ const RUTAS_DET=Object.assign({},RUTAS);
 function gIGenera(){const det=RUTAS_DET;Object.keys(RUTAS).forEach(k=>delete RUTAS[k]);
  INS_E.concat(INS_P).forEach(id=>{const M=PLC.find(x=>x.id==id);const D=det[id];
   if(!M){RUTAS[id]={n:"Sin datos en PLC RCS",ref:"",s:[],vacio:true};return}
-  const arm=id.startsWith("E")?"armario E":"pupitre",cero=id.startsWith("E")?"+E-X68:2 (0 V)":"+P-X92.1:2 (0 V del pupitre · hilo 205 blanco, folio 40)";
+  const arm=id.startsWith("E")?"armario E":"pupitre",cero=id.startsWith("E")?"+E-X68:2 (0 V)":"+P-X92:2 (0 V del pupitre · hilo 205 blanco, folio 40)";
   const ref=M.t=="DO"||M.t=="SDO"?`Polímetro en V DC respecto a ${cero}. Una salida solo da 24 V con la orden activa (LED encendido): provocar la maniobra o forzar la condición antes de medir.`
    :M.t=="SDI"?`Polímetro en V DC. Punta negra en la GND del módulo (borna x.3 de la misma entrada) o en ${cero}. Las salidas UT son pulsos de test: el polímetro puede marcar algo menos de 24 V.`
    :`Polímetro en V DC. Punta negra en ${cero}. Cada entrada se alimenta desde la borna +24 V de su mismo grupo en el módulo.`;
@@ -1456,7 +1456,7 @@ Object.assign(UBI,{
  CBTH:{c:"CBTH",n:"Armario CBTH de la posición",k:"#455a64"}});
 const COLNOM={RD:"rojo",WH:"blanco",BK:"negro",BN:"marrón",BU:"azul",GY:"gris",VT:"violeta",GN:"verde",YE:"amarillo",PK:"rosa",OG:"naranja",TQ:"turquesa"};
 function cColor(c){if(!c)return "";if(c=="GNYE"||c=="YEGN")return "verde-amarillo";return (c.match(/[A-Z]{2}/g)||[]).map(x=>COLNOM[x]||x).join("-")}
-const COMUN={"205":"0 V (armario E: +E-X68:2 · pupitre: +P-X92.1:2)","189":"+24 V E/S armario E (+E-Q30.3, 10 A → +E-X68:1)","613":"+24 V seguridad (+E-Q30.4, 8 A → +E-X68:6)","614":"0 V salidas safety (GND del módulo)",
+const COMUN={"205":"0 V (armario E: +E-X68:2 · pupitre: +P-X92:2)","189":"+24 V E/S armario E (+E-Q30.3, 10 A → +E-X68:1)","613":"+24 V seguridad (+E-Q30.4, 8 A → +E-X68:6)","614":"0 V salidas safety (GND del módulo)",
  "332":"+24 V pupitre (+P-Q30.2 → +P-X92.1:1)","336":"+24 V pupitre (derivado de +P-X92.1:1 por +P-X92:1)","309":"+24 V pupitre (derivado por +P-X53:1)","389":"retorno común de bobinas del pupitre (ver folio)"};
 function cZona(t){const m=String(t||"").match(/^\+([A-Z]+)\d*-/);if(!m)return "E";const z=m[1];return UBI[z]?z:UBI[z.replace(/\d+$/,"")]?z.replace(/\d+$/,""):"F"}
 /* Un tramo de cable (hilo o manguera) en texto */
@@ -2955,7 +2955,7 @@ function infActuacion(k){const t=k.replace(/\d+$/,""),si=+k.slice(t.length);cons
      <p><b>Medidas esperadas:</b></p><ul>${M.m.map(m=>`<li>${esc(m)}</li>`).join("")}</ul></div>`});
    b+=`</div>`});
   h+=`<section><h3>Paso ${ix+1}. ${esc(x.p)}</h3>${x.g?`<p class="iz">Plano: página ${x.g}</p>`:""}${b||`<p>Paso de comprobación visual o de maniobra: hazlo tal como se indica.</p>`}</section>`});
- const pupi=pl=="504"?"P-X92:1 (24 V) / P-X92:2 (0 V)":"P-X92.1:1 (24 V) / P-X92.1:2 (0 V)";
+ const pupi="P-X92:1 (24 V, hilo 332) / P-X92:2 (0 V, hilo 205)";
  const html=`<div class="ihd"><h2>Informe de actuación · ${esc(S.t)}</h2>
   <p>${i?`OT ${esc(i.orden||"")} · PBB ${esc(i.pos)} (${esc(i.tipo)}) · ${esc(i.desc||"")} · `:""}${esc(new Date().toLocaleString("es-ES"))}${typeof tecNombre!="undefined"&&tecNombre?" · Técnico: "+esc(tecNombre):""}</p>
   <p>Plano utilizado: <b>${esc(plN)}</b> · PLC_RCS para los LED${S.r?" · "+esc(S.r):""}</p></div>
@@ -4522,7 +4522,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=320;
+const APP_VER=321;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
