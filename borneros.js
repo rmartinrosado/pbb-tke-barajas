@@ -130,7 +130,7 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
  let h='<div class="head"><div><h2>Borneros y mangueras</h2><div class="meta">'+Object.keys(IDX).length+' regleteros · '+Object.keys(MAN).length+' mangueras · folios 9-97</div></div></div>'+
   '<p class="ref">Cada borna con el hilo que llega, la manguera y el conductor que sale, hacia dónde va, el circuito al que pertenece y la tensión que debe dar con el circuito cerrado y todo en servicio.</p>'+
   '<div class="presets"><button class="btn'+(bmode==="reg"?" pri":"")+'" data-bm="reg">Regleteros</button><button class="btn'+(bmode==="man"?" pri":"")+'" data-bm="man">Mangueras</button></div>'+
-  '<input id="bq" type="search" placeholder="Buscar: E-X55, EH-W1, hilo 189, H-S3, 613…" value="'+esc(bq)+'" autocomplete="off" style="margin-top:10px">';
+  '<input id="bq" type="search" placeholder="Buscar y pulsar Intro: E-X55, EH-W1, hilo 189, H-S3…" value="'+esc(bq)+'" autocomplete="off" style="margin-top:10px">';
  if(bmode==="reg"){
   h+=Object.keys(groups).sort((a,b)=>Object.keys(ZONA).indexOf(a)-Object.keys(ZONA).indexOf(b)).map(z=>'<div class="grp">'+esc(ZONA[z][0])+' · '+esc(ZONA[z][1])+'</div><div class="chips">'+groups[z].map(s=>'<button class="chip'+(s===bsel?" sel":"")+'" data-bs="'+esc(s)+'">'+esc(s)+' <i>'+Object.keys(IDX[s]).length+'</i></button>').join("")+'</div>').join("")||'<p class="foot">Sin resultados.</p>';
   if(bsel&&IDX[bsel]){const S=IDX[bsel];
@@ -147,7 +147,13 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
    '<div class="bn"><div class="bnp">'+esc(d)+'</div><div class="bnr">'+M.c[d].map(r=>'<div class="bnl"><b>'+esc(r.a)+' ⟷ '+esc(r.b)+'</b><div class="w"><button class="lnk" data-go="'+esc(r.key)+'">'+esc(r.d)+'</button></div></div>').join("")+'</div></div>').join("")+'</div>'}).join("")||'<p class="foot">Sin resultados.</p>';
  }
  box.innerHTML=h;
- const i=document.getElementById("bq");if(i){i.oninput=()=>{bq=i.value;const pos=i.selectionStart;render();const j=document.getElementById("bq");j.focus();try{j.setSelectionRange(pos,pos)}catch(e){}}}
+ /* v316: mientras se teclea no se redibuja nada (la pantalla no se mueve); la búsqueda se aplica al validar
+    (Intro / «Buscar» del teclado) o al borrar con la ✕ del campo, y entonces se cierra el teclado y se va a los resultados */
+ const i=document.getElementById("bq");if(i){
+  const valida=()=>{if(i.value===bq)return;bq=i.value;i.blur();render();const r=document.getElementById("bq");if(r)r.scrollIntoView({block:"start",behavior:"smooth"})};
+  i.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();valida()}});
+  i.addEventListener("search",valida);i.addEventListener("change",valida);
+  i.setAttribute("enterkeyhint","search")}
 }
 window.borRender=render;
 document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;
