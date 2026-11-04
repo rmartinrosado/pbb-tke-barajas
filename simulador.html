@@ -78,6 +78,8 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 .ref,.diag,.foot,.sub{text-align:justify;text-justify:inter-word}
 .foot{font-size:12.5px;color:var(--muted)}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
+.esq{display:flex;gap:6px;align-items:center;margin:0 0 8px;font:600 13px var(--f-body)}.esq span{color:var(--muted);font-weight:500}
+.esq a{padding:6px 10px;border-radius:7px;border:1px solid var(--line);color:var(--fg);text-decoration:none}.esq a.sel{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
 .tabs button{flex:1 1 140px;font:600 14px var(--f-body);padding:10px 12px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;text-align:left}
 .tabs button small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
 .tabs button.sel{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
@@ -130,6 +132,7 @@ ol.pasos li{padding-left:2px}ol.pasos li::marker{color:var(--warn);font-weight:7
     <h1>Simulador de tensiones PBB</h1>
     <p class="sub">Valores esperados según el esquema general T87911031210ES rev. J (T4/T4S). Fase 1: E/S 24 V · Fase 2: potencia.</p>
   </header>
+  <div class="esq" id="esq"><span>Esquema:</span><a data-esq="j" href="#">Rev. J (T4/T4S)</a><a data-esq="507" href="#">PBB 507 (A380)</a></div>
   <div class="tabs" id="tabs">
     <button data-v="pot" class="sel">Potencia desde CBTH<small>400 V · 230 V · SAI · fuentes 24 V</small></button>
     <button data-v="es">E/S del PLC 24 V<small>Circuitos borna a borna</small></button>
@@ -154,6 +157,8 @@ ol.pasos li{padding-left:2px}ol.pasos li::marker{color:var(--warn);font-weight:7
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="cableado.js?v=58"></script>
 <script src="cableado-revj.js?v=324"></script>
+<script>window.ES507=/[?&]pbb=507/.test(location.search);if(window.ES507)document.write('<script src="cableado507.js?v=325"><\/script>')</script>
+<script>if(window.ES507&&window.CABLEADO507){window.CABLEADO_J=window.CABLEADO;window.CABLEADO=window.CABLEADO507}else window.ES507=false;</script>
 <script>
 const C=window.CABLEADO, KEYS=Object.keys(C);
 const $=s=>document.querySelector(s);
@@ -214,7 +219,7 @@ function det(){
    '<div class="ctrls">'+(out?'<button class="btn pri" id="tog">'+(outOn?"Desactivar salida":"Activar salida")+'</button>':'')+
    '<button class="btn" id="rst">Todo cerrado</button><button class="btn'+(fault?" act":"")+'" id="flt">'+(fault?"Salir de búsqueda de avería":"Buscar avería midiendo")+'</button></div>'+
    (r.load!==undefined&&r.load!==null?'<p class="ref">Carga '+(r.load?'<b>alimentada</b>':'<b>sin tensión</b>')+'.</p>':'')+
-   '<p class="ref">Mide entre cada punto y 0 V (hilo 205 WH). Orden: '+(out?"desde la salida del PLC hacia la carga.":"desde el origen de +24 V hacia la entrada del PLC.")+'</p>'+
+   '<p class="ref">Mide entre cada punto y 0 V ('+(window.ES507?"hilo 129 WH: E-X68:2 en el armario, P-X92:2 en el pupitre; en las salidas de seguridad, la GND del canal":"hilo 205 WH")+'). Orden: '+(out?"desde la salida del PLC hacia la carga.":"desde el origen de +24 V hacia la entrada del PLC.")+'</p>'+
    r.notes.map(x=>'<p class="note">⚠ '+x+'</p>').join("")+diag+
    '<div class="chain">'+r.rows.map((x,i)=>'<div class="row'+(fault&&i===firstN?" suspect":"")+'"><div class="v '+(x.unk||x.txt?"unk":x.v>0?"live":"dead")+'">'+(x.txt||(x.v>0?"24 V":"0 V"))+'</div><div class="what"><span class="k">'+x.k+'</span><b>'+x.t+'</b>'+(x.w?'<div class="w">'+x.w+(x.f?' · '+FOL(x.f):'')+'</div>':(x.f?'<div class="w">'+FOL(x.f)+'</div>':""))+'</div>'+
      (fault?'<div class="mk"><button data-mk="'+i+'" data-a="y" class="'+(marks[i]==="y"?"y":"")+'">Sí</button><button data-mk="'+i+'" data-a="n" class="'+(marks[i]==="n"?"n":"")+'">No</button></div>':
@@ -235,7 +240,7 @@ const ICL='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="c
 const FOL=f=>'<button class="fl" data-fol="'+f+'" title="Ver folio '+f+' en el plano">folio '+f+' '+ICL+'</button>';
 let VDOC=null,VNAME="",VFOL=0,VZ=1,VBUSY=false;
 const SBC=(window.supabase&&window.supabase.createClient)?window.supabase.createClient("https://cychbpunjexeeazjqyqk.supabase.co","sb_publishable_t7Fl_CYF7InlJdFx6r6y1w_PtexzEj0"):null;
-const vPag=f=>{if(f>96)f={97:62,98:41,99:41,100:93}[f]||f;return f>=9?f-1:f};
+const vPag=f=>{if(window.ES507)return f;if(f>96)f={97:62,98:41,99:41,100:93}[f]||f;return f>=9?f-1:f};
 function vLib(){return new Promise((res,rej)=>{if(window.pdfjsLib){res();return}const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";res()};s.onerror=rej;document.head.appendChild(s)})}
 async function vDraw(){if(!VDOC||VBUSY)return;VBUSY=true;try{const n=Math.min(Math.max(1,vPag(VFOL)),VDOC.numPages);const p=await VDOC.getPage(n);const w=$("#vw").clientWidth;const b=p.getViewport({scale:1});const dp=window.devicePixelRatio||1;const v=p.getViewport({scale:w/b.width*VZ*dp});
  let c=$("#vw canvas");if(!c){c=document.createElement("canvas");$("#vw").innerHTML="";$("#vw").appendChild(c)}c.width=v.width;c.height=v.height;c.style.width=v.width/dp+"px";c.style.height=v.height/dp+"px";await p.render({canvasContext:c.getContext("2d"),viewport:v}).promise;
@@ -244,7 +249,7 @@ async function verFolio(f){VFOL=+f;VZ=1;let o=$("#visor");if(!o){o=document.crea
  o.innerHTML='<div class="vb"><b id="vt">Folio '+VFOL+'</b><button class="btn" data-vz="-1" aria-label="Folio anterior">◀</button><button class="btn" data-vz="1" aria-label="Folio siguiente">▶</button><button class="btn" data-vzm="0.8" aria-label="Alejar">−</button><button class="btn" data-vzm="1.25" aria-label="Acercar">+</button><button class="btn pri" id="vx">✕ Cerrar</button></div><div id="vw"><div class="msg">Abriendo el plano…</div></div>';
  try{if(!VDOC){if(!SBC)throw new Error("sin conexión con la PWA");
    const l=await SBC.storage.from("planos").list("",{limit:200});if(l.error)throw l.error;
-   const d=(l.data||[]).find(x=>/T87911031210|T4T4S|RCS.?PLANOS/i.test(x.name));if(!d)throw new Error("no está «ESQUEMA GENERAL rev. J» en la pestaña Planos de la PWA");
+   const d=(l.data||[]).find(x=>window.ES507?(/T87911031230|(^|\D)507(\D|$)/i.test(x.name)&&!/AAA|PCA|CBTH|PDS|AAP/i.test(x.name)):/T87911031210|T4T4S|RCS.?PLANOS/i.test(x.name));if(!d)throw new Error(window.ES507?"no está el esquema de la PBB 507 (T87911031230ES) en la pestaña Planos de la PWA":"no está «ESQUEMA GENERAL rev. J» en la pestaña Planos de la PWA");
    const dl=await SBC.storage.from("planos").download(d.name);if(dl.error)throw dl.error;
    await vLib();VDOC=await pdfjsLib.getDocument({data:new Uint8Array(await dl.data.arrayBuffer())}).promise;VNAME=d.name.replace(/^\d+_/,"")}
   await vDraw()}
@@ -368,7 +373,11 @@ mods();list();det();
 (function(){const v=document.getElementById("volver");if(!v)return;let dentro=false;try{dentro=window.parent!==window&&window.parent.location.origin===location.origin}catch(e){}
  if(dentro)v.addEventListener("click",e=>{e.preventDefault();window.parent.postMessage("cierraAnalisis",location.origin)})})();
 </script>
+<script>(function(){const q=new URLSearchParams(location.search);document.querySelectorAll("#esq a").forEach(a=>{a.classList.toggle("sel",(a.dataset.esq==="507")===!!window.ES507);
+ a.onclick=e=>{e.preventDefault();if(a.dataset.esq==="507")q.set("pbb","507");else q.delete("pbb");location.search=q.toString()}});
+ if(window.ES507){const s=document.querySelector("header .sub");if(s)s.textContent="Valores esperados según el esquema propio de la PBB 507 T87911031230ES rev. C (trazado borna a borna de los folios 75-116). La potencia desde el CBTH se simula solo con la rev. J.";
+  const b=document.querySelector('#tabs button[data-v="pot"]');if(b){b.hidden=true;const e=document.querySelector('#tabs button[data-v="es"]');if(e)e.click()}}})();</script>
 <script src="texto.js?v=314"></script>
-<script src="borneros.js?v=316"></script>
+<script src="borneros.js?v=325"></script>
 
 </body></html>

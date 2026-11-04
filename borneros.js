@@ -72,6 +72,21 @@ const ST=[
  ["+E-X61","21","hilo 205 WH","ECBTH-W · 21","0 V hacia el CBTH (desde E-X55:2)","0 V",11],
  ["+E-X61","22","hilo 13 RD","ECBTH-W · 22","Foco azafata verde (P-K22 21-22) → E-X59:11","24 V con foco verde",11]
 ];
+/* v325: en la PBB 507 (Check con ?pbb=507) los regleteros de alimentación son los del esquema 507 */
+if(window.ES507){ST.length=0;ST.push(
+ ["+E-X68","1","hilo 218 RD","—","+24 V E/S armario E: común de entradas y regleteros de campo (E-X51:1, E-X54:1, E-X55, H-X51:1, IT-X51:1, ET-X51:1)","24 V",58],
+ ["+E-X68","2","hilo 129 WH","—","0 V armario E (retorno de bobinas, sensores, GND de módulos)","0 V",58],
+ ["+E-X68","4","hilo 568 RD","—","+24 V de seguridades: módulo E-A5 (UM 1.2 / US 2.1), sensores C-S9 y SS-B15","24 V",56],
+ ["+E-X68","6","hilo 626 RD","ESS-W20 · BK","Inductivo puerta de servicio SS-B15 → E-A10 4.1","24 V",93],
+ ["+E-X68","7","hilo 625 WH","ESS-W20 · BU","−UB del SS-B15 → GND 4.3 de E-A10","0 V",93],
+ ["+P-X92","1","hilo 184 RD","—","+24 V del pupitre: P-A0, pulsadores (P-X53/P-X56/P-X57/P-X59), sensores de cabina","24 V",58],
+ ["+P-X92","2","hilo 129 WH","—","0 V del pupitre","0 V",58],
+ ["+H-X51","1","hilo 218 RD","EH-W1 · 1","+24 V a la elevación (sensores H-B1…H-B6, setas, frenos)","24 V",84],
+ ["+H-X51","2","hilo 129 WH","EH-W1 · 2","0 V a la elevación","0 V",84],
+ ["+IT-X51","1","hilo 218 RD","EIT-W1 · 1","+24 V al túnel / rotonda (CO-B1, CO-B2, IT-B10, TF-S1/S2)","24 V",81],
+ ["+IT-X51","2","hilo 129 WH","EIT-W1 · 2","0 V al túnel / rotonda","0 V",81],
+ ["+ET-X51","1","hilo 218 RD","EET-W1 · 1","+24 V al túnel exterior (ET-B6, ET-B7)","24 V",81],
+ ["+ET-X51","2","hilo 129 WH","EET-W1 · 2","0 V al túnel exterior","0 V",81])}
 
 let IDX=null,MAN=null;
 /* folio compacto en la columna de la etiqueta (no ocupa línea en el texto) */
@@ -92,7 +107,7 @@ function build(){
    const S=(IDX[x.t]=IDX[x.t]||{}),R=(S[x.p]=S[x.p]||[]);
    const prev=i===0?(e.m==="AUX"?"":("PLC "+e.m+" "+e.b)):lab(n[i-1]),next=n[i+1]?lab(n[i+1]):"";
    R.push({key,m:e.m,b:e.b,d:dsc(e),f:x.f||e.f,pf:i===0?e.f:(n[i-1].f||e.f),nf:n[i+1]?(n[i+1].f||e.f):0,t:x.t,p:x.p,inV:(x.v||[]).map(cond).join(" + "),outV:n[i+1]?(n[i+1].v||[]).map(cond).join(" + "):"",prev,next,vt:vm[x.t+":"+x.p]||""});
-   {const q=R[R.length-1];if(/(^|\D)205(\D|$)/.test(q.inV+' '+q.outV)&&q.vt&&!/^0/.test(q.vt))q.vt='0 V';}
+   {const q=R[R.length-1];if((window.ES507?/(^|\D)129(\D|$)/:/(^|\D)205(\D|$)/).test(q.inV+' '+q.outV)&&q.vt&&!/^0/.test(q.vt))q.vt='0 V';}
   })});
  ST.forEach(s=>{const S=(IDX[s[0]]=IDX[s[0]]||{}),R=(S[s[1]]=S[s[1]]||[]);R.unshift({key:"",d:s[4],f:s[6],pf:s[6],nf:s[6],t:s[0],p:s[1],inV:s[2],outV:s[3],prev:"",next:"",vt:s[5],st:1})});
 }
@@ -101,6 +116,7 @@ const REF0={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",CP:"+P-X92
  C4:"+C4-X64:2 (0 V, hilo 205)",H:"+H-X51:30 (0 V, hilo 205)",CO:"+IT-X51:2 (0 V, hilo 205)",CO3:"+IT-X51:2 (0 V, hilo 205)",R:"+IT-X50:2 (0 V, hilo 205)",CBTH:"+E-X61:21 (0 V PBB, hilo 205)",SS:"+E-X68:2 (0 V, hilo 205)",T:"+E-X68:2 (0 V, hilo 205)",F:"+E-X68:2 (0 V, hilo 205)"};
 const REF24={E:"+E-X68:1 (+24 V, hilo 189)",P:"+P-X92:1 (+24 V, hilo 332)",CP:"+P-X92:1 (+24 V, hilo 332)",IT:"+IT-X51:1 (+24 V, hilo 189)",ET:"+ET-X51:1 (+24 V, hilo 189)",C:"+C-X51:1 (+24 V, hilo 189)",
  C4:"+C4-X64:1 (+24 V, hilo 336)",H:"+H-X51:1 (+24 V, hilo 189)",CO:"+CO3-X51:1 (+24 V, hilo 189)",CO3:"+CO3-X51:1 (+24 V, hilo 189)",R:"+IT-X50:1 (+24 V, hilo 613)",CBTH:"+E-X61:10 (+24 V, hilo 189)",SS:"+E-X68:1 (+24 V, hilo 189)",T:"+E-X68:1 (+24 V, hilo 189)",F:"+E-X68:1 (+24 V, hilo 189)"};
+if(window.ES507){const J5=s=>s.replace(/hilo 205/,"hilo 129").replace(/hilo 189/,"hilo 218").replace(/hilo 332/,"hilo 184").replace(/hilo 613/,"hilo 568").replace("+H-X51:30","+H-X51:2");[REF0,REF24].forEach(o=>Object.keys(o).forEach(z=>{o[z]=J5(o[z])}))}
 const PAR={"+CBTH-X11":"1-2-3","+E-X60":"1-2-3 / 4-5-6","+P-X52":"1-2-3 / 4-5-6"};
 const NEU={"+CBTH-X12:1":"+CBTH-X12:2","+E-X66:1":"+E-X66:2","+E-X60:7":"+E-X60:8","+P-X52:7":"+P-X52:8","+E-X60:9":"+E-X60:10","+P-X52:9":"+P-X52:10"};
 function mide(r){const B="<b>"+esc(r.t+":"+r.p)+"</b>",z=zonaDe(r.t),vt=r.vt||"",txt=(r.inV+" "+r.outV+" "+r.d).toLowerCase();
@@ -127,7 +143,7 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
  const strips=Object.keys(IDX).sort(nat).filter(s=>!q||s.toLowerCase().includes(q)||Object.entries(IDX[s]).some(([p,R])=>R.some(r=>(r.inV+" "+r.outV+" "+r.d+" "+r.next+" "+r.prev).toLowerCase().includes(q))));
  const mans=Object.keys(MAN).sort(nat).filter(m=>!q||m.toLowerCase().includes(q)||JSON.stringify(MAN[m]).toLowerCase().includes(q));
  const groups={};strips.forEach(s=>{const z=zonaDe(s);(groups[z]=groups[z]||[]).push(s)});
- let h='<div class="head"><div><h2>Borneros y mangueras</h2><div class="meta">'+Object.keys(IDX).length+' regleteros · '+Object.keys(MAN).length+' mangueras · folios 9-97</div></div></div>'+
+ let h='<div class="head"><div><h2>Borneros y mangueras</h2><div class="meta">'+Object.keys(IDX).length+' regleteros · '+Object.keys(MAN).length+' mangueras · '+(window.ES507?'esquema PBB 507, folios 75-116':'folios 9-97')+'</div></div></div>'+
   '<p class="ref">Cada borna con el hilo que llega, la manguera y el conductor que sale, hacia dónde va, el circuito al que pertenece y la tensión que debe dar con el circuito cerrado y todo en servicio.</p>'+
   '<div class="presets"><button class="btn'+(bmode==="reg"?" pri":"")+'" data-bm="reg">Regleteros</button><button class="btn'+(bmode==="man"?" pri":"")+'" data-bm="man">Mangueras</button></div>'+
   '<input id="bq" type="search" placeholder="Buscar y pulsar Intro: E-X55, EH-W1, hilo 189, H-S3…" value="'+esc(bq)+'" autocomplete="off" style="margin-top:10px">';

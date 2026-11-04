@@ -55,7 +55,7 @@ addEventListener("load",function(){setTimeout(__diag,4000)});
 <script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>')</script>
 <script src="cableado.js?v=58"></script>
 <script src="cableado-revj.js?v=324"></script>
-<script src="ins-mide.js?v=323"></script>
+<script src="ins-mide.js?v=325"></script>
 <script>
 let POS=[500,502,504,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,538,539,540,542,544,546,548,550];
 const TIPOS=["PAS","AAA","AAP","HZ","SVGA","Sigma"];
@@ -980,7 +980,7 @@ function gInsHTML(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig)||R.s[0
  ${nok>=0?`<div class="gav" style="border-left-color:#c62828;background:color-mix(in srgb,#c62828 12%,transparent)"><b>Fallo localizado en el paso ${nok+1}:</b> ${esc(S.p[nok].x)}${nok>0?` (el paso ${nok} estaba bien).`:""}</div>`:""}
  <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br>${typeof insMide=="function"?insMide(q,typeof gIMod!="undefined"?gIMod:""):`<small class="mu">Esperado: ${esc(q.e)}</small>`}
   <span class="gib"><button class="${r.ok===true?"pri":"sec"}" onclick="gIMarca(${i},true)">OK</button><button class="${r.ok===false?"pri":"sec"}" onclick="gIMarca(${i},false)">NOK</button><input placeholder="Valor" value="${esc(r.v||"")}" onchange="gIValor(${i},this.value)"></span></span>
-  <button class="gpl" aria-label="Ver plano folio ${q.f}" onclick="gPlano('PAS',${q.f})">${IC('plans')}<small>${q.f}</small></button></div>`}).join("")}</div>
+  <button class="gpl" aria-label="Ver plano folio ${Math.abs(q.f)}" onclick="gPlano('PAS',${q.f})">${IC('plans')}<small>${Math.abs(q.f)}</small></button></div>`}).join("")}</div>
  <div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="delete gIRes[gIKey()];gPintaIns()">Limpiar</button><button class="sec" style="flex:2" onclick="gICopia()">Pasar medidas a la OT</button></div>
  <button class="pri" style="width:100%;margin-top:8px" onclick="gIPdf()">📄 Generar PDF A4 · Inspección cable a cable</button>`;
  return h}
@@ -1059,7 +1059,7 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig);if(
   if(typeof insMideCorto=="function"&&h>=12){d.setFont("helvetica","bold");d.setFontSize(6.3);d.setTextColor(176,110,0);d.text(d.splitTextToSize(pT("Medir: "+insMideCorto(q,gIMod)),W-M-cx)[0],cx,yc-4.6)}d.setFont("helvetica","bold");d.setFontSize(8);d.setTextColor(27,110,45);d.text(pT("Esperado: "+q.e),cx,yc-1.6);
   d.setFont("helvetica","normal");d.setFontSize(6.3);d.setTextColor(95);d.text(d.splitTextToSize(pT("Si no: "+q.x),W-M-cx).slice(0,2),cx,yc+1.4);
   d.setFontSize(7);const est=r.ok===true?"OK":r.ok===false?"NOK":"";d.setTextColor(r.ok===false?198:30,r.ok===false?40:30,r.ok===false?40:30);
-  d.text(pT(`Medido: ${r.v||"__________"}   ${est?"["+est+"]":"[ OK / NOK ]"}   ·   Folio ${q.f}`),cx,yc+(h>18?7.8:h>16?6.6:5.4))});
+  d.text(pT(`Medido: ${r.v||"__________"}   ${est?"["+est+"]":"[ OK / NOK ]"}   ·   Folio ${Math.abs(q.f)}`),cx,yc+(h>18?7.8:h>16?6.6:5.4))});
  /* ---- Página 2: hoja de medidas ---- */
  d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24;
  d.setFont("helvetica","bold");d.setFontSize(10);d.setTextColor(20);d.text(pT(`${gIMod} · ${S.id} · LED ${S.led} · ${S.t}`),M,y);y+=4;
@@ -1069,7 +1069,7 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig);if(
   if(y+hh>285){d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24}
   let x=M;cols.forEach((c,k)=>{if(fill)d.setFillColor(...fill);d.setDrawColor(170);d.setLineWidth(.2);d.rect(x,y,c[1],hh,fill?"FD":"S");d.setTextColor(20);d.text(ls[k],x+1,y+3.3);x+=c[1]});y+=hh};
  fila(cols.map(c=>c[0]),true,[237,228,250]);
- S.p.forEach((q,i)=>{const r=res[i]||{};fila([String(i+1),q.p,(typeof insMideCorto=="function"?insMideCorto(q,gIMod):""),q.e,q.x,r.v||"",r.ok===true?"OK":r.ok===false?"NOK":"",String(q.f)],false,r.ok===false?[255,232,232]:r.ok===true?[236,247,238]:null)});
+ S.p.forEach((q,i)=>{const r=res[i]||{};fila([String(i+1),q.p,(typeof insMideCorto=="function"?insMideCorto(q,gIMod):""),q.e,q.x,r.v||"",r.ok===true?"OK":r.ok===false?"NOK":"",String(Math.abs(q.f))],false,r.ok===false?[255,232,232]:r.ok===true?[236,247,238]:null)});
  y+=6;const nok=S.p.findIndex((_,j)=>res[j]&&res[j].ok===false);d.setFont("helvetica","bold");d.setFontSize(9);
  if(nok>=0){d.setTextColor(198,40,40);d.text(d.splitTextToSize(pT(`Fallo localizado en el paso ${nok+1}: ${S.p[nok].x}`),W-2*M),M,y)}else{d.setTextColor(60);d.text(pT(res.some(r=>r&&r.ok!==undefined)?"Sin fallo registrado en los puntos medidos.":"Pendiente de medir: anotar valores en campo."),M,y)}
  y+=14;d.setTextColor(20);d.setFont("helvetica","normal");d.setFontSize(8);d.text("Observaciones:",M,y);d.setDrawColor(170);for(let k=1;k<=4;k++)d.line(M,y+k*7,W-M,y+k*7);y+=38;
@@ -1108,7 +1108,7 @@ async function pFolio(d,pdf,np,f,S,ot,R){const pg=await pdf.getPage(np);const v1
   cx.fillStyle="#d32f2f";cx.beginPath();cx.arc(lx,ly,r,0,7);cx.fill();cx.fillStyle="#fff";cx.fillText(lab,lx,ly+.3*u)});
  const land=c.width>c.height;d.addPage("a4",land?"landscape":"portrait");const W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight();
  d.setFillColor(108,29,170);d.rect(0,0,W,11,"F");d.setFillColor(240,120,30);d.rect(0,11,W,1,"F");d.setTextColor(255);d.setFont("helvetica","bold");d.setFontSize(11);d.text("Inspección cable a cable",10,7.4);
- d.setFont("helvetica","normal");d.setFontSize(8);d.text(pT(`ESQUEMA GENERAL rev. J · folio ${f} · puntos ${pasos.map(o=>o.i+1).join(", ")}${ot&&ot.orden?" · OT "+ot.orden:""}`),W-10,7.4,{align:"right"});
+ d.setFont("helvetica","normal");d.setFontSize(8);d.text(pT(`ESQUEMA GENERAL rev. J · folio ${Math.abs(f)} · puntos ${pasos.map(o=>o.i+1).join(", ")}${ot&&ot.orden?" · OT "+ot.orden:""}`),W-10,7.4,{align:"right"});
  const top=14,leg=pasos.length>6?20:14,aw=W-16,ah=H-top-leg-10,s=Math.min(aw/c.width,ah/c.height),iw=c.width*s,ih=c.height*s,ix=(W-iw)/2;
  d.addImage(c.toDataURL("image/jpeg",.82),"JPEG",ix,top,iw,ih);d.setDrawColor(150);d.setLineWidth(.2);d.rect(ix,top,iw,ih);
  d.setTextColor(20);d.setFontSize(6.6);let ly=top+ih+4;const colw=(W-16)/2;
@@ -1202,7 +1202,7 @@ function gInsHTML(){gIAuto();const R=RUTAS[gIMod]||RUTAS["E-A9"];
  ${nok>=0?`<div class="gav" style="border-left-color:#c62828;background:color-mix(in srgb,#c62828 12%,transparent)"><b>Fallo localizado en el paso ${nok+1}:</b> ${esc(S.p[nok].x)}${nok>0?` (el paso ${nok} estaba bien).`:""}</div>`:""}
  <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br>${gUbiHTML(q)}${typeof insMide=="function"?insMide(q,typeof gIMod!="undefined"?gIMod:""):`<small class="mu">Esperado: ${esc(q.e)}</small>`}
   <span class="gib"><button class="${r.ok===true?"pri":"sec"}" onclick="gIMarca(${i},true)">OK</button><button class="${r.ok===false?"pri":"sec"}" onclick="gIMarca(${i},false)">NOK</button><input placeholder="Valor" value="${esc(r.v||"")}" onchange="gIValor(${i},this.value)"></span></span>
-  <button class="gpl" aria-label="Ver plano folio ${q.f}" onclick="gPlano('PAS',${q.f})">${IC('plans')}<small>${q.f}</small></button></div>`}).join("")}</div>
+  <button class="gpl" aria-label="Ver plano folio ${Math.abs(q.f)}" onclick="gPlano('PAS',${q.f})">${IC('plans')}<small>${Math.abs(q.f)}</small></button></div>`}).join("")}</div>
  <div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="delete gIRes[gIKey()];gPintaIns()">Limpiar</button><button class="sec" style="flex:2" onclick="gICopia()">Pasar medidas a la OT</button></div>
  <button class="pri" style="width:100%;margin-top:8px" onclick="gIPdf()">📄 Generar PDF A4 · Inspección cable a cable</button>`;
  return h}
@@ -1368,7 +1368,7 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);
   if(typeof insMideCorto=="function"&&h>=12){d.setFont("helvetica","bold");d.setFontSize(6.3);d.setTextColor(176,110,0);d.text(d.splitTextToSize(pT("Medir: "+insMideCorto(q,gIMod)),W-M-cx)[0],cx,yc-4.6)}d.setFont("helvetica","bold");d.setFontSize(8);d.setTextColor(27,110,45);d.text(pT("Esperado: "+q.e),cx,yc-1.6);
   d.setFont("helvetica","normal");d.setFontSize(6.3);d.setTextColor(95);d.text(d.splitTextToSize(pT("Si no: "+q.x),W-M-cx).slice(0,2),cx,yc+1.4);
   d.setFontSize(7);const est=r.ok===true?"OK":r.ok===false?"NOK":"";d.setTextColor(r.ok===false?198:30,r.ok===false?40:30,r.ok===false?40:30);
-  d.text(pT(`Medido: ${r.v||"__________"}   ${est?"["+est+"]":"[ OK / NOK ]"}   ·   Folio ${q.f}`),cx,yc+(h>18?7.8:h>16?6.6:5.4))});
+  d.text(pT(`Medido: ${r.v||"__________"}   ${est?"["+est+"]":"[ OK / NOK ]"}   ·   Folio ${Math.abs(q.f)}`),cx,yc+(h>18?7.8:h>16?6.6:5.4))});
  /* ---- Página 2: conexiones intermedias ---- */
  d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Conexiones intermedias");y=24;
  d.setFont("helvetica","bold");d.setFontSize(10);d.setTextColor(20);d.text(pT(`${gIMod} · ${S.id} · LED ${S.led} · ${S.t}`),M,y);y+=4.5;
@@ -1419,7 +1419,7 @@ async function gIPdf(){const R=RUTAS[gIMod];const S=R&&R.s.find(x=>x.id==gISig);
   if(y+hh>285){d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24}
   let x=M;cols.forEach((c,k)=>{if(fill)d.setFillColor(...fill);d.setDrawColor(170);d.setLineWidth(.2);d.rect(x,y,c[1],hh,fill?"FD":"S");d.setTextColor(20);d.text(ls[k],x+1,y+3.3);x+=c[1]});y+=hh};
  fila(cols.map(c=>c[0]),true,[237,228,250]);
- S.p.forEach((q,i)=>{const r=res[i]||{};fila([String(i+1),q.p+" ["+gUbiTxt(q)+"]",(typeof insMideCorto=="function"?insMideCorto(q,gIMod):""),q.e,q.x,r.v||"",r.ok===true?"OK":r.ok===false?"NOK":"",String(q.f)],false,r.ok===false?[255,232,232]:r.ok===true?[236,247,238]:null)});
+ S.p.forEach((q,i)=>{const r=res[i]||{};fila([String(i+1),q.p+" ["+gUbiTxt(q)+"]",(typeof insMideCorto=="function"?insMideCorto(q,gIMod):""),q.e,q.x,r.v||"",r.ok===true?"OK":r.ok===false?"NOK":"",String(Math.abs(q.f))],false,r.ok===false?[255,232,232]:r.ok===true?[236,247,238]:null)});
  y+=6;if(y>250){d.addPage("a4","portrait");pCabecera(d,ot,R,S,"Hoja de medidas");y=24}
  const nok=S.p.findIndex((_,j)=>res[j]&&res[j].ok===false);d.setFont("helvetica","bold");d.setFontSize(9);
  if(nok>=0){d.setTextColor(198,40,40);const tr=nok>0?C[nok-1]:null;
@@ -2809,7 +2809,7 @@ EL_C.clear&&EL_C.clear();
  h=h.replace(/<i>folio (\d+)<\/i>/g,(x,f)=>`<i>folio ${f} · ${pl=="504"?"PBB_504":"ESQUEMA GENERAL rev. J"}</i>`);
  return h}})();
 (function(){const st=document.createElement("style");st.textContent=".elplan{font-size:11px;font-weight:600;margin:4px 0 2px;opacity:.8}";document.head.appendChild(st)})();
-(function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);return h.replace('<div class="elus">',`<div class="elplan">Recorridos según plano ${elPlano()=="504"?"PBB_504 (posiciones 504 / 508)":"ESQUEMA GENERAL rev. J"}</div><div class="elus">`)}})();
+(function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);return h.replace('<div class="elus">',`<div class="elplan">Recorridos según plano ${elPlano()=="504"?"PBB_504 (posiciones 504 / 508)":(typeof ppCtx=="function"&&ppCtx()=="507"&&window.CABLEADO507?"propio de la PBB 507 (T87911031230ES, trazado borna a borna)":"ESQUEMA GENERAL rev. J")}</div><div class="elus">`)}})();
 /* ===== v12: Guía de campo ordenada por eficacia para la OT: la actuación más eficaz va la primera (abierta),
  justo debajo del Análisis de la OT; después Seguridad, cotejo/inspección y el resto de averías, primero las relacionadas. ===== */
 (function(){const st=document.createElement("style");st.textContent=`details.gd.gef{border:2px solid #ef6c00}.gefb{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#ef6c00;border-radius:999px;padding:2px 8px;margin-bottom:4px}`;document.head.appendChild(st)})();
@@ -3711,8 +3711,10 @@ const POS_PROPIO=["504","507","508"];
   location.replace(location.pathname+"?v="+Date.now())}}catch(e){}})();
 </script>
 <script src="docs-claude.js?v=7"></script>
-<script src="simulador.js?v=317"></script>
+<script src="simulador.js?v=325"></script>
 <script src="pbb507.js?v=323"></script>
+<script src="cableado507.js?v=325"></script>
+<script src="cab507.js?v=325"></script>
 <script src="sai.js?v=1"></script>
 <script src="laser-ala.js?v=4"></script>
 <script src="hidraulica.js?v=279"></script>
@@ -4522,7 +4524,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=324;
+const APP_VER=325;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
