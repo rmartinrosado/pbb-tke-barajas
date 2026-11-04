@@ -85,9 +85,28 @@ function build(){
    if(x.k!=="B")return;
    const S=(IDX[x.t]=IDX[x.t]||{}),R=(S[x.p]=S[x.p]||[]);
    const prev=i===0?(e.m==="AUX"?"":("PLC "+e.m+" "+e.b)):lab(n[i-1]),next=n[i+1]?lab(n[i+1]):"";
-   R.push({key,m:e.m,b:e.b,d:e.d,f:x.f||e.f,inV:(x.v||[]).map(cond).join(" + "),outV:n[i+1]?(n[i+1].v||[]).map(cond).join(" + "):"",prev,next,vt:vm[x.t+":"+x.p]||""});
+   R.push({key,m:e.m,b:e.b,d:e.d,f:x.f||e.f,pf:i===0?e.f:(n[i-1].f||e.f),nf:n[i+1]?(n[i+1].f||e.f):0,t:x.t,p:x.p,inV:(x.v||[]).map(cond).join(" + "),outV:n[i+1]?(n[i+1].v||[]).map(cond).join(" + "):"",prev,next,vt:vm[x.t+":"+x.p]||""});
   })});
- ST.forEach(s=>{const S=(IDX[s[0]]=IDX[s[0]]||{}),R=(S[s[1]]=S[s[1]]||[]);R.unshift({key:"",d:s[4],f:s[6],inV:s[2],outV:s[3],prev:"",next:"",vt:s[5],st:1})});
+ ST.forEach(s=>{const S=(IDX[s[0]]=IDX[s[0]]||{}),R=(S[s[1]]=S[s[1]]||[]);R.unshift({key:"",d:s[4],f:s[6],pf:s[6],nf:s[6],t:s[0],p:s[1],inV:s[2],outV:s[3],prev:"",next:"",vt:s[5],st:1})});
+}
+/* dónde poner las puntas del polímetro y qué debe marcar */
+const REF0={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",CP:"+P-X92:2 (0 V, hilo 205)",IT:"+IT-X51:2 (0 V, hilo 205)",ET:"+ET-X51:2 (0 V, hilo 205)",C:"+C-X51:2 (0 V, hilo 205)",
+ C4:"+C4-X64:2 (0 V, hilo 205)",H:"+H-X51:30 (0 V, hilo 205)",CO:"+IT-X51:2 (0 V, hilo 205)",CO3:"+IT-X51:2 (0 V, hilo 205)",R:"+IT-X50:2 (0 V, hilo 205)",CBTH:"+E-X61:21 (0 V PBB, hilo 205)",SS:"+E-X68:2 (0 V, hilo 205)",T:"+E-X68:2 (0 V, hilo 205)",F:"+E-X68:2 (0 V, hilo 205)"};
+const REF24={E:"+E-X68:1 (+24 V, hilo 189)",P:"+P-X92:1 (+24 V, hilo 332)",CP:"+P-X92:1 (+24 V, hilo 332)",IT:"+IT-X51:1 (+24 V, hilo 189)",ET:"+ET-X51:1 (+24 V, hilo 189)",C:"+C-X51:1 (+24 V, hilo 189)",
+ C4:"+C4-X64:1 (+24 V, hilo 336)",H:"+H-X51:1 (+24 V, hilo 189)",CO:"+CO3-X51:1 (+24 V, hilo 189)",CO3:"+CO3-X51:1 (+24 V, hilo 189)",R:"+IT-X50:1 (+24 V, hilo 613)",CBTH:"+E-X61:10 (+24 V, hilo 189)",SS:"+E-X68:1 (+24 V, hilo 189)",T:"+E-X68:1 (+24 V, hilo 189)",F:"+E-X68:1 (+24 V, hilo 189)"};
+const PAR={"+CBTH-X11":"1-2-3","+E-X60":"1-2-3 / 4-5-6","+P-X52":"1-2-3 / 4-5-6"};
+const NEU={"+CBTH-X12:1":"+CBTH-X12:2","+E-X66:1":"+E-X66:2","+E-X60:7":"+E-X60:8","+P-X52:7":"+P-X52:8","+E-X60:9":"+E-X60:10","+P-X52:9":"+P-X52:10"};
+function mide(r){const B="<b>"+esc(r.t+":"+r.p)+"</b>",z=zonaDe(r.t),vt=r.vt||"",txt=(r.inV+" "+r.outV+" "+r.d).toLowerCase();
+ if(/^AUX\|(Bordes|Zapata)/.test(r.key||""))return "Bucle vigilado por el relé de seguridad: <b>sin tensión</b> (relé desconectado), polímetro en Ω o continuidad entre Z1 y Z2 del relé pasando por "+B+". No es una medida de tensión.";
+ if(/400/.test(vt))return "Polímetro en <b>V~</b>. Roja en "+B+" y negra en otra fase del mismo regletero ("+esc(PAR[r.t]||"L1-L2-L3")+") → <b>400 V~</b>. Fase–PE ≈ 230 V~.";
+ if(/230/.test(vt)){const nn=NEU[r.t+":"+r.p];return nn?"Polímetro en <b>V~</b>. Roja en "+B+" y negra en <b>"+esc(nn)+"</b> (neutro) → <b>230 V~</b>.":"Polímetro en <b>V~</b>. Neutro: roja en la fase (borna anterior) y negra en "+B+" → <b>230 V~</b>; respecto a PE debe dar ≈ 0 V~."}
+ if(/24 vac/i.test(vt)){const nn=NEU[r.t+":"+r.p]||Object.keys(NEU).find(k=>NEU[k]===r.t+":"+r.p);return "Polímetro en <b>V~</b>. Entre "+B+" y <b>"+esc(nn||"su pareja del secundario")+"</b> → <b>24 V~</b>."}
+ if(/neutro/i.test(vt))return "Polímetro en <b>V~</b>. Roja en la fase (borna anterior) y negra en "+B+" → <b>230 V~</b>.";
+ if(/señal/.test(vt))return "Entrada analógica: polímetro en <b>V⎓ o mA</b> entre "+B+" y "+esc(REF0[z]||REF0.E)+". Valor <b>variable</b> según la posición del sensor (no es fijo).";
+ if(/182/.test(txt)&&/CBTH/.test(r.t+r.d))return "Polímetro en <b>V⎓</b>. Señal con el 24 V propio del CBTH (hilo 182): roja en "+B+" y negra en el 0 V del CBTH (no figura en los planos de la PBB) → <b>≈24 V⎓</b> con el contacto cerrado.";
+ if(/^0/.test(vt)||/hilo 205\b/.test(r.inV)&&!r.key)return "Polímetro en <b>V⎓</b>. Comprobar el 0 V: roja en "+esc(REF24[z]||REF24.E)+" y negra en "+B+" → <b>≈24 V⎓</b>. Si marca 0 V, el 0 V está cortado entre esta borna y la fuente.";
+ const ut=/IN\d+S|UT/.test((C[r.key]||{}).k||"")||/\bUT\d?\b/.test(r.next+" "+r.prev);
+ return "Polímetro en <b>V⎓</b>. Roja en "+B+" y negra en <b>"+esc(REF0[z]||REF0.E)+"</b> → <b>"+esc(vt||"≈24 V")+(/24/.test(vt)?"⎓":"")+"</b> con el circuito cerrado y en servicio"+(ut?" (pulsos de test de seguridad: puede marcar algo menos u oscilar)":"")+". Si marca 0 V, el corte está aguas arriba: mide la borna de «Llega».";
 }
 /* agrupa los circuitos que pasan por la misma borna con la misma conexión (p. ej. un común 189) */
 function grp(R){const o=[],m={};R.forEach(r=>{if(!r.key){o.push([r]);return}const s=[r.inV,r.prev,r.outV,r.next,r.vt].join("|");if(!m[s]){m[s]=[];o.push(m[s])}m[s].push(r)});return o}
@@ -110,7 +129,9 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
      return '<div class="bnl">'+(r.vt?'<span class="vt '+(/^0/.test(r.vt)?"dead":"live")+'">'+esc(r.vt)+'</span>':'')+
      (G.length>1?'<b>Común a '+G.length+' circuitos</b><div class="w">'+G.map(x=>'<button class="lnk" data-go="'+esc(x.key)+'">'+esc(x.m+" "+x.b+" "+x.d)+'</button>').join(" · ")+'</div>':
       r.key?'<button class="lnk" data-go="'+esc(r.key)+'">'+esc(r.m+" "+r.b)+' · '+esc(r.d)+'</button>':'<b>'+esc(r.d)+'</b>')+
-     '<div class="w">'+[r.inV?("llega: "+esc(r.inV)+(r.prev?" desde "+esc(r.prev):"")):"",r.outV||r.next?("sale: "+esc(r.outV||"puente/directo")+(r.next?" → "+esc(r.next):"")):"",r.f?FOL(r.f):""].filter(Boolean).join(" · ")+'</div></div>'}).join("")+'</div></div>').join("")+'</div>'}
+     (r.inV||r.prev?'<div class="ln"><span class="lt">Llega</span>'+esc(r.inV||"puente/directo")+(r.prev?" desde <b>"+esc(r.prev)+"</b>":"")+(r.pf?" · "+FOL(r.pf):"")+'</div>':'')+
+     ((r.outV&&r.outV!=="—")||r.next?'<div class="ln"><span class="lt">Sale</span>'+esc(r.outV||"puente/directo")+(r.next?" a <b>"+esc(r.next)+"</b>":"")+(r.nf?" · "+FOL(r.nf):"")+'</div>':'')+
+     '<div class="ln mide"><span class="lt">Medir</span>'+mide(r)+'</div></div>'}).join("")+'</div></div>').join("")+'</div>'}
  }else{
   h+=mans.map(m=>{const M=MAN[m];return '<div class="tbl"><h3>'+esc(m)+' <small>'+esc(M.t)+'</small></h3>'+Object.keys(M.c).sort(nat).map(d=>
    '<div class="bn"><div class="bnp">'+esc(d)+'</div><div class="bnr">'+M.c[d].map(r=>'<div class="bnl"><b>'+esc(r.a)+' ⟷ '+esc(r.b)+'</b><div class="w"><button class="lnk" data-go="'+esc(r.key)+'">'+esc(r.d)+'</button></div></div>').join("")+'</div></div>').join("")+'</div>'}).join("")||'<p class="foot">Sin resultados.</p>';
