@@ -11,7 +11,7 @@ const ZONA={CBTH:["CBTH","Armario CBTH de la posición (alimentación BT / SAI)"
  SS:["Escalera","Escalera de servicio"],C4:["Cabina","Suelo de cabina"],F:["Campo","Elemento de campo"]};
 const zonaDe=t=>{const m=String(t||"").match(/^[+-]?([A-Z]+\d*)-/);if(!m)return "F";const z=m[1];return ZONA[z]?z:ZONA[z.replace(/\d+$/,"")]?z.replace(/\d+$/,""):"F"};
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const cond=v=>v?(v.h?("hilo "+v.h+(v.c?" "+v.c:"")):v.m?(v.m+(v.t?" ("+v.t+")":"")+(v.d?" cond. "+v.d:"")):""):"";
+const cond=v=>v?(v.h?("hilo "+v.h+(v.c?" "+v.c:"")):v.m?(v.m+(v.d?" cond. "+v.d:"")):""):"";
 const lab=n=>!n?"":n.k==="B"?(n.t+":"+n.p):n.k==="E"?(n.t+" "+(n.ps||[]).join("-")):n.k==="C"?("común "+n.w):n.k==="M"?("módulo "+(n.t||"")+" "+(n.l||"")):n.k==="P"?n.t:n.k==="F"?(n.t+":"+n.p):n.k==="J"?"ramas en paralelo":"";
 
 /* regleteros de alimentación y fuerza (no salen en las cadenas de E/S) */
@@ -74,6 +74,8 @@ const ST=[
 ];
 
 let IDX=null,MAN=null;
+/* folio compacto en la columna de la etiqueta (no ocupa línea en el texto) */
+const FOLc=f=>'<button class="fl flc" data-fol="'+f+'" title="Ver folio '+f+' en el plano">f.'+f+' '+ICL+'</button>';
 /* entradas de retorno (UT / GND) sin descripción propia: se nombran por el canal principal del mismo grupo */
 function dsc(e){if(e.d&&!/^n\. ?c\.?$/i.test(e.d.trim())&&e.c)return e.d;const g=e.b.split(".")[0];const p=C[e.m+"|"+g+".1|"+e.f];
  const tipo=/GND|^0/.test(e.k||"")?"retorno 0 V (GND)":/^UT/.test(e.k||"")?"salida de test "+e.k:(e.k||"retorno");
@@ -90,6 +92,7 @@ function build(){
    const S=(IDX[x.t]=IDX[x.t]||{}),R=(S[x.p]=S[x.p]||[]);
    const prev=i===0?(e.m==="AUX"?"":("PLC "+e.m+" "+e.b)):lab(n[i-1]),next=n[i+1]?lab(n[i+1]):"";
    R.push({key,m:e.m,b:e.b,d:dsc(e),f:x.f||e.f,pf:i===0?e.f:(n[i-1].f||e.f),nf:n[i+1]?(n[i+1].f||e.f):0,t:x.t,p:x.p,inV:(x.v||[]).map(cond).join(" + "),outV:n[i+1]?(n[i+1].v||[]).map(cond).join(" + "):"",prev,next,vt:vm[x.t+":"+x.p]||""});
+   {const q=R[R.length-1];if(/(^|\D)205(\D|$)/.test(q.inV+' '+q.outV)&&q.vt&&!/^0/.test(q.vt))q.vt='0 V';}
   })});
  ST.forEach(s=>{const S=(IDX[s[0]]=IDX[s[0]]||{}),R=(S[s[1]]=S[s[1]]||[]);R.unshift({key:"",d:s[4],f:s[6],pf:s[6],nf:s[6],t:s[0],p:s[1],inV:s[2],outV:s[3],prev:"",next:"",vt:s[5],st:1})});
 }
@@ -103,17 +106,17 @@ const NEU={"+CBTH-X12:1":"+CBTH-X12:2","+E-X66:1":"+E-X66:2","+E-X60:7":"+E-X60:
 function mide(r){const B="<b>"+esc(r.t+":"+r.p)+"</b>",z=zonaDe(r.t),vt=r.vt||"",txt=(r.inV+" "+r.outV+" "+r.d).toLowerCase();
  const R0="<b>"+esc(REF0[z]||REF0.E)+"</b>",R24="<b>"+esc(REF24[z]||REF24.E)+"</b>";
  if(/^AUX\|(Bordes|Zapata)/.test(r.key||""))return ["Corta la tensión: deja el relé de seguridad sin alimentación.","Polímetro en <b>Ω o continuidad</b>.","Una punta en <b>Z1</b> y otra en <b>Z2</b> del relé; el bucle pasa por "+B+".","Debe dar continuidad (bucle cerrado). Abierto = borde o zapata actuado o cable cortado.","No es una medida de tensión."];
- if(/400/.test(vt))return ["Polímetro en <b>V~</b>.","Punta roja en "+B+".","Punta negra en otra fase del mismo regletero ("+esc(PAR[r.t]||"L1-L2-L3")+").","Debe marcar <b>400 V~</b>.","Fase–PE: ≈ 230 V~."];
- if(/230/.test(vt)){const nn=NEU[r.t+":"+r.p];return nn?["Polímetro en <b>V~</b>.","Punta roja en "+B+" (fase).","Punta negra en <b>"+esc(nn)+"</b> (neutro).","Debe marcar <b>230 V~</b>."]:["Polímetro en <b>V~</b>.","Punta roja en la fase (borna anterior).","Punta negra en "+B+".","Debe marcar <b>230 V~</b>. Respecto a PE: ≈ 0 V~."]}
- if(/24 vac/i.test(vt)){const nn=NEU[r.t+":"+r.p]||Object.keys(NEU).find(k=>NEU[k]===r.t+":"+r.p);return ["Polímetro en <b>V~</b>.","Punta roja en "+B+".","Punta negra en <b>"+esc(nn||"su pareja del secundario")+"</b>.","Debe marcar <b>24 V~</b>."]}
- if(/neutro/i.test(vt))return ["Polímetro en <b>V~</b>.","Punta roja en la fase (borna anterior).","Punta negra en "+B+" (neutro).","Debe marcar <b>230 V~</b>."];
- if(/señal/.test(vt))return ["Polímetro en <b>V⎓ o mA</b> (entrada analógica).","Punta roja en "+B+".","Punta negra en "+R0+".","Valor <b>variable</b> según la posición del sensor: no es fijo."];
- if(/182/.test(txt)&&/CBTH/.test(r.t+r.d))return ["Polímetro en <b>V⎓</b>.","Punta roja en "+B+".","Punta negra en el <b>0 V del CBTH</b> (no figura en los planos de la PBB).","Debe marcar <b>≈ 24 V⎓</b> con el contacto cerrado (24 V propio del CBTH, hilo 182)."];
- if(/^0/.test(vt)||/hilo 205\b/.test(r.inV)&&!r.key)return ["Polímetro en <b>V⎓</b>. Se comprueba el 0 V.","Punta roja en "+R24+".","Punta negra en "+B+".","Debe marcar <b>≈ 24 V⎓</b>.","Si marca 0 V: el 0 V está cortado entre esta borna y la fuente."];
- const ut=/IN\d+S|UT/.test((C[r.key]||{}).k||"")||/\bUT\d?\b/.test(r.next+" "+r.prev);
- const s=["Polímetro en <b>V⎓</b>.","Punta roja en "+B+".","Punta negra en "+R0+".","Debe marcar <b>"+esc(vt||"≈ 24 V")+(/24/.test(vt)?"⎓":"")+"</b> con el circuito cerrado y en servicio."];
- if(ut)s.push("Pulsos de test de seguridad: puede marcar algo menos u oscilar.");
- s.push("Si marca 0 V: el corte está aguas arriba, mide la borna de «Llega».");return s;
+ if(/400/.test(vt))return ["Polímetro en <b>V~</b>.","Roja en "+B+".","Negra en otra fase del mismo regletero ("+esc(PAR[r.t]||"L1-L2-L3")+").","Debe marcar <b>400 V~</b>.","Fase–PE: ≈ 230 V~."];
+ if(/230/.test(vt)){const nn=NEU[r.t+":"+r.p];return nn?["Polímetro en <b>V~</b>.","Roja en "+B+" (fase).","Negra en <b>"+esc(nn)+"</b> (neutro).","Debe marcar <b>230 V~</b>."]:["Polímetro en <b>V~</b>.","Roja en la fase (borna anterior).","Negra en "+B+".","Debe marcar <b>230 V~</b>. Respecto a PE: ≈ 0 V~."]}
+ if(/24 vac/i.test(vt)){const nn=NEU[r.t+":"+r.p]||Object.keys(NEU).find(k=>NEU[k]===r.t+":"+r.p);return ["Polímetro en <b>V~</b>.","Roja en "+B+".","Negra en <b>"+esc(nn||"su pareja del secundario")+"</b>.","Debe marcar <b>24 V~</b>."]}
+ if(/neutro/i.test(vt))return ["Polímetro en <b>V~</b>.","Roja en la fase (borna anterior).","Negra en "+B+" (neutro).","Debe marcar <b>230 V~</b>."];
+ if(/señal/.test(vt))return ["Polímetro en <b>V⎓ o mA</b> (entrada analógica).","Roja en "+B+".","Negra en "+R0+".","Valor <b>variable</b> según la posición del sensor: no es fijo."];
+ if(/182/.test(txt)&&/CBTH/.test(r.t+r.d))return ["Polímetro en <b>V⎓</b>.","Roja en "+B+".","Negra en el <b>0 V del CBTH</b> (no figura en los planos de la PBB).","Debe marcar <b>≈ 24 V⎓</b> con el contacto cerrado (24 V propio del CBTH, hilo 182)."];
+ if(/^0/.test(vt)||/hilo 205\b/.test(r.inV)&&!r.key)return ["Polímetro en <b>V⎓</b>. Se comprueba el 0 V.","Roja en "+R24+".","Negra en "+B+".","Debe marcar <b>≈ 24 V⎓</b>.","Si marca 0 V: el 0 V está cortado entre esta borna y la fuente."];
+ const kk=(C[r.key]||{}).k||"";const ut=/^IN\d+S$|^UT\d?$/.test(kk)||/módulo\s+\S*\s*UT\d?\b/.test(r.next+" "+r.prev);
+ const s=["Polímetro en <b>V⎓</b>.","Roja en "+B+".","Negra en "+R0+".","Debe marcar <b>"+esc(vt||"≈ 24 V")+(/24/.test(vt)?"⎓":"")+"</b> en servicio."];
+ if(ut)s.push("Pulso de test: puede oscilar o marcar algo menos.");
+ s.push("Si marca 0 V: mide la borna de «Llega».");return s;
 }
 /* agrupa los circuitos que pasan por la misma borna con la misma conexión (p. ej. un común 189) */
 function grp(R){const o=[],m={};R.forEach(r=>{if(!r.key){o.push([r]);return}const s=[r.inV,r.prev,r.outV,r.next,r.vt].join("|");if(!m[s]){m[s]=[];o.push(m[s])}m[s].push(r)});return o}
@@ -136,8 +139,8 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
      return '<div class="bnl">'+(r.vt?'<span class="vt '+(/^0/.test(r.vt)?"dead":"live")+'">'+esc(r.vt)+'</span>':'')+
      (G.length>1?'<b>Común a '+G.length+' circuitos</b><div class="w">'+G.map(x=>'<button class="lnk" data-go="'+esc(x.key)+'">'+esc(x.m+" "+x.b+" "+x.d)+'</button>').join(" · ")+'</div>':
       r.key?'<button class="lnk" data-go="'+esc(r.key)+'">'+esc(r.m+" "+r.b)+' · '+esc(r.d)+'</button>':'<b>'+esc(r.d)+'</b>')+
-     (r.inV||r.prev?'<div class="ln"><span class="lt">Llega</span><span class="lc">'+esc(r.inV||"puente/directo")+(r.prev?" desde <b>"+esc(r.prev)+"</b>":"")+(r.pf?" · "+FOL(r.pf):"")+'</span></div>':'')+
-     ((r.outV&&r.outV!=="—")||r.next?'<div class="ln"><span class="lt">Sale</span><span class="lc">'+esc(r.outV||"puente/directo")+(r.next?" a <b>"+esc(r.next)+"</b>":"")+(r.nf?" · "+FOL(r.nf):"")+'</span></div>':'')+
+     (r.inV||r.prev?'<div class="ln"><span class="lt">Llega'+(r.pf?FOLc(r.pf):"")+'</span><span class="lc">'+esc(r.inV||"puente/directo")+(r.prev?" desde <b>"+esc(r.prev)+"</b>":"")+'</span></div>':'')+
+     ((r.outV&&r.outV!=="—")||r.next?'<div class="ln"><span class="lt">Sale'+(r.nf?FOLc(r.nf):"")+'</span><span class="lc">'+esc(r.outV||"puente/directo")+(r.next?" a <b>"+esc(r.next)+"</b>":"")+'</span></div>':'')+
      '<div class="ln mide"><span class="lt">Medir</span><ol class="lc pasos">'+mide(r).map(x=>'<li>'+x+'</li>').join("")+'</ol></div></div>'}).join("")+'</div></div>').join("")+'</div>'}
  }else{
   h+=mans.map(m=>{const M=MAN[m];return '<div class="tbl"><h3>'+esc(m)+' <small>'+esc(M.t)+'</small></h3>'+Object.keys(M.c).sort(nat).map(d=>
