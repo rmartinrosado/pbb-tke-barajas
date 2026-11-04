@@ -303,6 +303,11 @@ aux("CBTH-X61:18", 11, "SEÑAL CARRO A/A AL CBTH (CBTH-X61:18)",
     f"B +CBTH-X61:18 | {W}/18 > B +E-X61:18 | h16 > E +E-S100 14,13 | m=E-WCARRO/H07RN-F_5x1,5/16_GY > B +E-X61:17 | m=E-WCARRO/H07RN-F_5x1,5/17_BU > B +CBTH-X61:17 | {W}/17 > P +CBTH:24V-COMUN-A/A | h17",
     "El sistema A/A da su 24 V común por CBTH-X61:17 (hilo 17); el F.C. del carrito PCAIR E-S100 (13-14) lo devuelve por CBTH-X61:18 (hilo 16). Folios 11 y 12.")
 
+
+add("E-A9|1.1|69", "DIS01", "IN01S", "PULSADOR LUMINOSO OK RETIRADA PBB",
+    "B +E-X68.1:8 | h680 > B +P-X92.2:8 | m=EP-W4/H07RN-F_27x1,5/8 > B +P-X92.3:3 | h332 > E +H-S11 14,13 | m=PH-W1//3 > B +P-X92.3:4 | m=PH-W1//4 > B +P-X92.2:9 | h2000 > B +E-X68.1:9 | m=EP-W4/H07RN-F_27x1,5/9 > M UT1 | h681",
+    "Folio 69: el pulsador H-S11 (13-14) cierra el bucle de test UT1 (hilo 681) hacia la entrada 1.1 (hilo 680) por P-X92.2:8-9 y P-X92.3:3-4. El tramo P-X92.3:3 → P-X92.2:8 lleva el número de hilo 332: confirmar en campo que no está puenteado al +24 V del pupitre. El piloto x1-x2 del pulsador va por P-K84 (folio 88).")
+
 # ajustes puntuales sobre entradas existentes (sin rehacerlas)
 PATCH = [
     # E-A10: los selectores CP-S16 pasan por P-X92.1 (no P-X92.2) en la rev. J
