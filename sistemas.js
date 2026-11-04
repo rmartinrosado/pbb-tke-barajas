@@ -29,7 +29,7 @@ PAS:[
  {s:"Mando 24 VDC y protecciones electrónicas",f:[29,36,37,38,39,40],c:[
   "SAI 220 V en CBTH-X12 (1-2) → E-S0.1 cerrado → E-Q22 (2P 3 A) → fuente E-V3 (230 V / 24 V 10 A) → E-Q30 (2P 10 A). Medir 24 VDC (± 5 %) a la salida de E-V3.",
   "El 24 VDC sigue vivo con E-S0 abierto: para cortar mando abrir E-S0.1.",
-  "Armario E (Weidmüller): cabecera E-Q30.0 con alarma → E-A3 mód. 2 LED 4 ●. Salidas E-Q30.1 (4 A) PLC · E-Q30.2 (10 A) E/S · E-Q30.3 (10 A) salidas safety · E-Q30.4 (8 A) entradas safety.",
+  "Armario E (Weidmüller): cabecera E-Q30.0 con alarma → E-A3 mód. 2 LED 4 ●. Salidas E-Q30.1 (4 A) CPU del PLC, hilo 208 · E-Q30.2 (10 A) módulos de E/S, hilo 215 → E-X68:4 · E-Q30.3 (10 A) común de entradas, hilo 189 → E-X68:1 · E-Q30.4 (8 A) módulo de seguridades E-A5 y sensores de seguridad, hilo 613 → E-X68:6.",
   "Pupitre: cabecera P-Q30.0 con alarma → P-A4 mód. 4 LED 3 ●. Salidas P-Q30.1 (2 A) · P-Q30.2 (10 A) · P-Q30.3 (8 A, display y zapata).",
   "LED de alarma en una cabecera → identificar la salida disparada y buscar el cortocircuito de ese circuito antes de rearmar.",
   "Reparto: E-X68:1 = +24 V (hilo 189) · E-X68:2 = 0 V (205) · E-X68:6 = +24 V safety (613) · P-X92.1:1 = +24 V pupitre (332).",

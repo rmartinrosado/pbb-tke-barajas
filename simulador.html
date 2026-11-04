@@ -272,6 +272,8 @@ const POT=[
  {id:"q10",p:"q150",u:"230",t:"+E-Q10 → automáticos de servicios",d:"Iluminación, gálibos, caldeos, enchufes, focos, cámara (folios 19-25)",f:19},
  {id:"k01",p:"q150",s:2,u:"230",t:"+E-K0.1 contactor seguridad 2",d:"1/L1-3/L2 → 2/T1-4/T2 · hilos 51 / 52",f:18,m:"Bobina mandada por E-A6 DOS04 (línea de seguridades OK)",on:"Cerrado",off:"Abierto"},
  {id:"q4",p:"k01",u:"230",t:"+E-Q4 → motores capota",d:"Entrada E-Q4:1/L1 y 3/L2",f:26},
+ {id:"q8",p:"q4",s:1,u:"230",t:"+E-Q8 guardamotor 1-1,6 A → portón",d:"Desde E-Q4.1 (hilos 51/52) → E-K81/2 → E-X57:15-16 → motor C-M6",f:27,on:"ON",off:"Disparado"},
+ {id:"pq7",p:"q4",s:1,u:"230",t:"+P-Q7 guardamotor 1-1,6 A → suelo basculante",d:"Por E-X59:18-19 → P-X51:18-19 → P-K71/2 → motor C-M5",f:27,on:"ON",off:"Disparado"},
  {id:"t1b",p:"t1",u:"24ac",t:"Secundario 24 V → P-X52:9-10 → E-X60:9-10",d:"Hilos 183 BU / 184 BN",f:17},
  {id:"q171",p:"t1b",u:"24ac",t:"+E-Q17.1 → lunetas térmicas cabina",d:"",f:28},
  {id:"k0",p:"s0",s:2,u:"400",t:"+E-K0 contactor seguridad 1",d:"1/L1-3/L2-5/L3 → 2/T1-4/T2-6/T3 · hilos 30-31-32",f:13,m:"Bobina mandada por E-A6 DOS03 (línea de seguridades OK)",on:"Cerrado",off:"Abierto"},
@@ -289,9 +291,12 @@ const POT=[
  {id:"sai",p:null,s:1,u:"230",t:"Alimentación SAI 220 V 50 Hz",d:"Desde el CT de SAI · llega al CBTH L1-N",f:9,on:"Con tensión",off:"Sin tensión"},
  {id:"x12",p:"sai",u:"230",t:"+CBTH-X12:1-2 (PE :3)",d:"Manguera ECBTH-W3 3x2,5 · hilos 9 / 10",f:29},
  {id:"s01",p:"x12",s:1,u:"230",t:"+E-S0.1 interruptor SAI",d:"1-3 → 2-4 → E-X66:1-2",f:29,on:"ON",off:"OFF"},
- {id:"q24",p:"s01",u:"230",t:"+E-Q24 → frenos traslación y megafonía",d:"Hilos 1 BN / 10 BU",f:30},
- {id:"q25",p:"s01",u:"230",t:"+E-Q25",d:"Hilos 1 / 10 → E-Q26 y E-Q18",f:30},
- {id:"q26",p:"q25",s:1,u:"230",t:"+E-Q26 magnetotérmico 2P 16 A D",d:"Alimentación auxiliar de variadores",f:31,on:"ON",off:"Disparado"},
+ {id:"q24",p:"s01",s:1,u:"230",t:"+E-Q24 magnetotérmico 2P 6 A C → frenos traslación",d:"Hilos 155 / 158",f:30,on:"ON",off:"Disparado"},
+ {id:"k24",p:"q24",s:2,dep:"k01",u:"230",t:"+E-K0.1 5-6 → +E-K24 contactor frenos",d:"Hilos 156 → 157 / 159 → E-X56:1-2 → EH-W2 → H-X52:1-2",f:30,m:"E-K24 lo manda E-A6 DOS02; E-K0.1 (seguridad 2) debe estar cerrado",on:"Cerrado",off:"Abierto"},
+ {id:"ty",p:"k24",u:"230",t:"+T-Y1 / T-Y2 frenos motores traslación (L-N)",d:"Mangueras H-W19 / H-W20 · 230 V = freno abierto (suelto)",f:30},
+ {id:"q25",p:"s01",s:1,u:"230",t:"+E-Q25 magnetotérmico 2P 6 A C → megafonía",d:"Hilos 160 / 161 → E-X53:1-2 → central E-V5",f:30,on:"ON",off:"Disparado"},
+ {id:"q18",p:"s01",u:"230",t:"+E-Q18 → switch de comunicaciones",d:"Hilos 1 / 10 (folio 93)",f:93},
+ {id:"q26",p:"s01",s:1,u:"230",t:"+E-Q26 magnetotérmico 2P 16 A D",d:"Alimentación auxiliar de variadores",f:31,on:"ON",off:"Disparado"},
  {id:"k26",p:"q26",s:2,u:"230",t:"+E-K26 → contacto E-K0 23-24",d:"Hilos 122/124 → 123 → 130 / 121",f:31,m:"Cierra con E-K26 y con E-K0 (seguridades OK)",on:"Cerrado",off:"Abierto"},
  {id:"u12",p:"k26",u:"230",t:"+E-U1 / E-U2 alimentación 230 V",d:"Hilos 130 BN / 121 BU",f:31},
  {id:"q22",p:"s01",s:1,u:"230",t:"+E-Q22 magnetotérmico 2P 3 A C",d:"Entrada de la fuente · hilos 105 / 106",f:29,on:"ON",off:"Disparado"},
@@ -311,11 +316,11 @@ const POT=[
  {id:"mega",p:"q30",u:"24dc",t:"Central de megafonía E-S3:14 / E-X66:4",d:"Hilos 204 / 205",f:29}
 ];
 const UL={"400":["400 V","entre fases"],"230":["230 V","F–N"],"24ac":["24 V","alterna"],"24dc":["24 V","continua"]};
-const PRE={servicio:{},seg:{k0:1,k01:1,k1:1,k26:1},red:{red:1},sai:{sai:1}};
+const PRE={servicio:{},seg:{k0:1,k01:1,k1:1,k26:1,k24:1},red:{red:1},sai:{sai:1}};
 const WIRE_POT={"309":"cps5","336":"pq302","189":"q303","613":"q304","332":"pq302","330":"pq303","208":"q301","215":"q302","635":"pq301"};
 let pst={}, pfault=false, pmarks={}, pview="pot";
 const pnode=id=>POT.find(n=>n.id===id);
-function plive(id){const n=pnode(id);if(!n)return true;if(n.s&&pst[id])return false;return n.p?plive(n.p):true}
+function plive(id){const n=pnode(id);if(!n)return true;if(n.s&&pst[id])return false;if(n.dep&&pst[n.dep])return false;return n.p?plive(n.p):true}
 function plv(n){let l=0,x=n;while(x.p){l++;x=pnode(x.p)}return l}
 function pot(){
  const live=Object.fromEntries(POT.map(n=>[n.id,plive(n.id)]));
