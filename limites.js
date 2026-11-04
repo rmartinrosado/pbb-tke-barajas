@@ -13,7 +13,7 @@ const esSeg=it=>{const M=PLC.find(m=>m.id==it[0]);return !!M&&(M.t=="SDI"||M.t==
 const o=segOT;
 window.segOT=segOT=function(i){const S=o.apply(this,arguments);if(!S||!S.lim)return S;
  const t=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
- const s=RSEG.test(t),n=RNOR.test(t);S.limT=s&&!n?"seg":n&&!s?"nor":"ambos";
+ const s=RSEG.test(t),n=RNOR.test(t);S.limT=s&&!n?"seg":"nor";S.limDef=!s&&!n;S.limMix=s&&n;
  S.itSeg=[];S.itNor=[];S.zs.forEach(z=>z.it.forEach(it=>(esSeg(it)?S.itSeg:S.itNor).push(it)));
  if(!S.itSeg.length&&S.itNor.length)S.limT="nor";else if(!S.itNor.length&&S.itSeg.length)S.limT="seg";
  return S};
@@ -34,15 +34,17 @@ const oh=segHTML;
 window.segHTML=segHTML=function(i,S){let h=oh.apply(this,arguments);if(!S||!S.lim||!S.limT)return h;
  try{const ini=h.indexOf('<div class="anal">Límites · puentes provisionales en el PLC</div>');if(ini<0)return h;
   let fin=h.indexOf('<div class="anal">Contactor de seguridades bloqueado',ini);if(fin<0)fin=h.indexOf('<div class="gnp"',ini);if(fin<0)fin=h.length;
-  const cuerpo=S.limT=="seg"?grupo("seg",S.itSeg):S.limT=="nor"?grupo("nor",S.itNor):DIST+grupo("seg",S.itSeg)+grupo("nor",S.itNor);
+  const otro=k=>{const its=k=="seg"?S.itSeg:S.itNor;if(!its.length)return "";
+   return `<details class="lmotro"><summary>${k=="seg"?"Si se para todo y caen los contactores de seguridad: <b>final de carrera de seguridad</b> (módulo amarillo E-A8)":"Si solo falla un sentido: <b>límite de trabajo</b> (módulo verde)"}</summary>${grupo(k,its)}</details>`};
+  const cuerpo=S.limMix?DIST+grupo("seg",S.itSeg)+grupo("nor",S.itNor):S.limT=="seg"?grupo("seg",S.itSeg)+otro("nor"):grupo("nor",S.itNor)+otro("seg");
   h=h.slice(0,ini)+cuerpo+h.slice(fin);
-  const tit=S.limT=="seg"?"final de carrera de seguridad pisado":S.limT=="nor"?"límite de trabajo activado":"límite activado (seguridad o trabajo)";
+  const tit=S.limMix?"límite activado (seguridad o trabajo)":S.limT=="seg"?"final de carrera de seguridad pisado":"límite de trabajo activado";
   h=h.replace(/(PRIMERA ACTUACIÓN EN CAMPO · )límite activado/,"$1"+tit);
-  if(S.limT=="nor"&&!S.cont)h=h.replace(/<div class="puac">1\. Recuperar la pasarela[\s\S]*?<\/div>/,`<div class="puac">1. Es un límite de trabajo (no de seguridad): en <b>MANUAL</b>, mover en sentido contrario para liberarlo. El bypass CP-S33 no hace falta: los contactores de seguridad siguen entrados.</div>`)
+  if(S.limT=="nor"&&!S.limMix&&!S.cont)h=h.replace(/<div class="puac">1\. Recuperar la pasarela[\s\S]*?<\/div>/,`<div class="puac">1. Es un límite de trabajo (no de seguridad): en <b>MANUAL</b>, mover en sentido contrario para liberarlo. El bypass CP-S33 no hace falta: los contactores de seguridad siguen entrados.</div>`)
    .replace(/<div class="puac">2\. Si con el bypass no deja maniobrar:[\s\S]*?<\/div>/,`<div class="puac">2. Si no se libera en sentido contrario o corta fuera de su sitio: comprueba el sensor del límite (abajo). Puente provisional solo con el elemento comprobado a la vista y un compañero vigilando.</div>`);
  }catch(e){console.warn("limites",e)}return h};
 if(typeof anaHTML=="function"){const oa=anaHTML;window.anaHTML=anaHTML=function(i){let h=oa.apply(this,arguments);try{const S=segOT(i);if(S&&S.lim&&S.limT){
-  const t=S.limT=="seg"?"Final de carrera de seguridad (módulo amarillo)":S.limT=="nor"?"Límite de trabajo (módulo verde)":"Límite: seguridad o trabajo";
+  const t=S.limMix?"Límite: seguridad o trabajo":S.limT=="seg"?"Final de carrera de seguridad (módulo amarillo)":"Límite de trabajo (módulo verde)";
   h=h.replace(/(🔌 1º · )Límite activado/,"$1"+t)}}catch(e){}return h}}
 const st=document.createElement("style");st.textContent=`
 .lmg{margin:8px 0;padding:6px 0 6px 10px;border-left:5px solid;border-radius:0 8px 8px 0}
@@ -50,6 +52,7 @@ const st=document.createElement("style");st.textContent=`
 .lmnor{border-color:#2e9e4f;background:color-mix(in srgb,#2e9e4f 9%,transparent)}
 .lmseg>.anal:first-child{color:#b08900}.lmnor>.anal:first-child{color:#2e9e4f}
 .lmg .lms{font-size:10.5px;opacity:.85}.lmd{margin:2px 0 4px}
+.lmotro{margin:8px 0}.lmotro>summary{cursor:pointer;font-size:13px;line-height:1.35;padding:6px 0}
 .lmq{margin:8px 0;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--pr,#7b3fe4) 10%,transparent);font-size:13px;line-height:1.4}`;
 document.head.appendChild(st);
 })();
