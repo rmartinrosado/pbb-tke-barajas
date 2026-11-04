@@ -1,4 +1,4 @@
-/* v306: Simulador de tensiones (prueba, fase 1: 24 Vdc de E/S del PLC según cableado.js).
+/* v306-v307: Simulador de tensiones (prueba). Fase 1: 24 Vdc de E/S del PLC (cableado.js). Fase 2 (v307): potencia desde el CBTH, red 400 V y SAI 230 V, según rev. J.
  Botón «Tensiones» en el menú de la pestaña izquierda, junto a «Guía» (modos Técnico y Admin). Abre simulador.html. */
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);
  const nav=document.getElementById("nav");

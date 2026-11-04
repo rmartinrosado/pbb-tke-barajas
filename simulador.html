@@ -76,6 +76,15 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 .diag{margin-top:10px;padding:10px 12px;border-radius:6px;background:var(--warnBg);color:var(--fg);border:1px solid var(--warn);font-size:14px}
 .note{font-size:12.5px;color:var(--warn)}
 .foot{font-size:12.5px;color:var(--muted)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{flex:1 1 140px;font:600 14px var(--f-body);padding:10px 12px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;text-align:left}
+.tabs button small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.tabs button.sel{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.tree .row{padding-left:calc(min(var(--lv,0),5) * 6px)}
+.tree .what b{font-family:var(--f-body);font-size:14.5px}
+.v small{display:block;font-size:10px;font-weight:400}
+.grp{font-family:var(--f-disp);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-top:14px;padding-top:8px;border-top:2px solid var(--line)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -84,13 +93,14 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
   <a class="back" href="./">← Volver a la PWA</a>
   <header>
     <h1>Simulador de tensiones PBB</h1>
-    <p class="sub">Valores esperados, borna a borna, según el esquema general T87911031210ES (rev. D, entradas E-A9 rev. J). Prueba de la fase 1.</p>
+    <p class="sub">Valores esperados según el esquema general T87911031210ES rev. J (T4/T4S). Fase 1: E/S 24 V · Fase 2: potencia.</p>
   </header>
-  <div class="scope">
-    <span class="tag on">Fase 1 · 24 Vdc E/S PLC · 217 puntos</span>
-    <span class="tag pend">Fase 2 · potencia 400/230 V desde CBTH · faltan folios</span>
+  <div class="tabs" id="tabs">
+    <button data-v="pot" class="sel">Potencia desde CBTH<small>400 V · 230 V · SAI · fuentes 24 V</small></button>
+    <button data-v="es">E/S del PLC 24 V<small>217 circuitos borna a borna</small></button>
   </div>
-
+  <section class="box" id="pot"></section>
+  <div id="es" hidden>
   <section class="box">
     <label class="lbl" for="q">Punto del PLC</label>
     <input id="q" type="search" placeholder="Buscar: seguridad, K0, hilo 251, X51:20, bypass…" autocomplete="off">
@@ -99,8 +109,9 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
   </section>
 
   <section class="box" id="det"></section>
+  </div>
 
-  <p class="foot">Las tensiones son las que debe dar el polímetro respecto a 0 V con el circuito en el estado marcado. No incluye caídas de tensión ni la lógica del programa del PLC (no disponible): las salidas se activan a mano. Toca un contacto para abrirlo o cerrarlo.</p>
+  <p class="foot">Las tensiones son las que debe dar el polímetro respecto a 0 V con el circuito en el estado marcado. No incluye caídas de tensión ni la lógica del programa del PLC (no disponible): protecciones, contactores y salidas se maniobran a mano. Las posiciones 504 y 508 tienen esquema propio (T87911031260ES), pendiente de cotejar.</p>
 </div>
 
 <script src="cableado.js?v=58"></script>
@@ -176,6 +187,104 @@ document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b
   else if(b.id==="flt"){fault=!fault;marks={};det();}
 });
 $("#q").addEventListener("input",list);
+/* ===== Fase 2: potencia desde el CBTH (esquema T87911031210ES rev. J, folios 9, 13, 14, 17, 18, 29, 31, 34, 36-40, 64) =====
+ Cada nodo: p = padre, t = elemento, d = qué es / bornas, f = folio, u = tensión (400 | 230 | 24ac | 24dc),
+ s = maniobrable (1 = interruptor/protección, 2 = contactor), m = quién lo manda. */
+const POT=[
+ {id:"red",p:null,s:1,u:"400",t:"Acometida 400 V 50 Hz (red)",d:"Llega al CBTH: 3F+PE, 16 mm² · PBB 40 A, Icc 25 kA",f:9,on:"Con tensión",off:"Sin tensión"},
+ {id:"z0",p:"red",u:"400",t:"+CBTH-Z0 filtro",d:"1-3-5 → 2-4-6",f:9},
+ {id:"x11",p:"z0",u:"400",t:"+CBTH-X11:1-2-3 (PE :4)",d:"Manguera ECBTH-W1 H07RN-F 4x16 · BN-BK-GY",f:9},
+ {id:"s0",p:"x11",s:1,u:"400",t:"+E-S0 interruptor general",d:"1-3-5 → 2-4-6",f:13,on:"ON",off:"OFF"},
+ {id:"f19",p:"s0",u:"400",t:"+E-F19 / F20 / F21 sobretensiones",d:"Una por fase, a tierra E-X90",f:17},
+ {id:"q15",p:"s0",s:1,u:"400",t:"+E-Q15 guardamotor 13-18 A",d:"Hacia trafo · salida E-X60:4-5-6 → EP-W2 → P-X52:4-5-6",f:17,on:"ON",off:"Disparado"},
+ {id:"t1",p:"q15",u:"400",t:"+P-T1 trafo 380 V / 220-24 V 5600 VA",d:"Primario en el armario del pupitre",f:17},
+ {id:"t1a",p:"t1",u:"230",t:"Secundario 220 V → P-X52:7-8 → E-X60:7-8",d:"Hilos 34 BN / 7 BU",f:17},
+ {id:"q150",p:"t1a",s:1,u:"230",t:"+E-Q150 magnetotérmico 2P 16 A C",d:"1-3 → 2-4 · hilos 39 BN / 40 BU",f:18,on:"ON",off:"Disparado"},
+ {id:"q10",p:"q150",u:"230",t:"+E-Q10 → automáticos de servicios",d:"Iluminación, gálibos, caldeos, enchufes, focos, cámara (folios 19-25)",f:19},
+ {id:"k01",p:"q150",s:2,u:"230",t:"+E-K0.1 contactor seguridad 2",d:"1/L1-3/L2 → 2/T1-4/T2 · hilos 51 / 52",f:18,m:"Bobina mandada por E-A6 DOS04 (línea de seguridades OK)",on:"Cerrado",off:"Abierto"},
+ {id:"q4",p:"k01",u:"230",t:"+E-Q4 → motores capota",d:"Entrada E-Q4:1/L1 y 3/L2",f:26},
+ {id:"t1b",p:"t1",u:"24ac",t:"Secundario 24 V → P-X52:9-10 → E-X60:9-10",d:"Hilos 183 BU / 184 BN",f:17},
+ {id:"q171",p:"t1b",u:"24ac",t:"+E-Q17.1 → lunetas térmicas cabina",d:"",f:28},
+ {id:"k0",p:"s0",s:2,u:"400",t:"+E-K0 contactor seguridad 1",d:"1/L1-3/L2-5/L3 → 2/T1-4/T2-6/T3 · hilos 30-31-32",f:13,m:"Bobina mandada por E-A6 DOS03 (línea de seguridades OK)",on:"Cerrado",off:"Abierto"},
+ {id:"x72",p:"k0",u:"400",t:"+E-X72 distriblock L1-L2-L3",d:"Reparte la fuerza a variadores, bomba y cabina",f:14},
+ {id:"q1",p:"x72",s:1,u:"400",t:"+E-Q1 guardamotor GV2-ME 20-25 A",d:"Variadores · hilos 117-118-119",f:31,on:"ON",off:"Disparado"},
+ {id:"k1",p:"q1",s:2,u:"400",t:"+E-K1 contactor variadores",d:"Hilos 120-121-130 → E-U1 y E-U2 L1-L2-L3",f:31,m:"Bobina mandada por E-A6 DOS01",on:"Cerrado",off:"Abierto"},
+ {id:"u1",p:"k1",u:"400",t:"+E-U1 variador traslación izquierdo (L1-L2-L3)",d:"5,5 kW ATV",f:32},
+ {id:"u2",p:"k1",u:"400",t:"+E-U2 variador traslación derecho (L1-L2-L3)",d:"5,5 kW ATV",f:33},
+ {id:"q3",p:"x72",s:1,u:"400",t:"+E-Q3 guardamotor GV2P 9-14 A",d:"Bomba hidráulica · hilos 141-142-144",f:34,on:"ON",off:"Disparado"},
+ {id:"k3",p:"q3",s:2,u:"400",t:"+E-K3 contactor bomba",d:"→ E-X56:5-7-9 → EH-W2 → H-X52 → H-W13",f:34,m:"Bobina mandada por salida del PLC (subir/bajar)",on:"Cerrado",off:"Abierto"},
+ {id:"m1",p:"k3",u:"400",t:"+H-M1 motor bomba U-V-W",d:"5,5 kW · 11,4 A · 1500 rpm",f:34},
+ {id:"q40",p:"x72",s:1,u:"400",t:"+E-Q40 magnetotérmico 3P 16 A",d:"Motores cabina · E-X60:1-2-3 → EP-W2 → P-X52:1-2-3",f:34,on:"ON",off:"Disparado"},
+ {id:"q6",p:"q40",u:"400",t:"+P-Q6 → motores trifásicos cabina",d:"",f:35},
+
+ {id:"sai",p:null,s:1,u:"230",t:"Alimentación SAI 220 V 50 Hz",d:"Desde el CT de SAI · llega al CBTH L1-N",f:9,on:"Con tensión",off:"Sin tensión"},
+ {id:"x12",p:"sai",u:"230",t:"+CBTH-X12:1-2 (PE :3)",d:"Manguera ECBTH-W3 3x2,5 · hilos 9 / 10",f:29},
+ {id:"s01",p:"x12",s:1,u:"230",t:"+E-S0.1 interruptor SAI",d:"1-3 → 2-4 → E-X66:1-2",f:29,on:"ON",off:"OFF"},
+ {id:"q24",p:"s01",u:"230",t:"+E-Q24 → frenos traslación y megafonía",d:"Hilos 1 BN / 10 BU",f:30},
+ {id:"q25",p:"s01",u:"230",t:"+E-Q25",d:"Hilos 1 / 10 → E-Q26 y E-Q18",f:30},
+ {id:"q26",p:"q25",s:1,u:"230",t:"+E-Q26 magnetotérmico 2P 16 A D",d:"Alimentación auxiliar de variadores",f:31,on:"ON",off:"Disparado"},
+ {id:"k26",p:"q26",s:2,u:"230",t:"+E-K26 → contacto E-K0 23-24",d:"Hilos 122/124 → 123 → 130 / 121",f:31,m:"Cierra con E-K26 y con E-K0 (seguridades OK)",on:"Cerrado",off:"Abierto"},
+ {id:"u12",p:"k26",u:"230",t:"+E-U1 / E-U2 alimentación 230 V",d:"Hilos 130 BN / 121 BU",f:31},
+ {id:"q22",p:"s01",s:1,u:"230",t:"+E-Q22 magnetotérmico 2P 3 A C",d:"Entrada de la fuente · hilos 105 / 106",f:29,on:"ON",off:"Disparado"},
+ {id:"v3",p:"q22",u:"24dc",t:"+E-V3 fuente 230 V → 24 Vdc 10 A",d:"Salida hilos 206 RD (+) / 207 WH (−)",f:29},
+ {id:"q30",p:"v3",s:1,u:"24dc",t:"+E-Q30 magnetotérmico 2P 10 A C",d:"Sale +24 V hilo 204 RD · 0 V hilo 205 WH",f:29,on:"ON",off:"Disparado"},
+ {id:"q300",p:"q30",u:"24dc",t:"+E-Q30.0 (PS) cabecera Weidmüller, armario E",d:"+24V / GND · alarma hilo 612 → E-A3",f:36},
+ {id:"q301",p:"q300",s:1,u:"24dc",t:"+E-Q30.1 · 4 A → hilo 208",d:"PLC E-A0:1.2 (CPU)",f:36,on:"ON",off:"Disparado"},
+ {id:"q302",p:"q300",s:1,u:"24dc",t:"+E-Q30.2 · 10 A → hilo 215",d:"E-X68:4 módulos de entradas/salidas",f:36,on:"ON",off:"Disparado"},
+ {id:"q303",p:"q300",s:1,u:"24dc",t:"+E-Q30.3 · 10 A → hilo 189",d:"E-X68:1 común +24 V de las entradas (E-K0:21, E-X51:1, E-U1/U2, E-U5…)",f:37,on:"ON",off:"Disparado"},
+ {id:"q304",p:"q300",s:1,u:"24dc",t:"+E-Q30.4 · 8 A → hilo 613",d:"E-X68:6 módulo de seguridades (E-A5, E-X70, SS-B15, clema)",f:37,on:"ON",off:"Disparado"},
+ {id:"x59",p:"q30",u:"24dc",t:"+E-X59:1-2 → EP-W1 → +P-X51:1-2",d:"24 V al armario del pupitre · hilos 204 / 205",f:29},
+ {id:"pq300",p:"x59",u:"24dc",t:"+P-Q30.0 (PS) cabecera Weidmüller, pupitre",d:"Alarma hilo 638 → P-A4",f:38},
+ {id:"pq301",p:"pq300",s:1,u:"24dc",t:"+P-Q30.1 · 2 A → hilo 635",d:"Cabecera PLC pupitre P-A0:3:1.2",f:38,on:"ON",off:"Disparado"},
+ {id:"pq302",p:"pq300",s:1,u:"24dc",t:"+P-Q30.2 · 10 A → hilo 332",d:"P-X92:1 entradas y salidas del pupitre",f:38,on:"ON",off:"Disparado"},
+ {id:"pq303",p:"pq300",s:1,u:"24dc",t:"+P-Q30.3 · 8 A → hilo 330",d:"P-X92:3 → display CP-A1 y zapata de seguridad P-U5",f:39,on:"ON",off:"Disparado"},
+ {id:"mega",p:"q30",u:"24dc",t:"Central de megafonía E-S3:14 / E-X66:4",d:"Hilos 204 / 205",f:29}
+];
+const UL={"400":["400 V","entre fases"],"230":["230 V","F–N"],"24ac":["24 V","alterna"],"24dc":["24 V","continua"]};
+const PRE={servicio:{},seg:{k0:1,k01:1,k1:1,k26:1},red:{red:1},sai:{sai:1}};
+const WIRE_POT={"189":"q303","613":"q304","332":"pq302","330":"pq303","208":"q301","215":"q302","635":"pq301"};
+let pst={}, pfault=false, pmarks={}, pview="pot";
+const pnode=id=>POT.find(n=>n.id===id);
+function plive(id){const n=pnode(id);if(!n)return true;if(n.s&&pst[id])return false;return n.p?plive(n.p):true}
+function plv(n){let l=0,x=n;while(x.p){l++;x=pnode(x.p)}return l}
+function pot(){
+ const live=Object.fromEntries(POT.map(n=>[n.id,plive(n.id)]));
+ let diag="";
+ if(pfault){const bad=POT.find(n=>pmarks[n.id]==="n");
+  if(bad){let a=bad.p?pnode(bad.p):null;while(a&&pmarks[a.id]!=="y")a=a.p?pnode(a.p):null;
+   diag='<div class="diag"><b>Fallo localizado</b> entre '+(a?'<b>'+a.t+'</b> (tensión correcta)':'el origen')+' y <b>'+bad.t+'</b> (sin tensión). Revisa la protección, el contactor, las bornas y la manguera de ese tramo (folio '+bad.f+').</div>'}
+  else diag='<div class="diag">Mide en orden de arriba abajo y marca <b>Sí</b> si da lo esperado o <b>No</b> si no. El primer <b>No</b> cuyo tramo de arriba está bien localiza el fallo.</div>'}
+ const dead=POT.filter(n=>n.s&&pst[n.id]).map(n=>n.t.split(" ")[0]);
+ $("#pot").innerHTML='<div class="head"><div><h2>Potencia desde el CBTH</h2><div class="meta">Folios 9 · 13 · 14 · 17 · 18 · 29 · 31 · 34 · 36-40 · 64</div></div></div>'+
+  '<div class="presets"><button class="btn'+(Object.keys(pst).length?"":" pri")+'" data-pre="servicio">En servicio</button><button class="btn" data-pre="seg">Línea de seguridades abierta</button><button class="btn" data-pre="red">Corte de red (solo SAI)</button><button class="btn" data-pre="sai">Corte de SAI</button>'+
+  '<button class="btn'+(pfault?" act":"")+'" id="pflt">'+(pfault?"Salir de búsqueda de avería":"Buscar avería midiendo")+'</button></div>'+
+  '<p class="ref">Tensiones de red medidas entre fases (fase–PE ≈ 230 V); 230 V entre fase y neutro; 24 V entre + y 0 V (hilo 205). '+(dead.length?'Abiertos o disparados: <b>'+dead.join(", ")+'</b>.':'Todo cerrado.')+'</p>'+diag+
+  '<div class="chain tree">'+POT.map(n=>{const L=live[n.id],u=UL[n.u];
+   return (n.p===null?'<div class="grp">'+(n.id==="red"?"Red 400 V · fuerza":"SAI 230 V · mando y 24 V")+'</div>':'')+
+   '<div class="row'+(pfault&&pmarks[n.id]==="n"?" suspect":"")+'" style="--lv:'+plv(n)+'"><div class="v '+(L?"live":"dead")+'">'+(L?u[0]:"0 V")+(L?'<small>'+u[1]+'</small>':'')+'</div>'+
+   '<div class="what"><b>'+n.t+'</b><div class="w">'+[n.d,n.m,"folio "+n.f].filter(Boolean).join(" · ")+'</div></div>'+
+   (pfault?'<div class="mk"><button data-pmk="'+n.id+'" data-a="y" class="'+(pmarks[n.id]==="y"?"y":"")+'">Sí</button><button data-pmk="'+n.id+'" data-a="n" class="'+(pmarks[n.id]==="n"?"n":"")+'">No</button></div>':
+    n.s?'<button class="sw'+(pst[n.id]?" open":"")+'" data-psw="'+n.id+'">'+(pst[n.id]?n.off:n.on)+'</button>':'<span></span>')+'</div>'}).join("")+'</div>';
+}
+/* enlace fase 1 ↔ fase 2: si la protección que alimenta el común de una entrada está abierta, toda la cadena queda a 0 V */
+const _simulate=simulate;
+simulate=function(e){const r=_simulate(e);if(isOut(e))return r;
+ const last=e.n.filter(x=>x.k!=="?").slice(-1)[0];let w="";
+ if(last&&last.k==="C")w=(last.w||"").split(" ")[0];else if(last&&last.v&&last.v[0]&&last.v[0].h)w=last.v[0].h;
+ const pid=WIRE_POT[w];
+ if(pid){const n=pnode(pid),ok=plive(pid);
+  r.notes.unshift((ok?"Común "+w+" alimentado por ":"SIN TENSIÓN: el común "+w+" sale de ")+n.t.split(" ·")[0]+(ok?"":" (abierto, disparado o sin 24 V aguas arriba). Míralo en la pestaña Potencia."));
+  if(!ok){r.rows.forEach(x=>x.v=0);r.led=false;r.ledTxt="LED APAGADO"}}
+ return r};
+function pshow(){document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("sel",b.dataset.v===pview));$("#pot").hidden=pview!=="pot";$("#es").hidden=pview!=="es";if(pview==="pot")pot();else det()}
+document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;
+ if(b.dataset.v){pview=b.dataset.v;pshow()}
+ else if(b.dataset.psw){pst[b.dataset.psw]=!pst[b.dataset.psw];if(!pst[b.dataset.psw])delete pst[b.dataset.psw];pot()}
+ else if(b.dataset.pre){pst=Object.assign({},PRE[b.dataset.pre]);pot()}
+ else if(b.dataset.pmk){pmarks[b.dataset.pmk]=pmarks[b.dataset.pmk]===b.dataset.a?undefined:b.dataset.a;pot()}
+ else if(b.id==="pflt"){pfault=!pfault;pmarks={};pot()}});
+pshow();
+
 sel=KEYS.find(k=>C[k].d==="BYPASS SEGURIDADES")||KEYS[0];
 mods();list();det();
 </script>
