@@ -54,6 +54,7 @@ addEventListener("load",function(){setTimeout(__diag,4000)});
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>')</script>
 <script src="cableado.js?v=58"></script>
+<script src="cableado-revj.js?v=309"></script>
 <script>
 let POS=[500,502,504,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,538,539,540,542,544,546,548,550];
 const TIPOS=["PAS","AAA","AAP","HZ","SVGA","Sigma"];
@@ -3709,7 +3710,7 @@ const POS_PROPIO=["504","507","508"];
   location.replace(location.pathname+"?v="+Date.now())}}catch(e){}})();
 </script>
 <script src="docs-claude.js?v=7"></script>
-<script src="simulador.js?v=308"></script>
+<script src="simulador.js?v=309"></script>
 <script src="pbb507.js?v=3"></script>
 <script src="sai.js?v=1"></script>
 <script src="laser-ala.js?v=4"></script>
@@ -4520,7 +4521,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=308;
+const APP_VER=309;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}

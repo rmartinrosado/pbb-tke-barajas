@@ -125,18 +125,21 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="cableado.js?v=58"></script>
+<script src="cableado-revj.js?v=309"></script>
 <script>
 const C=window.CABLEADO, KEYS=Object.keys(C);
 const $=s=>document.querySelector(s);
 let mod="", sel=null, st={}, outOn=true, fault=false, marks={};
-const isOut=e=>/OUT|DON|DOS|UT/.test(e.k)&&!/INS/.test(e.k);
+const isOut=e=>/OUT|DON|DOS/.test(e.k+" "+e.c)&&!/INS/.test(e.k);
+const isAna=e=>/^AI/.test(e.c||"");
+const principal=e=>!!e.c&&!/^(UT|GND|0)/.test(e.k||"");
 const isCoil=el=>el.ps&&(el.ps.includes("A1")||el.ps.includes("A2")||el.ps.length===0);
 const wires=el=>(el.v||[]).map(v=>v.h?("hilo "+v.h+(v.c?" "+v.c:"")):(v.m?(v.m+" · "+v.t+" · cond. "+v.d):"")).filter(Boolean).join(" / ");
 const ttl=el=>el.k==="B"?(el.t+":"+el.p):el.k==="J"?("Rama paralela: "+el.br.map(b=>b.filter(x=>x.t).map(x=>x.t).join("+")).join(" | ")):el.k==="M"?("Enlace "+el.l):el.k==="P"?el.t:el.k==="F"?(el.t+":"+el.p):(el.t||"");
 
 function mods(){const m=[...new Set(KEYS.map(k=>C[k].m))];$("#mods").innerHTML=['<button class="'+(mod?"":"sel")+'" data-m="">Todos</button>'].concat(m.map(x=>'<button class="'+(mod===x?"sel":"")+'" data-m="'+x+'">'+x+'</button>')).join("");}
 function list(){const q=$("#q").value.trim().toLowerCase();
-  const r=KEYS.filter(k=>(!mod||C[k].m===mod)&&(!q||JSON.stringify(C[k]).toLowerCase().includes(q)));
+  const r=KEYS.filter(k=>principal(C[k])&&(!mod||C[k].m===mod)&&(!q||JSON.stringify(C[k]).toLowerCase().includes(q)));
   $("#list").innerHTML=r.slice(0,120).map(k=>{const e=C[k];return '<button class="pt'+(k===sel?" sel":"")+'" data-k="'+k+'"><span class="id">'+e.m+" "+e.b+'</span><span class="d">'+e.d+'</span><span class="m">'+e.k+" · "+e.c+" · folio "+e.f+'</span></button>'}).join("")||'<p class="foot">Sin resultados.</p>';}
 
 function simulate(e){
@@ -146,6 +149,7 @@ function simulate(e){
     rows.push({k:"PLC",t:e.m+" "+e.b+" ("+e.k+")",w:outOn?"Salida activada":"Salida desactivada",v});
     n.forEach((el,i)=>{
       if(el.k==="C"){rows.push({k:"0 V",t:"Común "+el.w,w:"retorno a 0 V",v:0});v=0;return;}
+      if(el.k==="M"&&/GND/.test(el.l||"")){rows.push({k:"0 V",t:"GND del módulo "+e.m,f:el.f,w:wires(el)||"retorno a 0 V",v:0});v=0;return;}
       if(el.k==="E"&&isCoil(el)){rows.push({k:"Carga",t:el.t+" "+(el.ps[0]||""),f:el.f,w:wires(el)+(el.d?" · "+el.d:""),v});energ=energ===null?v>0:energ;
         rows.push({k:"Carga",t:el.t+" "+(el.ps[1]||"retorno"),w:"lado 0 V",v:0});v=0;return;}
       if(el.k==="E"||el.k==="J"){const id=e.m+e.b+i,open=st[id];rows.push({k:"Contacto",t:ttl(el)+" "+(el.ps||[]).join("-"),f:el.f,w:wires(el),v,sw:id,open});if(open)v=0;return;}
@@ -163,7 +167,7 @@ function simulate(e){
       rows.push({k:"Contacto",t:ttl(el)+(ps[0]?" : "+ps[0]:""),f:el.f,w:"entrada del contacto",v,sw:id,open});
       if(open)v=0;
       rows.push({k:"Contacto",t:ttl(el)+(ps[1]?" : "+ps[1]:" (salida)"),f:el.f,w:wires(el)+(el.d?" · "+el.d:""),v});return;}
-    rows.push({k:el.k==="B"?"Borna":el.k==="F"?"Variador":"Punto",t:ttl(el),f:el.f,w:wires(el),v});
+    rows.push({k:el.k==="B"?"Borna":el.k==="F"?"Elemento":"Punto",t:ttl(el),f:el.f,w:wires(el),v});
   });
   rows.push({k:"PLC",t:e.m+" "+e.b+" ("+e.k+" · "+e.c+")",w:"borna de entrada del módulo",v});
   return {rows,notes,led:v>0,ledTxt:v>0?"LED ENCENDIDO":"LED APAGADO"};
@@ -184,7 +188,7 @@ function det(){
    (r.load!==undefined&&r.load!==null?'<p class="ref">Carga '+(r.load?'<b>alimentada</b>':'<b>sin tensión</b>')+'.</p>':'')+
    '<p class="ref">Mide entre cada punto y 0 V (hilo 205 WH). Orden: '+(out?"desde la salida del PLC hacia la carga.":"desde el origen de +24 V hacia la entrada del PLC.")+'</p>'+
    r.notes.map(x=>'<p class="note">⚠ '+x+'</p>').join("")+diag+
-   '<div class="chain">'+r.rows.map((x,i)=>'<div class="row'+(fault&&i===firstN?" suspect":"")+'"><div class="v '+(x.unk?"unk":x.v>0?"live":"dead")+'">'+(x.v>0?"24 V":"0 V")+'</div><div class="what"><span class="k">'+x.k+'</span><b>'+x.t+'</b>'+(x.w?'<div class="w">'+x.w+(x.f?' · '+FOL(x.f):'')+'</div>':(x.f?'<div class="w">'+FOL(x.f)+'</div>':""))+'</div>'+
+   '<div class="chain">'+r.rows.map((x,i)=>'<div class="row'+(fault&&i===firstN?" suspect":"")+'"><div class="v '+(x.unk||x.txt?"unk":x.v>0?"live":"dead")+'">'+(x.txt||(x.v>0?"24 V":"0 V"))+'</div><div class="what"><span class="k">'+x.k+'</span><b>'+x.t+'</b>'+(x.w?'<div class="w">'+x.w+(x.f?' · '+FOL(x.f):'')+'</div>':(x.f?'<div class="w">'+FOL(x.f)+'</div>':""))+'</div>'+
      (fault?'<div class="mk"><button data-mk="'+i+'" data-a="y" class="'+(marks[i]==="y"?"y":"")+'">Sí</button><button data-mk="'+i+'" data-a="n" class="'+(marks[i]==="n"?"n":"")+'">No</button></div>':
       x.sw?'<button class="sw'+(x.open?" open":"")+'" data-sw="'+x.sw+'">'+(x.open?"Abierto":"Cerrado")+'</button>':'<span></span>')+'</div>').join("")+'</div>';
 }
@@ -274,12 +278,13 @@ const POT=[
  {id:"pq300",p:"x59",u:"24dc",t:"+P-Q30.0 (PS) cabecera Weidmüller, pupitre",d:"Alarma hilo 638 → P-A4",f:38},
  {id:"pq301",p:"pq300",s:1,u:"24dc",t:"+P-Q30.1 · 2 A → hilo 635",d:"Cabecera PLC pupitre P-A0:3:1.2",f:38,on:"ON",off:"Disparado"},
  {id:"pq302",p:"pq300",s:1,u:"24dc",t:"+P-Q30.2 · 10 A → hilo 332",d:"P-X92:1 entradas y salidas del pupitre",f:38,on:"ON",off:"Disparado"},
+ {id:"cps5",p:"pq302",s:1,u:"24dc",t:"+CP-S5 seta del pupitre 13-14 → hilo 309",d:"P-X53:1 · alimenta los mandos del pupitre (subir/bajar, cabina, suelo, capota, portón, retorno)",f:81,on:"Rearmada",off:"Pulsada"},
  {id:"pq303",p:"pq300",s:1,u:"24dc",t:"+P-Q30.3 · 8 A → hilo 330",d:"P-X92:3 → display CP-A1 y zapata de seguridad P-U5",f:39,on:"ON",off:"Disparado"},
  {id:"mega",p:"q30",u:"24dc",t:"Central de megafonía E-S3:14 / E-X66:4",d:"Hilos 204 / 205",f:29}
 ];
 const UL={"400":["400 V","entre fases"],"230":["230 V","F–N"],"24ac":["24 V","alterna"],"24dc":["24 V","continua"]};
 const PRE={servicio:{},seg:{k0:1,k01:1,k1:1,k26:1},red:{red:1},sai:{sai:1}};
-const WIRE_POT={"189":"q303","613":"q304","332":"pq302","330":"pq303","208":"q301","215":"q302","635":"pq301"};
+const WIRE_POT={"309":"cps5","336":"pq302","189":"q303","613":"q304","332":"pq302","330":"pq303","208":"q301","215":"q302","635":"pq301"};
 let pst={}, pfault=false, pmarks={}, pview="pot";
 const pnode=id=>POT.find(n=>n.id===id);
 function plive(id){const n=pnode(id);if(!n)return true;if(n.s&&pst[id])return false;return n.p?plive(n.p):true}
@@ -305,7 +310,7 @@ function pot(){
 }
 /* enlace fase 1 ↔ fase 2: si la protección que alimenta el común de una entrada está abierta, toda la cadena queda a 0 V */
 const _simulate=simulate;
-simulate=function(e){const r=_simulate(e);if(isOut(e))return r;
+simulate=function(e){const r=_simulate(e);if(isAna(e)){r.rows.forEach(x=>{x.txt="señal"});r.led=true;r.ledTxt="ENTRADA ANALÓGICA";return r}if(isOut(e))return r;
  const last=e.n.filter(x=>x.k!=="?").slice(-1)[0];let w="";
  if(last&&last.k==="C")w=(last.w||"").split(" ")[0];else if(last&&last.v&&last.v[0]&&last.v[0].h)w=last.v[0].h;
  const pid=WIRE_POT[w];
