@@ -231,10 +231,82 @@ add("P-A6|7.1|88", "DIN13", "IN13", "LASER DETECTOR DE ALA · VELOCIDAD LENTA (O
 add("P-A6|8.1|88", "DIN14", "IN14", "LASER DETECTOR DE ALA · PARO (Out stop)",
     "F +LASER-ALA:DIG.OUT 1 > E +LASER-ALA OUT1,COM > P +LASER-ALA:POWER V+", LASER)
 
+
+# ======================= v310: interconexiones en folios de continuación =======================
+W = "m=ECBTH-W/25x"
+def ext(key, c, k, d, xb, h, cb, nom):
+    add(key, c, k, d,
+        f"B +E-X61:{xb} | h{h} > B +CBTH-X61:{xb} | {W}/{xb} > E +CBTH:{nom} {xb},10 > B +CBTH-X61:10 | {W}/10 > B +E-X61:10 | h189 > B +E-X55:1 | h189 > C 189 RD",
+        f"Contacto libre de potencial del sistema externo cableado en el CBTH entre CBTH-X61:10 (24 V común PBB, hilo 189, viene de E-X55:1) y CBTH-X61:{xb} (folio 11). Manguera ECBTH-W 25x, conductor {xb}.")
+ext("E-A2|4.4|58", "DIN08", "IN08", "BLOQUEO PBB MAQUINA A/A", "11", "23", "11", "BLOQUEO-A/A")
+ext("E-A2|6.1|59", "DIN10", "IN10", "BLOQUEO PBB CONVER. SERVICIO", "14", "20", "14", "BLOQUEO-CONVERTIDOR")
+ext("E-A2|5.4|59", "DIN11", "IN11", "BLOQUEO PBB 90% CONECTOR", "15", "18", "15", "BLOQUEO-90%")
+ext("E-A3|1.1|60", "DIN01", "IN01", "BLOQUEO PBB SETA AO", "16", "19", "16", "SETA-AO")
+ext("E-A3|2.1|60", "DIN02", "IN02", "BYPASS AO (DESBLOQUEO PBB AO)", "13", "21", "13", "DESBLOQUEO-AO")
+add("E-A2|5.1|59", "DIN09", "IN09", "BLOQUEO PBB CARRO A/A",
+    "B +E-X61:12 | h22 > E +E-S100 11,12 | m=E-WCARRO/H07RN-F_5x1,5/22_BN > B +E-X61:8 | m=E-WCARRO/H07RN-F_5x1,5/258_BK > M UT2 | h258",
+    "F.C. del carrito PCAIR E-S100 (folio 12), contacto NC 11-12 entre E-X61:12 y E-X61:8. El hilo 258 es el bucle de setas que sale del UT2 de E-A8 (folio 43): llega tensión pulsada con las setas rearmadas. E-X61:12 sale también al CBTH (CBTH-X61:12, ECBTH-W cond. 12).")
+add("E-A8|4.1|68", "DIS04", "IN04S", "SETAS EMERGENCIA",
+    "B +E-X55:14 | h624 > B +H-X51:14 | m=EH-W1/H07RN-F_24x1,5/14 > E +H-S3 22,21 | m=H-W3/H07RN-F_5x1,5/BK > B +H-X51:29 | m=H-W3/H07RN-F_5x1,5/246_GY > E +H-S4 22,21 | m=H-W4/H07RN-F_5x1,5/BK > B +H-X51:20 | m=H-W4/H07RN-F_5x1,5/356_GY > B +E-X55:20 | m=EH-W1/H07RN-F_24x1,5/20 > B +E-X59:12 | h356 > B +P-X51:12 | m=EP-W1/H07RN-F_24x1,5/12 > B +P-X53:7 | h356 > E +CP-S5 22,21 | h356 > B +P-X53:8 | h258 > B +P-X51:13 | h258 > B +E-X59:13 | m=EP-W1/H07RN-F_24x1,5/13 > B +E-X61:8 | h258 > B +CBTH-X61:8 | m=ECBTH-W/25x/8 > E +CBTH:SETA-AO 8,9 > B +CBTH-X61:9 | m=ECBTH-W/25x/9 > B +E-X61:9 | h181 > M UT2 | h181",
+    "Bucle de paradas de emergencia (folio 43): setas de elevación H-S3/H-S4 (21-22), seta del pupitre CP-S5 (21-22) y seta del AO en el CBTH (CBTH-X61:8-9), en serie desde el UT2 de E-A8 (hilo 181) hasta la entrada 4.1 (hilo 624).")
+add("E-A8|2.1|68", "DIS02", "IN02S", "BORDE RUEDAS",
+    "E +E-U5 14,13 | h260 > M UT2 | h622",
+    "Relé de bordes GELBAU E-U5 (folio 41), alimentado A1 = 189 (E-X68:1) y A2 = 205 (E-X68:2). Su contacto 13-14 cierra con el bucle de bordes sano: ver «Bucle bordes de ruedas» en Circuitos auxiliares.")
+add("E-A10|8.1|70", "DIS08", "IN08S", "ZAPATA ACTIVADA",
+    "B +E-X59:10 | h412 > B +P-X51:10 | m=EP-W1/H07RN-F_24x1,5/10 > E +P-U5 14,13 | h412 > B +P-X51:9 | h411 > B +E-X59:9 | m=EP-W1/H07RN-F_24x1,5/9 > M UT2 | h411",
+    "Relé de zapata GELBAU P-U5 (folio 45), alimentado A1 = 330 (P-X92:3) y A2 = 205 (P-X92:2). Su contacto 13-14 cierra con la zapata C-B4 sana: ver «Bucle zapata de seguridad» en Circuitos auxiliares.")
+add("E-A10|3.1|70", "DIS03", "IN03S", "BARRERA SEGURIDAD ROTONDA",
+    "B +E-X70:6 | h646 > B +IT-X50:6 | m=EIT-W10/20x0,75/646_PKBN > E +R-B4 4,1 | m=ITR-W4/SAC-4P-20,0-PUR/646_BK > B +IT-X50:4 | m=ITR-W4/SAC-4P-20,0-PUR/613_BN > B +E-X70:4 | m=EIT-W10/20x0,75/613_YE > C 613 RD",
+    "Cortina fotoeléctrica en cascada (folio 89): emisor R-B1 (test 645 desde E-A1 4.4) → receptor R-B2 → hilo 647 por IT-X50:22 → emisor R-B3 → receptor R-B4, cuya salida Q (pin 4) entra aquí.")
+add("E-A1|4.4|55", "DON16", "OUT16", "TEST BARRERA SEGURIDAD ROTONDA",
+    "B +E-X70:3 | h645 > B +IT-X50:3 | m=EIT-W10/20x0,75/645_GN > E +R-B1 4,3 | m=ITR-W1/SAC-4P-20,0-PUR/645_BK > B +IT-X50:2 | m=ITR-W1/SAC-4P-20,0-PUR/205_BU > B +E-X70:2 | m=EIT-W10/20x0,75/205_BN > C 205 WH",
+    "Entrada de test T1 del emisor R-B1 (folio 89). El emisor se alimenta con 613 (E-X70:1) y 205 (E-X70:2).")
+add("E-A6|7.1|65", "DOS07", "OUT3_Ch1", "SIRENA SEGURIDAD CABINA",
+    "B +E-X70:22 | h664 > E +C-H41 X1:3,X1:5 | m=EC-W20/H07RN-F_7x1,5/664_1 > B +E-X70:23 | m=EC-W20/H07RN-F_7x1,5/665_2 > M GND | h665/WH")
+add("E-A9|4.1|69", "DIS04", "IN04S", "SIRENA SEGURIDAD CABINA (vigilancia)",
+    "B +E-X70:25 | h666 > E +C-H41 X3:7,X3:5 | m=EC-W20/H07RN-F_7x1,5/666_6 > B +E-X70:24 | m=EC-W20/H07RN-F_7x1,5/667_5 > M UT2 | h667",
+    "Vigilancia de la sirena C-H41 (folio 91): IN X3:5 recibe el UT2 y la devuelve por OUT X3:7. La sirena se alimenta por X3:1 = 613 (E-X70:1, EC-W20 cond. 3) y X3:3 = 205 (E-X70:2, cond. 4).")
+add("E-A7|1.1|66", "DOS01", "OUT0_Ch1", "BAJADA RAPIDA",
+    "B +E-X55:6 | h275 > B +H-X51:6 | m=EH-W1/H07RN-F_24x1,5/6 > E +H-Y3 x1,x2 | m=H-W8/H07RN-F_3x1,5/BK > B +H-X52:11 | m=H-W8/H07RN-F_3x1,5/BU > B +E-X56:11 | m=EH-W2/H07RN-F_12x1,5/11 > M GND | h8/WH",
+    "Electroválvula H-Y3 24 VDC 0,8 A (folio 44).")
+add("E-A7|2.1|66", "DOS02", "OUT0_Ch2", "BAJADA RAPIDA IZQUIERDA/DERECHA",
+    "B +E-X55:15 | h33 > B +H-X51:15 | m=EH-W1/H07RN-F_24x1,5/15 > E +H-Y4 x1,x2 | m=H-W6/H07RN-F_3x1,5/BK > B +H-X51:32 | m=H-W6/H07RN-F_3x1,5/BU > E +H-Y5 x1,x2 | m=H-W7/H07RN-F_3x1,5/BK > B +H-X52:11 | m=H-W7/H07RN-F_3x1,5/BU > B +E-X56:11 | m=EH-W2/H07RN-F_12x1,5/11 > M GND | h8/WH",
+    "Electroválvulas H-Y4 y H-Y5 de 12 VDC 1,5 A en serie sobre 24 V (folio 44).")
+for key, c, k, d, ws in [("E-A9|5.1|69","DIS05","IN05S","ANTIATRAPAMIENTO TUNEL INTERIOR IZQUIERDO","IT-S3''"),
+                         ("E-A9|6.1|69","DIS06","IN06S","ANTIATRAPAMIENTO TUNEL INTERIOR DERECHO","IT-S3'"),
+                         ("E-A9|2.1|69","DIS02","IN02S","ANTIATRAPAMIENTO TUNEL MEDIO IZQUIERDO","MT-S3''"),
+                         ("E-A9|8.1|69","DIS08","IN08S","ANTIATRAPAMIENTO TUNEL MEDIO DERECHO","MT-S3'")]:
+    h = {"IT-S3''":"743","IT-S3'":"744","MT-S3''":"745","MT-S3'":"746"}[ws]
+    add(key, c, k, d, f"B -CLEMA:{h} | h{h} > E +{ws}(INF) 12,11 > E +{ws}(SUP) 12,11 > B -CLEMA:613 | h613 > B +E-X68:6 | h613 > C 613 RD",
+        "Finales de carrera superior e inferior en serie (folio 41), alimentados con 613 desde E-X68:6. PBB con 3 túneles en los del túnel medio.")
+
+# --- circuitos auxiliares (no son E/S del PLC, pero son las interconexiones que alimentan a varias) ---
+def aux(b, f, d, chain, note, k="AUX"):
+    add(f"AUX|{b}|{f}", "AUX", k, d, chain, note)
+aux("Bordes ruedas", 41, "BUCLE BORDES DE RUEDAS (relé E-U5 Z1-Z2)",
+    "B +E-X55:21 | h260 > B +H-X51:21 | m=EH-W1/H07RN-F_24x1,5/21 > B +T-CON10:1 | m=H-W18/H07RN-F_3x1,5/BN > E +T-B5 1,2 | m=T1-W1/FABRICANTE/BK > B +T-CON10:3 | m=T1-W1/FABRICANTE/239_BK > E +T-B6 2,1 | m=T1-W2/FABRICANTE/239_BK > B +T-CON10:2 | m=T1-W2/FABRICANTE/BK > B +H-X51:22 | m=H-W18/H07RN-F_3x1,5/BK > B +E-X55:22 | m=EH-W1/H07RN-F_24x1,5/22 > P +E-U5:Z2 | h622",
+    "Bucle resistivo de los bordes de seguridad delantero T-B5 y trasero T-B6 del tren de ruedas. Lo vigila E-U5 entre Z1 (hilo 260) y Z2 (hilo 622). No es una tensión de 24 V fija: mide continuidad del bucle. Si un borde se pisa, E-U5 abre 13-14 y cae la entrada E-A8 2.1.")
+aux("Zapata", 45, "BUCLE ZAPATA DE SEGURIDAD (relé P-U5 Z1-Z2)",
+    "B +P-U5:Z1 | h387 > E +C-B4 1,2 | m=CP-W14/FABRICANTE/BN > P +P-U5:Z2 | m=CP-W14/FABRICANTE/BU",
+    "Zapata ASO SENTIR edge con resistencia final 1K5 + 470 Ω, vigilada por P-U5 entre Z1 (387) y Z2 (388). Se mide continuidad/resistencia, no tensión. Si la zapata actúa, P-U5 abre 13-14 y cae la entrada E-A10 8.1.")
+aux("Valvula subir", 44, "ELECTROVALVULA SUBIR H-Y1 (contacto E-K61 11-14)",
+    "B +E-X55:4 | h301 > B +H-X51:4 | m=EH-W1/H07RN-F_24x1,5/4 > E +H-Y1 x1,x2 | m=H-W9/H07RN-F_3x1,5/BN > B +H-X51:31 | m=H-W9/H07RN-F_3x1,5/BU > C 205 WH",
+    "Alimenta E-K61 11-14 desde 189 (E-X68:1) cuando el PLC activa E-A1 3.1 (E-K61). Válvula 24 VDC 0,8 A (folio 44). «Activar salida» = E-K61 cerrado.", "OUT E-K61")
+aux("Valvula bajar", 44, "ELECTROVALVULA BAJAR H-Y2 (contacto E-K62 11-14)",
+    "B +E-X55:5 | h302 > B +H-X51:5 | m=EH-W1/H07RN-F_24x1,5/5 > E +H-Y2 x1,x2 | m=H-W10/H07RN-F_3x1,5/BN > B +H-X51:31 | m=H-W10/H07RN-F_3x1,5/BU > C 205 WH",
+    "Alimenta E-K62 11-14 desde 189 (E-X68:1) cuando el PLC activa E-A1 4.1 (E-K62). Válvula 24 VDC 0,8 A (folio 44). «Activar salida» = E-K62 cerrado.", "OUT E-K62")
+for b, rel, h, nom in [("2","E-K85","29","PBB ACTIVADA"),("3","E-K86","28","PBB SERVICIO"),("4","E-K87","27","PBB MANTENIMIENTO"),("5","E-K88","26","AVERIA PBB")]:
+    aux(f"CBTH-X61:{b}", 11, f"SEÑAL AL CBTH: {nom} (CBTH-X61:{b})",
+        f"B +CBTH-X61:{b} | {W}/{b} > B +E-X61:{b} | h{h} > E +{rel} 11,14 | h{h} > B +E-X61:1 | h182 > B +CBTH-X61:1 | {W}/1 > P +CBTH:24V-COMUN-CBTH | h182",
+        f"El CBTH entrega su 24 V común por CBTH-X61:1 (hilo 182) y la PBB lo devuelve por el contacto 11-14 de {rel} (salida E-A1, folio 56) en CBTH-X61:{b}. Manguera ECBTH-W 25x.")
+aux("CBTH-X61:18", 11, "SEÑAL CARRO A/A AL CBTH (CBTH-X61:18)",
+    f"B +CBTH-X61:18 | {W}/18 > B +E-X61:18 | h16 > E +E-S100 14,13 | m=E-WCARRO/H07RN-F_5x1,5/16_GY > B +E-X61:17 | m=E-WCARRO/H07RN-F_5x1,5/17_BU > B +CBTH-X61:17 | {W}/17 > P +CBTH:24V-COMUN-A/A | h17",
+    "El sistema A/A da su 24 V común por CBTH-X61:17 (hilo 17); el F.C. del carrito PCAIR E-S100 (13-14) lo devuelve por CBTH-X61:18 (hilo 16). Folios 11 y 12.")
+
 # ajustes puntuales sobre entradas existentes (sin rehacerlas)
 PATCH = [
     # E-A10: los selectores CP-S16 pasan por P-X92.1 (no P-X92.2) en la rev. J
-    ("E-A10", ["5.1", "5.2", "6.1", "6.2", "7.1", "7.2"], "+P-X92.2", "+P-X92.1"),
+    ("E-A10", ["1.1", "1.2", "2.1", "2.2", "5.1", "5.2", "6.1", "6.2", "7.1", "7.2"], "+P-X92.2", "+P-X92.1"),  # folios 70 y 92
 ]
 
 out = {"E": E, "DEL": DEL, "PATCH": PATCH}
@@ -246,6 +318,14 @@ js = ("/* v309: cableado cotejado punto por punto con el ESQUEMA GENERAL T879110
       "Object.keys(R.E).forEach(function(k){C[k]=R.E[k]});\n"
       "R.PATCH.forEach(function(p){Object.keys(C).forEach(function(k){var e=C[k];if(e.m!==p[0]||p[1].indexOf(e.b)<0)return;"
       "e.n.forEach(function(n){if(n.t===p[2])n.t=p[3]})})});\n"
+      "/* v310: retorno de los comunes por sus regleteros (folios 40, 48): los sensores de campo toman el 189 del regletero de su manguera */\n"
+      "var RET={'+IT-X51':[['+E-X51','1','EIT-W1','H07RN-F 24x1,5','1']],'+CO3-X51':[['+IT-X51','1','ITCO3-W1','H07RN-F 7x1,5','1'],['+E-X51','1','EIT-W1','H07RN-F 24x1,5','1']],'+ET-X51':[['+E-X54','1','EET-W1','H07RN-F 12x1,5','1']],'+C-X51':[['+E-X57','1','EC-W1','H07RN-F 24x1,5','1']],'+H-X51':[['+H-X51','1'],['+E-X55','1','EH-W1','H07RN-F 24x1,5','1']]};\n"
+      "var SRC={'189':'+E-X68:1','613':'+E-X68:6','332':'+P-X92:1'};\n"
+      "Object.keys(C).forEach(function(k){var e=C[k],n=e.n;var L=n[n.length-1];if(!L||L.k!=='C')return;var w=(L.w||'').split(' ')[0];var P=n[n.length-2];\n"
+      " if(w==='189'&&P&&P.k==='B'&&RET[P.t]&&(P.t!=='+H-X51'||/^(26|27|28|1)$/.test(P.p))){var add=RET[P.t].filter(function(r){return !(r[0]===P.t&&r[1]===P.p)});\n"
+      "  var ins=add.map(function(r){var o={k:'B',t:r[0],p:r[1],f:e.f};if(r[2])o.v=[{m:r[2],t:r[3],d:r[4]}];return o});\n"
+      "  if(ins.length&&!(n[n.length-3]&&n[n.length-3].t===ins[ins.length-1].t))n.splice.apply(n,[n.length-1,0].concat(ins))}\n"
+      " var s=SRC[w];if(s){var q=s.split(':'),P2=n[n.length-2];if(!(P2&&P2.k==='B'&&P2.t===q[0]&&P2.p===q[1])&&(e.m.charAt(0)==='P'?q[0].charAt(1)==='P':q[0].charAt(1)==='E'))n.splice(n.length-1,0,{k:'B',t:q[0],p:q[1],f:e.f,v:[{h:w,c:'RD',s:'1'}]})}});\n"
       "/* entradas de seguridad cuyo enlace a la salida de test (UT) quedó sin nombre: se toma de la borna x.2 del mismo grupo */\n"
       "Object.keys(C).forEach(function(k){var e=C[k];if(!/S$/.test(e.k||''))return;var L=e.n[e.n.length-1];"
       "if(!L||L.k!=='M'||L.l&&L.l!=='undefined')return;var g=e.b.split('.')[0],u=C[e.m+'|'+g+'.2|'+e.f];L.l=u&&/^UT/.test(u.k)?u.k:'UT'});\n"

@@ -93,6 +93,20 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 #vw{flex:1;overflow:auto;background:#6b7177;-webkit-overflow-scrolling:touch}
 #vw canvas{display:block;margin:0 auto;background:#fff}
 #vw .msg{padding:16px;color:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{font:600 12.5px var(--f-mono);padding:6px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.chip i{font-style:normal;color:var(--muted);font-weight:400;margin-left:2px}
+.chip.sel{background:var(--accent);border-color:var(--accent);color:var(--panel)}.chip.sel i{color:var(--panel)}
+.tbl{margin-top:14px;border-top:2px solid var(--accent);padding-top:8px}
+.tbl h3{font-family:var(--f-disp);font-size:20px;margin:0 0 6px}.tbl h3 small{font:400 12.5px var(--f-body);color:var(--muted);margin-left:6px}
+.bn{display:grid;grid-template-columns:46px 1fr;gap:10px;padding:8px 0;border-top:1px dashed var(--line)}
+.bnp{font:700 15px var(--f-mono);color:var(--accent);text-align:center;padding-top:2px}
+.bnr{display:flex;flex-direction:column;gap:8px;min-width:0}
+.bnl{min-width:0;font-size:13.5px}.bnl b{font-weight:600;word-break:break-word}
+.bnl .w{font-size:12.5px;color:var(--muted);word-break:break-word}
+.vt{float:right;font:600 12px var(--f-mono);padding:2px 6px;border-radius:4px;margin-left:6px}
+.vt.live{color:var(--live);background:var(--liveBg)}.vt.dead{color:var(--dead);background:var(--deadBg)}
+.lnk{font:600 13.5px var(--f-body);color:var(--accent);background:none;border:0;padding:0;text-align:left;cursor:pointer;text-decoration:underline;text-underline-offset:2px;word-break:break-word}
 .grp{font-family:var(--f-disp);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-top:14px;padding-top:8px;border-top:2px solid var(--line)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -106,9 +120,11 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
   </header>
   <div class="tabs" id="tabs">
     <button data-v="pot" class="sel">Potencia desde CBTH<small>400 V · 230 V · SAI · fuentes 24 V</small></button>
-    <button data-v="es">E/S del PLC 24 V<small>217 circuitos borna a borna</small></button>
+    <button data-v="es">E/S del PLC 24 V<small>Circuitos borna a borna</small></button>
+    <button data-v="bor">Borneros y mangueras<small>Regleteros, hilos y conductores</small></button>
   </div>
   <section class="box" id="pot"></section>
+  <section class="box" id="bor" hidden></section>
   <div id="es" hidden>
   <section class="box">
     <label class="lbl" for="q">Punto del PLC</label>
@@ -125,7 +141,7 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="cableado.js?v=58"></script>
-<script src="cableado-revj.js?v=309"></script>
+<script src="cableado-revj.js?v=310"></script>
 <script>
 const C=window.CABLEADO, KEYS=Object.keys(C);
 const $=s=>document.querySelector(s);
@@ -318,7 +334,7 @@ simulate=function(e){const r=_simulate(e);if(isAna(e)){r.rows.forEach(x=>{x.txt=
   r.notes.unshift((ok?"Común "+w+" alimentado por ":"SIN TENSIÓN: el común "+w+" sale de ")+n.t.split(" ·")[0]+(ok?"":" (abierto, disparado o sin 24 V aguas arriba). Míralo en la pestaña Potencia."));
   if(!ok){r.rows.forEach(x=>x.v=0);r.led=false;r.ledTxt="LED APAGADO"}}
  return r};
-function pshow(){document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("sel",b.dataset.v===pview));$("#pot").hidden=pview!=="pot";$("#es").hidden=pview!=="es";if(pview==="pot")pot();else det()}
+function pshow(){document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("sel",b.dataset.v===pview));$("#pot").hidden=pview!=="pot";$("#es").hidden=pview!=="es";$("#bor").hidden=pview!=="bor";if(pview==="pot")pot();else if(pview==="bor"){if(window.borRender)borRender()}else det()}
 document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;
  if(b.dataset.v){pview=b.dataset.v;pshow()}
  else if(b.dataset.psw){pst[b.dataset.psw]=!pst[b.dataset.psw];if(!pst[b.dataset.psw])delete pst[b.dataset.psw];pot()}
@@ -330,5 +346,6 @@ pshow();
 sel=KEYS.find(k=>C[k].d==="BYPASS SEGURIDADES")||KEYS[0];
 mods();list();det();
 </script>
+<script src="borneros.js?v=310"></script>
 
 </body></html>
