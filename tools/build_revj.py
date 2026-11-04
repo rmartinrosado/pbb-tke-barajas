@@ -314,12 +314,16 @@ PATCH = [
     ("E-A10", ["1.1", "1.2", "2.1", "2.2", "5.1", "5.2", "6.1", "6.2", "7.1", "7.2"], "+P-X92.2", "+P-X92.1"),  # folios 70 y 92
 ]
 
-out = {"E": E, "DEL": DEL, "PATCH": PATCH}
+NOTE = {
+ "E-A10|1.1|70": "Bumpers del brazo: 2 en serie en el bornero del pupitre P-X92.1 → 13 (UT 669) · C-B28 · 28 (672) · C-B27 · 12 (IN 668). Para saber cuál falla: puente 12–28 (anula C-B27) o 28–13 (anula C-B28) en P-X92.1, no en el PLC.",
+ "E-A10|2.1|70": "Bumpers de cabina (lateral izq.): 2 en serie en el bornero del pupitre P-X92.1 → 15 (UT 671) · C-B29 · 29 (673) · C-B30 · 14 (IN 670). Para saber cuál falla: puente 14–29 (anula C-B30) o 29–15 (anula C-B29) en P-X92.1, no en el PLC."}
+out = {"E": E, "DEL": DEL, "PATCH": PATCH, "NOTE": NOTE}
 js = ("/* v309: cableado cotejado punto por punto con el ESQUEMA GENERAL T87911031210ES rev. J (folios 52-88 y 96).\n"
       " Corrige trazas de la rev. D y añade las E/S que faltaban (incl. láser detector de ala P-A6 7.1/8.1, modificación de campo).\n"
       " Se aplica sobre window.CABLEADO justo después de cableado.js. Generado por build_revj.py. */\n"
       "(function(){var C=window.CABLEADO;if(!C)return;var R=" + json.dumps(out, ensure_ascii=False, separators=(",", ":")) + ";\n"
       "R.DEL.forEach(function(k){delete C[k]});\n"
+      "Object.keys(R.NOTE||{}).forEach(function(k){var e=C[k];if(e&&!e.n.some(function(n){return n.k==='?'&&n.x===R.NOTE[k]}))e.n.unshift({k:'?',f:e.f,x:R.NOTE[k],v:[]})});\n"
       "Object.keys(R.E).forEach(function(k){C[k]=R.E[k]});\n"
       "R.PATCH.forEach(function(p){Object.keys(C).forEach(function(k){var e=C[k];if(e.m!==p[0]||p[1].indexOf(e.b)<0)return;"
       "e.n.forEach(function(n){if(n.t===p[2])n.t=p[3]})})});\n"
