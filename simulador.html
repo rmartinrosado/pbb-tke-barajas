@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b6e99">
+<title>Simulador de tensiones PBB</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+.back{display:inline-flex;align-items:center;gap:6px;font:600 14px var(--f-body);color:var(--accent);text-decoration:none;padding:6px 0}
+/* Layout: instrumento de campo — columna única; buscador de punto arriba, cadena de medida como regleta de bornas debajo */
+:root{
+  --bg:#eef1f3; --panel:#ffffff; --fg:#17202a; --muted:#5c6873; --line:#d3d9de;
+  --accent:#0b6e99; --live:#c0392b; --liveBg:#fde9e6; --dead:#6b7782; --deadBg:#e7ebee;
+  --ok:#1e7d4a; --okBg:#e2f3e9; --warn:#a35f00; --warnBg:#fff1d6;
+  --f-disp:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11161b; --panel:#1a2128; --fg:#e6ebef; --muted:#97a3ad; --line:#2c353e;
+  --accent:#4fb3de; --live:#ff7a66; --liveBg:#3a1d19; --dead:#8995a0; --deadBg:#232b33;
+  --ok:#5fd394; --okBg:#173126; --warn:#f2b350; --warnBg:#3a2c12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161b; --panel:#1a2128; --fg:#e6ebef; --muted:#97a3ad; --line:#2c353e;
+  --accent:#4fb3de; --live:#ff7a66; --liveBg:#3a1d19; --dead:#8995a0; --deadBg:#232b33;
+  --ok:#5fd394; --okBg:#173126; --warn:#f2b350; --warnBg:#3a2c12; color-scheme:dark}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--f-disp);font-size:28px;letter-spacing:.02em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:13.5px;margin:2px 0 0}
+.scope{display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-family:var(--f-mono);font-size:11.5px;padding:3px 8px;border-radius:4px;border:1px solid var(--line);color:var(--muted)}
+.tag.on{border-color:var(--ok);color:var(--ok);background:var(--okBg)}
+.tag.pend{border-color:var(--warn);color:var(--warn);background:var(--warnBg)}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+label.lbl{font-family:var(--f-disp);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+input[type=search]{width:100%;box-sizing:border-box;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);margin-top:6px}
+input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mods{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.mods button{font-family:var(--f-mono);font-size:12px;padding:5px 8px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.mods button.sel{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.list{max-height:230px;overflow:auto;margin-top:10px;border-top:1px solid var(--line)}
+.pt{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;width:100%;text-align:left;font:inherit;background:none;border:0;border-bottom:1px solid var(--line);padding:8px 4px;color:var(--fg);cursor:pointer}
+.pt:hover{background:var(--bg)} .pt.sel{background:var(--okBg)}
+.pt .id{font-family:var(--f-mono);font-size:12px;color:var(--accent);grid-row:span 2;align-self:center;min-width:92px}
+.pt .d{font-weight:600;font-size:14px;min-width:0} .pt .m{font-size:12px;color:var(--muted)}
+.head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.head h2{font-family:var(--f-disp);font-size:22px;margin:0;line-height:1.15}
+.head .meta{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-top:3px}
+.led{display:flex;align-items:center;gap:8px;font-family:var(--f-disp);font-size:15px;letter-spacing:.04em;padding:6px 10px;border-radius:6px;border:1px solid var(--line);white-space:nowrap}
+.led i{width:14px;height:14px;border-radius:50%;background:var(--deadBg);border:2px solid var(--dead)}
+.led.on i{background:var(--ok);border-color:var(--ok);box-shadow:0 0 8px var(--ok)}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{font:600 13.5px var(--f-body);padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.btn.act{background:var(--warnBg);border-color:var(--warn);color:var(--warn)}
+.ref{font-size:12.5px;color:var(--muted);margin-top:8px}
+.chain{display:flex;flex-direction:column;margin-top:12px}
+.row{display:grid;grid-template-columns:76px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1px dashed var(--line);position:relative}
+.row:first-child{border-top:0}
+.v{font-family:var(--f-mono);font-weight:600;font-size:14px;text-align:center;padding:5px 0;border-radius:5px;font-variant-numeric:tabular-nums}
+.v.live{color:var(--live);background:var(--liveBg)} .v.dead{color:var(--dead);background:var(--deadBg)} .v.unk{color:var(--warn);background:var(--warnBg)}
+.what{min-width:0}
+.what b{font-family:var(--f-mono);font-size:13.5px;font-weight:600;word-break:break-word}
+.what .k{font-family:var(--f-disp);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+.what .w{font-size:12.5px;color:var(--muted);word-break:break-word}
+.sw{font:600 12px var(--f-body);padding:6px 9px;border-radius:14px;border:1px solid var(--ok);background:var(--okBg);color:var(--ok);cursor:pointer;white-space:nowrap}
+.sw.open{border-color:var(--live);background:var(--liveBg);color:var(--live)}
+.mk{display:flex;gap:4px}
+.mk button{font:600 12px var(--f-body);width:36px;padding:6px 0;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.mk button.y{background:var(--okBg);border-color:var(--ok);color:var(--ok)} .mk button.n{background:var(--liveBg);border-color:var(--live);color:var(--live)}
+.row.suspect{background:var(--warnBg);border-radius:6px}
+.diag{margin-top:10px;padding:10px 12px;border-radius:6px;background:var(--warnBg);color:var(--fg);border:1px solid var(--warn);font-size:14px}
+.note{font-size:12.5px;color:var(--warn)}
+.foot{font-size:12.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head><body>
+<div class="wrap">
+  <a class="back" href="./">← Volver a la PWA</a>
+  <header>
+    <h1>Simulador de tensiones PBB</h1>
+    <p class="sub">Valores esperados, borna a borna, según el esquema general T87911031210ES (rev. D, entradas E-A9 rev. J). Prueba de la fase 1.</p>
+  </header>
+  <div class="scope">
+    <span class="tag on">Fase 1 · 24 Vdc E/S PLC · 217 puntos</span>
+    <span class="tag pend">Fase 2 · potencia 400/230 V desde CBTH · faltan folios</span>
+  </div>
+
+  <section class="box">
+    <label class="lbl" for="q">Punto del PLC</label>
+    <input id="q" type="search" placeholder="Buscar: seguridad, K0, hilo 251, X51:20, bypass…" autocomplete="off">
+    <div class="mods" id="mods"></div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <section class="box" id="det"></section>
+
+  <p class="foot">Las tensiones son las que debe dar el polímetro respecto a 0 V con el circuito en el estado marcado. No incluye caídas de tensión ni la lógica del programa del PLC (no disponible): las salidas se activan a mano. Toca un contacto para abrirlo o cerrarlo.</p>
+</div>
+
+<script src="cableado.js?v=58"></script>
+<script>
+const C=window.CABLEADO, KEYS=Object.keys(C);
+const $=s=>document.querySelector(s);
+let mod="", sel=null, st={}, outOn=true, fault=false, marks={};
+const isOut=e=>/OUT|DON|DOS|UT/.test(e.k)&&!/INS/.test(e.k);
+const isCoil=el=>el.ps&&(el.ps.includes("A1")||el.ps.includes("A2")||el.ps.length===0);
+const wires=el=>(el.v||[]).map(v=>v.h?("hilo "+v.h+(v.c?" "+v.c:"")):(v.m?(v.m+" · "+v.t+" · cond. "+v.d):"")).filter(Boolean).join(" / ");
+const ttl=el=>el.k==="B"?(el.t+":"+el.p):el.k==="J"?("Rama paralela: "+el.br.map(b=>b.filter(x=>x.t).map(x=>x.t).join("+")).join(" | ")):el.k==="M"?("Enlace "+el.l):el.k==="P"?el.t:el.k==="F"?(el.t+":"+el.p):(el.t||"");
+
+function mods(){const m=[...new Set(KEYS.map(k=>C[k].m))];$("#mods").innerHTML=['<button class="'+(mod?"":"sel")+'" data-m="">Todos</button>'].concat(m.map(x=>'<button class="'+(mod===x?"sel":"")+'" data-m="'+x+'">'+x+'</button>')).join("");}
+function list(){const q=$("#q").value.trim().toLowerCase();
+  const r=KEYS.filter(k=>(!mod||C[k].m===mod)&&(!q||JSON.stringify(C[k]).toLowerCase().includes(q)));
+  $("#list").innerHTML=r.slice(0,120).map(k=>{const e=C[k];return '<button class="pt'+(k===sel?" sel":"")+'" data-k="'+k+'"><span class="id">'+e.m+" "+e.b+'</span><span class="d">'+e.d+'</span><span class="m">'+e.k+" · "+e.c+" · folio "+e.f+'</span></button>'}).join("")||'<p class="foot">Sin resultados.</p>';}
+
+function simulate(e){
+  const rows=[]; const n=e.n.filter(x=>x.k!=="?"); const notes=e.n.filter(x=>x.k==="?").map(x=>x.x);
+  if(isOut(e)){
+    let v=outOn?24:0, energ=null;
+    rows.push({k:"PLC",t:e.m+" "+e.b+" ("+e.k+")",w:outOn?"Salida activada":"Salida desactivada",v});
+    n.forEach((el,i)=>{
+      if(el.k==="C"){rows.push({k:"0 V",t:"Común "+el.w,w:"retorno a 0 V",v:0});v=0;return;}
+      if(el.k==="E"&&isCoil(el)){rows.push({k:"Carga",t:el.t+" "+(el.ps[0]||""),w:wires(el)+(el.d?" · "+el.d:""),v});energ=energ===null?v>0:energ;
+        rows.push({k:"Carga",t:el.t+" "+(el.ps[1]||"retorno"),w:"lado 0 V",v:0});v=0;return;}
+      if(el.k==="E"||el.k==="J"){const id=e.m+e.b+i,open=st[id];rows.push({k:"Contacto",t:ttl(el)+" "+(el.ps||[]).join("-"),w:wires(el),v,sw:id,open});if(open)v=0;return;}
+      rows.push({k:el.k==="B"?"Borna":"Punto",t:ttl(el),w:wires(el),v});
+    });
+    return {rows,notes,led:outOn,ledTxt:outOn?"SALIDA ON":"SALIDA OFF",load:energ};
+  }
+  // entradas: la tensión llega desde el extremo de la cadena hacia el PLC
+  const last=n[n.length-1]; let v=24, src="+24 V (origen fuera del tramo trazado)", unk=true, body=n;
+  if(last&&(last.k==="C"||last.k==="P"||last.k==="M")){body=n.slice(0,-1);unk=false;
+    src=last.k==="C"?"+24 V común "+last.w:last.k==="P"?"+24 V desde "+last.t:"+24 V pulsado desde "+last.l+" (salida de test del módulo de seguridad)";}
+  rows.push({k:"Origen",t:src,w:last&&last.k!=="C"?wires(last):"",v,unk});
+  [...body].reverse().forEach((el,ri)=>{const i=body.length-1-ri;
+    if(el.k==="E"||el.k==="J"){const id=e.m+e.b+i,open=st[id];const ps=(el.ps||[]).slice().reverse();
+      rows.push({k:"Contacto",t:ttl(el)+(ps[0]?" : "+ps[0]:""),w:"entrada del contacto",v,sw:id,open});
+      if(open)v=0;
+      rows.push({k:"Contacto",t:ttl(el)+(ps[1]?" : "+ps[1]:" (salida)"),w:wires(el)+(el.d?" · "+el.d:""),v});return;}
+    rows.push({k:el.k==="B"?"Borna":el.k==="F"?"Variador":"Punto",t:ttl(el),w:wires(el),v});
+  });
+  rows.push({k:"PLC",t:e.m+" "+e.b+" ("+e.k+" · "+e.c+")",w:"borna de entrada del módulo",v});
+  return {rows,notes,led:v>0,ledTxt:v>0?"LED ENCENDIDO":"LED APAGADO"};
+}
+
+function det(){
+  if(!sel){$("#det").innerHTML='<p class="foot">Elige un punto de la lista.</p>';return;}
+  const e=C[sel], r=simulate(e), out=isOut(e);
+  let diag="";
+  if(fault){const idx=r.rows.findIndex((x,i)=>marks[i]==="n");
+    if(idx>=0){const prev=r.rows.slice(0,idx).map((x,i)=>i).filter(i=>marks[i]==="y").pop();
+      diag='<div class="diag"><b>Corte localizado</b> entre '+(prev!=null?'<b>'+r.rows[prev].t+'</b> (tensión correcta)':'el origen')+' y <b>'+r.rows[idx].t+'</b> (sin tensión). Revisa ese tramo: contacto, borna floja o conductor '+(r.rows[idx].w||"")+'.</div>';}
+    else diag='<div class="diag">Mide en orden desde el origen y marca <b>Sí</b> si el polímetro da lo esperado o <b>No</b> si no. El primer <b>No</b> localiza el tramo.</div>';}
+  const firstN=r.rows.findIndex((x,i)=>marks[i]==="n");
+  $("#det").innerHTML='<div class="head"><div><h2>'+e.d+'</h2><div class="meta">'+e.m+' '+e.b+' · '+e.k+' · '+e.c+' · folio '+e.f+'</div></div><div class="led'+(r.led?" on":"")+'"><i></i>'+r.ledTxt+'</div></div>'+
+   '<div class="ctrls">'+(out?'<button class="btn pri" id="tog">'+(outOn?"Desactivar salida":"Activar salida")+'</button>':'')+
+   '<button class="btn" id="rst">Todo cerrado</button><button class="btn'+(fault?" act":"")+'" id="flt">'+(fault?"Salir de búsqueda de avería":"Buscar avería midiendo")+'</button></div>'+
+   (r.load!==undefined&&r.load!==null?'<p class="ref">Carga '+(r.load?'<b>alimentada</b>':'<b>sin tensión</b>')+'.</p>':'')+
+   '<p class="ref">Mide entre cada punto y 0 V (hilo 205 WH). Orden: '+(out?"desde la salida del PLC hacia la carga.":"desde el origen de +24 V hacia la entrada del PLC.")+'</p>'+
+   r.notes.map(x=>'<p class="note">⚠ '+x+'</p>').join("")+diag+
+   '<div class="chain">'+r.rows.map((x,i)=>'<div class="row'+(fault&&i===firstN?" suspect":"")+'"><div class="v '+(x.unk?"unk":x.v>0?"live":"dead")+'">'+(x.v>0?"24 V":"0 V")+'</div><div class="what"><span class="k">'+x.k+'</span><b>'+x.t+'</b>'+(x.w?'<div class="w">'+x.w+'</div>':"")+'</div>'+
+     (fault?'<div class="mk"><button data-mk="'+i+'" data-a="y" class="'+(marks[i]==="y"?"y":"")+'">Sí</button><button data-mk="'+i+'" data-a="n" class="'+(marks[i]==="n"?"n":"")+'">No</button></div>':
+      x.sw?'<button class="sw'+(x.open?" open":"")+'" data-sw="'+x.sw+'">'+(x.open?"Abierto":"Cerrado")+'</button>':'<span></span>')+'</div>').join("")+'</div>';
+}
+document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;
+  if(b.dataset.m!==undefined){mod=b.dataset.m;mods();list();}
+  else if(b.dataset.k){sel=b.dataset.k;st={};marks={};fault=false;outOn=true;list();det();}
+  else if(b.dataset.sw){st[b.dataset.sw]=!st[b.dataset.sw];det();}
+  else if(b.dataset.mk){marks[b.dataset.mk]=marks[b.dataset.mk]===b.dataset.a?undefined:b.dataset.a;det();}
+  else if(b.id==="tog"){outOn=!outOn;det();} else if(b.id==="rst"){st={};det();}
+  else if(b.id==="flt"){fault=!fault;marks={};det();}
+});
+$("#q").addEventListener("input",list);
+sel=KEYS.find(k=>C[k].d==="BYPASS SEGURIDADES")||KEYS[0];
+mods();list();det();
+</script>
+
+</body></html>
