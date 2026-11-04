@@ -27,6 +27,8 @@ window.insMidePasos=function(q,mod){const e=String(q.e||""),B="<b>"+e_(punto(q))
   if(/pulsos|UT/.test(e+" "+(q.p||"")))s.push("Pulso de test: puede oscilar o marcar algo menos.")}
  if(q.x)s.push("Si no da el valor: "+e_(q.x));
  return s};
+/* v319: versión corta para el PDF (escala · roja · negra) */
+window.insMideCorto=function(q,mod){const s=window.insMidePasos(q,mod).map(x=>x.replace(/<[^>]+>/g,"").replace(/\.$/,""));return s.slice(0,3).join(" · ").replace(/^Polímetro en /,"").replace(/\. Se comprueba el retorno de 0 V/," (retorno 0 V)").replace(/V⎓/g,"V DC").replace(/V~/g,"V AC").replace(/Ω/g,"ohm")};
 window.insMide=function(q,mod){return '<span class="imide"><span class="imt">Medir</span><ol>'+window.insMidePasos(q,mod).map(x=>"<li>"+x+"</li>").join("")+"</ol></span>"};
 
 /* ---------- guía de campo: pasos con una medida escrita («220 V entre E-X66:1 y E-X66:2», «24 V en E-X62:1-2») ---------- */
