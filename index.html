@@ -55,7 +55,7 @@ addEventListener("load",function(){setTimeout(__diag,4000)});
 <script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>')</script>
 <script src="cableado.js?v=58"></script>
 <script src="cableado-revj.js?v=314"></script>
-<script src="ins-mide.js?v=320"></script>
+<script src="ins-mide.js?v=323"></script>
 <script>
 let POS=[500,502,504,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,538,539,540,542,544,546,548,550];
 const TIPOS=["PAS","AAA","AAP","HZ","SVGA","Sigma"];
@@ -976,7 +976,7 @@ function gInsHTML(){const R=RUTAS[gIMod];const S=R.s.find(x=>x.id==gISig)||R.s[0
  let h=`<div class="mu" style="font-size:12px;margin:6px 0">Ruta de medida desde el plano ESQUEMA GENERAL rev. J. Compruébala siempre con el folio indicado.</div>
  <label>Módulo</label><div class="gmods">${Object.keys(RUTAS).map(k=>`<button class="${k==gIMod?"on":""}" onclick="gIMod='${k}';gPintaIns()">${k}</button>`).join("")}</div>
  <label>Señal</label><select onchange="gISig=this.value;gPintaIns()">${R.s.map(x=>`<option value="${x.id}" ${x.id==S.id?"selected":""}>${x.id} · LED ${x.led} · ${esc(x.t)}</option>`).join("")}</select>
- <div class="gav">${esc(S.r)}</div><div class="mu" style="font-size:12px">${esc(R.ref)}</div>
+ <div class="gav">${esc(S.r)}</div><div class="mu" style="font-size:12px">${esc(typeof ref507=="function"?ref507(R.ref):R.ref)}</div>
  ${nok>=0?`<div class="gav" style="border-left-color:#c62828;background:color-mix(in srgb,#c62828 12%,transparent)"><b>Fallo localizado en el paso ${nok+1}:</b> ${esc(S.p[nok].x)}${nok>0?` (el paso ${nok} estaba bien).`:""}</div>`:""}
  <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br>${typeof insMide=="function"?insMide(q,typeof gIMod!="undefined"?gIMod:""):`<small class="mu">Esperado: ${esc(q.e)}</small>`}
   <span class="gib"><button class="${r.ok===true?"pri":"sec"}" onclick="gIMarca(${i},true)">OK</button><button class="${r.ok===false?"pri":"sec"}" onclick="gIMarca(${i},false)">NOK</button><input placeholder="Valor" value="${esc(r.v||"")}" onchange="gIValor(${i},this.value)"></span></span>
@@ -1198,7 +1198,7 @@ function gInsHTML(){gIAuto();const R=RUTAS[gIMod]||RUTAS["E-A9"];
  h+=`<div class="mu" style="font-size:12px;margin-top:6px"><b>${esc(gIMod)}</b> · ${esc(R.n)}</div>
  <label>Señal</label><select onchange="gISig=this.value;gPintaIns()">${R.s.map(x=>`<option value="${x.id}" ${x.id==S.id?"selected":""}>${x.det?"★ ":""}Mód. ${x.k} · LED ${x.l} · ${x.led&&x.led!=`${x.k}.${x.l}`?"IN "+x.led+" · ":""}${esc(x.t)}</option>`).join("")}</select>
  <div class="mu" style="font-size:11px;margin-top:2px">★ = ruta detallada cable a cable · resto = ruta básica por bornas del módulo</div>
- <div class="gav">${esc(S.r)}</div>${gRecorridoHTML(S)}<div class="mu" style="font-size:12px">${esc(R.ref)}</div>
+ <div class="gav">${esc(S.r)}</div>${gRecorridoHTML(S)}<div class="mu" style="font-size:12px">${esc(typeof ref507=="function"?ref507(R.ref):R.ref)}</div>
  ${nok>=0?`<div class="gav" style="border-left-color:#c62828;background:color-mix(in srgb,#c62828 12%,transparent)"><b>Fallo localizado en el paso ${nok+1}:</b> ${esc(S.p[nok].x)}${nok>0?` (el paso ${nok} estaba bien).`:""}</div>`:""}
  <div class="gst">${S.p.map((q,i)=>{const r=res[i]||{};return `<div class="gpaso gins${r.ok===true?" ok":r.ok===false?" nok":""}"><span style="flex:1"><b>${i+1}.</b> ${esc(q.p)}<br>${gUbiHTML(q)}${typeof insMide=="function"?insMide(q,typeof gIMod!="undefined"?gIMod:""):`<small class="mu">Esperado: ${esc(q.e)}</small>`}
   <span class="gib"><button class="${r.ok===true?"pri":"sec"}" onclick="gIMarca(${i},true)">OK</button><button class="${r.ok===false?"pri":"sec"}" onclick="gIMarca(${i},false)">NOK</button><input placeholder="Valor" value="${esc(r.v||"")}" onchange="gIValor(${i},this.value)"></span></span>
@@ -3712,7 +3712,7 @@ const POS_PROPIO=["504","507","508"];
 </script>
 <script src="docs-claude.js?v=7"></script>
 <script src="simulador.js?v=317"></script>
-<script src="pbb507.js?v=3"></script>
+<script src="pbb507.js?v=323"></script>
 <script src="sai.js?v=1"></script>
 <script src="laser-ala.js?v=4"></script>
 <script src="hidraulica.js?v=279"></script>
@@ -4522,7 +4522,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=322;
+const APP_VER=323;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}

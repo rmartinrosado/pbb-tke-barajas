@@ -21,13 +21,16 @@ const posAct=()=>{const i=otActual();return i?String(i.pos):""};
 
 /* ---------- 1. Folios: rev. J → plano 507 ---------- */
 const F507={9:12,10:22,11:23,13:24,14:42,15:27,16:32,17:28,18:25,19:36,20:37,21:29,22:33,23:30,24:35,25:119,26:43,27:52,28:26,
- 29:54,30:47,31:44,32:45,33:46,34:49,35:51,36:55,37:56,38:57,39:57,40:58,41:64,42:67,43:67,44:70,45:65,46:68,47:68,48:72,49:59,50:73,51:74,
+ 29:54,30:47,31:44,32:45,33:46,34:49,35:51,36:55,37:56,38:57,39:57,40:58,41:62,42:67,43:67,44:70,45:65,46:68,47:68,48:72,49:59,50:73,51:74,
  89:113,90:114,91:115,92:116,93:117,94:118,95:119,96:120,97:61,98:64,99:64};
 for(let f=52;f<=88;f++)F507[f]=f+23; /* E-A0 … P-A6: folio rev. J + 23 */
 window.F507=F507;
 const es507Doc=n=>/(^|\D)507(\D|$)/.test(n)&&!/AAA|PCA|CBTH|PDS|AAP/i.test(n)&&!/T87911031210|T4T4S|RCS.?PLANOS/i.test(n);
 (function(){const o=gPagina;gPagina=function(name,folio){if(es507Doc(String(name||""))){folio=+folio;if(folio<0)return -folio;return F507[folio]||folio}return o(name,folio)}})();
 window.f507=f=>f<0?-f:(F507[f]||f);
+/* v323: ¿la OT activa es de la 507? (para medidas: en la 507 el +24 V es hilo 218 y el 0 V hilo 129) */
+window.es507Act=()=>{try{return posAct()===P5}catch(e){return false}};
+window.ref507=s=>!window.es507Act()?s:String(s||"").replace(/hilo 205( blanco)?/g,"hilo 129$1").replace(/hilo 189\b/g,"hilo 218").replace(/hilo 332\b/g,"hilo 184").replace(/hilo 613\b/g,"hilo 568").replace(/hilo 330\b/g,"hilo 330").replace(/\(0 V, 205\)/g,"(0 V, 129)").replace(/hilo 215\b/g,"hilo 567").replace(/hilo 208\b/g,"hilo 566").replace(/hilo 635\b/g,"hilo 575").replace(/E-X68:4\b/g,"E-X68:3").replace(/E-X68:6\b/g,"E-X68:4").replace(/folio (\d+)/g,(m,n)=>"folio "+(F507[n]||n)+" (507)");
 
 /* ---------- 2. Nombres de LED del PLC en la 507 (por borna; se aplican solo con una OT de la 507) ---------- */
 const L507={
@@ -48,6 +51,17 @@ const L507={
   "4.4":["Presostato control bajada outriggers (507)",2],"5.1":["Crepuscular (507)",2],"6.1":["AKS motor 1 ET-B17 · 3 m (507)",2],"5.4":["AKS motor 1 ET-B17 · 1,5 m (507)",2],
   "6.4":["AKS motor 2 ET-B18 · 3 m (507)",2],"7.1":["AKS motor 2 ET-B18 · 1,5 m (507)",2],"8.1":["AKS motor A380 H-B19 · 3 m (507)",2],"7.4":["AKS motor A380 H-B19 · 1,5 m (507)",2],
   "8.4":["Bypass AKS (507)",0]}};
+/* v323: canales por submódulo.LED (k.l) para E-A0 y módulos de salida, cotejados con el esquema 507 (folios 75-103) */
+const L507K={
+ "E-A0":{"2.2":["Sirena fallo auto · relé E-K69 (507, folio 76)",0],"4.3":["Estado E-K101 contactor seguridad 2 (507, folio 75)",1],"4.4":["Estado E-K102 contactor seguridad 3 (507, folio 75)",1]},
+ "E-A1":{"2.1":["Reserva (507)",0],"2.2":["Reserva (507)",0],"2.3":["Iluminación túnel fijo (507, folio 78)",0],"3.4":["PBB anomalía · relé E-K88 (507, folio 79)",0],
+  "3.5":["Fallo auto · relé E-K89 (507, folio 79)",0],"3.7":["Reserva (507)",0],"3.8":["Luces flash · E-K60 (507, folio 79)",1],"4.2":["Reserva (507: sin cablear)",0],
+  "4.3":["Retorno autónomo → E-X58:8 → E-U1/E-U2 X1A.16 y variador de bomba E-X105:5 (507, folio 80)",0]},
+ "E-A6":{"3.1":["Bobina E-K102 contactor seguridad 3 (507, folio 88)",1],"3.2":["Bobina E-K33 retorno outrigger (507, folio 88)",0]},
+ "E-A7":{"1.1":["Válvula bajar → E-X56:15 (507, folio 89)",0],"3.1":["Bajada rápida (507, folio 90)",0]},
+ "P-A1":{"2.4":["Buzzer PBB A380 (507)",0],"3.3":["Lunetas térmicas (507; en rev. J van por E-A1)",0]},
+ "P-A2":{"3.3":["Activar variador bomba → P-X64:6 → E-X105:4 (507, folio 102)",0],
+  "4.1":["Outrigger UP · relé E-K66 (507, folio 103: rotulado DON09)",0],"4.2":["Outrigger DOWN · relé E-K67 (507, folio 103: rotulado DON10)",0],"4.3":["Outrigger activado · relé E-K65 (507, folio 103: rotulado DON11)",0]}};
 /* rev. J (resto de posiciones): P-A6 7.1 / 8.1 = láser detector de ala (ya en la tabla PLC, v129); aquí solo el bypass AKS */
 const BASE={"P-A6":{"4.4":["Bypass AKS",0]}};
 const ORIG=new Map();
@@ -57,6 +71,7 @@ let plcEn=null;
 function plc507(on){on=!!on;if(plcEn===on)return;plcEn=on;
  plcCada((M,L,b)=>{const k=M.id+"|"+b;const v=L507[M.id]&&L507[M.id][b];if(!v)return;if(!ORIG.has(k))ORIG.set(k,[L[0],L[1]]);const o=ORIG.get(k);
   if(on){L[0]=v[0];L[1]=v[1]}else{L[0]=o[0];L[1]=o[1]}});
+ PLC.forEach(M=>{const T=L507K[M.id];if(!T)return;M.m.forEach((mod,ki)=>mod.forEach((L,li)=>{const kl=(ki+1)+"."+(li+1),v=T[kl];if(!v)return;const k=M.id+"#"+kl;if(!ORIG.has(k))ORIG.set(k,[L[0],L[1]]);const o=ORIG.get(k);if(on){L[0]=v[0];L[1]=v[1]}else{L[0]=o[0];L[1]=o[1]}}))});
  pu507(on)}
 
 /* ---------- 3. Puentes provisionales en la 507 ---------- */

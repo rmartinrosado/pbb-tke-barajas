@@ -15,7 +15,8 @@ function zona(q,mod){const pt=punto(q);const mz=pt.match(/^\+([A-Z]+)\d*(?:\.\d+
  let z=(q.u&&q.u[0])||"";if((!z||z==="F")&&typeof gUbiZ=="function"){try{z=gUbiZ(q)[0]}catch(e){}}
  if(!Z0[z])z=String(mod||(typeof gIMod!="undefined"?gIMod:"")||"").charAt(0)==="P"?"P":"E";return z}
 function punto(q){const n=q.nodo||String(q.p||"").split(" · ")[0];return n.replace(/\s*—\s*salida del sensor\/elemento$/,"")}
-window.insMidePasos=function(q,mod){const e=String(q.e||""),B="<b>"+e_(punto(q))+"</b>",z=zona(q,mod),s=[];
+window.insMidePasos=function(q,mod){const _r=window.__insMideR(q,mod);return typeof window.ref507=="function"?_r.map(x=>window.ref507(x)):_r};
+window.__insMideR=function(q,mod){const e=String(q.e||""),B="<b>"+e_(punto(q))+"</b>",z=zona(q,mod),s=[];
  if(/Ω|continuidad|ohm/i.test(e)){
   s.push("Corta la tensión del circuito.","Polímetro en <b>Ω o continuidad</b>.","Puntas: "+e_(q.p||"").replace(/↔/g,"<b>↔</b>")+".","Debe marcar <b>"+e_(e)+"</b>.")}
  else if(/V~|Vac|VAC|400 ?V|230 ?V/.test(e)){
