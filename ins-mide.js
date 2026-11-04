@@ -10,7 +10,9 @@ const Z0={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",C:"+C-X51:2 
  CO:"+IT-X51:2 (0 V, hilo 205)",H:"+H-X51:30 (0 V, hilo 205)",T:"+H-X51:30 (0 V, hilo 205)",R:"+IT-X50:2 (0 V, hilo 205)",CBTH:"+E-X61:21 (0 V PBB, hilo 205)",SS:"+E-X68:2 (0 V, hilo 205)",MT:"+E-X68:2 (0 V, hilo 205)"};
 const Z24={E:"+E-X68:1 (+24 V, hilo 189)",P:"+P-X92:1 (+24 V, hilo 332)",C:"+C-X51:1 (+24 V, hilo 189)",IT:"+IT-X51:1 (+24 V, hilo 189)",ET:"+ET-X51:1 (+24 V, hilo 189)",
  CO:"+CO3-X51:1 (+24 V, hilo 189)",H:"+H-X51:1 (+24 V, hilo 189)",T:"+H-X51:1 (+24 V, hilo 189)",R:"+IT-X50:1 (+24 V, hilo 613)",CBTH:"+E-X61:10 (+24 V, hilo 189)",SS:"+E-X68:1 (+24 V, hilo 189)",MT:"+E-X68:1 (+24 V, hilo 189)"};
-function zona(q,mod){let z=(q.u&&q.u[0])||"";if((!z||z==="F")&&typeof gUbiZ=="function"){try{z=gUbiZ(q)[0]}catch(e){}}
+function zona(q,mod){const pt=punto(q);const mz=pt.match(/^\+([A-Z]+)\d*(?:\.\d+)?-/);if(mz&&Z0[mz[1]])return mz[1];if(mz&&mz[1]==="CP")return "P";
+ const hc=pt.match(/hilo (\d+)/);if(hc){if(/^(332|330|336|309|635)$/.test(hc[1]))return "P";if(/^(189|613|215|208)$/.test(hc[1]))return "E"}
+ let z=(q.u&&q.u[0])||"";if((!z||z==="F")&&typeof gUbiZ=="function"){try{z=gUbiZ(q)[0]}catch(e){}}
  if(!Z0[z])z=String(mod||(typeof gIMod!="undefined"?gIMod:"")||"").charAt(0)==="P"?"P":"E";return z}
 function punto(q){const n=q.nodo||String(q.p||"").split(" · ")[0];return n.replace(/\s*—\s*salida del sensor\/elemento$/,"")}
 window.insMidePasos=function(q,mod){const e=String(q.e||""),B="<b>"+e_(punto(q))+"</b>",z=zona(q,mod),s=[];
