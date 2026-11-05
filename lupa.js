@@ -42,7 +42,52 @@ window.lupaBusca=function(){const inp=document.getElementById("lp_t"),res=docume
  lupaPinta(0,an);casos(txt)};
 const pasos=s=>{const inf=[],acc=[];(s.p||[]).forEach(p=>{const i=typeof gEsInfo=="function"&&gEsInfo(p);(i?inf:acc).push(p)});
  const pr=acc.filter(p=>/^PRIORIDAD/i.test(p)),re=acc.filter(p=>!/^PRIORIDAD/i.test(p));return{acc:[...pr,...re],inf}};
-window.lupaPinta=function(k,an){const res=document.getElementById("lp_res");if(!res)return;
+/* ===== v339: croquis de los borneros del sistema con bornas numeradas, cables que llegan y salen, y el cuadro «Medir»
+ desplegado en cada borna (escala, punta roja, punta negra y qué debe marcar). Las bornas salen de las rutas cable a cable
+ (RUTAS, cableado rev. J) de las señales del análisis y de las bornas que cita la actuación más eficaz. ===== */
+let LA=null;
+const REFV={"+E-X68:1":"≈24 V","+E-X68:2":"0 V","+P-X92:1":"≈24 V","+P-X92:2":"0 V","+H-X51:1":"≈24 V","+H-X51:30":"0 V","+IT-X51:1":"≈24 V","+IT-X51:2":"0 V","+ET-X51:1":"≈24 V","+ET-X51:2":"0 V","+C-X51:1":"≈24 V","+C-X51:2":"0 V","+C4-X64:1":"≈24 V","+C4-X64:2":"0 V","+IT-X50:1":"≈24 V","+IT-X50:2":"0 V","+CO3-X51:1":"≈24 V"};
+const ZN={E:"Armario eléctrico E",P:"Armario del pupitre",CP:"Panel del pupitre",C:"Cabina",C4:"Suelo de cabina",IT:"Túnel interior A",MT:"Túnel medio B",ET:"Túnel exterior C",H:"Columna / grupo de elevación",CO:"Columna / rotonda",CO3:"Columna / rotonda",R:"Rotonda",T:"Tren de rodaje",CBTH:"Armario CBTH (alimentación BT / SAI)",SS:"Escalera de servicio"};
+const zn=st=>{const m=String(st).match(/^\+?([A-Z]+\d*)/);if(!m)return "";return ZN[m[1]]||ZN[m[1].replace(/\d+$/,"")]||""};
+const WC={RD:"#d32f2f",BU:"#1e5bd8",BK:"#222",BN:"#8d5524",GY:"#8a8a8a",WH:"#cfcfcf",OG:"#ef6c00",VT:"#7b1fa2",YE:"#f2c200",GN:"#2e9e44",GNYE:"repeating-linear-gradient(90deg,#2e9e44 0 6px,#f2c200 6px 12px)",PK:"#e91e63"};
+const wcol=t=>{const m=String(t||"").match(/\b(GNYE|RD|BU|BK|BN|GY|WH|OG|VT|YE|GN|PK)\b/);return m?WC[m[1]]:"#9aa0a6"};
+const RX=/\+?([A-Z]+\d*(?:\.\d+)?-X\d+(?:\.\d+)?)((?:\s*(?:·\s*)?:\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)*(?:\s*\([^)]*\))?)+)/g;
+/* bornas de un texto: [{st,b,lab}] («+E-X62:1 (BN, +24 V) · :3 (BK, señal)», «E-X62:1-2», «+E-X55:18») */
+function bornas(txt){const o=[];let m;RX.lastIndex=0;txt=String(txt||"");
+ while((m=RX.exec(txt))){const st="+"+m[1].replace(/^\+/,"");const re=/:(\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)*)(?:\s*\(([^)]*)\))?/g;let n;
+  while((n=re.exec(m[2]))){n[1].split("-").forEach(b=>o.push({st,b,lab:n[2]||""}))}}
+ return o}
+const corto=s=>{s=String(s||"").replace(/\s*\(.*$/,"").trim();return s.length>34?s.slice(0,33)+"…":s};
+const eDe=(lab,e)=>/\+24|24 ?V/.test(lab)?"≈24 V":/0 ?V/.test(lab)?"0 V":/señal|4-20/i.test(lab)?"4-20 mA (señal analógica, variable)":e;
+function borneros(c,R,P){const M=new Map(),ord=[];
+ const pon=(st,b,o)=>{const k=st+":"+b;if(!M.has(k)){M.set(k,Object.assign({st,b,sig:[]},o));if(!ord.includes(st))ord.push(st)}else{const r=M.get(k);if(o.sig&&o.sig.length)o.sig.forEach(x=>{if(!r.sig.includes(x))r.sig.push(x)});["ll","sa","q","mid"].forEach(z=>{if(!r[z]&&o[z])r[z]=o[z]})}};
+ if(c.T=="PAS"&&R&&R.rel)R.rel.slice(0,3).forEach(x=>{const L=(x.S&&x.S.p)||[];const sg=x.mod+" "+(x.S.led||x.S.id||"")+" · "+x.S.t;
+  L.forEach((pt,i)=>{const bs=bornas(pt.nodo||String(pt.p||"").split(" · ")[0]);if(!bs.length)return;
+   const cabIn=(pt.cab||[]).map(z=>z.txt).join(" + ")||((String(pt.p||"").match(/(manguera|cable|hilo)[^·]*/i)||[""])[0]);
+   const nx=L[i+1],cabOut=nx?(nx.cab||[]).map(z=>z.txt).join(" + "):"";
+   bs.forEach(bb=>{const nodo=bb.st+":"+bb.b,e=bs.length>1?eDe(bb.lab,""):pt.e;
+    pon(bb.st,bb.b,{sig:[sg],lab:bb.lab,e,x:pt.x,mod:x.mod,
+     ll:i>0?{de:corto(L[i-1].nodo||L[i-1].p),c:cabIn}:(cabIn?{de:"",c:cabIn}:null),
+     sa:nx?{a:corto(nx.nodo||nx.p),c:cabOut}:null,
+     q:Object.assign({},pt,{nodo,p:nodo,e})})})})});
+ /* bornas citadas en la actuación más eficaz, con su medida escrita si la tiene */
+ (P||[]).forEach(t=>{const md=typeof guiaMidePasos=="function"?guiaMidePasos(t):[];
+  md.forEach(z=>bornas(z.t).slice(0,1).forEach(bb=>pon(bb.st,bb.b,{sig:["Actuación más eficaz"],e:z.t.replace(/\s+(en|entre)\s+.*$/,""),mid:z.s})));
+  /* sin medida escrita: solo las bornas de referencia conocidas (+24 V / 0 V de cada zona); si no hay dato, no se dibuja ni se inventa */
+  bornas(t).forEach(bb=>{const k=bb.st+":"+bb.b;if(M.has(k))return;let e=eDe(bb.lab,"");
+   if(!e)e=REFV[k]||"";
+   if(e)pon(bb.st,bb.b,{sig:["Actuación más eficaz"],lab:bb.lab,e})})});
+ if(!M.size)return "";
+ const nat=(a,b)=>String(a).localeCompare(String(b),"es",{numeric:true});
+ const wire=(c2)=>`<i class="lbw" style="background:${wcol(c2)}"></i>`;
+ const h=ord.slice(0,6).map(st=>{const rows=[...M.values()].filter(r=>r.st==st).sort((a,b)=>nat(a.b,b.b));
+  const cro=rows.map((r,ri)=>`<div class="lbr${ri?"":" lbr0"}"><div class="lbl">${r.ll?`<b>${E(r.ll.de||"llega")}</b><small>${E(r.ll.c||"")}</small>`:`<small class="mu">—</small>`}</div>${wire(r.ll&&r.ll.c)}<div class="lbt"><span>${E(r.b)}</span></div>${wire(r.sa&&r.sa.c)}<div class="lbs">${r.sa?`<b>${E(r.sa.a)}</b><small>${E(r.sa.c||"")}</small>`:`<small class="mu">—</small>`}</div></div>`).join("");
+  const med=rows.map(r=>{if(!r.e&&!r.mid)return "";let ps=/^0 ?V/.test(r.e||"")?null:(r.mid||null);if(!ps){try{ps=insMidePasos(r.q||{nodo:r.st+":"+r.b,p:r.st+":"+r.b,e:r.e||"≈24 V"},r.mod)}catch(e){ps=null}}
+   if(!ps||!ps.length)return "";
+   return `<details class="lbm" open><summary><span class="imt">Medir</span> <b>${E(r.st+":"+r.b)}</b>${r.e?` → <span class="lbv">${E(r.e)}</span>`:""}</summary><ol>${ps.map(y=>"<li>"+y+"</li>").join("")}</ol>${r.sig.length?`<div class="lbsg">${E(r.sig.join(" · "))}</div>`:""}</details>`}).join("");
+  return `<div class="lbx"><div class="lbxh">Bornero <b>${E(st)}</b>${zn(st)?` · ${E(zn(st))}`:""}</div><div class="lbcols"><span>Llega desde</span><span>Borna</span><span>Sale a</span></div>${cro}<div class="lbmed">${med}</div></div>`}).join("");
+ return `<div class="lbwrap"><div class="anal" style="margin-top:12px">🔌 Borneros del sistema · croquis y medidas</div>${h}</div>`}
+window.lupaPinta=function(k,an){if(an)LA=an;const res=document.getElementById("lp_res");if(!res)return;
  const ana=an&&an.R?`<details class="lpaan"><summary>🎯 Análisis del texto${an.R.mods&&an.R.mods.length?` · ${an.R.mods.length} módulo(s)`:""}${an.R.elem&&an.R.elem.length?` · ${an.R.elem.length} elemento(s)`:""}</summary>
   ${an.R.pal&&an.R.pal.length?`<div class="anal">Palabras analizadas</div><div class="anaw">${an.R.pal.map(p=>`<span class="anac${p.w!=p.w0?" anafix":""}">${E(p.w!=p.w0?p.w0+" → "+p.w:p.w)}</span>`).join("")}</div>`:""}
   ${an.R.mods&&an.R.mods.length?`<div class="anal">Módulos PLC implicados</div><div class="anaw">${an.R.mods.map(m=>`<span class="anae">${E(m)}</span>`).join("")}</div>`:""}
@@ -59,7 +104,7 @@ window.lupaPinta=function(k,an){const res=document.getElementById("lp_res");if(!
   ${P.acc.map((p,ix)=>`<div class="lpap"><b>${ix+1}.</b><span>${E(p)}</span></div>`).join("")}
   ${P.inf.length?`<details class="gelem"><summary>Elementos y referencias (${P.inf.length})</summary>${P.inf.map(p=>`<div class="gelit"><span>${E(typeof gInfoTxt=="function"?gInfoTxt(p):p)}</span></div>`).join("")}</details>`:""}
   ${vg?`<button class="sec" style="width:100%;margin-top:8px" onclick="lupaGuia('${c.T}',${c.si})">Abrir en la guía de campo</button>`:""}</div>
-  ${prim}${alt?`<div class="anal" style="margin-top:10px">Otras actuaciones relacionadas</div><div class="anass">${alt}</div>`:""}${an?ana:(document.querySelector("#lp_res .lpaan")||{}).outerHTML||""}<div id="lp_cas">${(document.getElementById("lp_cas")||{}).innerHTML||""}</div>`;
+  ${(()=>{try{return borneros(c,LA&&LA.R,P.acc.concat(P.inf))}catch(e){return ""}})()}${prim}${alt?`<div class="anal" style="margin-top:10px">Otras actuaciones relacionadas</div><div class="anass">${alt}</div>`:""}${an?ana:(document.querySelector("#lp_res .lpaan")||{}).outerHTML||""}<div id="lp_cas">${(document.getElementById("lp_cas")||{}).innerHTML||""}</div>`;
  if(an!==undefined&&an!==null)res.scrollIntoView({block:"start",behavior:"smooth"});else{const e=res.querySelector(".lpaef");if(e)e.scrollIntoView({block:"start",behavior:"smooth"})}};
 async function casos(txt){if(typeof casosParecidos!="function")return;let l=[];try{l=await casosParecidos(txt)}catch(e){}
  const c=document.getElementById("lp_cas");if(!c||txt!==LT)return;c.innerHTML=l.length&&typeof casosHTML=="function"?`<div style="margin-top:10px">${casosHTML(l,"")}</div>`:""}
@@ -87,5 +132,16 @@ const st=document.createElement("style");st.textContent=`
 .lpaef{margin-top:12px;border:2px solid #ef6c00;border-radius:10px;padding:10px 12px;background:color-mix(in srgb,#ef6c00 6%,transparent)}
 .lpaef h3{margin:4px 0 8px;font-size:16px}.lpasy{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mu);margin-top:2px}
 .lpap{display:flex;gap:6px;margin:6px 0;line-height:1.35;text-align:justify}.lpap b{flex:none}
-.lpaan,.lpapr{margin-top:10px}.lpaan>summary,.lpapr>summary{cursor:pointer;font-weight:600;font-size:13px}.lpasg{font-size:12px;margin:3px 0}`;document.head.appendChild(st);
+.lpaan,.lpapr{margin-top:10px}.lpaan>summary,.lpapr>summary{cursor:pointer;font-weight:600;font-size:13px}.lpasg{font-size:12px;margin:3px 0}
+.lbx{margin-top:8px;border:1px solid var(--bd,#d9d2e3);border-radius:10px;padding:8px;background:var(--card)}
+.lbxh{font-size:13px;margin-bottom:6px}.lbcols{display:grid;grid-template-columns:1fr 54px 1fr;font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);text-align:center;margin-bottom:2px}
+.lbr{display:grid;grid-template-columns:1fr 12px 30px 12px 1fr;align-items:center;min-height:42px}
+.lbl,.lbs{font-size:11px;line-height:1.2;min-width:0;overflow-wrap:anywhere}.lbl{text-align:right}.lbl b,.lbs b{display:block;font-weight:600}.lbl small,.lbs small{display:block;color:var(--mu);font-size:10px}
+.lbw{display:block;height:3px;border-radius:2px}
+.lbt{align-self:stretch;display:grid;place-items:center;background:linear-gradient(90deg,#9aa3ad,#d5dbe1 45%,#aab2bb);border-left:1px solid #6d7680;border-right:1px solid #6d7680;border-bottom:1px solid #6d7680;position:relative}
+.lbr0 .lbt{border-top:1px solid #6d7680;border-radius:4px 4px 0 0}.lbt span{font:700 12px/1 ui-monospace,Menlo,monospace;color:#111;background:#fff;border:1px solid #6d7680;border-radius:3px;padding:2px 3px;min-width:14px;text-align:center}
+.lbmed{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.lbm{padding:5px 7px;border-left:3px solid #f0a020;border-radius:0 6px 6px 0;background:color-mix(in srgb,#f0a020 12%,transparent);font-size:12.5px;line-height:1.35}
+.lbm summary{cursor:pointer}.lbm .imt{font-weight:800;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#f0a020}.lbv{font-weight:700}
+.lbm ol{margin:4px 0 0;padding-left:16px}.lbm li::marker{color:#f0a020;font-weight:700}.lbsg{font-size:10.5px;color:var(--mu);margin-top:3px}`;document.head.appendChild(st);
 })();
