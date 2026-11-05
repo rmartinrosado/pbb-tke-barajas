@@ -94,8 +94,21 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
  if(bmode==="reg"){
   h+=Object.keys(groups).sort((a,b)=>Object.keys(ZONA).indexOf(a)-Object.keys(ZONA).indexOf(b)).map(z=>'<div class="grp">'+esc(ZONA[z][0])+' · '+esc(ZONA[z][1])+'</div><div class="chips">'+groups[z].map(s=>'<button class="chip'+(s===bsel?" sel":"")+'" data-bs="'+esc(s)+'">'+esc(s)+' <i>'+Object.keys(IDX[s]).length+'</i></button>').join("")+'</div>').join("")||'<p class="foot">Sin resultados.</p>';
   if(bsel&&IDX[bsel]){const S=IDX[bsel];
-   h+='<div class="tbl"><h3>'+esc(bsel)+' <small>'+esc(ZONA[zonaDe(bsel)][1])+'</small></h3>'+Object.keys(S).sort(nat).map(p=>
-    '<div class="bn"><div class="bnp">'+esc(p)+'</div><div class="bnr">'+grp(S[p]).map(G=>{const r=G[0];
+   /* v343: TODAS las bornas del regletero, de la primera a la última (también las que no tienen datos en el esquema cargado).
+      Última = la mayor de las conocidas o el nº de conductores de la manguera multipolar que llega (p. ej. EC-W1 24x1,5 → 24).
+      Las bornas del sistema buscado (texto de la búsqueda) van en otro color, en el mapa y en la lista. */
+   const ks=Object.keys(S),num=ks.filter(k=>/^\d+$/.test(k)).map(Number);let mx=num.length?Math.max(...num):0;
+   ks.forEach(k=>S[k].forEach(r=>(r.inV+" "+r.outV).replace(/(\d+)\s*[xX×]\s*\d/g,(m,n)=>{n=+n;if(n>mx&&n<=60&&n>=num.length)mx=n})));
+   Object.values(MAN).forEach(M=>{const tt=String(M.t||"");const m=/(\d+)\s*[xX×]\s*\d/.exec(tt);if(!m)return;const toca=Object.values(M.c).some(cc=>cc.some(z=>String(z.a).startsWith(bsel+":")||String(z.b).startsWith(bsel+":")));if(toca&&+m[1]>mx&&+m[1]<=60)mx=+m[1]});
+   const todas=[...new Set([...Array.from({length:mx},(_,i)=>String(i+1)),...ks])].sort(nat);
+   const hit=p=>!!q&&!!S[p]&&S[p].some(r=>(r.inV+" "+r.outV+" "+r.d+" "+r.next+" "+r.prev+" "+r.m+" "+r.b).toLowerCase().includes(q));
+   const nh=todas.filter(hit).length;
+   h+='<div class="tbl"><h3>'+esc(bsel)+' <small>'+esc(ZONA[zonaDe(bsel)][1])+'</small></h3>'+
+    '<div class="bmap" aria-label="Mapa de bornas">'+todas.map(p=>'<a href="#bn-'+esc(p)+'" class="bmc'+(hit(p)?" hit":S[p]?" dat":" nod")+'">'+esc(p)+'</a>').join("")+'</div>'+
+    '<div class="bley"><span class="bmc hit">n</span> del sistema buscado'+(q?' «'+esc(bq.trim())+'» ('+nh+')':' (escribe en la búsqueda)')+' · <span class="bmc dat">n</span> con datos · <span class="bmc nod">n</span> sin datos en el esquema cargado</div>'+
+    todas.map((p,ix)=>!S[p]?(ix>0&&!S[todas[ix-1]]?'<i id="bn-'+esc(p)+'"></i>':(()=>{let j=ix;while(j+1<todas.length&&!S[todas[j+1]])j++;const r=j>ix?p+'–'+todas[j]:p;
+     return '<div class="bn bnno" id="bn-'+esc(p)+'"><div class="bnp">'+esc(r)+'</div><div class="bnr"><div class="bnl"><span class="mu">'+(j>ix?'Bornas '+esc(r)+' ('+(j-ix+1)+')':'Borna '+esc(p))+': sin conexión en los datos cargados (reserva o circuito no pasado a datos: potencia, alumbrado…). Ver folio del plano.</span></div></div></div>'})()):
+    '<div class="bn'+(hit(p)?" bnhit":"")+'" id="bn-'+esc(p)+'"><div class="bnp">'+esc(p)+'</div><div class="bnr">'+grp(S[p]).map(G=>{const r=G[0];
      return '<div class="bnl">'+(r.vt?'<span class="vt '+(/^0/.test(r.vt)?"dead":"live")+'">'+esc(r.vt)+'</span>':'')+
      (G.length>1?'<b>Común a '+G.length+' circuitos</b><div class="w">'+G.map(x=>'<button class="lnk" data-go="'+esc(x.key)+'">'+esc(x.m+" "+x.b+" "+x.d)+'</button>').join(" · ")+'</div>':
       r.key?'<button class="lnk" data-go="'+esc(r.key)+'">'+esc(r.m+" "+r.b)+' · '+esc(r.d)+'</button>':'<b>'+esc(r.d)+'</b>')+
@@ -116,6 +129,15 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
   i.setAttribute("enterkeyhint","search")}
 }
 window.borRender=render;
+(function(){const st=document.createElement("style");st.textContent=`
+.bmap{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px}
+.bmc{display:inline-grid;place-items:center;min-width:26px;height:24px;padding:0 3px;border-radius:4px;font:700 11px ui-monospace,Menlo,monospace;text-decoration:none;color:var(--fg);border:1px solid var(--line);background:var(--panel)}
+.bmc.dat{background:color-mix(in srgb,var(--accent) 12%,var(--panel))}
+.bmc.nod{border-style:dashed;color:var(--muted);background:transparent}
+.bmc.hit{background:#ef6c00;border-color:#ef6c00;color:#fff}
+.bley{font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.9}.bley .bmc{min-width:18px;height:16px;font-size:9px;vertical-align:middle}
+.bn.bnhit{border-left:4px solid #ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent)}.bn.bnhit .bnp{background:#ef6c00;color:#fff}
+.bn.bnno{opacity:.6}.bn.bnno .bnp{border-style:dashed}`;document.head.appendChild(st)})();
 document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;
  if(b.dataset.bm){bmode=b.dataset.bm;render()}
  else if(b.dataset.bs){bsel=bsel===b.dataset.bs?"":b.dataset.bs;render();const t=document.querySelector("#bor .tbl");if(t)t.scrollIntoView({block:"start",behavior:"smooth"})}
