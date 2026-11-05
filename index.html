@@ -4524,7 +4524,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=332;
+const APP_VER=333;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5710,5 +5710,49 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 #app button.cl232 .s286{display:none!important}
 #app button.cl232 img.cl232i{height:34px!important;max-width:92%!important;object-fit:contain}
 #app button.cl232 .cl232t{font-size:15px!important;line-height:1.15!important}`;document.head.appendChild(st)})();
+</script>
+<script>
+/* ===== v333: OT de LUCES (flash, focos, iluminación): el sistema averiado es la señalización; «tren de ruedas», «cabina»,
+   «elevación», «túnel»… indican DÓNDE está la lámpara, no una avería de traslación. Solo se proponen traslación, almena,
+   bandas o portón si el texto describe un fallo de movimiento (no traslada, no gira, límite, almena, variador, freno…).
+   Nueva caja de la guía PAS: «Iluminación · luces flash no lucen» (ESQUEMA GENERAL rev. J y PBB_504: folio 46 luces de
+   flash, folio 56 salida E-A1 → E-K60.1). Caso: PBB 530 · PAS · orden 596300 «No luce flash tren de ruedas no luce». ===== */
+(function(){
+ const S=GUIA.tipos.PAS.s;
+ const FT="Iluminación · luces flash no lucen (bajo cabina C-H1 · tren de ruedas H-H1 izq. y H-H2 dcha.)";
+ let FI=S.findIndex(x=>x.t==FT);
+ if(FI<0){S.push({t:FT,g:[46,56,56,46,46,46,46,46],
+  a:"Los flash avisan del movimiento de la PBB. Mientras no lucen, maniobrar solo con un compañero vigilando el tren de ruedas y la cabina. No se puentea nada: se repara o se sustituye la lámpara (24 VDC, naranja).",
+  p:["Mirar qué flash no luce: C-H1 bajo cabina, H-H1 elevación izquierda o H-H2 elevación derecha (columnas del tren de ruedas). Si no luce NINGUNO → mando común (pasos 2-4). Si falla UNO solo → su ramal y su lámpara (pasos 5-7).",
+   "PLC: E-A1 mód. 3 LED 7 «Luces flash» debe estar ● con la PBB activada. LED apagado → el PLC no da la orden: comprobar que la PBB está activada y sin alarma.",
+   "LED ● → medir 24 V en la bobina E-K60.1 A1 (salida E-A1 borna 5.4 · OUT23, hilo 605 RD). Sin 24 V → salida de E-A1 o hilo 605. Con 24 V y el relé no entra → bobina E-K60.1 (A2 al común 205).",
+   "E-K60.1 activado: contacto 11-14. En 11 debe haber +24 V (hilo 189, E-X68:1) y en 14 sale el hilo 298 a todos los flash. Sin 24 V en 11 → alimentación 189. 24 V en 11 y nada en 14 → contacto del relé E-K60.1.",
+   "Flash del tren de ruedas: el hilo 298 sale por E-X55:3 (H-H1 izq.) y E-X55:23 (H-H2 dcha.) por la manguera EH-W1 (24×1,5) hasta la caja H-X51 (bornas 3 y 23) y de ahí por H-W1 / H-W2 (2×1,5: BN = +24 V, BU = 0 V) a la lámpara.",
+   "Con la orden dada, medir 24 VDC en las bornas de la lámpara que no luce: hay tensión y no luce → lámpara averiada, sustituir. No hay tensión → seguir hacia atrás: H-X51:3/23 → EH-W1 → E-X55:3/23.",
+   "Flash bajo cabina C-H1: E-X59:7 → EP-W1 hilo 7 → P-X51:7 → P-W2 (BN +24 V, BU 0 V). Mismas medidas que en el paso 6.",
+   "Retorno 0 V (común 205 WH, E-X68:2): llega a las lámparas por E-X55 / H-X51:31 y E-X59:8 / P-X51:8. Un retorno abierto o flojo deja sin luz todo ese ramal aunque haya +24 V."],
+  r:"folio 46 (luces de flash) · folio 56 (E-A1 → E-K60.1) · 507: E-K60, folio 79 de su plano"});FI=S.length-1}
+ const nrm=t=>(typeof gNorm=="function"?gNorm(t):String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""));
+ const FLASH=/flash|destell|baliza|rotativ/;
+ const LUZ=/\blu(ce|cen|z|ces)\b|\bfoco|ilumin|alumbr|bombill|lampar|fundid/;
+ const MOV=/trasla|avanz|retroce|no gira|gira mal|giro|se mueve|no mueve|movimiento|limite|almena|variador|freno|banda|borde|inductiv|contaje|no anda|no va|bloque|para sola|se para/;
+ const MOVSEC=/traslaci|ruedas|almena|bordes de ruedas|portón|sin tensión/i;
+ const o=anaOT;anaOT=function(i){const r=o(i);if(!r||!i||r._luz)return r;r._luz=1;if(r.tipo&&r.tipo!="PAS")return r;
+  const t=nrm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
+  const fl=FLASH.test(t),lz=LUZ.test(t);if(!fl&&!lz)return r;
+  const mov=MOV.test(t);const keep=(r.guia||[]).filter(g=>mov||!MOVSEC.test((S[g.si]||{}).t||g.t||""));
+  if(fl){
+   r.guia=[{si:FI,t:FT,sc:99}].concat(keep.filter(g=>g.si!=FI&&mov));
+   let sig=null;try{(RUTAS["E-A1"].s||[]).forEach(x=>{if(/flash/i.test(x.t))sig=x})}catch(e){}
+   if(sig){const ot=(r.rel||[]).filter(x=>mov&&x.S!==sig);r.rel=[{mod:"E-A1",S:sig,sc:10,tg:new Set(["E-K60.1"])}].concat(ot);r.mods=[...new Set(r.rel.map(x=>x.mod))]}
+   r.elem=["E-K60.1","H-H1","H-H2","C-H1","H-X51","E-X55"].concat(mov?(r.elem||[]):[]).filter((x,k,a)=>a.indexOf(x)==k);
+  }else{
+   const il=S.findIndex(x=>/^Iluminación, enchufes/.test(x.t));
+   r.guia=(il>=0?[{si:il,t:S[il].t,sc:99}]:[]).concat(keep.filter(g=>g.si!=il));
+   if(!mov&&r.rel)r.rel=r.rel.filter(x=>/ilumin|luz|luces|foco|flash|alumbr/i.test(x.S.t));if(r.rel)r.mods=[...new Set(r.rel.map(x=>x.mod))];
+  }
+  return r};
+ try{ANA_C={k:"",r:null}}catch(e){}
+})();
 </script>
 </body></html>
