@@ -9,9 +9,12 @@ let LC=[],LT="";
 const E=s=>typeof esc=="function"?esc(s):String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const IC=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>`;
+/* v338: papelera junto a la lupa: borra el texto de la caja y los resultados */
+const ICB=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>`;
+window.lupaBorra=function(){const i=document.getElementById("lp_t"),r=document.getElementById("lp_res");if(i)i.value="";if(r)r.innerHTML="";LC=[];LT="";if(i)i.focus()};
 window.lupaAbre=function(){LC=[];LT="";
  $("#sheetc").innerHTML=`<div class="lpah"><span class="lpai">${IC}</span><div><h3 style="margin:0">BUSCAR ACTUACIÓN MÁS EFICAZ</h3><div class="mu" style="font-size:12px">Cualquier sistema: pasarela, 400 Hz, aire acondicionado, AAP…</div></div></div>
- <form class="lpaf" onsubmit="event.preventDefault();lupaBusca()"><input id="lp_t" type="search" enterkeyhint="search" autocomplete="off" placeholder="Describe la avería o lo que quieres buscar"><button class="pri" type="submit" aria-label="Buscar">${IC}</button></form>
+ <form class="lpaf" onsubmit="event.preventDefault();lupaBusca()"><input id="lp_t" type="search" enterkeyhint="search" autocomplete="off" placeholder="Describe la avería o lo que quieres buscar"><button class="pri" type="submit" aria-label="Buscar">${IC}</button><button class="sec lpabo" type="button" aria-label="Borrar el texto" title="Borrar" onclick="lupaBorra()">${ICB}</button></form>
  <div id="lp_res"></div>
  <button class="sec" style="width:100%;margin-top:10px" onclick="closeSheet()">Cerrar</button>`;
  const sh=$("#sheet");sh.classList.add("lpatop");sh.style.display="flex";setTimeout(()=>{const i=document.getElementById("lp_t");if(i)i.focus()},60)};
@@ -80,7 +83,7 @@ const st=document.createElement("style");st.textContent=`
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]) #app#app .sosk.sos2{background:repeating-linear-gradient(135deg,#6b2626 0 8px,#7c2f2f 8px 16px)!important}
  :root:not([data-theme=light]) #app#app .sos2 .sos2l svg{background:#2a1515;color:#ff8a80}}
 .lpah{display:flex;gap:10px;align-items:center;margin-bottom:8px}.lpai{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:50%;background:#c62828;color:#fff}.lpai svg{width:24px;height:24px}
-.lpaf{display:flex;gap:8px;align-items:stretch}.lpaf input{flex:1;min-width:0;margin:0!important;font-size:16px}.lpaf button{width:52px!important;flex:none;margin:0!important;padding:0!important;display:grid;place-items:center}.lpaf button svg{width:22px;height:22px}
+.lpaf{display:flex;gap:8px;align-items:stretch}.lpaf input{flex:1;min-width:0;margin:0!important;font-size:16px}.lpaf button{width:52px!important;flex:none;margin:0!important;padding:0!important;display:grid;place-items:center}.lpaf button svg{width:22px;height:22px}#sheet#sheet .lpaf .lpabo{color:#c62828!important;border:1px solid #c6282866!important}
 .lpaef{margin-top:12px;border:2px solid #ef6c00;border-radius:10px;padding:10px 12px;background:color-mix(in srgb,#ef6c00 6%,transparent)}
 .lpaef h3{margin:4px 0 8px;font-size:16px}.lpasy{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mu);margin-top:2px}
 .lpap{display:flex;gap:6px;margin:6px 0;line-height:1.35;text-align:justify}.lpap b{flex:none}
