@@ -258,8 +258,11 @@ window.mantImpMes=v=>{const[y,m]=v.split("-").map(Number);mImpMes=[y,m]};
 window.mImpTipoSet=v=>{mImpTipo=v};
 window.mEvtSet=v=>{mEvt=String(v||"").replace(/\D/g,"")};
 window.mTxtSet=v=>{mTxt=v;mPrev()};
-function mPrev(){const e=$("#mi_prev");if(!e)return;const{filas,mal}=canonico(mTxt);const dias=new Set(filas.map(x=>x.fecha)).size;
- e.innerHTML=filas.length?`${filas.length} mantenimientos en ${dias} día${dias>1?"s":""}${mal.length?` · <span style="color:#d32f2f">líneas sin fecha válida: ${mal.join(", ")}</span>`:""}`:(mal.length?`<span style="color:#d32f2f">Formato: AAAA-MM-DD: T30 M 20:30-23:30 (E81); 386 S</span>`:"")}
+/* v340: días sin ninguna posición entre la primera y la última fecha leídas (el lector pudo no leer su rótulo y pasar sus filas a otro día) */
+function huecos(filas){const F=[...new Set(filas.map(x=>x.fecha))].sort();if(F.length<2)return [];const o=[];const[a,b,c]=F[0].split("-").map(Number);
+ for(let d=new Date(a,b-1,c);iso(d)<F[F.length-1];d.setDate(d.getDate()+1)){const k=iso(d);if(!F.includes(k))o.push(k)}return o}
+function mPrev(){const e=$("#mi_prev");if(!e)return;const{filas,mal}=canonico(mTxt);const dias=new Set(filas.map(x=>x.fecha)).size;const hu=huecos(filas);
+ e.innerHTML=filas.length?`${filas.length} mantenimientos en ${dias} día${dias>1?"s":""}${mal.length?` · <span style="color:#d32f2f">líneas sin fecha válida: ${mal.join(", ")}</span>`:""}${hu.length?`<div style="color:#d32f2f;font-weight:600;margin-top:4px">⚠️ Sin posiciones: ${hu.map(fLarga).join(", ")}. Comprueba en la foto que esas filas no se hayan pasado a otro día.</div>`:""}`:(mal.length?`<span style="color:#d32f2f">Formato: AAAA-MM-DD: T30 M 20:30-23:30 (E81); 386 S</span>`:"")}
 window.mantImpFile=async file=>{if(!file||mOcup)return;mOcup=true;const st=$("#mi_est");const set=t=>{if(st)st.textContent=t};
  try{let txt="";const n=file.name.toLowerCase();
   let geo=null;
@@ -277,6 +280,15 @@ window.mantImpFile=async file=>{if(!file||mOcup)return;mOcup=true;const st=$("#m
  catch(e){set("Error al leer el archivo: "+(e.message||e))}finally{mOcup=false}};
 window.mantImpGuarda=async()=>{const{filas,mal}=canonico(mTxt);if(mEvt)filas.forEach(x=>x.evento=mEvt);if(!filas.length){msg("No hay mantenimientos que guardar");return}
  if(mal.length&&!confirm(`Hay ${mal.length} línea(s) sin fecha válida que se ignorarán. ¿Guardar el resto?`))return;
+ const hu=huecos(filas);if(hu.length&&!confirm(`No hay ninguna posición el ${hu.map(fLarga).join(", ")}. Puede que el lector no haya leído esos días y sus filas estén en otro día. ¿Guardar igualmente?`))return;
+ /* v340: en los días del programa, lo importado antes y aún pendiente que no esté en este programa se sustituye (no se tocan los hechos ni las altas manuales) */
+ const fs=[...new Set(filas.map(x=>x.fecha))],nuevo=new Set(filas.map(x=>x.fecha+"|"+x.pos+"|"+x.tipo));
+ const viejos=MANT.filter(x=>fs.includes(x.fecha)&&x.origen=="importado"&&x.estado=="pendiente"&&!nuevo.has(x.fecha+"|"+x.pos+"|"+x.tipo));
+ if(viejos.length&&confirm(`En esos días hay ${viejos.length} posición(es) importadas antes que no están en este programa (${viejos.slice(0,6).map(x=>x.pos).join(", ")}${viejos.length>6?"…":""}). ¿Sustituirlas por el programa nuevo?`)){
+  const r=await sb.from("mantenimientos").delete().in("id",viejos.map(x=>x.id));if(r.error){msg("No se pudieron quitar las anteriores: "+(r.error.message||"sin permiso"));return}}
+ /* las que ya estaban (misma fecha, posición y tipo) se actualizan con la hora y la referencia nuevas */
+ const act=filas.filter(f=>MANT.some(x=>x.fecha==f.fecha&&x.pos==f.pos&&x.tipo==f.tipo&&x.estado=="pendiente"));
+ for(const f of act){const x=MANT.find(z=>z.fecha==f.fecha&&z.pos==f.pos&&z.tipo==f.tipo);await sb.from("mantenimientos").update({hora_ini:f.hora_ini,hora_fin:f.hora_fin,ref:f.ref}).eq("id",x.id)}
  await guarda(filas);closeSheet();mTxt="";const f=filas.map(x=>x.fecha).sort()[0];const[y,m]=f.split("-").map(Number);mMes=[y,m-1];mSel=f;vMant()};
 async function guarda(filas){const r=await sb.from("mantenimientos").upsert(filas,{onConflict:"fecha,pos,tipo",ignoreDuplicates:true}).select();
  if(r.error){msg("No se pudo guardar: "+(r.error.message||"sin permiso"));return false}await mantCarga(true);msg(`${filas.length} mantenimiento${filas.length>1?"s":""} en el calendario`);return true}
