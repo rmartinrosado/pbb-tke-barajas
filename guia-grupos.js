@@ -10,6 +10,8 @@ const FAM=[
  ["Seguridades y rearme",/^(PBB sin tensión|Pupitre encendido|Antiatrapamiento|Zapata|Bumpers|Radar de ala)/i],
  ["Cabina, capota y portón",/^(Cabina \/|Fallo de autonivelación|Capota|Portón|Sirena de cabina)/i],
  ["Equipos A/A, 400 Hz y carro",/^(Bloqueada por equipos|Bloqueo carro|PAS bloqueada por carro)/i],
+ ["Iluminación y señalización",/^(Iluminación ·|Señalización ·)/i], /* v334 */
+ ["Climatización y alimentación auxiliar",/^(Climatización ·|Alimentación auxiliar ·)/i], /* v334 */
  ["Auxiliares, cámaras y medidas",/^(Iluminación|Cámaras|Sistemas auxiliares|Medidas analógicas)/i],
  ["PBB 507 · plano propio",/^PBB 507 ·/i],
 ];

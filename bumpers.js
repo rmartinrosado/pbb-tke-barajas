@@ -92,8 +92,10 @@ if(typeof segHTML=="function"){const o=segHTML;window.segHTML=segHTML=function(i
 if(typeof anaHTML=="function"){const o=anaHTML;window.anaHTML=anaHTML=function(i,R,d){let h=o.apply(this,arguments);try{const S=segOT(i);
   if(S&&S.sen&&S.sen.some(grupoDe))h=h.replace(/puente provisional en el PLC/,"puente en el bornero del pupitre P-X92.1, bumper a bumper")}catch(e){}return h}}
 /* ---------- 3. Guía de campo: caso propio con el croquis ---------- */
-try{const L=GUIA.tipos.PAS.s;const k=L.findIndex(x=>/^Zapata \/ bordes \/ bumpers/.test(x.t));
- L.splice(k+1,0,{t:"Bumpers brazo y cabina · 4 bumpers",g:[92,92,92,92,92,92,70],p:[
+/* v334: se AÑADE al final (antes se insertaba en medio y desplazaba los índices que otros módulos ya habían guardado:
+   hidráulica, PBB 507, SAI, radar de ala, carro de aire). En pantalla sigue agrupada con «Zapata / bordes / bumpers». */
+try{const L=GUIA.tipos.PAS.s;if(!L.some(x=>x.t=="Bumpers brazo y cabina · 4 bumpers"))
+ L.push({t:"Bumpers brazo y cabina · 4 bumpers",g:[92,92,92,92,92,92,70],p:[
   "Son 2 grupos de 2 bumpers en serie: BRAZO AUTONIVELADOR C-B27 + C-B28 → E-A10 LED 1 (1.1 / 1.2) · LATERAL IZQUIERDO DE CABINA C-B29 + C-B30 → E-A10 LED 2 (2.1 / 2.2). LED encendido = bumpers libres.",
   "Brazo en el bornero del pupitre P-X92.1: 13 (UT, hilo 669) → CP-W61 → C-B28 → CP-W61 → 28 (hilo 672) → CP-W60 → C-B27 → CP-W60 → 12 (IN, hilo 668). 507: borna intermedia P-X51:25, hilos 620 / 623 / 619.",
   "Cabina en el bornero del pupitre P-X92.1: 15 (UT, hilo 671) → CP-W63 → C-B29 → CP-W63 → 29 (hilo 673) → CP-W62 → C-B30 → CP-W62 → 14 (IN, hilo 670). 507: borna intermedia P-X51:26, hilos 622 / 624 / 621.",

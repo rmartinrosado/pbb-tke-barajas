@@ -4524,7 +4524,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=333;
+const APP_VER=334;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4842,7 +4842,7 @@ iframe{border-radius:4px}
  new MutationObserver(()=>{try{const h=document.querySelector("#sheetc>h3");if(accO&&h&&/^Técnico · Turno /.test(h.textContent))h.textContent=h.textContent.replace(/^Técnico/,"Operador")}catch(e){}}).observe(document.getElementById("sheetc")||document.body,{childList:true,subtree:true});
 })();
 </script>
-<script src="guia-grupos.js?v=324"></script>
+<script src="guia-grupos.js?v=334"></script>
 <script src="hz-analisis.js?v=2"></script>
 <script src="pdf-hz.js?v=1"></script>
 <script>
@@ -5701,7 +5701,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  window._croqLista=lista;
 })();
 </script>
-<script src="bumpers.js?v=324"></script>
+<script src="bumpers.js?v=334"></script>
 <script src="limites.js?v=329"></script>
 <script src="texto.js?v=314"></script>
 <script>
@@ -5741,8 +5741,9 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   const t=nrm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
   const fl=FLASH.test(t),lz=LUZ.test(t);if(!fl&&!lz)return r;
   const mov=MOV.test(t);const keep=(r.guia||[]).filter(g=>mov||!MOVSEC.test((S[g.si]||{}).t||g.t||""));
+  FI=S.findIndex(x=>x.t==FT); /* v334: índice por título (otros módulos añaden cajas después) */
   if(fl){
-   r.guia=[{si:FI,t:FT,sc:99}].concat(keep.filter(g=>g.si!=FI&&mov));
+   r.guia=[{si:FI,t:FT,sc:250}].concat(keep.filter(g=>g.si!=FI&&mov));
    let sig=null;try{(RUTAS["E-A1"].s||[]).forEach(x=>{if(/flash/i.test(x.t))sig=x})}catch(e){}
    if(sig){const ot=(r.rel||[]).filter(x=>mov&&x.S!==sig);r.rel=[{mod:"E-A1",S:sig,sc:10,tg:new Set(["E-K60.1"])}].concat(ot);r.mods=[...new Set(r.rel.map(x=>x.mod))]}
    r.elem=["E-K60.1","H-H1","H-H2","C-H1","H-X51","E-X55"].concat(mov?(r.elem||[]):[]).filter((x,k,a)=>a.indexOf(x)==k);
@@ -5755,4 +5756,5 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  try{ANA_C={k:"",r:null}}catch(e){}
 })();
 </script>
+<script src="sistemas-guia.js?v=4"></script>
 </body></html>
