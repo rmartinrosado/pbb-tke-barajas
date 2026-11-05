@@ -119,7 +119,8 @@ window.lupaPinta=function(k,an){if(an)LA=an;const res=document.getElementById("l
  const alt=LC.map((x,ix)=>ix==k?"":`<button class="anag" onclick="lupaPinta(${ix},null)">📋 ${E(GUIA.tipos[x.T].n||x.T)} · ${E(x.s.t)}</button>`).join("");
  const vg=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
  res.innerHTML=`<div class="lpaef"><span class="gefb">⭐ Actuación más eficaz</span><div class="lpasy">${E(G.n||c.T)}</div><h3>${E(c.s.t)}</h3>
-  ${P.acc.map((p,ix)=>`<div class="lpap"><b>${ix+1}.</b><span>${E(p)}</span></div>`).join("")}
+  ${P.acc.map((p,ix)=>{let cx="";try{const C=window.croquisPaso&&croquisPaso(p,"");if(C)cx=`<details class="elusd cxd"${C.n?" open":""}><summary>🔌 Croquis entre borneros${C.n?` · ${C.n} conexión${C.n>1?"es":""} borna a borna`:" · recorrido"}</summary><div class="cxin">${C.html}</div></details>`}catch(e){}
+   return `<div class="lpap"><b>${ix+1}.</b><span>${E(p)}${cx}</span></div>`}).join("")}
   ${P.inf.length?`<details class="gelem"><summary>Elementos y referencias (${P.inf.length})</summary>${P.inf.map(p=>`<div class="gelit"><span>${E(typeof gInfoTxt=="function"?gInfoTxt(p):p)}</span></div>`).join("")}</details>`:""}
   ${vg?`<button class="sec" style="width:100%;margin-top:8px" onclick="lupaGuia('${c.T}',${c.si})">Abrir en la guía de campo</button>`:""}</div>
   ${(()=>{try{return borneros(c,LA&&LA.R,P.acc.concat(P.inf))}catch(e){return ""}})()}${prim}${alt?`<div class="anal" style="margin-top:10px">Otras actuaciones relacionadas</div><div class="anass">${alt}</div>`:""}${an?ana:(document.querySelector("#lp_res .lpaan")||{}).outerHTML||""}<div id="lp_cas">${(document.getElementById("lp_cas")||{}).innerHTML||""}</div>`;
