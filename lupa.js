@@ -28,7 +28,14 @@ window.lupaBusca=function(){const inp=document.getElementById("lp_t"),res=docume
  Object.keys((typeof GUIA!="undefined"&&GUIA.tipos)||{}).forEach(T=>{const G=GUIA.tipos[T];if(!G||!G.s||!G.s.length)return;
   const ot={id:"lupa_"+T+"_"+st,pos:"",tipo:T,equipos:[T],estado:"abierta",desc:txt,def:"",com:"",obs:"",orden:"LUPA",fecha:""};
   let A=null;try{A=anaTerminos(ot)}catch(e){return}const bo=pista(T,G,t);
-  const raw=G.s.map((s,si)=>{let r=0;try{r=anaPunt(s.t,A)*2+Math.min(anaPunt((s.p||[]).join(" "),A),6)*.5}catch(e){}return{si,r}});
+  /* v341: una caja solo cuenta si coincide en alguna palabra CLAVE (no solo en contexto: cabina, derecha, activado…);
+     y si el texto nombra una zona (cabina, pupitre, túnel, armario) la caja que no la cita pierde peso */
+  const AK={term:new Map([...A.term].filter(([k,e])=>e.w>=1.5)),pal:A.pal,tags:A.tags};
+  const ctx=["cabina","pupitr","tunel","armari"].filter(z=>new RegExp("\\b"+z).test(t));
+  const raw=G.s.map((s,si)=>{let r=0;try{const tx=norm(s.t+" "+(s.p||[]).join(" "));
+   const k=anaPunt(s.t,AK)*2+Math.min(anaPunt((s.p||[]).join(" "),AK),6)*.5;
+   if(k>=1.5||(!AK.term.size&&A.tags.size)){r=anaPunt(s.t,A)*2+Math.min(anaPunt((s.p||[]).join(" "),A),6)*.5;
+    ctx.forEach(z=>{if(!new RegExp("\\b"+z).test(norm(s.t)))r*=new RegExp("\\b"+z).test(tx)?.8:.5})}}catch(e){}return{si,r}});
   const mx=Math.max(0,...raw.map(x=>x.r));const nom=bo>=3;S.push({T,G,ot,raw,mx,nom,sc:mx>=1.5?mx+bo:(nom?bo:0)})});
  /* el sistema nombrado en el texto (p. ej. «aire acondicionado», «400 Hz») va por delante */
  S.sort((a,b)=>(b.nom-a.nom)||(b.sc-a.sc));let C=[],an=null;
@@ -36,7 +43,9 @@ window.lupaBusca=function(){const inp=document.getElementById("lp_t"),res=docume
  S.filter((x,ix)=>x.sc>0&&(ix==0||x.sc>=S[0].sc*.7)).slice(0,2).forEach((x,ix)=>{const lim=Math.max(1.5,x.mx*.4);const ok=new Map(x.raw.filter(y=>y.r>=lim).map(y=>[y.si,y.r]));
   let R=null;try{R=anaOT(x.ot)}catch(e){}if(ix==0)an=R?{R,ot:x.ot}:null;
   /* 2º dentro del sistema: el orden del análisis de OT (actuaciones memorizadas primero) entre las cajas relacionadas con el texto */
-  const ord=[...((R&&R.guia)||[]).map(g=>g.si).filter(si=>ok.has(si)),...[...ok.entries()].sort((a,b)=>b[1]-a[1]).map(e=>e[0])];
+  /* v341: dentro del sistema manda la relevancia directa del texto; el orden del análisis de OT (memorizadas) suma un 20 % / 10 % */
+  const ga=((R&&R.guia)||[]).map(g=>g.si).filter(si=>ok.has(si));
+  const ord=[...ok.entries()].map(([si,r])=>[si,r*(ga[0]==si?1.2:ga[1]==si?1.1:1)]).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
   [...new Set(ord)].slice(0,ix==0?4:2).forEach(si=>C.push({T:x.T,si,s:x.G.s[si],ot:x.ot}))});
  LC=C;
  lupaPinta(0,an);casos(txt)};
@@ -48,12 +57,15 @@ const pasos=s=>{const inf=[],acc=[];(s.p||[]).forEach(p=>{const i=typeof gEsInfo
 let LA=null;
 const REFV={"+E-X68:1":"≈24 V","+E-X68:2":"0 V","+P-X92:1":"≈24 V","+P-X92:2":"0 V","+H-X51:1":"≈24 V","+H-X51:30":"0 V","+IT-X51:1":"≈24 V","+IT-X51:2":"0 V","+ET-X51:1":"≈24 V","+ET-X51:2":"0 V","+C-X51:1":"≈24 V","+C-X51:2":"0 V","+C4-X64:1":"≈24 V","+C4-X64:2":"0 V","+IT-X50:1":"≈24 V","+IT-X50:2":"0 V","+CO3-X51:1":"≈24 V"};
 const ZN={E:"Armario eléctrico E",P:"Armario del pupitre",CP:"Panel del pupitre",C:"Cabina",C4:"Suelo de cabina",IT:"Túnel interior A",MT:"Túnel medio B",ET:"Túnel exterior C",H:"Columna / grupo de elevación",CO:"Columna / rotonda",CO3:"Columna / rotonda",R:"Rotonda",T:"Tren de rodaje",CBTH:"Armario CBTH (alimentación BT / SAI)",SS:"Escalera de servicio"};
-const zn=st=>{const m=String(st).match(/^\+?([A-Z]+\d*)/);if(!m)return "";return ZN[m[1]]||ZN[m[1].replace(/\d+$/,"")]||""};
+const zn=st=>{if(/CLEMA/.test(st))return "Clema intermedia (ver folio)";if(/^[EP]-A\d/.test(st))return st[0]=="E"?"Módulo PLC · armario eléctrico E":"Módulo PLC · armario del pupitre";if(/-[A-Z]*[SB]\d/.test(st)&&!/-X/.test(st))return ZN[(st.match(/^\+?([A-Z]+)/)||[])[1]]||"campo";const m=String(st).match(/^\+?([A-Z]+\d*)/);if(!m)return "";return ZN[m[1]]||ZN[m[1].replace(/\d+$/,"")]||""};
 const WC={RD:"#d32f2f",BU:"#1e5bd8",BK:"#222",BN:"#8d5524",GY:"#8a8a8a",WH:"#cfcfcf",OG:"#ef6c00",VT:"#7b1fa2",YE:"#f2c200",GN:"#2e9e44",GNYE:"repeating-linear-gradient(90deg,#2e9e44 0 6px,#f2c200 6px 12px)",PK:"#e91e63"};
 const wcol=t=>{const m=String(t||"").match(/\b(GNYE|RD|BU|BK|BN|GY|WH|OG|VT|YE|GN|PK)\b/);return m?WC[m[1]]:"#9aa0a6"};
 const RX=/\+?([A-Z]+\d*(?:\.\d+)?-X\d+(?:\.\d+)?)((?:\s*(?:·\s*)?:\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)*(?:\s*\([^)]*\))?)+)/g;
 /* bornas de un texto: [{st,b,lab}] («+E-X62:1 (BN, +24 V) · :3 (BK, señal)», «E-X62:1-2», «+E-X55:18») */
 function bornas(txt){const o=[];let m;RX.lastIndex=0;txt=String(txt||"");
+ /* v341: clemas intermedias (-CLEMA:1) y bornas de elementos o módulos («+IT-S3(CABDE) borna 11», «P-A6 borna 3.1») */
+ let q;const R2=/(-CLEMA\d*):(\d+)/g;while((q=R2.exec(txt)))o.push({st:q[1],b:q[2],lab:""});
+ const R3=/\+?([A-Z]+\d*-[A-Z]+\d+(?:\.\d+)?(?:\([A-Z]+\))?) borna ([A-Z0-9.]+)/g;while((q=R3.exec(txt)))o.push({st:(/^[EP]-A\d/.test(q[1])?"":"+")+q[1],b:q[2],lab:"",el:1});
  while((m=RX.exec(txt))){const st="+"+m[1].replace(/^\+/,"");const re=/:(\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)*)(?:\s*\(([^)]*)\))?/g;let n;
   while((n=re.exec(m[2]))){n[1].split("-").forEach(b=>o.push({st,b,lab:n[2]||""}))}}
  return o}
@@ -61,11 +73,17 @@ const corto=s=>{s=String(s||"").replace(/\s*\(.*$/,"").trim();return s.length>34
 const eDe=(lab,e)=>/\+24|24 ?V/.test(lab)?"≈24 V":/0 ?V/.test(lab)?"0 V":/señal|4-20/i.test(lab)?"4-20 mA (señal analógica, variable)":e;
 function borneros(c,R,P){const M=new Map(),ord=[];
  const pon=(st,b,o)=>{const k=st+":"+b;if(!M.has(k)){M.set(k,Object.assign({st,b,sig:[]},o));if(!ord.includes(st))ord.push(st)}else{const r=M.get(k);if(o.sig&&o.sig.length)o.sig.forEach(x=>{if(!r.sig.includes(x))r.sig.push(x)});["ll","sa","q","mid"].forEach(z=>{if(!r[z]&&o[z])r[z]=o[z]})}};
- if(c.T=="PAS"&&R&&R.rel)R.rel.slice(0,3).forEach(x=>{const L=(x.S&&x.S.p)||[];const sg=x.mod+" "+(x.S.led||x.S.id||"")+" · "+x.S.t;
+ /* v341: solo las señales coherentes con la principal (mismo módulo o casi la misma puntuación) y con la zona nombrada (cabina, pupitre…) */
+ const ctx=["cabina","pupitr","tunel","armari"].filter(z=>new RegExp("\\b"+z).test(norm(LT)));
+ const r0=R&&R.rel&&R.rel[0];
+ const qn=norm(LT),dcha=/\b(derech|dcha|drcha|dch)/.test(qn),izq=/\b(izquierd|izq|izda|izqda)/.test(qn);
+ const lado=x=>{const tx=norm(x.S.t);return !(dcha&&!izq&&/izquierd|\bizq/.test(tx))&&!(izq&&!dcha&&/derech|\bdcha/.test(tx))};
+ const relOk=r0?R.rel.slice(0,4).filter(lado).slice(0,3).filter((x,ix)=>(ix==0||x.mod==r0.mod||x.sc>=r0.sc*.85)&&ctx.every(z=>new RegExp("\\b"+z).test(norm(x.S.t+" "+x.mod+" "+((x.S.p||[]).map(q=>q.p).join(" "))))||ix==0)):[];
+ if(c.T=="PAS")relOk.forEach(x=>{const L=(x.S&&x.S.p)||[];const sg=x.mod+" "+(x.S.led||x.S.id||"")+" · "+x.S.t;
   L.forEach((pt,i)=>{const bs=bornas(pt.nodo||String(pt.p||"").split(" · ")[0]);if(!bs.length)return;
    const cabIn=(pt.cab||[]).map(z=>z.txt).join(" + ")||((String(pt.p||"").match(/(manguera|cable|hilo)[^·]*/i)||[""])[0]);
    const nx=L[i+1],cabOut=nx?(nx.cab||[]).map(z=>z.txt).join(" + "):"";
-   bs.forEach(bb=>{const nodo=bb.st+":"+bb.b,e=bs.length>1?eDe(bb.lab,""):pt.e;
+   bs.forEach(bb=>{const nodo=bs.length==1&&(bb.el||/CLEMA/.test(bb.st))?(pt.nodo||bb.st+":"+bb.b):bb.st+":"+bb.b,e=bs.length>1?eDe(bb.lab,""):pt.e;
     pon(bb.st,bb.b,{sig:[sg],lab:bb.lab,e,x:pt.x,mod:x.mod,
      ll:i>0?{de:corto(L[i-1].nodo||L[i-1].p),c:cabIn}:(cabIn?{de:"",c:cabIn}:null),
      sa:nx?{a:corto(nx.nodo||nx.p),c:cabOut}:null,
@@ -85,7 +103,7 @@ function borneros(c,R,P){const M=new Map(),ord=[];
   const med=rows.map(r=>{if(!r.e&&!r.mid)return "";let ps=/^0 ?V/.test(r.e||"")?null:(r.mid||null);if(!ps){try{ps=insMidePasos(r.q||{nodo:r.st+":"+r.b,p:r.st+":"+r.b,e:r.e||"≈24 V"},r.mod)}catch(e){ps=null}}
    if(!ps||!ps.length)return "";
    return `<details class="lbm" open><summary><span class="imt">Medir</span> <b>${E(r.st+":"+r.b)}</b>${r.e?` → <span class="lbv">${E(r.e)}</span>`:""}</summary><ol>${ps.map(y=>"<li>"+y+"</li>").join("")}</ol>${r.sig.length?`<div class="lbsg">${E(r.sig.join(" · "))}</div>`:""}</details>`}).join("");
-  return `<div class="lbx"><div class="lbxh">Bornero <b>${E(st)}</b>${zn(st)?` · ${E(zn(st))}`:""}</div><div class="lbcols"><span>Llega desde</span><span>Borna</span><span>Sale a</span></div>${cro}<div class="lbmed">${med}</div></div>`}).join("");
+  return `<div class="lbx"><div class="lbxh">${/-X|CLEMA/.test(st)?"Bornero":/-A\d/.test(st)?"Módulo":"Elemento"} <b>${E(st)}</b>${zn(st)?` · ${E(zn(st))}`:""}</div><div class="lbcols"><span>Llega desde</span><span>Borna</span><span>Sale a</span></div>${cro}<div class="lbmed">${med}</div></div>`}).join("");
  return `<div class="lbwrap"><div class="anal" style="margin-top:12px">🔌 Borneros del sistema · croquis y medidas</div>${h}</div>`}
 window.lupaPinta=function(k,an){if(an)LA=an;const res=document.getElementById("lp_res");if(!res)return;
  const ana=an&&an.R?`<details class="lpaan"><summary>🎯 Análisis del texto${an.R.mods&&an.R.mods.length?` · ${an.R.mods.length} módulo(s)`:""}${an.R.elem&&an.R.elem.length?` · ${an.R.elem.length} elemento(s)`:""}</summary>
