@@ -4,12 +4,13 @@
  Antes se navegaba a simulador.html y al volver la PWA se recargaba entera: el Panel de control se redibujaba varias veces
  (restauración de sesión, carga de datos, fuentes, pilotos) y los textos temblaban. Ahora al volver solo se oculta la capa:
  la PWA no se recarga y el Análisis conserva su estado (pestaña, regletero, contactos abiertos) hasta cerrar la PWA. */
+ v330: Potencia rehecha: sin escalera de sangría («↳ desde» cuando cambia de rama), resumen sin repetidos y agrupado por causa, escenarios combinables Maniobra + Avería marcados, bobinas (24 V del PLC, seguridades, contacto en serie) y nuevos circuitos: servicios 230 V, capota, portón, suelo, cabina, brazo, lunetas, válvulas subir/bajar y retorno autónomo.
 (function(){
  let capa=null;
  function abre(){
   if(!capa){capa=document.createElement("div");capa.id="simCapa";
    capa.style.cssText="position:fixed;inset:0;z-index:60;background:var(--bg,#11161b);display:none";
-   const f=document.createElement("iframe");f.src="simulador.html?v=325&en=pwa"+(typeof window.es507Act=="function"&&window.es507Act()?"&pbb=507":"");f.title="Análisis";
+   const f=document.createElement("iframe");f.src="simulador.html?v=330&en=pwa"+(typeof window.es507Act=="function"&&window.es507Act()?"&pbb=507":"");f.title="Análisis";
    f.style.cssText="border:0;width:100%;height:100%;display:block;background:transparent";capa.appendChild(f);document.body.appendChild(capa)}
   capa.style.display="block";document.documentElement.style.overflow="hidden";
   try{history.pushState({sim:1},"")}catch(e){}

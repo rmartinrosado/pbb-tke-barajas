@@ -84,7 +84,14 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 .tabs button small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
 .tabs button.sel{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
 .presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.tree .row{padding-left:calc(min(var(--lv,0),5) * 6px)}
+.tree .row{padding-left:0}
+.dz{display:block;font:600 11px var(--f-mono);color:var(--accent);margin-bottom:1px}
+.esc{margin-top:10px}
+.esc>span{display:block;font:700 12px var(--f-disp);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.esc .chips{margin-top:0;gap:5px}
+.esc .chip{font:600 13px var(--f-body);padding:5px 9px}
+.sw.idle{border-color:var(--line);background:var(--bg);color:var(--muted)}
+.ref.sum{color:var(--fg)}
 .tree .what b{font-family:var(--f-body);font-size:14.5px}
 .v small{display:block;font-size:10px;font-weight:400}
 .fl{display:inline-flex;align-items:center;gap:3px;font:inherit;color:var(--accent);background:none;border:0;padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
@@ -261,72 +268,114 @@ document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b
  else if(b.dataset.vzm){VZ=Math.min(5,Math.max(1,VZ*(+b.dataset.vzm)));vDraw()}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){const o=$("#visor");if(o)o.remove()}});
 
-/* ===== Fase 2: potencia desde el CBTH (esquema T87911031210ES rev. J, folios 9, 13, 14, 17, 18, 29, 31, 34, 36-40, 64) =====
- Cada nodo: p = padre, t = elemento, d = qué es / bornas, f = folio, u = tensión (400 | 230 | 24ac | 24dc),
- s = maniobrable (1 = interruptor/protección, 2 = contactor), m = quién lo manda. */
+/* ===== Fase 2: potencia desde el CBTH (esquema T87911031210ES rev. J) — v330 =====
+ Cada nodo: p = padre, nm = nombre corto, t = elemento, d = bornas/hilos, f = folio, u = tensión (400 | 230 | 24ac | 24dc),
+ s = 1 protección/interruptor (se puede disparar) · 2 contactor/relé,
+ ord = 1 contactor de maniobra (solo cierra con orden), seg = 1 cae si se abre la línea de seguridades,
+ coil = protecciones que dan el 24 V a la bobina (sin ellas el contactor cae), dep = contactores cuyo contacto va en serie,
+ m = quién manda la bobina. */
+const PLC_E=["q301","q302"], PLC_P=["pq301","pq302"];
 const POT=[
- {id:"red",p:null,s:1,u:"400",t:"Acometida 400 V 50 Hz (red)",d:"Llega al CBTH: 3F+PE, 16 mm² · PBB 40 A, Icc 25 kA",f:9,on:"Con tensión",off:"Sin tensión"},
+ {id:"red",p:null,s:1,nm:"Red 400 V",u:"400",t:"Acometida 400 V 50 Hz (red)",d:"Llega al CBTH: 3F+PE, 16 mm² · PBB 40 A, Icc 25 kA",f:9,on:"Con tensión",off:"Sin tensión"},
  {id:"z0",p:"red",u:"400",t:"+CBTH-Z0 filtro",d:"1-3-5 → 2-4-6",f:9},
  {id:"x11",p:"z0",u:"400",t:"+CBTH-X11:1-2-3 (PE :4)",d:"Manguera ECBTH-W1 H07RN-F 4x16 · BN-BK-GY",f:9},
- {id:"s0",p:"x11",s:1,u:"400",t:"+E-S0 interruptor general",d:"1-3-5 → 2-4-6",f:13,on:"ON",off:"OFF"},
- {id:"f19",p:"s0",u:"400",t:"+E-F19 / F20 / F21 sobretensiones",d:"Una por fase, a tierra E-X90",f:17},
- {id:"q15",p:"s0",s:1,u:"400",t:"+E-Q15 guardamotor 13-18 A",d:"Hacia trafo · salida E-X60:4-5-6 → EP-W2 → P-X52:4-5-6",f:17,on:"ON",off:"Disparado"},
+ {id:"s0",p:"x11",s:1,nm:"E-S0",u:"400",t:"+E-S0 interruptor general",d:"1-3-5 → 2-4-6",f:13,on:"ON",off:"OFF"},
+ {id:"f19",p:"s0",s:1,nm:"E-F19/20/21",u:"400",t:"+E-F19 / F20 / F21 sobretensiones",d:"Una por fase, a tierra E-X90 · contacto 11-12 a E-A0 IN06 (hilo 256). Actuado: cambiar el cartucho",f:17,on:"Bien",off:"Actuado",ind:1},
+ {id:"q15",p:"s0",s:1,nm:"E-Q15",u:"400",t:"+E-Q15 guardamotor 13-18 A",d:"Hacia trafo · salida E-X60:4-5-6 → EP-W2 → P-X52:4-5-6",f:17,on:"ON",off:"Disparado"},
  {id:"t1",p:"q15",u:"400",t:"+P-T1 trafo 380 V / 220-24 V 5600 VA",d:"Primario en el armario del pupitre",f:17},
  {id:"t1a",p:"t1",u:"230",t:"Secundario 220 V → P-X52:7-8 → E-X60:7-8",d:"Hilos 34 BN / 7 BU",f:17},
- {id:"q150",p:"t1a",s:1,u:"230",t:"+E-Q150 magnetotérmico 2P 16 A C",d:"1-3 → 2-4 · hilos 39 BN / 40 BU",f:18,on:"ON",off:"Disparado"},
- {id:"q10",p:"q150",u:"230",t:"+E-Q10 → automáticos de servicios",d:"Iluminación, gálibos, caldeos, enchufes, focos, cámara (folios 19-25)",f:19},
- {id:"k01",p:"q150",s:2,u:"230",t:"+E-K0.1 contactor seguridad 2",d:"1/L1-3/L2 → 2/T1-4/T2 · hilos 51 / 52",f:18,m:"Bobina mandada por E-A6 DOS04 (línea de seguridades OK)",on:"Cerrado",off:"Abierto"},
- {id:"q4",p:"k01",u:"230",t:"+E-Q4 → motores capota",d:"Entrada E-Q4:1/L1 y 3/L2",f:26},
- {id:"q8",p:"q4",s:1,u:"230",t:"+E-Q8 guardamotor 1-1,6 A → portón",d:"Desde E-Q4.1 (hilos 51/52) → E-K81/2 → E-X57:15-16 → motor C-M6",f:27,on:"ON",off:"Disparado"},
- {id:"pq7",p:"q4",s:1,u:"230",t:"+P-Q7 guardamotor 1-1,6 A → suelo basculante",d:"Por E-X59:18-19 → P-X51:18-19 → P-K71/2 → motor C-M5",f:27,on:"ON",off:"Disparado"},
+ {id:"q150",p:"t1a",s:1,nm:"E-Q150",u:"230",t:"+E-Q150 magnetotérmico 2P 16 A C",d:"1-3 → 2-4 · hilos 39 BN / 40 BU · reparte el monofásico de servicios",f:18,on:"ON",off:"Disparado"},
+ {id:"q10",p:"q150",s:1,nm:"E-Q10",u:"230",t:"+E-Q10 alumbrado túnel interior y escalera",d:"Mandado por E-K10 / E-K18",f:19,on:"ON",off:"Disparado"},
+ {id:"k10",p:"q10",s:2,ord:1,coil:PLC_E,nm:"E-K10",u:"230",t:"+E-K10 / E-K18 contactores de alumbrado",d:"Salida a las luminarias del túnel",f:19,m:"Bobina desde salida del PLC (armario E)",on:"Cerrado"},
+ {id:"q101",p:"q150",s:1,nm:"E-Q10.1",u:"230",t:"+E-Q10.1 alumbrado cabina y túnel exterior/medio",d:"",f:19,on:"ON",off:"Disparado"},
+ {id:"q12",p:"q150",s:1,nm:"E-Q12",u:"230",t:"+E-Q12 gálibos y caldeos",d:"Caldeo por E-K60 con termostato E-B4",f:21,on:"ON",off:"Disparado"},
+ {id:"k60",p:"q12",s:2,ord:1,coil:PLC_E,nm:"E-K60",u:"230",t:"+E-K60 contactor de caldeo",d:"Cierra con demanda del termostato E-B4",f:21,m:"Bobina desde salida del PLC / termostato",on:"Cerrado"},
+ {id:"q13",p:"q150",s:1,nm:"E-Q13",u:"230",t:"+E-Q13 diferencial 30 mA → enchufes",d:"Si salta: buscar derivación antes de rearmar",f:22,on:"ON",off:"Disparado"},
+ {id:"q151",p:"q150",s:1,nm:"E-Q15.1",u:"230",t:"+E-Q15.1 focos exteriores",d:"Mandados por E-K15",f:23,on:"ON",off:"Disparado"},
+ {id:"k15",p:"q151",s:2,ord:1,coil:PLC_E,nm:"E-K15",u:"230",t:"+E-K15 contactor de focos",d:"",f:23,m:"Bobina desde salida del PLC",on:"Cerrado"},
+ {id:"q14",p:"q150",s:1,nm:"E-Q14",u:"230",t:"+E-Q14 sistema de vídeo (cámara)",d:"Mandado por E-K14 (salida E-A0 «Sistema de vídeo»)",f:25,on:"ON",off:"Disparado"},
+ {id:"k14",p:"q14",s:2,ord:1,coil:PLC_E,nm:"E-K14",u:"230",t:"+E-K14 contactor de la cámara",d:"",f:25,m:"Bobina desde E-A0 «Sistema de vídeo»",on:"Cerrado"},
+ {id:"k01",p:"q150",s:2,seg:1,coil:PLC_E,nm:"E-K0.1",u:"230",t:"+E-K0.1 contactor seguridad 2",d:"1/L1-3/L2 → 2/T1-4/T2 · hilos 51 / 52 · estado 21-22 a P-A5 DIN06 (hilo 741)",f:18,m:"Bobina mandada por E-A6 DOS04 (línea de seguridades OK)",on:"Cerrado"},
+ {id:"q4",p:"k01",s:1,nm:"E-Q4",u:"230",t:"+E-Q4 guardamotor 1,6-2,5 A capota izquierda",d:"Regulado 2,15 A · entrada E-Q4:1/L1 y 3/L2",f:26,on:"ON",off:"Disparado"},
+ {id:"k41",p:"q4",s:2,ord:1,coil:PLC_E,nm:"E-K41/42",u:"230",t:"+E-K41/42 inversor capota izquierda",d:"→ E-X57:9-10-11 → EC-W1 → C-X51:9-10-11 (PE :28) → C-W10",f:26,m:"Órdenes desde E-A1 OUT12-13",on:"Con orden"},
+ {id:"cm4",p:"k41",u:"230",t:"+C-M4 motor capota izquierda U/N/V",d:"0,5 kW · 2,15 A",f:26},
+ {id:"q41",p:"k01",s:1,nm:"E-Q4.1",u:"230",t:"+E-Q4.1 guardamotor 1,6-2,5 A capota derecha",d:"Regulado 2,15 A",f:26,on:"ON",off:"Disparado"},
+ {id:"k43",p:"q41",s:2,ord:1,coil:PLC_E,nm:"E-K43/44",u:"230",t:"+E-K43/44 inversor capota derecha",d:"→ E-X57:12-13-14 → EC-W1 → C-X51:12-13-14 (PE :29) → C-W10.1",f:26,m:"Órdenes desde E-A1 OUT14-15",on:"Con orden"},
+ {id:"cm41",p:"k43",u:"230",t:"+C-M4.1 motor capota derecha V/N/U",d:"0,5 kW · 2,15 A",f:26},
+ {id:"q8",p:"k01",s:1,nm:"E-Q8",u:"230",t:"+E-Q8 guardamotor 1-1,6 A portón",d:"Regulado 1,1 A · alimentado con los hilos 51/52 de E-K0.1 (puente desde la entrada de E-Q4.1)",f:27,on:"ON",off:"Disparado"},
+ {id:"k81",p:"q8",s:2,ord:1,coil:PLC_E,nm:"E-K81/82",u:"230",t:"+E-K81/82 inversor portón",d:"→ E-X57:15-16-17 → EC-W1 → C-X51:15-16-17 (PE :27) → C-W1",f:27,m:"Órdenes desde salidas del PLC (subir / bajar portón)",on:"Con orden"},
+ {id:"cm6",p:"k81",u:"230",t:"+C-M6 motor portón enrollable U/V/W",d:"0,24 kW · 1,05 A",f:27},
+ {id:"pq7",p:"k01",s:1,nm:"P-Q7",u:"230",t:"+P-Q7 guardamotor 1-1,6 A suelo basculante",d:"Por E-X59:18-19 → EP-W1 → P-X51:18-19 · regulado 1,6 A",f:27,on:"ON",off:"Disparado"},
+ {id:"pk71",p:"pq7",s:2,ord:1,coil:PLC_P,nm:"P-K71/72",u:"230",t:"+P-K71/72 inversor suelo + condensador P-C1",d:"→ P-X55:9-12 (PE :13) → P-W11 → conector C-X55:1-5",f:27,m:"Órdenes desde el PLC del pupitre",on:"Con orden"},
+ {id:"cm5",p:"pk71",u:"230",t:"+C-M5 motor suelo basculante L/N + freno",d:"0,3 kW · 1,6 A",f:27},
  {id:"t1b",p:"t1",u:"24ac",t:"Secundario 24 V → P-X52:9-10 → E-X60:9-10",d:"Hilos 183 BU / 184 BN",f:17},
- {id:"q171",p:"t1b",u:"24ac",t:"+E-Q17.1 → lunetas térmicas cabina",d:"",f:28},
- {id:"k0",p:"s0",s:2,u:"400",t:"+E-K0 contactor seguridad 1",d:"1/L1-3/L2-5/L3 → 2/T1-4/T2-6/T3 · hilos 30-31-32",f:13,m:"Bobina mandada por E-A6 DOS03 (línea de seguridades OK)",on:"Cerrado",off:"Abierto"},
+ {id:"q171",p:"t1b",s:1,nm:"E-Q17.1",u:"24ac",t:"+E-Q17.1 lunetas térmicas cabina",d:"Mandadas por E-K17",f:28,on:"ON",off:"Disparado"},
+ {id:"k17",p:"q171",s:2,ord:1,coil:PLC_E,nm:"E-K17",u:"24ac",t:"+E-K17 contactor de lunetas",d:"Salida a las lunetas de la cabina",f:28,m:"Bobina desde salida del PLC",on:"Cerrado"},
+ {id:"k0",p:"s0",s:2,seg:1,coil:PLC_E,nm:"E-K0",u:"400",t:"+E-K0 contactor seguridad 1",d:"1/L1-3/L2-5/L3 → 2/T1-4/T2-6/T3 · hilos 30-31-32 · estado 21-22 a E-A0 IN01 (hilo 250)",f:13,m:"Bobina mandada por E-A6 DOS03 (línea de seguridades OK)",on:"Cerrado"},
  {id:"x72",p:"k0",u:"400",t:"+E-X72 distriblock L1-L2-L3",d:"Reparte la fuerza a variadores, bomba y cabina",f:14},
- {id:"q1",p:"x72",s:1,u:"400",t:"+E-Q1 guardamotor GV2-ME 20-25 A",d:"Variadores · hilos 117-118-119",f:31,on:"ON",off:"Disparado"},
- {id:"k1",p:"q1",s:2,u:"400",t:"+E-K1 contactor variadores",d:"Hilos 120-121-130 → E-U1 y E-U2 L1-L2-L3",f:31,m:"Bobina mandada por E-A6 DOS01",on:"Cerrado",off:"Abierto"},
- {id:"u1",p:"k1",u:"400",t:"+E-U1 variador traslación izquierdo (L1-L2-L3)",d:"5,5 kW ATV",f:32},
- {id:"u2",p:"k1",u:"400",t:"+E-U2 variador traslación derecho (L1-L2-L3)",d:"5,5 kW ATV",f:33},
- {id:"q3",p:"x72",s:1,u:"400",t:"+E-Q3 guardamotor GV2P 9-14 A",d:"Bomba hidráulica · hilos 141-142-144",f:34,on:"ON",off:"Disparado"},
- {id:"k3",p:"q3",s:2,u:"400",t:"+E-K3 contactor bomba",d:"→ E-X56:5-7-9 → EH-W2 → H-X52 → H-W13",f:34,m:"Bobina mandada por salida del PLC (subir/bajar)",on:"Cerrado",off:"Abierto"},
+ {id:"q1",p:"x72",s:1,nm:"E-Q1",u:"400",t:"+E-Q1 guardamotor GV2-ME 20-25 A",d:"Variadores · hilos 117-118-119 · disparado: medir aislamiento de T-M1/T-M2 antes de rearmar",f:31,on:"ON",off:"Disparado"},
+ {id:"k1",p:"q1",s:2,ord:1,seg:1,coil:PLC_E,nm:"E-K1",u:"400",t:"+E-K1 contactor variadores",d:"Hilos 120-121-130 → E-U1 y E-U2 L1-L2-L3",f:31,m:"Bobina mandada por E-A6 DOS01 al pedir marcha",on:"Cerrado"},
+ {id:"u1",p:"k1",u:"400",t:"+E-U1 variador traslación izquierdo → T-M1",d:"ATV28 5,5 kW · salida U2/V2/W2 hilos 126-127-128 → ETR-W1 · frenado E-R1 82 Ω",f:32},
+ {id:"u2",p:"k1",u:"400",t:"+E-U2 variador traslación derecho → T-M2",d:"ATV28 5,5 kW · salida hilos 132-133-134 → ETR-W2 · frenado E-R2 82 Ω",f:33},
+ {id:"q3",p:"x72",s:1,nm:"E-Q3",u:"400",t:"+E-Q3 guardamotor GV2P 9-14 A",d:"Bomba hidráulica · regulado 11,4 A · hilos 141-142-144",f:34,on:"ON",off:"Disparado"},
+ {id:"k3",p:"q3",s:2,ord:1,seg:1,coil:PLC_E,nm:"E-K3",u:"400",t:"+E-K3 contactor bomba",d:"→ E-X56:5-10 (fases en paralelo) → EH-W2 → H-X52:5-10 (PE :14) → H-W13",f:34,m:"Bobina mandada por E-A6 DOS08 al pedir subir",on:"Cerrado"},
  {id:"m1",p:"k3",u:"400",t:"+H-M1 motor bomba U-V-W",d:"5,5 kW · 11,4 A · 1500 rpm",f:34},
- {id:"q40",p:"x72",s:1,u:"400",t:"+E-Q40 magnetotérmico 3P 16 A",d:"Motores cabina · E-X60:1-2-3 → EP-W2 → P-X52:1-2-3",f:34,on:"ON",off:"Disparado"},
- {id:"q6",p:"q40",u:"400",t:"+P-Q6 → motores trifásicos cabina",d:"",f:35},
+ {id:"q40",p:"x72",s:1,nm:"E-Q40",u:"400",t:"+E-Q40 magnetotérmico 3P 16 A",d:"Motores cabina · E-X60:1-2-3 (PE :12) → EP-W2 → P-X52:1-2-3",f:34,on:"ON",off:"Disparado"},
+ {id:"pq6",p:"q40",s:1,nm:"P-Q6",u:"400",t:"+P-Q6 guardamotor GV2-ME 1-1,6 A giro cabina",d:"Regulado 1,3 A",f:35,on:"ON",off:"Disparado"},
+ {id:"pk61",p:"pq6",s:2,ord:1,coil:PLC_P,nm:"P-K61/62",u:"400",t:"+P-K61/62 inversor giro cabina",d:"Hilos 503-504-505 → P-X55:5-6-7 (PE :8) → P-W7",f:35,m:"Órdenes desde el PLC del pupitre (giro izquierda / derecha)",on:"Con orden"},
+ {id:"cm1",p:"pk61",u:"400",t:"+C-M1 motor giro cabina U1/V1/W1",d:"0,55 kW · 1,05 A",f:35},
+ {id:"pq5",p:"q40",s:1,nm:"P-Q5",u:"400",t:"+P-Q5 guardamotor GV2-ME 0,16-0,25 A brazo",d:"Regulado 0,2 A · disparado: revisar C-M2 y P-W22 antes de rearmar",f:35,on:"ON",off:"Disparado"},
+ {id:"pk51",p:"pq5",s:2,ord:1,coil:PLC_P,nm:"P-K51/52",u:"400",t:"+P-K51/52 inversor brazo autonivelador",d:"Hilos 150-152-154 → P-X55:1-2-3 (PE :4) → P-W22",f:35,m:"Órdenes desde el PLC del pupitre (autonivelación)",on:"Con orden"},
+ {id:"cm2",p:"pk51",u:"400",t:"+C-M2 motor brazo autonivelador U/V/W",d:"0,2 A",f:35},
 
- {id:"sai",p:null,s:1,u:"230",t:"Alimentación SAI 220 V 50 Hz",d:"Desde el CT de SAI · llega al CBTH L1-N",f:9,on:"Con tensión",off:"Sin tensión"},
+ {id:"sai",p:null,s:1,nm:"SAI",u:"230",t:"Alimentación SAI 220 V 50 Hz",d:"Desde el CT de SAI · llega al CBTH L1-N",f:9,on:"Con tensión",off:"Sin tensión"},
  {id:"x12",p:"sai",u:"230",t:"+CBTH-X12:1-2 (PE :3)",d:"Manguera ECBTH-W3 3x2,5 · hilos 9 / 10",f:29},
- {id:"s01",p:"x12",s:1,u:"230",t:"+E-S0.1 interruptor SAI",d:"1-3 → 2-4 → E-X66:1-2",f:29,on:"ON",off:"OFF"},
- {id:"q24",p:"s01",s:1,u:"230",t:"+E-Q24 magnetotérmico 2P 6 A C → frenos traslación",d:"Hilos 155 / 158",f:30,on:"ON",off:"Disparado"},
- {id:"k24",p:"q24",s:2,dep:"k01",u:"230",t:"+E-K0.1 5-6 → +E-K24 contactor frenos",d:"Hilos 156 → 157 / 159 → E-X56:1-2 → EH-W2 → H-X52:1-2",f:30,m:"E-K24 lo manda E-A6 DOS02; E-K0.1 (seguridad 2) debe estar cerrado",on:"Cerrado",off:"Abierto"},
- {id:"ty",p:"k24",u:"230",t:"+T-Y1 / T-Y2 frenos motores traslación (L-N)",d:"Mangueras H-W19 / H-W20 · 230 V = freno abierto (suelto)",f:30},
- {id:"q25",p:"s01",s:1,u:"230",t:"+E-Q25 magnetotérmico 2P 6 A C → megafonía",d:"Hilos 160 / 161 → E-X53:1-2 → central E-V5",f:30,on:"ON",off:"Disparado"},
- {id:"q18",p:"s01",u:"230",t:"+E-Q18 → switch de comunicaciones",d:"Hilos 1 / 10 (folio 93)",f:93},
- {id:"q26",p:"s01",s:1,u:"230",t:"+E-Q26 magnetotérmico 2P 16 A D",d:"Alimentación auxiliar de variadores",f:31,on:"ON",off:"Disparado"},
- {id:"k26",p:"q26",s:2,u:"230",t:"+E-K26 → contacto E-K0 23-24",d:"Hilos 122/124 → 123 → 130 / 121",f:31,m:"Cierra con E-K26 y con E-K0 (seguridades OK)",on:"Cerrado",off:"Abierto"},
+ {id:"s01",p:"x12",s:1,nm:"E-S0.1",u:"230",t:"+E-S0.1 interruptor SAI",d:"1-3 → 2-4 → E-X66:1-2",f:29,on:"ON",off:"OFF"},
+ {id:"q24",p:"s01",s:1,nm:"E-Q24",u:"230",t:"+E-Q24 magnetotérmico 2P 6 A C frenos traslación",d:"Hilos 155 / 158",f:30,on:"ON",off:"Disparado"},
+ {id:"k24",p:"q24",s:2,ord:1,seg:1,dep:["k01"],coil:PLC_E,nm:"E-K24",u:"230",t:"+E-K24 contactor frenos (en serie con E-K0.1 5-6)",d:"Hilos 156 → 157 / 159 → E-X56:1-2 → EH-W2 → H-X52:1-2",f:30,m:"E-K24 lo manda E-A6 DOS02 con la orden de marcha; el contacto 5-6 de E-K0.1 tiene que estar cerrado",on:"Cerrado"},
+ {id:"ty",p:"k24",u:"230",t:"+T-Y1 / T-Y2 frenos motores traslación (L-N)",d:"Mangueras H-W19 / H-W20 · 230 V = freno suelto; 0 V = frenado",f:30},
+ {id:"q25",p:"s01",s:1,nm:"E-Q25",u:"230",t:"+E-Q25 magnetotérmico 2P 6 A C megafonía",d:"Hilos 160 / 161 → E-X53:1-2 → central E-V5 · tierra E-X91:5",f:30,on:"ON",off:"Disparado"},
+ {id:"q18",p:"s01",s:1,nm:"E-Q18",u:"230",t:"+E-Q18 6 A 30 mA switch de comunicaciones",d:"Hilos 1 / 10 → fuente 48 V E-X4.1 → switch E-V1",f:93,on:"ON",off:"Disparado"},
+ {id:"q26",p:"s01",s:1,nm:"E-Q26",u:"230",t:"+E-Q26 magnetotérmico 2P 16 A D",d:"Alimentación auxiliar de variadores (retorno autónomo)",f:31,on:"ON",off:"Disparado"},
+ {id:"k26",p:"q26",s:2,ord:1,dep:["k0"],coil:PLC_E,nm:"E-K26",u:"230",t:"+E-K26 retorno autónomo (en serie con E-K0 23-24)",d:"Hilos 122/124 → 123 → 130 / 121 · estado 51-52 a P-A5 DIN07 (hilo 742)",f:31,m:"Bobina desde salida del PLC; el contacto 23-24 de E-K0 tiene que estar cerrado (seguridades OK)",on:"Cerrado"},
  {id:"u12",p:"k26",u:"230",t:"+E-U1 / E-U2 alimentación 230 V",d:"Hilos 130 BN / 121 BU",f:31},
- {id:"q22",p:"s01",s:1,u:"230",t:"+E-Q22 magnetotérmico 2P 3 A C",d:"Entrada de la fuente · hilos 105 / 106",f:29,on:"ON",off:"Disparado"},
- {id:"v3",p:"q22",u:"24dc",t:"+E-V3 fuente 230 V → 24 Vdc 10 A",d:"Salida hilos 206 RD (+) / 207 WH (−)",f:29},
- {id:"q30",p:"v3",s:1,u:"24dc",t:"+E-Q30 magnetotérmico 2P 10 A C",d:"Sale +24 V hilo 204 RD · 0 V hilo 205 WH",f:29,on:"ON",off:"Disparado"},
+ {id:"q22",p:"s01",s:1,nm:"E-Q22",u:"230",t:"+E-Q22 magnetotérmico 2P 3 A C",d:"Entrada de la fuente · hilos 105 / 106",f:29,on:"ON",off:"Disparado"},
+ {id:"v3",p:"q22",s:1,nm:"E-V3",u:"24dc",t:"+E-V3 fuente 230 V → 24 Vdc 10 A",d:"Salida hilos 206 RD (+) / 207 WH (−)",f:29,on:"Bien",off:"Averiada",ind:1},
+ {id:"q30",p:"v3",s:1,nm:"E-Q30",u:"24dc",t:"+E-Q30 magnetotérmico 2P 10 A C",d:"Sale +24 V hilo 204 RD · 0 V hilo 205 WH",f:29,on:"ON",off:"Disparado"},
  {id:"q300",p:"q30",u:"24dc",t:"+E-Q30.0 (PS) cabecera Weidmüller, armario E",d:"+24V / GND · alarma hilo 612 → E-A3",f:36},
- {id:"q301",p:"q300",s:1,u:"24dc",t:"+E-Q30.1 · 4 A → hilo 208",d:"PLC E-A0:1.2 (CPU)",f:36,on:"ON",off:"Disparado"},
- {id:"q302",p:"q300",s:1,u:"24dc",t:"+E-Q30.2 · 10 A → hilo 215",d:"E-X68:4 módulos de entradas/salidas",f:36,on:"ON",off:"Disparado"},
- {id:"q303",p:"q300",s:1,u:"24dc",t:"+E-Q30.3 · 10 A → hilo 189",d:"E-X68:1 común +24 V de las entradas (E-K0:21, E-X51:1, E-U1/U2, E-U5…)",f:37,on:"ON",off:"Disparado"},
- {id:"q304",p:"q300",s:1,u:"24dc",t:"+E-Q30.4 · 8 A → hilo 613",d:"E-X68:6 módulo de seguridades (E-A5, E-X70, SS-B15, clema)",f:37,on:"ON",off:"Disparado"},
+ {id:"q301",p:"q300",s:1,nm:"E-Q30.1",u:"24dc",t:"+E-Q30.1 · 4 A → hilo 208",d:"PLC E-A0:1.2 (CPU)",f:36,on:"ON",off:"Disparado"},
+ {id:"q302",p:"q300",s:1,nm:"E-Q30.2",u:"24dc",t:"+E-Q30.2 · 10 A → hilo 215",d:"E-X68:4 módulos de entradas/salidas",f:36,on:"ON",off:"Disparado"},
+ {id:"q303",p:"q300",s:1,nm:"E-Q30.3",u:"24dc",t:"+E-Q30.3 · 10 A → hilo 189",d:"E-X68:1 común +24 V de las entradas (E-K0:21, E-X51:1, E-U1/U2, E-U5…)",f:37,on:"ON",off:"Disparado"},
+ {id:"ek61",p:"q303",s:2,ord:1,coil:PLC_E,nm:"E-K61",u:"24dc",t:"+E-K61 relé válvula subir 11-14",d:"Hilo 301 → E-X55:4 → EH-W1 → H-X51:4 → H-W9",f:44,m:"Bobina desde E-A1 3.1",on:"Cerrado"},
+ {id:"hy1",p:"ek61",u:"24dc",t:"+H-Y1 válvula subir",d:"24 VDC 0,8 A · retorno por H-W9 BU",f:44},
+ {id:"ek62",p:"q303",s:2,ord:1,coil:PLC_E,nm:"E-K62",u:"24dc",t:"+E-K62 relé válvula bajar 11-14",d:"Hilo 302 → E-X55:5 → EH-W1 → H-X51:5 → H-W10",f:44,m:"Bobina desde E-A1 4.1",on:"Cerrado"},
+ {id:"hy2",p:"ek62",u:"24dc",t:"+H-Y2 válvula bajar",d:"24 VDC 0,8 A",f:44},
+ {id:"q304",p:"q300",s:1,nm:"E-Q30.4",u:"24dc",t:"+E-Q30.4 · 8 A → hilo 613",d:"E-X68:6 módulo de seguridades (E-A5, E-X70, SS-B15, clema)",f:37,on:"ON",off:"Disparado"},
  {id:"x59",p:"q30",u:"24dc",t:"+E-X59:1-2 → EP-W1 → +P-X51:1-2",d:"24 V al armario del pupitre · hilos 204 / 205",f:29},
  {id:"pq300",p:"x59",u:"24dc",t:"+P-Q30.0 (PS) cabecera Weidmüller, pupitre",d:"Alarma hilo 638 → P-A4",f:38},
- {id:"pq301",p:"pq300",s:1,u:"24dc",t:"+P-Q30.1 · 2 A → hilo 635",d:"Cabecera PLC pupitre P-A0:3:1.2",f:38,on:"ON",off:"Disparado"},
- {id:"pq302",p:"pq300",s:1,u:"24dc",t:"+P-Q30.2 · 10 A → hilo 332",d:"P-X92:1 entradas y salidas del pupitre",f:38,on:"ON",off:"Disparado"},
- {id:"cps5",p:"pq302",s:1,u:"24dc",t:"+CP-S5 seta del pupitre 13-14 → hilo 309",d:"P-X53:1 · alimenta los mandos del pupitre (subir/bajar, cabina, suelo, capota, portón, retorno)",f:81,on:"Rearmada",off:"Pulsada"},
- {id:"pq303",p:"pq300",s:1,u:"24dc",t:"+P-Q30.3 · 8 A → hilo 330",d:"P-X92:3 → display CP-A1 y zapata de seguridad P-U5",f:39,on:"ON",off:"Disparado"},
+ {id:"pq301",p:"pq300",s:1,nm:"P-Q30.1",u:"24dc",t:"+P-Q30.1 · 2 A → hilo 635",d:"Cabecera PLC pupitre P-A0:3:1.2",f:38,on:"ON",off:"Disparado"},
+ {id:"pq302",p:"pq300",s:1,nm:"P-Q30.2",u:"24dc",t:"+P-Q30.2 · 10 A → hilo 332",d:"P-X92:1 entradas y salidas del pupitre",f:38,on:"ON",off:"Disparado"},
+ {id:"cps5",p:"pq302",s:1,nm:"CP-S5",u:"24dc",t:"+CP-S5 seta del pupitre 13-14 → hilo 309",d:"P-X53:1 · alimenta los mandos del pupitre (subir/bajar, cabina, suelo, capota, portón, retorno)",f:81,on:"Rearmada",off:"Pulsada"},
+ {id:"pq303",p:"pq300",s:1,nm:"P-Q30.3",u:"24dc",t:"+P-Q30.3 · 8 A → hilo 330",d:"P-X92:3 → display CP-A1 y zapata de seguridad P-U5",f:39,on:"ON",off:"Disparado"},
  {id:"mega",p:"q30",u:"24dc",t:"Central de megafonía E-S3:14 / E-X66:4",d:"Hilos 204 / 205",f:29}
 ];
 const UL={"400":["400 V","entre fases"],"230":["230 V","F–N"],"24ac":["24 V","alterna"],"24dc":["24 V","continua"]};
-const PRE={servicio:{},seg:{k0:1,k01:1,k1:1,k26:1,k24:1},red:{red:1},sai:{sai:1}};
+/* Escenarios combinables: «maniobra» pone órdenes del PLC, «avería» abre o dispara elementos */
+const MAN={reposo:["Reposo",[]],servicios:["Alumbrado y servicios",["k10","k60","k15","k14","k17"]],traslacion:["Trasladar",["k1","k24"]],subir:["Subir",["k3","ek61"]],bajar:["Bajar",["ek62"]],retorno:["Retorno autónomo",["k26","k24"]],capota:["Capota",["k41","k43"]],porton:["Portón",["k81"]],cabina:["Girar cabina",["pk61"]],brazo:["Brazo autonivelador",["pk51"]],suelo:["Suelo basculante",["pk71"]]};
+const AVE={ninguna:["Sin avería",{}],seg:["Línea de seguridades abierta",{lin:1}],red:["Corte de red (solo SAI)",{red:1}],sai:["Corte de SAI",{sai:1}],seta:["Seta del pupitre pulsada",{cps5:1}],fuente:["Fuente 24 V caída",{v3:1}],trafo:["E-Q15 disparado (trafo)",{q15:1}],mono:["E-Q150 disparado",{q150:1}],sobre:["Sobretensiones actuadas",{f19:1}]};
 const WIRE_POT={"309":"cps5","336":"pq302","189":"q303","613":"q304","332":"pq302","330":"pq303","208":"q301","215":"q302","635":"pq301"};
-let pst={}, pfault=false, pmarks={}, pview="pot";
+let pst={}, pord={}, pfault=false, pmarks={}, pview="pot";
 const pnode=id=>POT.find(n=>n.id===id);
-function plive(id){const n=pnode(id);if(!n)return true;if(n.s&&pst[id])return false;if(n.dep&&pst[n.dep])return false;return n.p?plive(n.p):true}
-function plv(n){let l=0,x=n;while(x.p){l++;x=pnode(x.p)}return l}
+/* por qué está abierto un elemento maniobrable ("" = cerrado) */
+function pwhy(id){const n=pnode(id);if(!n||!n.s)return "";
+ if(pst[id])return n.s===2?"Abierto (avería)":(n.off||"Abierto");
+ if(n.s===2){if(n.ord&&!pord[id])return "Sin orden";
+  if(n.seg&&pst.lin)return "Caído por seguridades";
+  if(n.coil&&!n.coil.every(plive))return "Bobina sin 24 V";
+  if(n.dep){const d=n.dep.find(x=>pwhy(x));if(d)return pnode(d).nm+" abierto"}}
+ return ""}
+function plive(id){const n=pnode(id);if(!n)return true;if(n.s&&pwhy(id))return false;return n.p?plive(n.p):true}
+function same(a,b){const ka=Object.keys(a).filter(k=>a[k]).sort(),kb=Object.keys(b).filter(k=>b[k]).sort();return ka.join()===kb.join()}
 function pot(){
  const live=Object.fromEntries(POT.map(n=>[n.id,plive(n.id)]));
  let diag="";
@@ -334,17 +383,27 @@ function pot(){
   if(bad){let a=bad.p?pnode(bad.p):null;while(a&&pmarks[a.id]!=="y")a=a.p?pnode(a.p):null;
    diag='<div class="diag"><b>Fallo localizado</b> entre '+(a?'<b>'+a.t+'</b> (tensión correcta)':'el origen')+' y <b>'+bad.t+'</b> (sin tensión). Revisa la protección, el contactor, las bornas y la manguera de ese tramo ('+FOL(bad.f)+').</div>'}
   else diag='<div class="diag">Mide en orden de arriba abajo y marca <b>Sí</b> si da lo esperado o <b>No</b> si no. El primer <b>No</b> cuyo tramo de arriba está bien localiza el fallo.</div>'}
- const dead=POT.filter(n=>n.s&&pst[n.id]).map(n=>n.t.split(" ")[0]);
- $("#pot").innerHTML='<div class="head"><div><h2>Potencia desde el CBTH</h2><div class="meta">Folios 9 · 13 · 14 · 17 · 18 · 29 · 31 · 34 · 36-40 · 64</div></div></div>'+
-  '<div class="presets"><button class="btn'+(Object.keys(pst).length?"":" pri")+'" data-pre="servicio">En servicio</button><button class="btn" data-pre="seg">Línea de seguridades abierta</button><button class="btn" data-pre="red">Corte de red (solo SAI)</button><button class="btn" data-pre="sai">Corte de SAI</button>'+
-  '<button class="btn'+(pfault?" act":"")+'" id="pflt">'+(pfault?"Salir de búsqueda de avería":"Buscar avería midiendo")+'</button></div>'+
-  '<p class="ref">Tensiones de red medidas entre fases (fase–PE ≈ 230 V); 230 V entre fase y neutro; 24 V entre + y 0 V (hilo 205). '+(dead.length?'Abiertos o disparados: <b>'+dead.join(", ")+'</b>.':'Todo cerrado.')+'</p>'+diag+
-  '<div class="chain tree">'+POT.map(n=>{const L=live[n.id],u=UL[n.u];
-   return (n.p===null?'<div class="grp">'+(n.id==="red"?"Red 400 V · fuerza":"SAI 230 V · mando y 24 V")+'</div>':'')+
-   '<div class="row'+(pfault&&pmarks[n.id]==="n"?" suspect":"")+'" style="--lv:'+plv(n)+'"><div class="v '+(L?"live":"dead")+'">'+(L?u[0]:"0 V")+(L?'<small>'+u[1]+'</small>':'')+'</div>'+
-   '<div class="what"><b>'+n.t+'</b><div class="w">'+[n.d,n.m,FOL(n.f)].filter(Boolean).join(" · ")+'</div></div>'+
-   (pfault?'<div class="mk"><button data-pmk="'+n.id+'" data-a="y" class="'+(pmarks[n.id]==="y"?"y":"")+'">Sí</button><button data-pmk="'+n.id+'" data-a="n" class="'+(pmarks[n.id]==="n"?"n":"")+'">No</button></div>':
-    n.s?'<button class="sw'+(pst[n.id]?" open":"")+'" data-psw="'+n.id+'">'+(pst[n.id]?n.off:n.on)+'</button>':'<span></span>')+'</div>'}).join("")+'</div>';
+ /* resumen sin repetidos: lo abierto a mano y lo que cae por bobina, seguridades o contacto en serie */
+ const man=[...new Set(POT.filter(n=>n.s&&pst[n.id]).map(n=>n.nm))];
+ const caeG={};POT.filter(n=>n.s===2&&!pst[n.id]&&!(n.ord&&!pord[n.id])&&pwhy(n.id)).forEach(n=>{const w=pwhy(n.id);(caeG[w]=caeG[w]||[]).includes(n.nm)||(caeG[w]=caeG[w]||[]).push(n.nm)});
+ const cae=Object.keys(caeG).map(w=>w+": <b>"+caeG[w].join(", ")+"</b>");
+ const marcha=[...new Set(POT.filter(n=>n.ord&&pord[n.id]&&!pwhy(n.id)).map(n=>n.nm))];
+ const fol=[...new Set(POT.map(n=>n.f))].sort((a,b)=>a-b).reduce((r,f)=>{const l=r[r.length-1];if(l&&f-l[1]<=1)l[1]=f;else r.push([f,f]);return r},[]).map(([a,b])=>a===b?a:a+"-"+b).join(" · ");
+ const mk=(o,k,a,attr)=>'<button class="chip'+(a?" sel":"")+'" '+attr+'="'+k+'">'+o+'</button>';
+ const sm=Object.keys(MAN).find(k=>same(pord,Object.fromEntries(MAN[k][1].map(x=>[x,1])))), sa=Object.keys(AVE).find(k=>same(pst,AVE[k][1]));
+ $("#pot").innerHTML='<div class="head"><div><h2>Potencia desde el CBTH</h2><div class="meta">Folios '+fol+'</div></div></div>'+
+  '<div class="esc"><span>Maniobra</span><div class="chips">'+Object.keys(MAN).map(k=>mk(MAN[k][0],k,k===sm,"data-man")).join("")+'</div></div>'+
+  '<div class="esc"><span>Avería</span><div class="chips">'+Object.keys(AVE).map(k=>mk(AVE[k][0],k,k===sa,"data-ave")).join("")+'</div></div>'+
+  '<div class="presets"><button class="btn'+(pfault?" act":"")+'" id="pflt">'+(pfault?"Salir de búsqueda de avería":"Buscar avería midiendo")+'</button></div>'+
+  '<p class="ref">Red: 400 V entre fases, ≈ 230 V fase–PE. SAI y servicios: 230 V entre fase y neutro. Mando: 24 V entre + y 0 V (hilo 205).</p>'+
+  '<p class="ref sum">'+(marcha.length?'En marcha: <b>'+marcha.join(", ")+'</b>. ':'')+(man.length?'Abiertos o disparados: <b>'+man.join(", ")+'</b>. ':'')+(cae.length?'Caen solos → '+cae.join(" · ")+'.':'')+(!man.length&&!cae.length?'Sin elementos abiertos ni disparados.':'')+'</p>'+diag+
+  '<div class="chain tree">'+POT.map((n,i)=>{const L=live[n.id],u=UL[n.u],why=n.s?pwhy(n.id):"",prev=POT[i-1];
+   const desde=n.p&&prev&&prev.id!==n.p?'<span class="dz">↳ desde '+(pnode(n.p).nm||pnode(n.p).t.split(" ")[0])+'</span>':'';
+   const btn=n.s?'<button class="sw'+(why==="Sin orden"?" idle":why?" open":"")+'" '+(n.ord?'data-pord="':'data-psw="')+n.id+'">'+(why||n.on||"Cerrado")+'</button>':'<span></span>';
+   return (n.p===null?'<div class="grp">'+(n.id==="red"?"Red 400 V · fuerza y servicios":"SAI 230 V · frenos, retorno y 24 V")+'</div>':'')+
+   '<div class="row'+(pfault&&pmarks[n.id]==="n"?" suspect":"")+'"><div class="v '+(L?"live":"dead")+'">'+(L?u[0]:"0 V")+(L?'<small>'+u[1]+'</small>':'')+'</div>'+
+   '<div class="what">'+desde+'<b>'+n.t+'</b><div class="w">'+[n.d,n.m,FOL(n.f)].filter(Boolean).join(" · ")+'</div></div>'+
+   (pfault?'<div class="mk"><button data-pmk="'+n.id+'" data-a="y" class="'+(pmarks[n.id]==="y"?"y":"")+'">Sí</button><button data-pmk="'+n.id+'" data-a="n" class="'+(pmarks[n.id]==="n"?"n":"")+'">No</button></div>':btn)+'</div>'}).join("")+'</div>';
 }
 /* enlace fase 1 ↔ fase 2: si la protección que alimenta el común de una entrada está abierta, toda la cadena queda a 0 V */
 const _simulate=simulate;
@@ -360,7 +419,9 @@ function pshow(){document.querySelectorAll("#tabs button").forEach(b=>b.classLis
 document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;
  if(b.dataset.v){pview=b.dataset.v;pshow()}
  else if(b.dataset.psw){pst[b.dataset.psw]=!pst[b.dataset.psw];if(!pst[b.dataset.psw])delete pst[b.dataset.psw];pot()}
- else if(b.dataset.pre){pst=Object.assign({},PRE[b.dataset.pre]);pot()}
+ else if(b.dataset.pord){pord[b.dataset.pord]=!pord[b.dataset.pord];if(!pord[b.dataset.pord])delete pord[b.dataset.pord];pot()}
+ else if(b.dataset.man){pord=Object.fromEntries(MAN[b.dataset.man][1].map(x=>[x,1]));pot()}
+ else if(b.dataset.ave){pst=Object.assign({},AVE[b.dataset.ave][1]);pot()}
  else if(b.dataset.pmk){pmarks[b.dataset.pmk]=pmarks[b.dataset.pmk]===b.dataset.a?undefined:b.dataset.a;pot()}
  else if(b.id==="pflt"){pfault=!pfault;pmarks={};pot()}});
 pshow();
