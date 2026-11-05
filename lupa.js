@@ -61,9 +61,10 @@ window.lupaPinta=function(k,an){const res=document.getElementById("lp_res");if(!
 async function casos(txt){if(typeof casosParecidos!="function")return;let l=[];try{l=await casosParecidos(txt)}catch(e){}
  const c=document.getElementById("lp_cas");if(!c||txt!==LT)return;c.innerHTML=l.length&&typeof casosHTML=="function"?`<div style="margin-top:10px">${casosHTML(l,"")}</div>`:""}
 window.LUPA_GEN=function(ix){LC=LC.map((x,i)=>Object.assign({},x,{gen:0}));const c=LC.splice(ix,1)[0];LC.unshift(c);lupaPinta(0,null)};
+/* v337: también la hoja del SOS (#sr_p) */
 /* v336: la hoja de la lupa sale arriba (abajo la tapaba el teclado); al cerrarla o abrir otra hoja vuelve abajo */
 (function(){const o=closeSheet;closeSheet=function(){const sh=document.getElementById("sheet");if(sh)sh.classList.remove("lpatop");return o.apply(this,arguments)};window.closeSheet=closeSheet;
- const c=document.getElementById("sheetc");if(c)new MutationObserver(()=>{if(!c.querySelector(".lpaf")){const sh=document.getElementById("sheet");if(sh)sh.classList.remove("lpatop")}}).observe(c,{childList:true})})();
+ const c=document.getElementById("sheetc");if(c)new MutationObserver(()=>{const sh=document.getElementById("sheet");if(sh)sh.classList.toggle("lpatop",!!c.querySelector(".lpaf,#sr_p"))}).observe(c,{childList:true})})();
 window.lupaGuia=function(T,si){closeSheet();gTipo=T;try{gAbierto.add(T+si)}catch(e){}go("tec");
  setTimeout(()=>{const d=document.querySelector(`details.gd[data-k="${T+si}"]`);if(d){d.open=true;d.scrollIntoView({block:"start",behavior:"smooth"})}},120)};
 const st=document.createElement("style");st.textContent=`
