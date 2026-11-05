@@ -14,7 +14,7 @@ window.lupaAbre=function(){LC=[];LT="";
  <form class="lpaf" onsubmit="event.preventDefault();lupaBusca()"><input id="lp_t" type="search" enterkeyhint="search" autocomplete="off" placeholder="Describe la avería o lo que quieres buscar"><button class="pri" type="submit" aria-label="Buscar">${IC}</button></form>
  <div id="lp_res"></div>
  <button class="sec" style="width:100%;margin-top:10px" onclick="closeSheet()">Cerrar</button>`;
- $("#sheet").style.display="flex";setTimeout(()=>{const i=document.getElementById("lp_t");if(i)i.focus()},60)};
+ const sh=$("#sheet");sh.classList.add("lpatop");sh.style.display="flex";setTimeout(()=>{const i=document.getElementById("lp_t");if(i)i.focus()},60)};
 /* palabras propias de cada sistema (código + nombre de la guía) para inclinar el sistema cuando se nombra */
 const pista=(T,G,t)=>{let b=0;const w=new Set([T,...String(G.n||"").split(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9]+/)].map(norm).filter(x=>x.length>=3||x==T.toLowerCase()));
  w.forEach(x=>{if(new RegExp("\\b"+x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\b").test(t))b+=x==T.toLowerCase()?3:1.5});return Math.min(b,4.5)};
@@ -61,9 +61,14 @@ window.lupaPinta=function(k,an){const res=document.getElementById("lp_res");if(!
 async function casos(txt){if(typeof casosParecidos!="function")return;let l=[];try{l=await casosParecidos(txt)}catch(e){}
  const c=document.getElementById("lp_cas");if(!c||txt!==LT)return;c.innerHTML=l.length&&typeof casosHTML=="function"?`<div style="margin-top:10px">${casosHTML(l,"")}</div>`:""}
 window.LUPA_GEN=function(ix){LC=LC.map((x,i)=>Object.assign({},x,{gen:0}));const c=LC.splice(ix,1)[0];LC.unshift(c);lupaPinta(0,null)};
+/* v336: la hoja de la lupa sale arriba (abajo la tapaba el teclado); al cerrarla o abrir otra hoja vuelve abajo */
+(function(){const o=closeSheet;closeSheet=function(){const sh=document.getElementById("sheet");if(sh)sh.classList.remove("lpatop");return o.apply(this,arguments)};window.closeSheet=closeSheet;
+ const c=document.getElementById("sheetc");if(c)new MutationObserver(()=>{if(!c.querySelector(".lpaf")){const sh=document.getElementById("sheet");if(sh)sh.classList.remove("lpatop")}}).observe(c,{childList:true})})();
 window.lupaGuia=function(T,si){closeSheet();gTipo=T;try{gAbierto.add(T+si)}catch(e){}go("tec");
  setTimeout(()=>{const d=document.querySelector(`details.gd[data-k="${T+si}"]`);if(d){d.open=true;d.scrollIntoView({block:"start",behavior:"smooth"})}},120)};
 const st=document.createElement("style");st.textContent=`
+#sheet.lpatop{align-items:flex-start!important}
+#sheet.lpatop>div{border-radius:0 0 12px 12px!important;border-top:0!important;border-bottom:2px solid var(--ac,#ef6c00)!important;max-height:92dvh!important;padding-top:calc(14px + env(safe-area-inset-top,0px))!important;padding-bottom:14px!important}
 #app#app .sosk.sos2{display:flex!important;flex-direction:row!important;align-items:stretch!important;justify-content:stretch!important;gap:0!important;padding:0!important;overflow:hidden;
  border:2px solid #e5342b!important;background:repeating-linear-gradient(135deg,#ffe7e4 0 8px,#ffd9d4 8px 16px)!important}
 #app#app .sos2 .sos2b{flex:1 1 50%;min-width:0;display:flex;align-items:center;justify-content:center;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;cursor:pointer;width:auto!important;height:auto!important}
