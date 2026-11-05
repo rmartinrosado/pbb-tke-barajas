@@ -56,7 +56,7 @@ const st=document.createElement("style");st.textContent=`.sosw{display:flex;just
 (function(){
 const oD=vDash;vDash=function(){const r=oD.apply(this,arguments);try{
  const k=document.querySelector("#app .card.kpi");const g=k&&k.parentElement;if(!g||g.querySelector(".sosk"))return r;
- g.classList.add("sosgrid");g.insertAdjacentHTML("beforeend",`<button class="card kpi sosk" onclick="sosRap()" aria-label="SOS: primera actuación en campo"><img src="sos.png" alt="SOS"></button>`)}catch(e){}return r};
+ g.classList.add("sosgrid");g.insertAdjacentHTML("beforeend",`<div class="card kpi sosk sos2" role="group" onclick="if(event.target===this)sosRap()"><button class="sos2b sos2s" onclick="event.stopPropagation();sosRap()" aria-label="SOS: primera actuación en campo"><img src="sos.png" alt="SOS"></button><button class="sos2b sos2l" onclick="event.stopPropagation();lupaAbre()" aria-label="Lupa: buscar la actuación más eficaz de cualquier sistema" title="Buscar actuación más eficaz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button></div>`)}catch(e){}return r};
 let foto=null,fotoURL="";
 /* v73: alarmas de la Magelis con puente provisional o indicación de seguridades (comprobadas con el análisis de OT) */
 const SOS_AL=[
