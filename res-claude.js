@@ -45,7 +45,9 @@
     (la respuesta llega sola con la consulta en segundo plano). El campo t_gui queda oculto: conserva la actuación guiada de la OT para la consulta. */
  const orT=resTec;resTec=function(sel){const r=orT.apply(this,arguments);try{
   const g=$("#t_gui");if(g){g.style.display="none";const lb=g.previousElementSibling;if(lb&&lb.tagName=="LABEL")lb.style.display="none"}
-  document.querySelectorAll('#sheetc button[onclick^="pegaGui"]').forEach(b=>b.style.display="none");document.querySelectorAll("#sheetc .gprint,#sheetc .rcEd").forEach(b=>b.style.display="none") /* v354: solo queda el botón Claude */}catch(e){}return r};
+  document.querySelectorAll('#sheetc button[onclick^="pegaGui"]').forEach(b=>b.style.display="none");document.querySelectorAll("#sheetc .gprint,#sheetc .rcEd").forEach(b=>b.style.display="none") /* v354: solo queda el botón Claude */;
+  /* v355: botón Claude con el logotipo «Claude» (estrella + palabra) */
+  const cb=document.querySelector('#sheetc button[aria-label="Instrucciones IA"]');if(cb&&!cb.dataset.v355){cb.dataset.v355="1";cb.classList.add("rcBtn");cb.innerHTML='<span class="rcBtnW"><img src="claude-wordmark-ia.png" alt="Claude"></span>'}}catch(e){}return r};
  window.rcPega=async()=>{try{const t=await navigator.clipboard.readText();if(t)$("#rc_txt").value=t;else msg("Portapapeles vacío")}catch(e){msg("No se pudo leer el portapapeles: pega con pulsación larga")}};
  window.rcGuarda=()=>{const s=$("#t_sel"),t=$("#rc_txt");if(!s||!t)return;const i=inc.find(x=>x.id==s.value);if(!i)return;const v=t.value.trim();
   if(v)i.resClaude={txt:v,ts:Date.now(),por:(typeof tecNombre!="undefined"&&tecNombre)||"Claude"};else{delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id)}
@@ -104,7 +106,8 @@
    const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;
    if(!tok)throw new Error("Inicia sesión en la app para consultar a Claude.");
    J.esperando=true;
-   const r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:J.ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({pregunta:pr,contexto})});
+   let r=null;for(let k=0;;k++){try{r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:J.ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({pregunta:pr,contexto})});break}
+    catch(e){if(e&&e.name=="AbortError"||k>=2)throw (e&&/load failed|failed to fetch|network/i.test(e.message||"")?new Error("Sin conexión con el servidor (corte de red). Comprueba la cobertura y pulsa Reintentar."):e);av(`Corte de red · reintentando (${k+1}/2)…`,19);await new Promise(z=>setTimeout(z,2500))}}
    if(!r.ok){let m="";try{const j=await r.json();m=j.mensaje||j.error||""}catch(e){}throw new Error(`La consulta ha fallado (${r.status}) ${m}`)}
    J.motor=(r.headers.get("x-motor")||"Claude").replace(" - "," · ");J.esperando=false;av((/Gemini/.test(J.motor)?"Gemini":"Claude")+" está redactando la resolución…",25);
    const rd=r.body.getReader(),dec=new TextDecoder();let txt="";
@@ -123,6 +126,8 @@
  const ab0=abreClaude;let bg=null;
  abreClaude=function(pr){if(bg){const id=bg;bg=null;try{localStorage.removeItem("pbb_ret")}catch(e){}rcConsulta(id,pr);return}return ab0.apply(this,arguments)};
  const ogt=window.guardaTec;window.guardaTec=function(){const s=$("#t_sel");bg=s&&s.value||null;try{return ogt.apply(this,arguments)}finally{bg=null}};
+ /* v355: la hoja de Resolución IA sale arriba (abajo la tapa el teclado) */
+ new MutationObserver(()=>{const sh=document.getElementById("sheet"),c=document.getElementById("sheetc");if(sh&&c&&c.querySelector("#t_sel"))sh.classList.add("lpatop")}).observe(document.getElementById("sheetc")||document.body,{childList:true});
  const orT2=resTec;resTec=function(){const r=orT2.apply(this,arguments);try{ponBarra()}catch(e){}return r};
  const st=document.createElement("style");st.textContent=`
 .rcBox{margin:10px 0 4px;border:1px solid rgba(217,119,87,.55);border-left:4px solid #d97757;border-radius:12px;background:linear-gradient(180deg,rgba(217,119,87,.10),rgba(217,119,87,.03));overflow:hidden}
@@ -155,6 +160,9 @@
 .rcDel{padding:4px 10px;margin:0}
 .cacts .gwa{order:-1}.gwa{color:#1fa855!important;border-color:#25d366!important}.gwa svg{width:22px!important;height:22px!important}
 .rcEd{margin-top:10px}
+#sheetc button.rcBtn{display:flex!important;align-items:center;justify-content:center;width:100%;padding:12px!important}
+.rcBtnW{display:flex;align-items:center;justify-content:center;background:#fff;border-radius:14px;padding:12px 22px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.rcBtnW img{height:40px;width:auto;display:block}
 #rc_prog{margin-top:8px}.rcPg{border:2px solid #d97757;border-radius:12px;padding:9px 10px}
 .rcPgB{height:12px;border-radius:6px;background:rgba(127,127,127,.18);overflow:hidden}
 .rcPgB>i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#5b2a86,#d97757);transition:width .4s ease}
