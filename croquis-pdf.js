@@ -38,9 +38,9 @@
 
 
  /* v365: ubicación física del elemento por el prefijo de su rótulo (EPLAN «+P-», «+E-», …); si no, la que dé la IA */
- const UBI=[[/^\+?CBTH/i,"Armario CBTH (exterior)"],[/^\+?IT-/i,"Tunel interior"],[/^\+?ET-/i,"Tunel exterior"],[/^\+?MT-/i,"Tunel medio"],[/^\+?CO\d*-/i,"Rotonda · columna"],
-  [/^\+?SS-/i,"Exterior · escalera de servicio"],[/^\+?P-/i,"Armario electrico pupitre"],[/^\+?E-/i,"Armario electrico principal"],[/^\+?R-/i,"Rotonda"],
-  [/^\+?C-/i,"Cabina"],[/^\+?H-/i,"Elevacion · exterior bajo tunel ext."],[/^\+?T-/i,"Carro traslacion · exterior bajo tunel ext."]];
+ const UBI=[[/^\+?CBTH/i,"Armario CBTH (exterior)"],[/^\+?IT-/i,"Túnel interior"],[/^\+?ET-/i,"Túnel exterior"],[/^\+?MT-/i,"Túnel medio"],[/^\+?CO\d*-/i,"Columna rotonda"],
+  [/^\+?SS-/i,"Escalera servicio · ext."],[/^\+?P-/i,"Armario eléctrico pupitre"],[/^\+?E-/i,"Armario eléctrico principal"],[/^\+?R-/i,"Rotonda"],
+  [/^\+?C-/i,"Cabina"],[/^\+?H-/i,"Elevación · exterior"],[/^\+?T-/i,"Carro traslación · exterior"]];
  const ubica=n=>{const r=String(n.ref||"").trim();for(const [re,t] of UBI)if(re.test(r))return t;return n.ubicacion||""};
  function dibuja(d,C,o){const {cab,W,H,M,PR,AC,GR,fnt,pS}=o;if(!C||!Array.isArray(C.nodos)||!C.nodos.length)return;
   const BOT=H-16,X0=M,BW=90,SY=14,GAP=15,MX=X0+BW+3,BX=MX+14,BWm=W-M-BX;
@@ -81,7 +81,7 @@
    fnt(1,0,9.5);d.setTextColor(...PR);d.text(corta(d,pS(n.ref||"-"),BW-SY-24),X0+SY+5,y+5.5);d.setTextColor(0,0,0);
    if(n.folio){fnt(0,0,6.5);d.setTextColor(...GR);d.text(pS("fol. "+n.folio),X0+BW-2,y+4.5,{align:"right"});d.setTextColor(0,0,0)}
    const ub=pS(ubica(n));let uw=0;
-   if(ub){fnt(1,0,5.8);uw=Math.min(40,d.getTextWidth(ub)+4);d.setFillColor(255,236,214);d.setDrawColor(...AC);d.setLineWidth(.25);d.roundedRect(X0+BW-2-uw,y+6.2,uw,3.9,.9,.9,"FD");
+   if(ub){fnt(1,0,5.8);uw=Math.min(44,d.getTextWidth(ub)+4);d.setFillColor(255,236,214);d.setDrawColor(...AC);d.setLineWidth(.25);d.roundedRect(X0+BW-2-uw,y+6.2,uw,3.9,.9,.9,"FD");
     d.setTextColor(150,70,0);d.text(corta(d,ub,uw-2.5),X0+BW-2-uw/2,y+8.9,{align:"center"});d.setTextColor(0,0,0)}
    fnt(0,0,7);d.text(corta(d,pS(n.desc||n.tipo||""),BW-SY-8-(uw?uw+3:0)),X0+SY+5,y+9.3);
    const nb={x:X0,w:BW,top:y,h,bornas:[]};
