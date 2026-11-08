@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-// v351 (v362: tiempos máximos por modelo y sin datos; v364: modo croquis) · Consulta IA del SOS (actuación directa) en segundo plano.
+// v351 (v362: tiempos máximos por modelo y sin datos; v364: modo croquis; v373: gemini-3.8-flash, sin 2.5-flash retirado) · Consulta IA del SOS (actuación directa) en segundo plano.
 // La PWA manda el texto de la consulta (posición, alarma, observaciones) y el CONTEXTO ya preparado en el móvil:
 // guía de campo, comprobaciones por sistema, primera actuación, casos parecidos y las páginas de los planos
 // (texto extraído del bucket «planos», tabla kb_paginas) que mejor encajan con lo detectado.
@@ -84,7 +84,7 @@ async function claude(key: string, usuario: string): Promise<{ r: Response; mode
 }
 
 async function gemini(key: string, usuario: string): Promise<{ r: Response; modelo: string }> {
-  const lista = [Deno.env.get("GEMINI_MODEL"), "gemini-flash-latest", "gemini-3-flash-preview", "gemini-2.5-flash"].filter(Boolean) as string[];
+  const lista = [Deno.env.get("GEMINI_MODEL"), "gemini-3.8-flash", "gemini-flash-latest", "gemini-3-flash-preview"].filter(Boolean) as string[];
   let ult: Response | null = null, mod = "";
   for (const m of [...new Set(lista)]) {
     const cfg: Record<string, unknown> = { temperature: 0.2, maxOutputTokens: 8192 };
@@ -130,7 +130,7 @@ async function croquis(ka: string, kg: string, texto: string, info: string): Pro
     if (!r.ok) throw new Error(j?.error?.message || `Claude ${r.status}`);
     return { c: sacaJSON((j.content || []).map((p: { text?: string }) => p.text || "").join("")), modelo };
   }
-  const lista = [Deno.env.get("GEMINI_MODEL"), "gemini-flash-latest", "gemini-3-flash-preview", "gemini-2.5-flash"].filter(Boolean) as string[];
+  const lista = [Deno.env.get("GEMINI_MODEL"), "gemini-3.8-flash", "gemini-flash-latest", "gemini-3-flash-preview"].filter(Boolean) as string[];
   let err = "";
   for (const m of [...new Set(lista)]) {
     const cfg: Record<string, unknown> = { temperature: 0.1, maxOutputTokens: 6000, responseMimeType: "application/json" };
