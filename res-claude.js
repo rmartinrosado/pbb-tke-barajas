@@ -41,8 +41,12 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
  /* la caja de fichas (#otsc, fija bajo el panel) pasa a empezar justo bajo la cabecera, y el campo se coloca arriba (encima del teclado) */
  const cabBot=()=>{const h=document.querySelector("header");return h?Math.max(0,Math.round(h.getBoundingClientRect().bottom)):0};
  const plegar=on=>{if(on){const R=document.documentElement.style;R.setProperty("--rcTop",cabBot()+"px");const f=document.getElementById("pfix");if(f&&!document.body.classList.contains("rcEscribe")){const r=f.getBoundingClientRect();if(r.width>0){R.setProperty("--rcL",Math.round(r.left)+"px");R.setProperty("--rcW",Math.round(r.width)+"px")}}}document.body.classList.toggle("rcEscribe",!!on)};
- const coloca=t=>{try{const w=document.getElementById("otsc");if(!w||!t)return;const d=t.getBoundingClientRect().top-(cabBot()+70);if(Math.abs(d)>4)w.scrollTo({top:w.scrollTop+d,behavior:"smooth"})}catch(e){}};
- document.addEventListener("focusin",e=>{const t=e.target;if(t&&t.classList&&t.classList.contains("rcDf")){plegar(true);requestAnimationFrame(()=>coloca(t));setTimeout(()=>coloca(t),400)}});
+ const coloca=(t,suave)=>{try{const w=document.getElementById("otsc");if(!w||!t)return;const vv=window.visualViewport;const tope=Math.max(cabBot(),vv?Math.round(vv.offsetTop):0)+56;
+  const d=t.getBoundingClientRect().top-tope;if(Math.abs(d)>4)w.scrollTo({top:w.scrollTop+d,behavior:suave===false?"auto":"smooth"})}catch(e){}};
+ /* v371: con el teclado del iPhone la caja de fichas no encoge (llega hasta abajo de la pantalla): se le da hueco extra abajo
+    para poder subir los últimos campos por encima del teclado, y se recoloca cuando el teclado termina de salir */
+ try{window.visualViewport&&visualViewport.addEventListener("resize",()=>{const a=document.activeElement;if(a&&a.classList&&a.classList.contains("rcDf"))coloca(a,false)})}catch(e){}
+ document.addEventListener("focusin",e=>{const t=e.target;if(t&&t.classList&&t.classList.contains("rcDf")){plegar(true);requestAnimationFrame(()=>coloca(t,false));[350,700,1100].forEach(ms=>setTimeout(()=>{if(document.activeElement===t)coloca(t)},ms))}});
  document.addEventListener("focusout",e=>{const t=e.target;if(!(t&&t.classList&&t.classList.contains("rcDf")))return;setTimeout(()=>{const a=document.activeElement;if(a&&a.classList&&a.classList.contains("rcDf"))return;if(!rcAjEnCurso)plegar(false)},200)});
  function md(t,id){
   const L=String(t||"").replace(/\r/g,"").split("\n");let h="",i=0,df=false,dk=0;const items=[];
@@ -234,7 +238,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
 .rcDel{padding:4px 10px;margin:0}
 .cacts .gwa{order:-1}.gwa{color:#1fa855!important;border-color:#25d366!important}.gwa svg{width:22px!important;height:22px!important}
 .rcEd{margin-top:10px}
-body.rcEscribe #pfix,body.rcEscribe #pmini{display:none!important}\nbody.rcEscribe #otsc{top:var(--rcTop,0px)!important;left:var(--rcL,0px)!important;width:var(--rcW,100%)!important}
+body.rcEscribe #pfix,body.rcEscribe #pmini{display:none!important}\nbody.rcEscribe #otsc{padding-bottom:75vh!important;top:var(--rcTop,0px)!important;left:var(--rcL,0px)!important;width:var(--rcW,100%)!important}
 input.rcDf{display:block;width:100%;margin:5px 0 2px;padding:7px 9px!important;font-size:13.5px!important;border:1.5px dashed #d97757!important;border-radius:8px!important;background:#fff!important;color:#111!important;height:auto!important}
 .rcAj{margin:12px 0 4px}.rcAjB{display:block;width:100%;margin:0!important;padding:12px!important;border-radius:10px!important;border:0!important;background:linear-gradient(90deg,#5b2a86,#d97757)!important;color:#fff!important;font-weight:800!important;letter-spacing:.8px;font-size:14px!important}
 #rcPdfOv{position:fixed;inset:0;z-index:99990;background:rgba(10,10,20,.45);display:flex;align-items:flex-start;justify-content:center;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 0;transition:opacity .3s}
