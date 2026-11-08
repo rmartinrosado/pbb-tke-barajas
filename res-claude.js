@@ -34,7 +34,7 @@
  function bloque(i){const r=i.resClaude;if(!r||!(r.txt||"").trim())return"";
   const ed=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
   return `<details class="rcBox" ${ab.has(i.id)?"open":""} ontoggle="rcTog('${i.id}',this.open)" onclick="event.stopPropagation()">
-  <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>Resolución Claude AI</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}${/Gemini/i.test(r.por||"")?" · generada por Gemini (reserva)":""}</small></span><span class="rcChev">▾</span></summary>
+  <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>Resolución Claude AI</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}${/Gemini/i.test(r.por||"")?" · generada por Gemini (reserva)":""}</small></span><button class="rcPdf" title="PDF A4 de la resolución" aria-label="PDF A4 de la resolución" onclick="event.preventDefault();event.stopPropagation();rcPdf('${i.id}')">PDF</button><span class="rcChev">▾</span></summary>
   <div class="rcBody">${md(r.txt)}
   <div class="rcFoot"><span>Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar en campo.</span>${ed?`<button class="sec rcDel" title="Borrar resolución Claude" aria-label="Borrar resolución Claude" onclick="event.stopPropagation();rcBorra('${i.id}')">🗑</button>`:""}</div></div></details>`}
  window.rcBorra=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(!confirm(`¿Borrar la resolución Claude de la OT ${i.orden}?`))return;delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Resolución Claude borrada")};
@@ -129,6 +129,21 @@
  /* v355: la hoja de Resolución IA sale arriba (abajo la tapa el teclado) */
  new MutationObserver(()=>{const sh=document.getElementById("sheet"),c=document.getElementById("sheetc");if(sh&&c&&c.querySelector("#t_sel"))sh.classList.add("lpatop")}).observe(document.getElementById("sheetc")||document.body,{childList:true});
  const orT2=resTec;resTec=function(){const r=orT2.apply(this,arguments);try{ponBarra()}catch(e){}return r};
+
+ /* ===== v363: botón PDF junto a la caja «Resolución Claude AI»: PDF A4 con toda la resolución, para descargar o imprimir ===== */
+ window.rcPdf=async id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(typeof window.sosIaPdf!="function"){msg("El generador de PDF no está cargado");return}
+  msg("Generando el PDF A4…");
+  try{const r=i.resClaude,fe=new Date(r.ts||Date.now());
+   const S={pos:i.pos,tipo:i.tipo||"PAS",orden:i.orden,md:r.txt,fin:r.ts||Date.now(),motor:r.por||"Claude",cabTit:"RESOLUCION CLAUDE AI",
+    obs:[i.desc,i.def&&i.def!=i.desc?i.def:"",i.com?"Comentario: "+i.com:""].filter(Boolean).join(" · ")||"(sin descripción)",obsLbl:"Avería",
+    filas:[["Posición",`PBB ${i.pos||"-"} · ${i.tipo||"PAS"}`],["OT",`Orden CGA ${i.orden||"-"}`],["Fecha OT",`${i.fecha||"-"}${i.hIni?" · inicio "+i.hIni:""}${i.hLle?" · llegada "+i.hLle:""}`],
+     ["Técnicos",i.integrantes||i.tecnico||(typeof tecNombre!="undefined"&&tecNombre)||"-"],["Resolución",fe.toLocaleDateString("es-ES")+" "+fe.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})],["Motor IA",r.por||"Claude"]]};
+   const blob=await window.sosIaPdf(S);const d=new Date(r.ts||Date.now()),f2=n=>String(n).padStart(2,"0");
+   const nom=`Resolucion_PBB${i.pos}_OT${i.orden||""}_${d.getFullYear()}-${f2(d.getMonth()+1)}-${f2(d.getDate())}.pdf`;
+   const f=new File([blob],nom,{type:"application/pdf"});
+   if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:nom});return}catch(e){if(e&&e.name=="AbortError")return}}
+   const u=URL.createObjectURL(blob);const w=window.open(u,"_blank");if(!w){const a=document.createElement("a");a.href=u;a.download=nom;document.body.appendChild(a);a.click();a.remove()}
+   setTimeout(()=>URL.revokeObjectURL(u),120000)}catch(e){msg("No se pudo generar el PDF: "+((e&&e.message)||e))}};
  const st=document.createElement("style");st.textContent=`
 .rcBox{margin:10px 0 4px;border:1px solid rgba(217,119,87,.55);border-left:4px solid #d97757;border-radius:12px;background:linear-gradient(180deg,rgba(217,119,87,.10),rgba(217,119,87,.03));overflow:hidden}
 .rcSum{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;list-style:none}
@@ -138,6 +153,7 @@
 .rcSt{display:flex;flex-direction:column;line-height:1.2;flex:1;min-width:0}
 .rcSt b{font-size:15px;letter-spacing:.3px;color:#d97757}
 .rcSt small{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcPdf{flex:none;margin:0!important;padding:6px 10px!important;border-radius:8px!important;border:1.5px solid #c62828!important;background:#fff!important;color:#c62828!important;font-weight:800!important;font-size:12px!important;letter-spacing:.5px;height:auto!important;width:auto!important;line-height:1}
 .rcChev{font-size:16px;transition:transform .2s;color:#d97757}
 .rcBox[open] .rcChev{transform:rotate(180deg)}
 .rcBody{padding:2px 12px 10px;font-size:13.5px;line-height:1.45;text-align:left}

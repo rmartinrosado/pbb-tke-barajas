@@ -186,7 +186,7 @@ function runs(s){const o=[];const re=/(\*\*[^*]+\*\*|`[^`]+`)/g;let k=0,m;s=pS(s
 async function haceePdf(S){await cargaJsPDF();const {jsPDF}=window.jspdf;const d=new jsPDF({unit:"mm",format:"a4",orientation:"portrait"});
  const W=210,H=297,M=14,AN=W-2*M,TOP=24,BOT=H-16,PR=[74,26,116],AC=[230,108,0],GR=[90,90,90];let y=TOP;
  const fnt=(b,c,sz)=>{d.setFont(c?"courier":"helvetica",b?"bold":"normal");if(sz)d.setFontSize(sz)};
- const cab=()=>{d.setFillColor(...PR);d.rect(0,0,W,15,"F");d.setFillColor(...AC);d.rect(0,15,W,1.2,"F");d.setTextColor(255,255,255);fnt(1,0,11);d.text("SOS - ACTUACION DIRECTA",M,9.5);
+ const cab=()=>{d.setFillColor(...PR);d.rect(0,0,W,15,"F");d.setFillColor(...AC);d.rect(0,15,W,1.2,"F");d.setTextColor(255,255,255);fnt(1,0,11);d.text(pS(S.cabTit||"SOS - ACTUACION DIRECTA"),M,9.5);
   fnt(0,0,9);d.text(pS(`PBB ${S.pos} · ${S.tipo}${S.orden?" · OT "+S.orden:""}`),W-M,9.5,{align:"right"});d.setTextColor(0,0,0)};
  const nueva=()=>{d.addPage();cab();y=TOP};const sitio=h=>{if(y+h>BOT)nueva()};
  /* párrafo con negritas y código; x = margen izquierdo, w = ancho */
@@ -205,10 +205,10 @@ async function haceePdf(S){await cargaJsPDF();const {jsPDF}=window.jspdf;const d
  cab();
  /* ficha */
  fnt(1,0,15);d.setTextColor(...PR);d.text(pS(`Instrucciones de campo · PBB ${S.pos}`),M,y+2);y+=5;d.setDrawColor(...AC);d.setLineWidth(.6);d.line(M,y,M+60,y);y+=5;d.setTextColor(0,0,0);
- const fe=new Date(S.fin||Date.now());const F=[["Posición",`PBB ${S.pos||"-"} · ${S.tipo}`],["Alarma Magelis",S.al||"(no elegida)"],["OT",S.orden?`Orden CGA ${S.orden}`:"Sin OT abierta en la posición"],["Técnico",(typeof tecNombre!="undefined"&&tecNombre)||"-"],["Fecha",fe.toLocaleDateString("es-ES")+" "+fe.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})],["Motor IA",S.motor||"Claude"]];
+ const fe=new Date(S.fin||Date.now());const F=S.filas||[["Posición",`PBB ${S.pos||"-"} · ${S.tipo}`],["Alarma Magelis",S.al||"(no elegida)"],["OT",S.orden?`Orden CGA ${S.orden}`:"Sin OT abierta en la posición"],["Técnico",(typeof tecNombre!="undefined"&&tecNombre)||"-"],["Fecha",fe.toLocaleDateString("es-ES")+" "+fe.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})],["Motor IA",S.motor||"Claude"]];
  const fy=y;d.setFillColor(246,242,250);const obsL=(fnt(0,0,9),d.splitTextToSize(pS(S.obs),AN-34));const hF=F.length*5+obsL.length*4.2+8;d.roundedRect(M,fy-1,AN,hF,2,2,"F");y+=3;
  F.forEach(([k,v])=>{fnt(1,0,9);d.setTextColor(...GR);d.text(pS(k),M+3,y);fnt(0,0,9);d.setTextColor(0,0,0);d.text(d.splitTextToSize(pS(v),AN-36)[0]||"",M+33,y);y+=5});
- fnt(1,0,9);d.setTextColor(...GR);d.text("Observaciones",M+3,y);fnt(0,0,9);d.setTextColor(0,0,0);obsL.forEach(l=>{d.text(l,M+33,y);y+=4.2});y=fy+hF+4;
+ fnt(1,0,9);d.setTextColor(...GR);d.text(pS(S.obsLbl||"Observaciones"),M+3,y);fnt(0,0,9);d.setTextColor(0,0,0);obsL.forEach(l=>{d.text(l,M+33,y);y+=4.2});y=fy+hF+4;
  if(S.docs&&S.docs.length){fnt(1,0,8);d.setTextColor(...GR);d.text("Documentación cotejada:",M,y);y+=3.8;fnt(0,0,7.5);
   S.docs.forEach(x=>{const l=d.splitTextToSize(pS(`- ${x.n.replace(/^\d+_/,"")}: pág. ${x.p.join(", ")}`),AN);l.forEach(z=>{sitio(3.4);d.text(z,M+2,y);y+=3.4})});
   d.text(pS("- Guía de campo, comprobaciones por sistema, estado de LED del PLC y casos de la app PBB TKE."),M+2,y);y+=5;d.setTextColor(0,0,0)}
