@@ -41,13 +41,11 @@
  /* Ficha de OT: la zona va antes de la fila de botones */
  const oc=card;card=function(i){const h=oc.apply(this,arguments);const b=i&&bloque(i);if(!b)return h;
   const k=h.lastIndexOf('<div class="cacts">');return k>=0?h.slice(0,k)+b+h.slice(k):h.replace(/<\/div>\s*$/,b+"</div>")};
- /* Resolución IA: caja para pegar la respuesta de Claude y guardarla en la OT */
+ /* Resolución IA (v353): sin «Actuación guiada», sin «Pegar desde el portapapeles» y sin la caja para pegar la respuesta
+    (la respuesta llega sola con la consulta en segundo plano). El campo t_gui queda oculto: conserva la actuación guiada de la OT para la consulta. */
  const orT=resTec;resTec=function(sel){const r=orT.apply(this,arguments);try{
-  const s=$("#t_sel");if(!s)return r;const i=inc.find(x=>x.id==s.value);if(!i)return r;const sc=$("#sheetc");if(!sc||$("#rc_txt"))return r;
-  const d=document.createElement("div");d.className="rcEd";
-  d.innerHTML=`<label>Resolución Claude ${i.resClaude?'<span class="rcOk">● guardada</span>':""}</label><textarea id="rc_txt" rows="4" placeholder="Pega aquí la respuesta de Claude para verla en la ficha de la OT">${E(i.resClaude&&i.resClaude.txt)}</textarea>
-  <div class="grid" style="margin-top:6px"><button class="sec" onclick="rcPega()">Pegar</button><button class="pri" onclick="rcGuarda()">Guardar en la OT</button></div>`;
-  const cl=sc.querySelector('button[aria-label="Instrucciones IA"]');cl?cl.parentNode.insertBefore(d,cl.nextSibling):sc.appendChild(d)}catch(e){}return r};
+  const g=$("#t_gui");if(g){g.style.display="none";const lb=g.previousElementSibling;if(lb&&lb.tagName=="LABEL")lb.style.display="none"}
+  document.querySelectorAll('#sheetc button[onclick^="pegaGui"]').forEach(b=>b.style.display="none")}catch(e){}return r};
  window.rcPega=async()=>{try{const t=await navigator.clipboard.readText();if(t)$("#rc_txt").value=t;else msg("Portapapeles vacío")}catch(e){msg("No se pudo leer el portapapeles: pega con pulsación larga")}};
  window.rcGuarda=()=>{const s=$("#t_sel"),t=$("#rc_txt");if(!s||!t)return;const i=inc.find(x=>x.id==s.value);if(!i)return;const v=t.value.trim();
   if(v)i.resClaude={txt:v,ts:Date.now(),por:(typeof tecNombre!="undefined"&&tecNombre)||"Claude"};else{delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id)}
