@@ -34,7 +34,7 @@
  function bloque(i){const r=i.resClaude;if(!r||!(r.txt||"").trim())return"";
   const ed=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
   return `<details class="rcBox" ${ab.has(i.id)?"open":""} ontoggle="rcTog('${i.id}',this.open)" onclick="event.stopPropagation()">
-  <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>RESOLUCIÓN CLAUDE</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}</small></span><span class="rcChev">▾</span></summary>
+  <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>Resolución Claude AI</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}</small></span><span class="rcChev">▾</span></summary>
   <div class="rcBody">${md(r.txt)}
   <div class="rcFoot"><span>Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar en campo.</span>${ed?`<button class="sec rcDel" title="Borrar resolución Claude" aria-label="Borrar resolución Claude" onclick="event.stopPropagation();rcBorra('${i.id}')">🗑</button>`:""}</div></div></details>`}
  window.rcBorra=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(!confirm(`¿Borrar la resolución Claude de la OT ${i.orden}?`))return;delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Resolución Claude borrada")};
@@ -56,9 +56,10 @@
 .rcBox{margin:10px 0 4px;border:1px solid rgba(217,119,87,.55);border-left:4px solid #d97757;border-radius:12px;background:linear-gradient(180deg,rgba(217,119,87,.10),rgba(217,119,87,.03));overflow:hidden}
 .rcSum{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;list-style:none}
 .rcSum::-webkit-details-marker{display:none}
+.rcBox>summary.rcSum::after{content:none!important;display:none!important}
 .rcSum img{width:30px;height:30px;flex:0 0 30px;border-radius:7px}
 .rcSt{display:flex;flex-direction:column;line-height:1.2;flex:1;min-width:0}
-.rcSt b{font-size:13.5px;letter-spacing:.8px;color:#d97757}
+.rcSt b{font-size:15px;letter-spacing:.3px;color:#d97757}
 .rcSt small{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rcChev{font-size:16px;transition:transform .2s;color:#d97757}
 .rcBox[open] .rcChev{transform:rotate(180deg)}
