@@ -14,6 +14,11 @@ const o=segOT;
 window.segOT=segOT=function(i){const S=o.apply(this,arguments);if(!S||!S.lim)return S;
  const t=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
  const s=RSEG.test(t),n=RNOR.test(t);S.limT=s&&!n?"seg":"nor";S.limDef=!s&&!n;S.limMix=s&&n;
+ /* v382: si la OT dice el sentido (superior / inferior, izquierda / derecha) solo quedan los elementos de ese sentido */
+ {const up=/\bsuperior|\barriba\b|\bsub(e|ir|iendo)\b/.test(t),dn=/\binferior|\babajo\b|\bbaj(a|ar|ando)\b/.test(t),iz=/izquierd/.test(t),de=/derech/.test(t);
+  if(up!==dn||iz!==de)S.zs=S.zs.map(z=>({...z,it:z.it.filter(it=>{const nm=segNorm(it[4]);const U=/superior/.test(nm),D=/inferior/.test(nm),I=/izquierd/.test(nm),R=/derech/.test(nm);
+   if(up&&!dn&&D&&!U)return false;if(dn&&!up&&U&&!D)return false;if(iz&&!de&&R&&!I)return false;if(de&&!iz&&I&&!R)return false;return true})})).filter(z=>z.it.length);
+  S.sentido=up&&!dn?"superior":dn&&!up?"inferior":iz&&!de?"izquierda":de&&!iz?"derecha":""}
  S.itSeg=[];S.itNor=[];S.zs.forEach(z=>z.it.forEach(it=>(esSeg(it)?S.itSeg:S.itNor).push(it)));
  if(!S.itSeg.length&&S.itNor.length)S.limT="nor";else if(!S.itNor.length&&S.itSeg.length)S.limT="seg";
  return S};
