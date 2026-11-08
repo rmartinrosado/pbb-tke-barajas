@@ -1,6 +1,6 @@
 {
- "name": "PBB TKE Mantenimiento",
- "short_name": "PBB TKE",
+ "name": "PBB TKE Maintenance",
+ "short_name": "PBB TKE Maintenance",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
