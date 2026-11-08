@@ -77,13 +77,13 @@
  /* ===== v352: botón Claude de la Resolución IA → consulta en SEGUNDO PLANO (función consulta-sos, la misma del SOS):
     no abre Claude.ai; barra de progreso debajo del icono de Claude; al terminar se cierra la pantalla y la respuesta
     aparece en la ficha de la OT, en «Resolución Claude AI», desplegada en la «Primera actuación en campo». ===== */
- let JOB=null;
+ let JOB=null;const J_viejo=()=>!!JOB&&!!JOB.fin&&Date.now()-JOB.fin>60000&&!document.getElementById("rc_prog"); /* v362: un error o resultado de hace más de 1 min no se vuelve a enseñar al abrir la hoja */
  const pbar=()=>{const c=document.getElementById("rc_prog");if(!c||!JOB)return;const j=JOB,pc=Math.round(j.pct||0),sg=Math.round(((j.fin||Date.now())-j.ini)/1000);
   c.innerHTML=`<div class="rcPg${j.err?" err":""}"><div class="rcPgB"><i style="width:${j.err?100:pc}%"></i></div>
   <div class="rcPgM"><span>${E(j.err?"No se ha podido completar la consulta":j.fase||"")}</span><b>${j.err?"":pc+"% · "}${sg} s</b></div>
   ${j.err?`<div class="rcPgE">${E(j.err)}</div><div class="grid" style="margin-top:6px"><button class="sec" onclick="rcReintenta()">Reintentar</button><button class="sec" onclick="rcEnClaude()">Abrir en Claude.ai</button></div>`
   :`${j.vista?`<div class="rcPgV">${E(j.vista)}</div>`:""}<button class="sec" style="width:100%;margin-top:6px" onclick="rcCancela()">Cancelar</button>`}</div>`};
- const ponBarra=()=>{if(!JOB)return;const s=$("#t_sel");if(!s||s.value!=JOB.id)return;if(!document.getElementById("rc_prog")){
+ const ponBarra=()=>{if(!JOB)return;if(J_viejo())return;const s=$("#t_sel");if(!s||s.value!=JOB.id)return;if(!document.getElementById("rc_prog")){
   const cl=document.querySelector('#sheetc button[aria-label="Instrucciones IA"]');const d=document.createElement("div");d.id="rc_prog";
   cl?cl.insertAdjacentElement("afterend",d):$("#sheetc").appendChild(d)}pbar()};
  window.rcCancela=()=>{if(JOB&&JOB.ac)JOB.ac.abort()};
@@ -108,7 +108,7 @@
    J.esperando=true;
    let r=null;for(let k=0;;k++){try{r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:J.ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({pregunta:pr,contexto})});break}
     catch(e){if(e&&e.name=="AbortError"||k>=2)throw (e&&/load failed|failed to fetch|network/i.test(e.message||"")?new Error("Sin conexión con el servidor (corte de red). Comprueba la cobertura y pulsa Reintentar."):e);av(`Corte de red · reintentando (${k+1}/2)…`,19);await new Promise(z=>setTimeout(z,2500))}}
-   if(!r.ok){let m="";try{const j=await r.json();m=j.mensaje||j.error||""}catch(e){}throw new Error(`La consulta ha fallado (${r.status}) ${m}`)}
+   if(!r.ok){let m="";try{const j=await r.json();m=j.mensaje||j.msg||j.error||""}catch(e){}throw new Error([504,546].includes(r.status)?`El servidor de IA no respondió a tiempo (${r.status}). Pulsa Reintentar.`:`La consulta ha fallado (${r.status}) ${m}`)}
    J.motor=(r.headers.get("x-motor")||"Claude").replace(" - "," · ");J.esperando=false;av((/Gemini/.test(J.motor)?"Gemini":"Claude")+" está redactando la resolución…",25);
    const rd=r.body.getReader(),dec=new TextDecoder();let txt="";
    for(;;){const {done,value}=await rd.read();if(done)break;txt+=dec.decode(value,{stream:true});

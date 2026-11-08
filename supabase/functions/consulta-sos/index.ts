@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-// v351 · Consulta IA del SOS (actuación directa) en segundo plano.
+// v351 (v362: tiempos máximos por modelo y sin datos) · Consulta IA del SOS (actuación directa) en segundo plano.
 // La PWA manda el texto de la consulta (posición, alarma, observaciones) y el CONTEXTO ya preparado en el móvil:
 // guía de campo, comprobaciones por sistema, primera actuación, casos parecidos y las páginas de los planos
 // (texto extraído del bucket «planos», tabla kb_paginas) que mejor encajan con lo detectado.
@@ -38,11 +38,19 @@ async function deVault(n: string): Promise<string> {
   try {
     const u = Deno.env.get("SUPABASE_URL"), k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!u || !k) return "";
-    const r = await fetch(`${u}/rest/v1/rpc/clave_lector`, { method: "POST", headers: { apikey: k, Authorization: `Bearer ${k}`, "Content-Type": "application/json" }, body: JSON.stringify({ n }) });
+    const r = await conTiempo(`${u}/rest/v1/rpc/clave_lector`, { method: "POST", headers: { apikey: k, Authorization: `Bearer ${k}`, "Content-Type": "application/json" }, body: JSON.stringify({ n }) }, 8000);
     if (!r.ok) return "";
     const v = await r.json();
     return typeof v === "string" ? v : "";
   } catch { return ""; }
+}
+
+// v362: fetch con tiempo máximo hasta recibir las cabeceras (si el modelo no contesta, se pasa al siguiente en vez de colgar 150 s)
+async function conTiempo(url: string, init: RequestInit, ms: number): Promise<Response> {
+  const ac = new AbortController(); const t = setTimeout(() => ac.abort(), ms);
+  try { return await fetch(url, { ...init, signal: ac.signal }); }
+  catch (e) { if ((e as Error).name === "AbortError") return new Response(JSON.stringify({ error: { message: `sin respuesta en ${Math.round(ms / 1000)} s` } }), { status: 504 }); throw e; }
+  finally { clearTimeout(t); }
 }
 
 // Lee un stream SSE y llama a onData con cada «data: …» ya parseado
@@ -50,7 +58,8 @@ async function sse(body: ReadableStream<Uint8Array>, onData: (d: any) => void) {
   const rd = body.getReader(), dec = new TextDecoder();
   let buf = "";
   for (;;) {
-    const { done, value } = await rd.read();
+    let tm: number | undefined;
+    const { done, value } = await Promise.race([rd.read(), new Promise<never>((_, rej) => { tm = setTimeout(() => rej(new Error("el modelo dejó de responder (45 s sin datos)")), 45000); })]).finally(() => clearTimeout(tm));
     if (done) break;
     buf += dec.decode(value, { stream: true });
     let k;
@@ -66,11 +75,11 @@ async function sse(body: ReadableStream<Uint8Array>, onData: (d: any) => void) {
 
 async function claude(key: string, usuario: string): Promise<{ r: Response; modelo: string }> {
   const modelo = Deno.env.get("ANTHROPIC_MODEL_SOS") || Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5-5";
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
+  const r = await conTiempo("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: modelo, max_tokens: 7000, stream: true, system: SISTEMA, messages: [{ role: "user", content: usuario }] }),
-  });
+  }, 60000);
   return { r, modelo };
 }
 
@@ -81,14 +90,14 @@ async function gemini(key: string, usuario: string): Promise<{ r: Response; mode
     const cfg: Record<string, unknown> = { temperature: 0.2, maxOutputTokens: 8192 };
     if (/gemini-3/.test(m)) cfg.thinkingConfig = { thinkingLevel: "low" };
     else if (/2\.5-flash/.test(m)) cfg.thinkingConfig = { thinkingBudget: 1024 };
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:streamGenerateContent?alt=sse`, {
+    const r = await conTiempo(`https://generativelanguage.googleapis.com/v1beta/models/${m}:streamGenerateContent?alt=sse`, {
       method: "POST", headers: { "x-goog-api-key": key, "content-type": "application/json" },
       body: JSON.stringify({ systemInstruction: { parts: [{ text: SISTEMA }] }, contents: [{ role: "user", parts: [{ text: usuario }] }], generationConfig: cfg }),
-    });
+    }, 30000);
     if (r.ok) return { r, modelo: m };
     ult = r; mod = m;
     console.log("consulta-sos: gemini", m, r.status);
-    if (![400, 404, 500, 503].includes(r.status)) break;
+    if (![400, 404, 429, 500, 503, 504].includes(r.status)) break;
   }
   return { r: ult!, modelo: mod };
 }
