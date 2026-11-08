@@ -37,7 +37,7 @@
   <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>RESOLUCIÓN CLAUDE</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}</small></span><span class="rcChev">▾</span></summary>
   <div class="rcBody">${md(r.txt)}
   <div class="rcFoot"><span>Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar en campo.</span>${ed?`<button class="sec rcDel" title="Borrar resolución Claude" aria-label="Borrar resolución Claude" onclick="event.stopPropagation();rcBorra('${i.id}')">🗑</button>`:""}</div></div></details>`}
- window.rcBorra=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(!confirm(`¿Borrar la resolución Claude de la OT ${i.orden}?`))return;delete i.resClaude;sv("pbb_inc",inc);render();msg("Resolución Claude borrada")};
+ window.rcBorra=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(!confirm(`¿Borrar la resolución Claude de la OT ${i.orden}?`))return;delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Resolución Claude borrada")};
  /* Ficha de OT: la zona va antes de la fila de botones */
  const oc=card;card=function(i){const h=oc.apply(this,arguments);const b=i&&bloque(i);if(!b)return h;
   const k=h.lastIndexOf('<div class="cacts">');return k>=0?h.slice(0,k)+b+h.slice(k):h.replace(/<\/div>\s*$/,b+"</div>")};
@@ -50,7 +50,7 @@
   const cl=sc.querySelector('button[aria-label="Instrucciones IA"]');cl?cl.parentNode.insertBefore(d,cl.nextSibling):sc.appendChild(d)}catch(e){}return r};
  window.rcPega=async()=>{try{const t=await navigator.clipboard.readText();if(t)$("#rc_txt").value=t;else msg("Portapapeles vacío")}catch(e){msg("No se pudo leer el portapapeles: pega con pulsación larga")}};
  window.rcGuarda=()=>{const s=$("#t_sel"),t=$("#rc_txt");if(!s||!t)return;const i=inc.find(x=>x.id==s.value);if(!i)return;const v=t.value.trim();
-  if(v)i.resClaude={txt:v,ts:Date.now(),por:(typeof tecNombre!="undefined"&&tecNombre)||"Claude"};else delete i.resClaude;
+  if(v)i.resClaude={txt:v,ts:Date.now(),por:(typeof tecNombre!="undefined"&&tecNombre)||"Claude"};else{delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id)}
   ab.add(i.id);sv("pbb_inc",inc);msg(v?"Resolución Claude guardada en la OT "+i.orden:"Resolución Claude borrada");closeSheet();render()};
  const st=document.createElement("style");st.textContent=`
 .rcBox{margin:10px 0 4px;border:1px solid rgba(217,119,87,.55);border-left:4px solid #d97757;border-radius:12px;background:linear-gradient(180deg,rgba(217,119,87,.10),rgba(217,119,87,.03));overflow:hidden}
