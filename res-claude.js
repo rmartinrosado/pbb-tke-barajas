@@ -40,7 +40,17 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
  let rcAjEnCurso=false;
  /* la caja de fichas (#otsc, fija bajo el panel) pasa a empezar justo bajo la cabecera, y el campo se coloca arriba (encima del teclado) */
  const cabBot=()=>{const h=document.querySelector("header");return h?Math.max(0,Math.round(h.getBoundingClientRect().bottom)):0};
- const plegar=on=>{if(on){const R=document.documentElement.style;R.setProperty("--rcTop",cabBot()+"px");const f=document.getElementById("pfix");if(f&&!document.body.classList.contains("rcEscribe")){const r=f.getBoundingClientRect();if(r.width>0){R.setProperty("--rcL",Math.round(r.left)+"px");R.setProperty("--rcW",Math.round(r.width)+"px")}}}document.body.classList.toggle("rcEscribe",!!on)};
+ /* v381: «modo foco»: el Panel de control se pliega mientras hay en pantalla una actuación o resolución abierta
+    (caja Resolución Claude AI desplegada, PDF incrustado, SOS / guía / cualquier hoja abierta, o escribiendo en «Datos que faltan»)
+    y se despliega solo al cerrarlas o cancelarlas */
+ let escribe=false,focoOn=false;
+ const sheetAbierta=()=>{const sh=document.getElementById("sheet");return !!sh&&getComputedStyle(sh).display!="none"};
+ const quiereFoco=()=>escribe||rcAjEnCurso||sheetAbierta()||!!document.querySelector("#otsc details[open],#otsc .rcPdfB");
+ const aplicaFoco=()=>{const on=quiereFoco();if(on&&!focoOn){const R=document.documentElement.style;R.setProperty("--rcTop",cabBot()+"px");const f=document.getElementById("pfix");
+   if(f){const r=f.getBoundingClientRect();if(r.width>0){R.setProperty("--rcL",Math.round(r.left)+"px");R.setProperty("--rcW",Math.round(r.width)+"px")}}}
+  if(on!==focoOn){focoOn=on;document.body.classList.toggle("rcFoco",on)}document.body.classList.toggle("rcEscribe",escribe)};
+ const plegar=on=>{escribe=!!on;aplicaFoco()};
+ setInterval(aplicaFoco,400);document.addEventListener("toggle",()=>setTimeout(aplicaFoco,0),true);document.addEventListener("click",()=>setTimeout(aplicaFoco,50),true);
  const coloca=(t,suave)=>{try{const w=document.getElementById("otsc");if(!w||!t)return;const vv=window.visualViewport;const tope=Math.max(cabBot(),vv?Math.round(vv.offsetTop):0)+56;
   const d=t.getBoundingClientRect().top-tope;if(Math.abs(d)>4)w.scrollTo({top:w.scrollTop+d,behavior:suave===false?"auto":"smooth"})}catch(e){}};
  /* v371: con el teclado del iPhone la caja de fichas no encoge (llega hasta abajo de la pantalla): se le da hueco extra abajo
@@ -284,7 +294,7 @@ button.rcPdfX{width:32px!important;height:32px!important;margin:0!important;padd
 .rcPdfBt{display:grid!important;grid-template-columns:1.3fr 1fr 1fr;gap:6px;margin-top:8px}.rcPdfBt>*{margin:0!important;text-align:center;display:flex;align-items:center;justify-content:center;padding:10px 6px!important;font-size:13px!important;text-decoration:none;border-radius:9px}
 .rcPdfV{margin-top:8px;background:#6b6b6b;border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:6px;max-height:70vh;overflow:auto;-webkit-overflow-scrolling:touch}
 .rcPdfV img{width:100%;display:block;background:#fff;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-body.rcEscribe #pfix,body.rcEscribe #pmini{display:none!important}\nbody.rcEscribe #otsc{padding-bottom:75vh!important;top:var(--rcTop,0px)!important;left:var(--rcL,0px)!important;width:var(--rcW,100%)!important}
+body.rcFoco #pfix,body.rcFoco #pmini{display:none!important}\nbody.rcFoco #otsc{top:var(--rcTop,0px)!important;left:var(--rcL,0px)!important;width:var(--rcW,100%)!important}\nbody.rcEscribe #otsc{padding-bottom:75vh!important}
 input.rcDf{display:block;width:100%;margin:5px 0 2px;padding:7px 9px!important;font-size:13.5px!important;border:1.5px dashed #d97757!important;border-radius:8px!important;background:#fff!important;color:#111!important;height:auto!important}
 .rcAj{margin:12px 0 4px}.rcAjB{display:block;width:100%;margin:0!important;padding:12px!important;border-radius:10px!important;border:0!important;background:linear-gradient(90deg,#5b2a86,#d97757)!important;color:#fff!important;font-weight:800!important;letter-spacing:.8px;font-size:14px!important}
 #rcPdfOv{position:fixed;inset:0;z-index:99990;background:rgba(10,10,20,.45);display:flex;align-items:flex-start;justify-content:center;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 0;transition:opacity .3s}
