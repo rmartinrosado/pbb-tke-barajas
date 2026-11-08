@@ -187,7 +187,11 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
   const P=pdfProg(`PDF A4 · PBB ${i.pos} · OT ${i.orden||""}`);
   try{const r=i.resClaude,fe=new Date(r.ts||Date.now());
    P.fase("Preparando la resolución…",5);
-   if(!r.croquis&&window.iaCroquis){P.fase("Dibujando el croquis de conexión (IA)…",10);P.sube(78);try{r.croquis=await window.iaCroquis(r.txt,i.pos,i.tipo);sv("pbb_inc",inc)}catch(e){console.warn("croquis",e);P.aviso("PDF SIN CROQUIS")}}
+   if((!r.croquis||r.croquis.local)&&window.iaCroquis){P.fase("Dibujando el croquis de conexión (IA)…",10);P.sube(78);
+    try{r.croquis=await window.iaCroquis(r.txt,i.pos,i.tipo);sv("pbb_inc",inc)}
+    catch(e){console.warn("croquis IA",e);/* v374: sin cupo de IA → croquis de reserva sacado de la propia resolución */
+     let c=null;try{c=window.croquisLocal&&window.croquisLocal(r.txt,i.pos,i.tipo)}catch(x){}
+     if(c&&c.nodos&&c.nodos.length>=2){r.croquis=c;sv("pbb_inc",inc);P.fase("Croquis automático (sin IA)…",80);P.aviso("CROQUIS AUTOMÁTICO · SIN IA")}else{r.croquis=null;P.aviso("PDF SIN CROQUIS")}}}
    P.fase("Maquetando el PDF A4…",82);
    const S={pos:i.pos,tipo:i.tipo||"PAS",orden:i.orden,md:r.txt,croquis:r.croquis||null,fin:r.ts||Date.now(),motor:r.por||"Claude",cabTit:"RESOLUCION CLAUDE AI",
     obs:[i.desc,i.def&&i.def!=i.desc?i.def:"",i.com?"Comentario: "+i.com:""].filter(Boolean).join(" · ")||"(sin descripción)",obsLbl:"Avería",

@@ -48,6 +48,7 @@
    d.text(pS(t),M+3,y);d.setTextColor(0,0,0);y+=6;return y};
   let y=nuevaPag("Croquis de conexion por bloques · origen -> destino");
   fnt(1,0,10);d.setTextColor(...PR);d.text(corta(d,pS(C.titulo||C.elemento||"Elemento a inspeccionar"),W-2*M),M,y+2);d.setTextColor(0,0,0);y+=5.5;
+  if(C.local){fnt(1,0,7.5);d.setTextColor(230,81,0);d.text(pS("Croquis automático sin IA: referencias extraídas de la resolución (cupo de IA agotado). Confirmar en el plano."),M,y);y+=4.2}
   fnt(0,0,8);d.setTextColor(...GR);const sub=[C.elemento&&C.titulo?("Elemento: "+C.elemento):"",C.tension?("Tension: "+C.tension):"",C.plano?("Plano: "+C.plano):""].filter(Boolean).join("   ·   ");
   if(sub){d.text(corta(d,pS(sub),W-2*M),M,y);y+=4.5}d.setTextColor(0,0,0);
   /* cabeceras de columna */
@@ -117,5 +118,50 @@
   d.setFillColor(...AM);d.setDrawColor(190,150,0);d.roundedRect(M+100,py-2.6,10,3.8,.8,.8,"FD");d.text("Manguera / cable",M+112,py+1);
   d.setDrawColor(...NG);d.setFillColor(255,255,255);d.rect(M+145,py-2.5,3.8,3.8,"FD");d.circle(M+146.9,py-.6,.8);d.text("Borna numerada",M+150,py+1);
   fnt(0,0,6);d.setTextColor(...GR);d.text(pS("Croquis generado por IA a partir de la resolucion y la documentacion del proyecto: confirmar bornas e hilos en el plano antes de medir."),M,py+6);d.setTextColor(0,0,0)}
+
+ /* ===== v374: croquis de RESERVA sin IA (cuando Google agota el cupo o no responde) =====
+    Saca de la propia resolución las referencias EPLAN (equipos, PLC, relés, borneros con sus bornas, mangueras e hilos,
+    folios) y las medidas con polímetro, y las ordena de origen (alimentación / PLC) a destino (elemento de campo). */
+ function croquisLocal(md,pos,tipo){const T=String(md||"").replace(/\r/g,"");const plano=T.replace(/[*`_]/g,"");
+  const RE=/\+?\b([A-Z]{1,5}\d?-[A-Z]{1,3}\d{1,3}(?:\.\d{1,2})?)\b(?:\s*:\s*([0-9]{1,3}(?:\.[0-9])?|[A-Z]{1,2}\d{0,2}))?/g;
+  const nodos=new Map(),cables=new Map(),orden=[];let m;
+  const clase=r=>{const k=(r.split("-")[1]||"").replace(/\d.*$/,"");return k};
+  const TIPO={A:"plc",X:"bornero",K:"rele",B:"sensor",S:"pulsador",M:"motor",H:"lampara",E:"lampara",Y:"valvula",Q:"fuente",F:"fuente",G:"fuente",T:"fuente",U:"equipo",V:"equipo",R:"sensor",P:"equipo",CON:"conector"};
+  const DESC={plc:"Módulo PLC",bornero:"Bornero de interconexión",rele:"Relé / contactor",sensor:"Sensor / final de carrera",pulsador:"Pulsador / selector",motor:"Motor",lampara:"Señal / lámpara",valvula:"Electroválvula",fuente:"Alimentación / protección",equipo:"Equipo",conector:"Conector"};
+  const RANGO={fuente:0,plc:1,rele:2,bornero:3,conector:4,caja:4,equipo:5,sensor:6,pulsador:6,motor:6,lampara:6,valvula:6};
+  while((m=RE.exec(plano))){const ref=m[1],k=clase(ref);if(!k)continue;
+   if(k=="W"){const c=cables.get(ref)||{ref,hilos:new Set(),pos:m.index};const near=plano.slice(m.index,m.index+120);(near.match(/hilos?\s*(?:n[ºo.]*\s*)?((?:\d{2,4}[\s,y/·-]*)+)/i)||[,""])[1].split(/[^\d]+/).filter(Boolean).forEach(h=>c.hilos.add(h));
+    const ty=near.match(/\b(\d{1,2}\s*[x×]\s*\d+(?:[.,]\d+)?)\b/i);if(ty&&!c.tipo)c.tipo=ty[1].replace("×","x");cables.set(ref,c);continue}
+   const tp=/CON/.test(k)?"conector":(TIPO[k]||"equipo");
+   let n=nodos.get(ref);if(!n){n={id:"N"+(nodos.size+1),ref,tipo:tp,bornas:new Map(),pos:m.index};nodos.set(ref,n);orden.push(ref)}
+   const ctx=plano.slice(m.index,m.index+90);
+   if(m[2])n.bornas.set(m[2],{n:m[2]});
+   (ctx.match(/\b(?:DIN|DI|DO|IN|OUT)\s?\d+(?:\.\d)?\b/gi)||[]).slice(0,3).forEach(b=>n.bornas.set(b.toUpperCase(),{n:b.toUpperCase().replace(/\s/g,"")}));
+   const ml=ctx.match(/m[oó]d(?:ulo|\.)?\s*(\d+)[^.\n]{0,12}?LED\s*(\d+)/i);if(ml&&tp=="plc")n.bornas.set("M"+ml[1]+"."+ml[2],{n:ml[1]+"."+ml[2],senal:"LED"});
+   if(!n.folio){const f=plano.slice(Math.max(0,m.index-40),m.index+100).match(/folio\s*(\d{1,3})/i);if(f)n.folio=f[1]}
+   {const pa=plano.slice(m.index+m[0].length,m.index+m[0].length+60).match(/^\s*\(([^)]{2,40})\)/);if(pa){if(m[2]){const b=n.bornas.get(m[2]);if(b&&!b.senal)b.senal=pa[1].replace(/hilo\s*\d+/i,"").trim()}else if(!n.desc)n.desc=pa[1]}}
+   const hl=ctx.match(/hilo\s*(\d{2,4})/i);if(hl&&m[2]){const b=n.bornas.get(m[2]);if(b&&!b.hilo)b.hilo=hl[1]}}
+  /* orden: origen → destino, y como máximo 8 bloques (los más citados primero si sobran) */
+  let L=[...nodos.values()];const cuenta=r=>(plano.match(new RegExp(r.replace(/[.+]/g,"\\$&"),"g"))||[]).length;
+  if(L.length>8)L=L.sort((a,b)=>cuenta(b.ref)-cuenta(a.ref)).slice(0,8);
+  L.sort((a,b)=>(RANGO[a.tipo]??5)-(RANGO[b.tipo]??5)||a.pos-b.pos);
+  L.forEach((n,i)=>{n.id="N"+(i+1);n.desc=n.desc||DESC[n.tipo]||"";n.bornas=[...n.bornas.values()].slice(0,8)});
+  /* mangueras: entre bloques consecutivos, en orden de aparición */
+  const cs=[...cables.values()].sort((a,b)=>a.pos-b.pos);const cab=[];
+  for(let i=0;i<L.length-1;i++){const c=cs[i];cab.push({de:L[i].id,a:L[i+1].id,ref:c?c.ref:"",tipo:c&&c.tipo||"",hilos:c?[...c.hilos]:[]})}
+  /* medidas: líneas con magnitud o «medir», con la primera referencia (punta roja) y la segunda o 0 V (punta negra) */
+  const med=[];const lineas=plano.split("\n");
+  for(let i=0;i<lineas.length&&med.length<6;i++){const l=lineas[i];if(/^\s*[-*]?\s*(in)?correcto/i.test(l)||!(/(medi[dr]|polímetro|continuidad)/i.test(l)||/(VDC|VAC|\bV\b|Ω|\bohm|\bmA\b)/.test(l)))continue;
+   const refs=[...l.matchAll(/\b([A-Z]{1,5}\d?-[A-Z]{1,3}\d{1,3}(?:\.\d{1,2})?)(?:\s*:\s*([\w.]+))?/g)].filter(x=>clase(x[1])!="W");if(!refs.length)continue;
+   const nd=L.find(n=>n.ref==refs[0][1]);if(!nd)continue;const clave=refs.slice(0,2).map(x=>x[0]).join("|");if(med.some(z=>z._k==clave))continue;
+   const fmt=x=>x[1]+(x[2]?":"+x[2]:"");const blk=lineas.slice(i,i+4).join(" ");
+   const mag=(blk.match(/\b(VDC|VAC|Vdc|Vac|Ω|ohm|mA|bar)\b/)||[,""])[1].replace(/ohm/i,"Ω").toUpperCase().replace("Ω","Ω")||(/continuidad/i.test(blk)?"Ω":"V");
+   const esp=(blk.match(/(?:esperado|correcto)\s*(?:->|=>|→|:)?\s*([^.;\n]{3,60})/i)||blk.match(/(\d+\s*(?:VDC|VAC|V|Ω|mA))/i)||[,""])[1].trim();
+   const si=(blk.match(/incorrecto\s*(?:->|=>|→|:)?\s*([^.;\n]{3,70})/i)||[,""])[1].trim();
+   med.push({_k:clave,id:"M"+(med.length+1),nodo:nd.id,magnitud:mag,roja:fmt(refs[0]),negra:refs[1]?fmt(refs[1]):"0 V / COM del mismo bornero",esperado:esp||"-",si_no:si})}
+  const tit=(T.match(/^#\s+(.+)$/m)||[,""])[1].replace(/[*`]/g,"").trim();
+  return{local:true,titulo:tit||`PBB ${pos||""} · ${tipo||""}`,elemento:(L.find(n=>tit&&tit.includes(n.ref))||L.find(n=>/sensor|motor|lampara|valvula/.test(n.tipo))||L.find(n=>RANGO[n.tipo]>=6)||{}).ref||"",tension:(plano.match(/\b(24\s?V(?:DC|dc)?|230\s?V(?:AC|ac)?|400\s?V(?:AC|ac)?)\b/)||[,""])[1],
+   plano:/\b50[48]\b/.test(String(pos))?"T87911031260 (504/508)":String(pos)=="507"?"T87911031230 (507)":"ESQUEMA GENERAL rev. J",nodos:L.map(({pos,...n})=>n),cables:cab,medidas:med.map(({_k,...x})=>x)}}
+ window.croquisLocal=croquisLocal;
  window.pdfCroquis=dibuja;
 })();
