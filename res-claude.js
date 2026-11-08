@@ -126,25 +126,41 @@
  const ab0=abreClaude;let bg=null;
  abreClaude=function(pr){if(bg){const id=bg;bg=null;try{localStorage.removeItem("pbb_ret")}catch(e){}rcConsulta(id,pr);return}return ab0.apply(this,arguments)};
  const ogt=window.guardaTec;window.guardaTec=function(){const s=$("#t_sel");bg=s&&s.value||null;try{return ogt.apply(this,arguments)}finally{bg=null}};
+ /* v367: cualquier hoja con campos para escribir sale ARRIBA (el teclado no la tapa) y el campo enfocado se centra */
+ const CAMPO='input:not([type=hidden]):not([type=file]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=button]):not([type=submit]),textarea';
+ const arriba=()=>{const sh=document.getElementById("sheet"),c=document.getElementById("sheetc");if(sh&&c&&c.querySelector(CAMPO))sh.classList.add("lpatop")};
+ new MutationObserver(arriba).observe(document.getElementById("sheetc")||document.body,{childList:true});
+ document.addEventListener("focusin",e=>{const t=e.target;if(!t||!t.matches||!t.matches(CAMPO))return;if(t.closest("#sheet"))arriba();
+  if(t.closest("#sheet,[role=dialog],.modal,.ov,.ovl")||getComputedStyle(t.closest("div")||t).position=="fixed")setTimeout(()=>{try{t.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}},320)});
  /* v355: la hoja de Resolución IA sale arriba (abajo la tapa el teclado) */
  new MutationObserver(()=>{const sh=document.getElementById("sheet"),c=document.getElementById("sheetc");if(sh&&c&&c.querySelector("#t_sel"))sh.classList.add("lpatop")}).observe(document.getElementById("sheetc")||document.body,{childList:true});
  const orT2=resTec;resTec=function(){const r=orT2.apply(this,arguments);try{ponBarra()}catch(e){}return r};
 
  /* ===== v363: botón PDF junto a la caja «Resolución Claude AI»: PDF A4 con toda la resolución, para descargar o imprimir ===== */
  window.rcPdf=async id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(typeof window.sosIaPdf!="function"){msg("El generador de PDF no está cargado");return}
+  if(document.getElementById("rcPdfOv"))return;
+  const P=pdfProg(`PDF A4 · PBB ${i.pos} · OT ${i.orden||""}`);
   try{const r=i.resClaude,fe=new Date(r.ts||Date.now());
-   if(!r.croquis&&window.iaCroquis){msg("Dibujando el croquis de conexión…");try{r.croquis=await window.iaCroquis(r.txt,i.pos,i.tipo);sv("pbb_inc",inc)}catch(e){msg("Sin croquis: "+((e&&e.message)||e))}}
-   msg("Generando el PDF A4…");
+   P.fase("Preparando la resolución…",5);
+   if(!r.croquis&&window.iaCroquis){P.fase("Dibujando el croquis de conexión (IA)…",10);P.sube(78);try{r.croquis=await window.iaCroquis(r.txt,i.pos,i.tipo);sv("pbb_inc",inc)}catch(e){P.aviso("Sin croquis: "+((e&&e.message)||e))}}
+   P.fase("Maquetando el PDF A4…",82);
    const S={pos:i.pos,tipo:i.tipo||"PAS",orden:i.orden,md:r.txt,croquis:r.croquis||null,fin:r.ts||Date.now(),motor:r.por||"Claude",cabTit:"RESOLUCION CLAUDE AI",
     obs:[i.desc,i.def&&i.def!=i.desc?i.def:"",i.com?"Comentario: "+i.com:""].filter(Boolean).join(" · ")||"(sin descripción)",obsLbl:"Avería",
     filas:[["Posición",`PBB ${i.pos||"-"} · ${i.tipo||"PAS"}`],["OT",`Orden CGA ${i.orden||"-"}`],["Fecha OT",`${i.fecha||"-"}${i.hIni?" · inicio "+i.hIni:""}${i.hLle?" · llegada "+i.hLle:""}`],
      ["Técnicos",i.integrantes||i.tecnico||(typeof tecNombre!="undefined"&&tecNombre)||"-"],["Resolución",fe.toLocaleDateString("es-ES")+" "+fe.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})],["Motor IA",r.por||"Claude"]]};
-   const blob=await window.sosIaPdf(S);const d=new Date(r.ts||Date.now()),f2=n=>String(n).padStart(2,"0");
+   const blob=await window.sosIaPdf(S);P.fase("PDF listo",100);await new Promise(z=>setTimeout(z,500));P.fin();const d=new Date(r.ts||Date.now()),f2=n=>String(n).padStart(2,"0");
    const nom=`Resolucion_PBB${i.pos}_OT${i.orden||""}_${d.getFullYear()}-${f2(d.getMonth()+1)}-${f2(d.getDate())}.pdf`;
    const f=new File([blob],nom,{type:"application/pdf"});
    if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:nom});return}catch(e){if(e&&e.name=="AbortError")return}}
    const u=URL.createObjectURL(blob);const w=window.open(u,"_blank");if(!w){const a=document.createElement("a");a.href=u;a.download=nom;document.body.appendChild(a);a.click();a.remove()}
-   setTimeout(()=>URL.revokeObjectURL(u),120000)}catch(e){msg("No se pudo generar el PDF: "+((e&&e.message)||e))}};
+   setTimeout(()=>URL.revokeObjectURL(u),120000)}catch(e){P.fin();msg("No se pudo generar el PDF: "+((e&&e.message)||e))}};
+ /* v367: ventana con barra de progreso mientras se genera el PDF (arriba de la pantalla) */
+ function pdfProg(tit){const ov=document.createElement("div");ov.id="rcPdfOv";
+  ov.innerHTML=`<div class="rcPo"><div class="rcPoT"><img src="claude-logo.png" alt=""><b>${E(tit)}</b></div><div class="rcPgB"><i></i></div><div class="rcPgM"><span class="f">Iniciando…</span><b class="p">0%</b></div><div class="rcPoA"></div></div>`;
+  document.body.appendChild(ov);const bi=ov.querySelector(".rcPgB>i"),ff=ov.querySelector(".f"),pp=ov.querySelector(".p");let pc=0,obj=0,tm=null;
+  const pon=v=>{pc=Math.max(pc,Math.min(100,v));bi.style.width=pc+"%";pp.textContent=Math.round(pc)+"%"};
+  return{fase:(t,v)=>{ff.textContent=t;clearInterval(tm);pon(v)},sube:o=>{obj=o;clearInterval(tm);tm=setInterval(()=>pon(pc+(obj-pc)*.06),400)},
+   aviso:t=>{ov.querySelector(".rcPoA").textContent=t},fin:()=>{clearInterval(tm);ov.classList.add("out");setTimeout(()=>ov.remove(),300)}}}
  const st=document.createElement("style");st.textContent=`
 .rcBox{margin:10px 0 4px;border:1px solid rgba(217,119,87,.55);border-left:4px solid #d97757;border-radius:12px;background:linear-gradient(180deg,rgba(217,119,87,.10),rgba(217,119,87,.03));overflow:hidden}
 .rcSum{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;list-style:none}
@@ -177,6 +193,11 @@
 .rcDel{padding:4px 10px;margin:0}
 .cacts .gwa{order:-1}.gwa{color:#1fa855!important;border-color:#25d366!important}.gwa svg{width:22px!important;height:22px!important}
 .rcEd{margin-top:10px}
+#rcPdfOv{position:fixed;inset:0;z-index:99990;background:rgba(10,10,20,.45);display:flex;align-items:flex-start;justify-content:center;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 0;transition:opacity .3s}
+#rcPdfOv.out{opacity:0}
+.rcPo{width:min(560px,100%);background:var(--card,#fff);color:inherit;border:2px solid #d97757;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.rcPoT{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:14px}.rcPoT img{width:26px;height:26px;border-radius:6px}
+.rcPoA{font-size:12px;color:#c62828;margin-top:5px}
 #sheetc button.rcBtn{display:flex!important;align-items:center;justify-content:center;width:100%;padding:12px!important}
 .rcBtnW{display:flex;align-items:center;justify-content:center;background:#fff;border-radius:14px;padding:12px 22px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .rcBtnW img{height:40px;width:auto;display:block}
