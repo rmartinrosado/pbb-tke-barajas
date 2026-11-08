@@ -132,9 +132,10 @@
 
  /* ===== v363: botón PDF junto a la caja «Resolución Claude AI»: PDF A4 con toda la resolución, para descargar o imprimir ===== */
  window.rcPdf=async id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(typeof window.sosIaPdf!="function"){msg("El generador de PDF no está cargado");return}
-  msg("Generando el PDF A4…");
   try{const r=i.resClaude,fe=new Date(r.ts||Date.now());
-   const S={pos:i.pos,tipo:i.tipo||"PAS",orden:i.orden,md:r.txt,fin:r.ts||Date.now(),motor:r.por||"Claude",cabTit:"RESOLUCION CLAUDE AI",
+   if(!r.croquis&&window.iaCroquis){msg("Dibujando el croquis de conexión…");try{r.croquis=await window.iaCroquis(r.txt,i.pos,i.tipo);sv("pbb_inc",inc)}catch(e){msg("Sin croquis: "+((e&&e.message)||e))}}
+   msg("Generando el PDF A4…");
+   const S={pos:i.pos,tipo:i.tipo||"PAS",orden:i.orden,md:r.txt,croquis:r.croquis||null,fin:r.ts||Date.now(),motor:r.por||"Claude",cabTit:"RESOLUCION CLAUDE AI",
     obs:[i.desc,i.def&&i.def!=i.desc?i.def:"",i.com?"Comentario: "+i.com:""].filter(Boolean).join(" · ")||"(sin descripción)",obsLbl:"Avería",
     filas:[["Posición",`PBB ${i.pos||"-"} · ${i.tipo||"PAS"}`],["OT",`Orden CGA ${i.orden||"-"}`],["Fecha OT",`${i.fecha||"-"}${i.hIni?" · inicio "+i.hIni:""}${i.hLle?" · llegada "+i.hLle:""}`],
      ["Técnicos",i.integrantes||i.tecnico||(typeof tecNombre!="undefined"&&tecNombre)||"-"],["Resolución",fe.toLocaleDateString("es-ES")+" "+fe.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})],["Motor IA",r.por||"Claude"]]};

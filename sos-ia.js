@@ -161,11 +161,12 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
   for(;;){const {done,value}=await rd.read();if(done)break;txt+=dec.decode(value,{stream:true});
    S.pct=Math.max(S.pct,25+65*(1-Math.exp(-txt.length/7000)));S.vista=txt.split("\n").filter(l=>l.trim()).slice(-2).join("\n").replace(/[#*|`]/g,"").slice(-180);S.fase=`Recibiendo respuesta · ${txt.length} caracteres`;pinta()}
   txt=txt.trim();if(txt.length<200)throw new Error("Respuesta vacía o incompleta de Claude. Vuelve a intentarlo.");
-  S.md=txt;S.vista="";avanza("Generando el PDF A4…",92);
+  S.md=txt;S.vista="";avanza("Dibujando el croquis de conexión…",90);try{S.croquis=await window.iaCroquis(txt,pos,S.tipo)}catch(e){S.croquis=null}
+  avanza("Generando el PDF A4…",94);
   const blob=await haceePdf(S);const url=URL.createObjectURL(blob);
   const d=new Date(),f2=n=>String(n).padStart(2,"0");
   S.res={blob,url,nom:`SOS_PBB${pos||"X"}_${d.getFullYear()}-${f2(d.getMonth()+1)}-${f2(d.getDate())}_${f2(d.getHours())}${f2(d.getMinutes())}.pdf`};
-  if(S.otId){const o=inc.find(x=>x.id==S.otId);if(o){o.resClaude={txt,ts:Date.now(),por:"SOS · "+(S.motor||"Claude")};try{sv("pbb_inc",inc)}catch(e){}S.ot=o.orden||o.id}}
+  if(S.otId){const o=inc.find(x=>x.id==S.otId);if(o){o.resClaude={txt,ts:Date.now(),por:"SOS · "+(S.motor||"Claude"),croquis:S.croquis||undefined};try{sv("pbb_inc",inc)}catch(e){}S.ot=o.orden||o.id}}
   S.pct=100;S.fin=Date.now();pinta();msg("PDF de la actuación listo");
   vista(S)}
  catch(e){S.esperando=false;S.fin=Date.now();S.err=e&&e.name=="AbortError"?"Consulta cancelada.":String((e&&e.message)||e);pinta()}
@@ -238,11 +239,19 @@ async function haceePdf(S){await cargaJsPDF();const {jsPDF}=window.jspdf;const d
   if(/^>/.test(s)){const t=s.replace(/^>\s?/,"");const h=alto(runs(t),AN-8,9,4.2);sitio(h);d.setFillColor(...AC);d.rect(M,y-3.3,1.2,h,"F");par(runs(t),M+4,AN-6,9,4.2);y+=1;i++;continue}
   let p=[s];i++;while(i<L.length&&L[i].trim()&&!/^(#{1,6}\s|\||\d+[.)]\s|\s*[-*+]\s|>|```|-{3,}$)/.test(L[i].trim())){p.push(L[i].trim());i++}
   sitio(5);par(runs(p.join(" ")),M,AN,9.5,4.4);y+=1.5}
+ /* v364: croquis de conexión por bloques al final */
+ if(S.croquis&&window.pdfCroquis){try{window.pdfCroquis(d,S.croquis,{cab,W,H,M,PR,AC,GR,fnt,pS})}catch(e){console.warn("croquis",e)}}
  /* pie con número de página */
  const N=d.getNumberOfPages();for(let n=1;n<=N;n++){d.setPage(n);d.setDrawColor(...AC);d.setLineWidth(.4);d.line(M,H-11,W-M,H-11);fnt(0,0,7.3);d.setTextColor(...GR);
   d.text(pS("PBB TKE Maintenance · Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar siempre en campo."),M,H-7);d.text(`Pág. ${n}/${N}`,W-M,H-7,{align:"right"});d.setTextColor(0,0,0)}
  return d.output("blob")}
 window.sosIaPdf=haceePdf;
+/* v364: croquis de conexión (JSON) a partir de la resolución, con la función consulta-sos en modo «croquis» */
+window.iaCroquis=async(md,pos,tipo)=>{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("sin sesión");
+ const ac=new AbortController();const t=setTimeout(()=>ac.abort(),120000);
+ try{const r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},
+   body:JSON.stringify({modo:"croquis",pregunta:String(md||"").slice(0,30000),contexto:`PBB ${pos||"-"} · ${tipo||"PAS"}`})});
+  const j=await r.json().catch(()=>({}));if(!r.ok||!j.croquis)throw new Error(j.mensaje||("croquis "+r.status));return j.croquis}finally{clearTimeout(t)}};
 /* v352: la Resolución IA de la OT reutiliza la misma documentación (res-claude.js) */
 window.iaCtx={guiaCtx,primeraCtx,casosCtx,planosCtx};
 })();
