@@ -54,7 +54,7 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
 #splash .spp{flex:none;width:42px;text-align:right}
 </style></head><body>
 <div id="splash"><img src="splash.jpg" alt="PBB TKE Maintenance"><div class="spr"><span class="spv" id="spv">v357</span><div class="spb"><i id="spi"></i></div><span class="spp" id="spp">0%</span></div></div>
-<script>(function(){const D=5000,sp=document.getElementById("splash"),i=document.getElementById("spi"),p=document.getElementById("spp");let t0=null;
+<script>try{if(/[?&]recupera=1/.test(location.search)||/type=recovery/.test(location.hash))sessionStorage.setItem("pbb_recupera",String(Date.now()))}catch(e){}window.__recupera=(()=>{try{const t=+sessionStorage.getItem("pbb_recupera")||0;return t&&Date.now()-t<15*60000}catch(e){return false}})();</script><script>(function(){const D=5000,sp=document.getElementById("splash"),i=document.getElementById("spi"),p=document.getElementById("spp");let t0=null;
  const fin=()=>{sp.classList.add("fuera");setTimeout(()=>sp.remove(),1700)};
  const paso=t=>{if(t0==null)t0=t;const k=Math.min(1,(t-t0)/D);i.style.width=(k*100)+"%";p.textContent=Math.round(k*100)+"%";if(k<1)requestAnimationFrame(paso);else fin()};
  const arranca=()=>requestAnimationFrame(paso);const im=sp.querySelector("img");
@@ -4549,7 +4549,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=379;
+const APP_VER=380;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5781,7 +5781,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  try{ANA_C={k:"",r:null}}catch(e){}
 })();
 </script>
-<script src="sistemas-guia.js?v=4"></script><script src="freno-cabina.js?v=341"></script><script src="borneros-st.js?v=342"></script><script src="croquis-bor.js?v=342"></script><script src="croquis-pdf.js?v=377"></script><script src="res-claude.js?v=379"></script><script src="sos-ia.js?v=379"></script><script src="fechas-ot.js?v=345"></script>
+<script src="sistemas-guia.js?v=4"></script><script src="freno-cabina.js?v=341"></script><script src="borneros-st.js?v=342"></script><script src="croquis-bor.js?v=342"></script><script src="croquis-pdf.js?v=377"></script><script src="res-claude.js?v=379"></script><script src="sos-ia.js?v=379"></script><script src="recupera.js?v=380"></script><script src="fechas-ot.js?v=345"></script>
 <script>
 /* ===== v350: Panel de control · Seguimiento y Claude permutados: Registrar | Claude (fila 1) · Seguimiento | SOS (fila 3) ===== */
 (function(){const P=["html body #app #pfix.p230","html body #app#app.p230"];const R=(sel,css)=>P.map(p=>p+" "+sel).join(",")+"{"+css+"}";
