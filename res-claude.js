@@ -67,6 +67,12 @@
  const ow=card;card=function(i){const h=ow.apply(this,arguments);if(!i||!i.resClaude||!(i.resClaude.txt||"").trim())return h;
   const b=`<button class="sec gwr gwa" title="Enviar primera actuación por WhatsApp" aria-label="Enviar primera actuación por WhatsApp" onclick="event.stopPropagation();rcWA('${i.id}')">${WAI}</button>`;
   const k=h.indexOf('<div class="cacts">');return k>=0?h.slice(0,k+19)+b+h.slice(k+19):h};
+
+ /* v349: el botón WhatsApp va en la columna de Editar / papelera, debajo de la papelera */
+ function mueveWA(){document.querySelectorAll("#app .card .gwa").forEach(b=>{if(b.closest(".otcol"))return;const c=b.closest(".card");const col=c&&c.querySelector(".otcol");if(!col)return;
+  const ca=b.closest(".cacts");col.appendChild(b);if(ca&&!ca.querySelector("button"))ca.remove()})}
+ const orw=render;render=function(){const r=orw.apply(this,arguments);try{mueveWA()}catch(e){}return r};
+ new MutationObserver(()=>{try{mueveWA()}catch(e){}}).observe(document.body,{childList:true,subtree:true});
  const st=document.createElement("style");st.textContent=`
 .rcBox{margin:10px 0 4px;border:1px solid rgba(217,119,87,.55);border-left:4px solid #d97757;border-radius:12px;background:linear-gradient(180deg,rgba(217,119,87,.10),rgba(217,119,87,.03));overflow:hidden}
 .rcSum{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;list-style:none}
@@ -96,7 +102,7 @@
 .rcHr{border:0;border-top:1px solid rgba(127,127,127,.3);margin:10px 0}
 .rcFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:7px;border-top:1px solid rgba(127,127,127,.25);font-size:11px;opacity:.85}
 .rcDel{padding:4px 10px;margin:0}
-.cacts .gwa{order:-1;color:#fff!important;background:#25d366!important;border-color:#1ebe5a!important}.cacts .gwa svg{width:22px!important;height:22px!important}
+.cacts .gwa{order:-1}.gwa{color:#1fa855!important;border-color:#25d366!important}.gwa svg{width:22px!important;height:22px!important}
 .rcEd{margin-top:10px}.rcOk{color:#2e7d32;font-size:12px;margin-left:6px}`;
  document.head.appendChild(st);
  try{render()}catch(e){}
