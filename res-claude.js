@@ -11,6 +11,7 @@
  const DFI={};let DF={};try{DF=JSON.parse(localStorage.getItem("rc_df")||"{}")}catch(e){}
  const dfGet=(id,k)=>(DF[id]&&DF[id][k])||"";
  window.rcDfSet=(id,k,v)=>{(DF[id]=DF[id]||{})[k]=v;try{localStorage.setItem("rc_df",JSON.stringify(DF))}catch(e){}};
+ window.rcAjPre=()=>{rcAjEnCurso=true;setTimeout(()=>{if(!(JOB&&!JOB.fin&&!JOB.err)){rcAjEnCurso=false;const a=document.activeElement;if(!(a&&a.classList&&a.classList.contains("rcDf")))plegar(false)}},1500)};
  window.rcAjusta=async id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;const it=DFI[id]||[],c=DF[id]||{};
   const pares=it.map((t,k)=>[t,(c[k]||"").trim()]).filter(x=>x[1]);
   if(!pares.length){msg("Escribe al menos un comentario en «Datos que faltan»");return}
@@ -27,16 +28,23 @@ El técnico ha comprobado en campo los «Datos que faltan» y aporta:
 ${pares.map(([t,v])=>"- "+t+"\n  → Observado en campo: "+v).join("\n")}
 
 AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, concreta la causa más probable, la primera actuación y la reparación, y actualiza las medidas. Mantén el mismo formato (empieza por «Primera actuación en campo») y deja en «Datos que faltan» solo lo que siga sin confirmar.`;
-  const ant=i.resClaude.ts;setTimeout(()=>{try{render()}catch(e){}},60);
-  await rcConsulta(id,pr);
+  const ant=i.resClaude.ts;rcAjEnCurso=true;plegar(true);setTimeout(()=>{try{render()}catch(e){}},60);
+  try{await rcConsulta(id,pr)}finally{rcAjEnCurso=false;plegar(false)}
   const o=inc.find(x=>x.id==id);if(o&&o.resClaude&&o.resClaude.ts!=ant){delete DF[id];try{localStorage.setItem("rc_df",JSON.stringify(DF))}catch(e){}o.resClaude.ajustada=(o.resClaude.ajustada||0)+1;sv("pbb_inc",inc);render()}};
  /* mientras se escribe en un comentario no se repinta la ficha (no se pierde el teclado); se repinta al salir del campo */
  let rcPend=false;const orR=render;render=function(){const a=document.activeElement;if(a&&a.classList&&a.classList.contains("rcDf")){rcPend=true;return}return orR.apply(this,arguments)};
  document.addEventListener("focusout",e=>{if(e.target&&e.target.classList&&e.target.classList.contains("rcDf")&&rcPend){rcPend=false;setTimeout(()=>{const a=document.activeElement;if(!(a&&a.classList&&a.classList.contains("rcDf")))render()},150)}});
+
+ /* v369: al escribir en «Datos que faltan» se pliega el Panel de control (el teclado no tapa la resolución);
+    se vuelve a desplegar al salir del campo o, si se pulsa AJUSTAR RESOLUCIÓN, al terminar la consulta */
+ let rcAjEnCurso=false;
+ const plegar=on=>{document.body.classList.toggle("rcEscribe",!!on);if(!on){try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){}}};
+ document.addEventListener("focusin",e=>{const t=e.target;if(t&&t.classList&&t.classList.contains("rcDf")){plegar(true);setTimeout(()=>{try{t.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}},350)}});
+ document.addEventListener("focusout",e=>{const t=e.target;if(!(t&&t.classList&&t.classList.contains("rcDf")))return;setTimeout(()=>{const a=document.activeElement;if(a&&a.classList&&a.classList.contains("rcDf"))return;if(!rcAjEnCurso)plegar(false)},200)});
  function md(t,id){
   const L=String(t||"").replace(/\r/g,"").split("\n");let h="",i=0,df=false,dk=0;const items=[];
-  const caja=x=>{if(!df||!id)return"";const k=dk++;items.push(x.replace(/\*\*/g,"").replace(/`/g,""));return `<input class="rcDf" placeholder="Comentario / dato comprobado en campo" value="${E(dfGet(id,k))}" oninput="rcDfSet('${id}',${k},this.value)" onclick="event.stopPropagation()">`};
-  const boton=()=>df&&id?`<div class="rcAj"><button class="rcAjB" onclick="event.stopPropagation();rcAjusta('${id}')">AJUSTAR RESOLUCIÓN</button>${JOB&&JOB.id==id&&(!JOB.fin||Date.now()-JOB.fin<60000)?'<div id="rc_prog"></div>':""}</div>`:"";
+  const caja=x=>{if(!df||!id)return"";const k=dk++;items.push(x.replace(/\*\*/g,"").replace(/`/g,""));return `<input class="rcDf" autocomplete="off" autocorrect="on" name="rcdf${k}" placeholder="Comentario / dato comprobado en campo" value="${E(dfGet(id,k))}" oninput="rcDfSet('${id}',${k},this.value)" onclick="event.stopPropagation()">`};
+  const boton=()=>df&&id?`<div class="rcAj"><button class="rcAjB" onpointerdown="rcAjPre()" onclick="event.stopPropagation();rcAjusta('${id}')">AJUSTAR RESOLUCIÓN</button>${JOB&&JOB.id==id&&(!JOB.fin||Date.now()-JOB.fin<60000)?'<div id="rc_prog"></div>':""}</div>`:"";
   while(i<L.length){let l=L[i];const s=l.trim();
    if(!s){i++;continue}
    if(/^-{3,}$|^\*{3,}$/.test(s)){h+='<hr class="rcHr">';i++;continue}
@@ -223,6 +231,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
 .rcDel{padding:4px 10px;margin:0}
 .cacts .gwa{order:-1}.gwa{color:#1fa855!important;border-color:#25d366!important}.gwa svg{width:22px!important;height:22px!important}
 .rcEd{margin-top:10px}
+body.rcEscribe #pfix,body.rcEscribe #pmini{display:none!important}
 input.rcDf{display:block;width:100%;margin:5px 0 2px;padding:7px 9px!important;font-size:13.5px!important;border:1.5px dashed #d97757!important;border-radius:8px!important;background:#fff!important;color:#111!important;height:auto!important}
 .rcAj{margin:12px 0 4px}.rcAjB{display:block;width:100%;margin:0!important;padding:12px!important;border-radius:10px!important;border:0!important;background:linear-gradient(90deg,#5b2a86,#d97757)!important;color:#fff!important;font-weight:800!important;letter-spacing:.8px;font-size:14px!important}
 #rcPdfOv{position:fixed;inset:0;z-index:99990;background:rgba(10,10,20,.45);display:flex;align-items:flex-start;justify-content:center;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 0;transition:opacity .3s}
