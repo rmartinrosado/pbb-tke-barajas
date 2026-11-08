@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-// v351 (v362: tiempos máximos por modelo y sin datos; v364: modo croquis; v373: gemini-3.8-flash, sin 2.5-flash retirado) · Consulta IA del SOS (actuación directa) en segundo plano.
+// v351 (v362: tiempos máximos por modelo y sin datos; v364: modo croquis; v373: gemini-3.8-flash, sin 2.5-flash retirado; v377: croquis estricto) · Consulta IA del SOS (actuación directa) en segundo plano.
 // La PWA manda el texto de la consulta (posición, alarma, observaciones) y el CONTEXTO ya preparado en el móvil:
 // guía de campo, comprobaciones por sistema, primera actuación, casos parecidos y las páginas de los planos
 // (texto extraído del bucket «planos», tabla kb_paginas) que mejor encajan con lo detectado.
@@ -107,6 +107,9 @@ async function gemini(key: string, usuario: string): Promise<{ r: Response; mode
 const SIST_CROQUIS = `Eres ingeniero eléctrico de TK Elevator (TKE) en las pasarelas PBB de Madrid-Barajas.
 A partir de la RESOLUCIÓN de una avería, devuelve SOLO un objeto JSON (sin texto alrededor) con el croquis de conexión por bloques del elemento a inspeccionar, desde el ORIGEN (fuente / PLC / armario) hasta el DESTINO (elemento de campo), pasando por relés, borneros de interconexión, mangueras, cajas y conectores.
 Usa EXCLUSIVAMENTE referencias que aparezcan en la resolución (rótulos de equipos, borneros, bornas, hilos, mangueras, folios). No inventes; si falta un dato deja el campo vacío.
+Incluye SOLO los elementos que forman el circuito eléctrico que se inspecciona (los que intervienen en las medidas y el elemento averiado). NO incluyas elementos que la resolución cita como comprobados correctos, descartados, o que solo se usan para maniobrar (bypass, selectores, setas, pulsadores de movimiento).
+La «desc» de cada nodo es la función que le da la resolución (bumper, potenciómetro, inductivo, relé…); no supongas funciones (no pongas «final de carrera» si la resolución no lo dice).
+Si con la resolución no puedes trazar con seguridad la cadena (al menos 2 elementos conectados y 1 medida), devuelve {"nodos":[],"cables":[],"medidas":[]}: es preferible no dar croquis a inventarlo.
 Esquema:
 {"titulo":"Semáforo R-H1 · alimentación y señales","elemento":"R-H1","tension":"24 VDC","plano":"ESQUEMA GENERAL rev. J",
  "nodos":[{"id":"N1","tipo":"fuente|plc|rele|bornero|conector|caja|motor|lampara|sensor|pulsador|valvula|equipo","ref":"P-A2","desc":"Módulo salidas PLC pupitre","folio":"79","bornas":[{"n":"5.1","hilo":"","senal":"Rojo"}]}],

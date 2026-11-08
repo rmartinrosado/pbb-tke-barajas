@@ -187,10 +187,10 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
   const P=pdfProg(`PDF A4 · PBB ${i.pos} · OT ${i.orden||""}`);
   try{const r=i.resClaude,fe=new Date(r.ts||Date.now());
    P.fase("Preparando la resolución…",5);
-   if((!r.croquis||r.croquis.local)&&window.iaCroquis){P.fase("Dibujando el croquis de conexión…",10);P.sube(78);
-    try{r.croquis=await window.iaCroquis(r.txt,i.pos,i.tipo);sv("pbb_inc",inc)}
+   if((!r.croquis||r.croquis.local)&&!(r.croquis&&r.croquis.vacio)&&window.iaCroquis){P.fase("Dibujando el croquis de conexión…",10);P.sube(78);
+    try{const c=await window.iaCroquis(r.txt,i.pos,i.tipo);/* v377: si la IA no ve clara la cadena devuelve 0 nodos: no hay croquis */if(c&&Array.isArray(c.nodos)&&c.nodos.length>=2){r.croquis=c}else{r.croquis={nodos:[],vacio:true};P.aviso("PDF SIN CROQUIS")}sv("pbb_inc",inc)}
     catch(e){console.warn("croquis IA",e);/* v374: sin cupo de IA → croquis de reserva sacado de la propia resolución */
-     let c=null;try{c=window.croquisLocal&&window.croquisLocal(r.txt,i.pos,i.tipo)}catch(x){}
+     let c=null;try{c=window.croquisLocal&&window.croquisLocal(r.txt,i.pos,i.tipo,[i.desc,i.def,i.com].filter(Boolean).join(" "))}catch(x){}
      if(c&&c.nodos&&c.nodos.length>=2){r.croquis=c;sv("pbb_inc",inc);
       /* v375: mismos pasos que con IA: la barra sigue en «Dibujando el croquis de conexión…» hasta completarlo */
       P.fase("Dibujando el croquis de conexión…",Math.max(40,P.pct()));P.sube(78);await new Promise(z=>setTimeout(z,1600));P.nota("Croquis automático (referencias de la resolución)")}
@@ -204,7 +204,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
    const nom=`Resolucion_PBB${i.pos}_OT${i.orden||""}_${d.getFullYear()}-${f2(d.getMonth()+1)}-${f2(d.getDate())}.pdf`;
    /* v376: el PDF se incrusta en la ficha (como en el SOS): Descargar · Abrir · Compartir y vista de las páginas */
    const ant=RPDF[id];if(ant)try{URL.revokeObjectURL(ant.url);(ant.imgs||[]).forEach(u=>URL.revokeObjectURL(u))}catch(e){}
-   RPDF[id]={blob,url:URL.createObjectURL(blob),nom,imgs:null,sin:!r.croquis,loc:!!(r.croquis&&r.croquis.local)};ab.add(id);render();
+   RPDF[id]={blob,url:URL.createObjectURL(blob),nom,imgs:null,sin:!(r.croquis&&r.croquis.nodos&&r.croquis.nodos.length),loc:!!(r.croquis&&r.croquis.local)};ab.add(id);render();
    setTimeout(()=>{try{const b=document.getElementById("rcpdf_"+id);if(b)b.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}},150);
    vistaPdf(id)}catch(e){P.fin();msg("No se pudo generar el PDF: "+((e&&e.message)||e))}};
  const RPDF={};

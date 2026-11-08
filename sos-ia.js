@@ -193,7 +193,7 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
   for(;;){const {done,value}=await rd.read();if(done)break;txt+=dec.decode(value,{stream:true});
    S.pct=Math.max(S.pct,25+65*(1-Math.exp(-txt.length/7000)));S.vista=txt.split("\n").filter(l=>l.trim()).slice(-2).join("\n").replace(/[#*|`]/g,"").slice(-180);S.fase=`Recibiendo respuesta · ${txt.length} caracteres`;pinta()}
   txt=txt.trim();if(txt.length<200)throw new Error("Respuesta vacía o incompleta de Claude. Vuelve a intentarlo.");
-  S.md=txt;S.vista="";avanza("Dibujando el croquis de conexión…",90);try{S.croquis=await window.iaCroquis(txt,pos,S.tipo)}catch(e){S.croquis=null;try{const c=window.croquisLocal&&window.croquisLocal(txt,pos,S.tipo);if(c&&c.nodos&&c.nodos.length>=2){S.croquis=c;avanza("Dibujando el croquis de conexión…",91);await new Promise(z=>setTimeout(z,1200))}}catch(x){}}
+  S.md=txt;S.vista="";avanza("Dibujando el croquis de conexión…",90);try{S.croquis=await window.iaCroquis(txt,pos,S.tipo);if(!(S.croquis&&S.croquis.nodos&&S.croquis.nodos.length>=2))S.croquis=null}catch(e){S.croquis=null;try{const c=window.croquisLocal&&window.croquisLocal(txt,pos,S.tipo,ob);if(c&&c.nodos&&c.nodos.length>=2){S.croquis=c;avanza("Dibujando el croquis de conexión…",91);await new Promise(z=>setTimeout(z,1200))}}catch(x){}}
   avanza("Generando el PDF A4…",94);
   const blob=await haceePdf(S);const url=URL.createObjectURL(blob);
   const d=new Date(),f2=n=>String(n).padStart(2,"0");

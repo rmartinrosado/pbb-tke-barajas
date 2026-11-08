@@ -122,46 +122,63 @@
  /* ===== v374: croquis de RESERVA sin IA (cuando Google agota el cupo o no responde) =====
     Saca de la propia resolución las referencias EPLAN (equipos, PLC, relés, borneros con sus bornas, mangueras e hilos,
     folios) y las medidas con polímetro, y las ordena de origen (alimentación / PLC) a destino (elemento de campo). */
- function croquisLocal(md,pos,tipo){const T=String(md||"").replace(/\r/g,"");const plano=T.replace(/[*`_]/g,"");
-  const RE=/\+?\b([A-Z]{1,5}\d?-[A-Z]{1,3}\d{1,3}(?:\.\d{1,2})?)\b(?:\s*:\s*([0-9]{1,3}(?:\.[0-9])?|[A-Z]{1,2}\d{0,2}))?/g;
-  const nodos=new Map(),cables=new Map(),orden=[];let m;
-  const clase=r=>{const k=(r.split("-")[1]||"").replace(/\d.*$/,"");return k};
-  const TIPO={A:"plc",X:"bornero",K:"rele",B:"sensor",S:"pulsador",M:"motor",H:"lampara",E:"lampara",Y:"valvula",Q:"fuente",F:"fuente",G:"fuente",T:"fuente",U:"equipo",V:"equipo",R:"sensor",P:"equipo",CON:"conector"};
-  const DESC={plc:"Módulo PLC",bornero:"Bornero de interconexión",rele:"Relé / contactor",sensor:"Sensor / final de carrera",pulsador:"Pulsador / selector",motor:"Motor",lampara:"Señal / lámpara",valvula:"Electroválvula",fuente:"Alimentación / protección",equipo:"Equipo",conector:"Conector"};
-  const RANGO={fuente:0,plc:1,rele:2,bornero:3,conector:4,caja:4,equipo:5,sensor:6,pulsador:6,motor:6,lampara:6,valvula:6};
-  while((m=RE.exec(plano))){const ref=m[1],k=clase(ref);if(!k)continue;
-   if(k=="W"){const c=cables.get(ref)||{ref,hilos:new Set(),pos:m.index};const near=plano.slice(m.index,m.index+120);(near.match(/hilos?\s*(?:n[ºo.]*\s*)?((?:\d{2,4}[\s,y/·-]*)+)/i)||[,""])[1].split(/[^\d]+/).filter(Boolean).forEach(h=>c.hilos.add(h));
-    const ty=near.match(/\b(\d{1,2}\s*[x×]\s*\d+(?:[.,]\d+)?)\b/i);if(ty&&!c.tipo)c.tipo=ty[1].replace("×","x");cables.set(ref,c);continue}
-   const tp=/CON/.test(k)?"conector":(TIPO[k]||"equipo");
-   let n=nodos.get(ref);if(!n){n={id:"N"+(nodos.size+1),ref,tipo:tp,bornas:new Map(),pos:m.index};nodos.set(ref,n);orden.push(ref)}
-   const ctx=plano.slice(m.index,m.index+90);
-   if(m[2])n.bornas.set(m[2],{n:m[2]});
-   (ctx.match(/\b(?:DIN|DI|DO|IN|OUT)\s?\d+(?:\.\d)?\b/gi)||[]).slice(0,3).forEach(b=>n.bornas.set(b.toUpperCase(),{n:b.toUpperCase().replace(/\s/g,"")}));
-   const ml=ctx.match(/m[oó]d(?:ulo|\.)?\s*(\d+)[^.\n]{0,12}?LED\s*(\d+)/i);if(ml&&tp=="plc")n.bornas.set("M"+ml[1]+"."+ml[2],{n:ml[1]+"."+ml[2],senal:"LED"});
-   if(!n.folio){const f=plano.slice(Math.max(0,m.index-40),m.index+100).match(/folio\s*(\d{1,3})/i);if(f)n.folio=f[1]}
-   {const pa=plano.slice(m.index+m[0].length,m.index+m[0].length+60).match(/^\s*\(([^)]{2,40})\)/);if(pa){if(m[2]){const b=n.bornas.get(m[2]);if(b&&!b.senal)b.senal=pa[1].replace(/hilo\s*\d+/i,"").trim()}else if(!n.desc)n.desc=pa[1]}}
-   const hl=ctx.match(/hilo\s*(\d{2,4})/i);if(hl&&m[2]){const b=n.bornas.get(m[2]);if(b&&!b.hilo)b.hilo=hl[1]}}
-  /* orden: origen → destino, y como máximo 8 bloques (los más citados primero si sobran) */
-  let L=[...nodos.values()];const cuenta=r=>(plano.match(new RegExp(r.replace(/[.+]/g,"\\$&"),"g"))||[]).length;
-  if(L.length>8)L=L.sort((a,b)=>cuenta(b.ref)-cuenta(a.ref)).slice(0,8);
+ /* v377: croquis de reserva ESTRICTO. Solo entran los elementos que la resolución usa en las MEDIDAS (bornas, PLC con entradas/LED)
+    y el elemento de campo que se inspecciona; se descartan los citados como comprobados/descartados o de maniobra (bypass, selector, seta).
+    La descripción de cada elemento sale del propio texto (bumper, potenciómetro, inductivo…), nunca se supone.
+    Si no hay al menos 2 elementos y 1 medida claros, NO se genera croquis (no se inventa). */
+ function croquisLocal(md,pos,tipo,aviso){const T=String(md||"").replace(/\r/g,"");const plano=T.replace(/[*`_]/g,"");const lineas=plano.split("\n");
+  const REF=/\+?\b([A-Z]{1,5}\d?-[A-Z]{1,3}\d{1,3}(?:\.\d{1,2})?)\b(?:\s*:\s*([0-9]{1,3}(?:\.[0-9])?))?/g;
+  const clase=r=>(r.split("-")[1]||"").replace(/\d.*$/,"");
+  const NOM=[[/bumper|parachoques/i,"Bumper","pulsador"],[/potenci[oó]metro/i,"Potenciómetro","sensor"],[/inductiv/i,"Detector inductivo","sensor"],[/final(es)? de carrera|\bFC\b/i,"Final de carrera","pulsador"],
+   [/fotoc[eé]lula|barrera [oó]ptica/i,"Barrera óptica","sensor"],[/l[aá]ser/i,"Láser","sensor"],[/ultrasonid/i,"Ultrasonidos","sensor"],[/encoder/i,"Encoder","sensor"],[/zapata/i,"Zapata","pulsador"],[/borde/i,"Borde sensible","pulsador"],
+   [/seta/i,"Seta de emergencia","pulsador"],[/pulsador/i,"Pulsador","pulsador"],[/selector/i,"Selector","pulsador"],[/rel[eé]|contactor/i,"Relé / contactor","rele"],[/motor|bomba/i,"Motor","motor"],
+   [/electrov[aá]lvula|v[aá]lvula/i,"Electroválvula","valvula"],[/sirena|bocina/i,"Sirena","lampara"],[/sem[aá]foro|baliza|piloto|l[aá]mpara|foco/i,"Señal luminosa","lampara"],[/conector/i,"Conector","conector"],
+   [/regleta|bornero|borna/i,"Bornero","bornero"],[/m[oó]dulo|PLC|tarjeta/i,"Módulo PLC","plc"],[/fuente|alimentaci[oó]n|magnetot|interruptor autom/i,"Alimentación / protección","fuente"]];
+  const TIPO={A:"plc",X:"bornero",K:"rele",Q:"fuente",F:"fuente",G:"fuente",T:"fuente"};
+  const RANGO={fuente:0,plc:1,rele:2,bornero:3,conector:4,equipo:5,sensor:6,pulsador:6,motor:6,lampara:6,valvula:6};
+  const NEG=/descart|no (est[aá] )?afectad|correcto\s*\(|est[aá] correct|sin fallo|bypass|BYPASS|selector|seta|MANUAL|REMOTO|separar la cabina|mover|maniobra|compa[nñ]ero/;
+  const MED=l=>!/^\s*[-*]?\s*(in)?correcto/i.test(l)&&(/(medi[dr]|polímetro|continuidad)/i.test(l)||/(VDC|VAC|\bV\b|Ω|\bohm|\bmA\b)/.test(l));
+  const nodos=new Map(),usar=new Set(),neg=new Set();
+  /* descripción del elemento por la palabra que lo acompaña en el texto */
+  const nombre=(ref)=>{let best=null,dist=1e9;let k=-1;while((k=plano.indexOf(ref,k+1))>=0){const ctx=plano.slice(Math.max(0,k-45),k+ref.length+45);
+    for(const [re,n,t] of NOM){const mm=ctx.match(re);if(mm){const d=Math.abs(ctx.indexOf(mm[0])-45);if(d<dist){dist=d;best={n,t}}}}}return best};
+  const nodo=(ref)=>{let n=nodos.get(ref);if(n)return n;const k=clase(ref);const nm=nombre(ref);
+   const tp=TIPO[k]||(nm&&nm.t)||"equipo";n={ref,tipo:tp,desc:(TIPO[k]?null:nm&&nm.n)||({plc:"Módulo PLC",bornero:"Bornero de interconexión",rele:"Relé / contactor",fuente:"Alimentación / protección"}[tp])||"Elemento de campo (ver plano)",bornas:new Map(),pos:plano.indexOf(ref)};
+   const f=plano.slice(Math.max(0,n.pos-40),n.pos+100).match(/folio\s*(\d{1,3})/i);if(f)n.folio=f[1];nodos.set(ref,n);return n};
+  /* 1) medidas: definen los puntos y los elementos que intervienen */
+  const med=[];
+  for(let i=0;i<lineas.length;i++){const l=lineas[i];if(!MED(l))continue;
+   const refs=[...l.matchAll(REF)].filter(x=>clase(x[1])!="W");if(!refs.length)continue;
+   if(!refs.some(x=>x[2])&&!/(VDC|VAC|\bV\b|Ω|\bohm|\bmA\b|continuidad)/i.test(l))continue; /* sin borna ni magnitud: no es una medida clara */
+   refs.forEach((x,q)=>{const n=nodo(x[1]);usar.add(x[1]);if(x[2]){const b=n.bornas.get(x[2])||{n:x[2]};const fin=q+1<refs.length?refs[q+1].index:l.length;const h=l.slice(x.index,fin).match(/hilo\s*(\d{2,4})/i);if(h&&!b.hilo)b.hilo=h[1];n.bornas.set(x[2],b)}});
+   if(med.length>=6)continue;const fmt=x=>x[1]+(x[2]?":"+x[2]:"");const clave=refs.slice(0,2).map(fmt).join("|");if(med.some(z=>z._k==clave))continue;
+   const blk=lineas.slice(i,i+4).join(" ");
+   const mag=(blk.match(/\b(VDC|VAC|Vdc|Vac|Ω|ohm|mA|bar)\b/)||[,""])[1].replace(/ohm/i,"Ω").toUpperCase()||(/continuidad/i.test(blk)?"Ω":"V");
+   const esp=(blk.match(/(?:esperado|correcto)\s*(?:->|=>|→|:)\s*([^.;\n]{3,60})/i)||blk.match(/(\d+\s*(?:VDC|VAC|V|Ω|mA))/i)||[,""])[1].trim();
+   const si=(blk.match(/incorrecto\s*(?:->|=>|→|:)\s*([^.;\n]{3,70})/i)||[,""])[1].trim();
+   med.push({_k:clave,_ref:refs[0][1],magnitud:mag,roja:fmt(refs[0]),negra:refs[1]?fmt(refs[1]):"",esperado:esp||"-",si_no:si})}
+  /* 2) PLC con entrada/LED citados en el diagnóstico */
+  lineas.forEach(l=>{if(NEG.test(l))return;[...l.matchAll(REF)].forEach(x=>{if(TIPO[clase(x[1])]=="plc"&&/\b(DIN|DI|DO|IN|OUT)\s?\d|LED\s*\d|entrada|salida/i.test(l)){const n=nodo(x[1]);usar.add(x[1]);
+   (l.match(/\b(?:DIN|DI|DO|IN|OUT)\s?\d+(?:\.\d)?\b/gi)||[]).slice(0,3).forEach(b=>{const k=b.toUpperCase().replace(/\s/g,"");n.bornas.set(k,{n:k})})}})});
+  /* 3) elemento de campo inspeccionado: el que la resolución nombra con su función (bumper, inductivo…) fuera de líneas de maniobra/descartes */
+  lineas.forEach(l=>{if(NEG.test(l))return;[...l.matchAll(REF)].forEach(x=>{const k=clase(x[1]);if(k=="W"||TIPO[k])return;const nm=nombre(x[1]);if(nm&&/sensor|pulsador|motor|lampara|valvula|conector/.test(nm.t)&&new RegExp(nm.n.split(" ")[0],"i").test(String(aviso||"")+" "+(T.match(/^#\s+(.+)$/m)||[,""])[1]))usar.add(x[1])})});
+  lineas.forEach(l=>{if(NEG.test(l))[...l.matchAll(REF)].forEach(x=>neg.add(x[1]))});
+  let L=[...nodos.values()].filter(n=>usar.has(n.ref)&&!(neg.has(n.ref)&&!med.some(m=>m._ref==n.ref)));
+  /* el elemento de campo nombrado en el título/aviso también entra aunque solo se cite (sin medida) */
+  [...usar].forEach(r=>{if(!L.some(n=>n.ref==r)&&!neg.has(r)){const n=nodo(r);L.push(n)}});
+  if(L.length<2||!med.length)return null;           /* no está claro: no se genera */
+  if(L.length>8)L=L.slice(0,8);
   L.sort((a,b)=>(RANGO[a.tipo]??5)-(RANGO[b.tipo]??5)||a.pos-b.pos);
-  L.forEach((n,i)=>{n.id="N"+(i+1);n.desc=n.desc||DESC[n.tipo]||"";n.bornas=[...n.bornas.values()].slice(0,8)});
-  /* mangueras: entre bloques consecutivos, en orden de aparición */
-  const cs=[...cables.values()].sort((a,b)=>a.pos-b.pos);const cab=[];
-  for(let i=0;i<L.length-1;i++){const c=cs[i];cab.push({de:L[i].id,a:L[i+1].id,ref:c?c.ref:"",tipo:c&&c.tipo||"",hilos:c?[...c.hilos]:[]})}
-  /* medidas: líneas con magnitud o «medir», con la primera referencia (punta roja) y la segunda o 0 V (punta negra) */
-  const med=[];const lineas=plano.split("\n");
-  for(let i=0;i<lineas.length&&med.length<6;i++){const l=lineas[i];if(/^\s*[-*]?\s*(in)?correcto/i.test(l)||!(/(medi[dr]|polímetro|continuidad)/i.test(l)||/(VDC|VAC|\bV\b|Ω|\bohm|\bmA\b)/.test(l)))continue;
-   const refs=[...l.matchAll(/\b([A-Z]{1,5}\d?-[A-Z]{1,3}\d{1,3}(?:\.\d{1,2})?)(?:\s*:\s*([\w.]+))?/g)].filter(x=>clase(x[1])!="W");if(!refs.length)continue;
-   const nd=L.find(n=>n.ref==refs[0][1]);if(!nd)continue;const clave=refs.slice(0,2).map(x=>x[0]).join("|");if(med.some(z=>z._k==clave))continue;
-   const fmt=x=>x[1]+(x[2]?":"+x[2]:"");const blk=lineas.slice(i,i+4).join(" ");
-   const mag=(blk.match(/\b(VDC|VAC|Vdc|Vac|Ω|ohm|mA|bar)\b/)||[,""])[1].replace(/ohm/i,"Ω").toUpperCase().replace("Ω","Ω")||(/continuidad/i.test(blk)?"Ω":"V");
-   const esp=(blk.match(/(?:esperado|correcto)\s*(?:->|=>|→|:)?\s*([^.;\n]{3,60})/i)||blk.match(/(\d+\s*(?:VDC|VAC|V|Ω|mA))/i)||[,""])[1].trim();
-   const si=(blk.match(/incorrecto\s*(?:->|=>|→|:)?\s*([^.;\n]{3,70})/i)||[,""])[1].trim();
-   med.push({_k:clave,id:"M"+(med.length+1),nodo:nd.id,magnitud:mag,roja:fmt(refs[0]),negra:refs[1]?fmt(refs[1]):"0 V / COM del mismo bornero",esperado:esp||"-",si_no:si})}
+  L.forEach((n,i)=>{n.id="N"+(i+1);n.bornas=[...n.bornas.values()].slice(0,8)});
+  /* mangueras: solo las que la resolución cita junto a los dos elementos que une; si no, «ver plano» */
+  const cab=[];for(let i=0;i<L.length-1;i++){const a=L[i].ref,b=L[i+1].ref;let c=null;
+   for(const l of lineas){const rs=[...l.matchAll(REF)].map(x=>x[1]);if(rs.includes(a)&&rs.includes(b)){const w=[...l.matchAll(REF)].find(x=>clase(x[1])=="W");if(w){c={ref:w[1],hilos:(l.match(/hilos?\s*((?:\d{2,4}[\s,y/·-]*)+)/i)||[,""])[1].split(/[^\d]+/).filter(Boolean)};break}}}
+   cab.push({de:L[i].id,a:L[i+1].id,ref:c?c.ref:"ver plano",tipo:"",hilos:c?c.hilos:[]})}
+  const M=med.filter(m=>L.some(n=>n.ref==m._ref)).map((m,k)=>({id:"M"+(k+1),nodo:L.find(n=>n.ref==m._ref).id,magnitud:m.magnitud,roja:m.roja,negra:m.negra||"0 V / COM (ver plano)",esperado:m.esperado,si_no:m.si_no}));
+  if(!M.length)return null;
   const tit=(T.match(/^#\s+(.+)$/m)||[,""])[1].replace(/[*`]/g,"").trim();
-  return{local:true,titulo:tit||`PBB ${pos||""} · ${tipo||""}`,elemento:(L.find(n=>tit&&tit.includes(n.ref))||L.find(n=>/sensor|motor|lampara|valvula/.test(n.tipo))||L.find(n=>RANGO[n.tipo]>=6)||{}).ref||"",tension:(plano.match(/\b(24\s?V(?:DC|dc)?|230\s?V(?:AC|ac)?|400\s?V(?:AC|ac)?)\b/)||[,""])[1],
-   plano:/\b50[48]\b/.test(String(pos))?"T87911031260 (504/508)":String(pos)=="507"?"T87911031230 (507)":"ESQUEMA GENERAL rev. J",nodos:L.map(({pos,...n})=>n),cables:cab,medidas:med.map(({_k,...x})=>x)}}
+  return{local:true,titulo:tit||`PBB ${pos||""} · ${tipo||""}`,elemento:(L.find(n=>RANGO[n.tipo]>=6)||{}).ref||"",tension:(plano.match(/\b(24\s?V(?:DC|dc)?|230\s?V(?:AC|ac)?|400\s?V(?:AC|ac)?)\b/)||[,""])[1],
+   plano:/\b50[48]\b/.test(String(pos))?"T87911031260 (504/508)":String(pos)=="507"?"T87911031230 (507)":"ESQUEMA GENERAL rev. J",nodos:L.map(({pos,...n})=>n),cables:cab,medidas:M}}
  window.croquisLocal=croquisLocal;
  window.pdfCroquis=dibuja;
 })();
