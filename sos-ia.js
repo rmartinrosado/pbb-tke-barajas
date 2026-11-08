@@ -94,6 +94,7 @@ const css=document.createElement("style");css.textContent=`#sr_ia{margin-top:10p
 .siab{height:12px;border-radius:6px;background:rgba(127,127,127,.18);overflow:hidden;margin:8px 0 4px}
 .siab>i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,var(--pr,#5b2a86),var(--ac,#ff6f00));transition:width .4s ease}
 .sia.err .siab>i{background:#c62828}.siam{display:flex;justify-content:space-between;font-size:12px}.siat{font-size:12px;margin-top:4px;white-space:pre-wrap;max-height:3.6em;overflow:hidden;opacity:.75}
+.siaot{margin:10px 0 2px;padding:9px 10px;border:2px solid #2e7d32;border-radius:10px;background:rgba(46,125,50,.08);font-size:13px}.siaot b{color:#2e7d32}.siaot button{margin:8px 0 0!important;width:100%}
 .siabt{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.siabt>*{flex:1 1 30%;margin:0!important;padding:9px 6px!important;font-size:13px!important;text-align:center;text-decoration:none;box-sizing:border-box}
 .siav{margin-top:8px;background:#6b6b6b;border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:6px;max-height:70vh;overflow:auto;-webkit-overflow-scrolling:touch}
 .siav img{width:100%;display:block;background:#fff;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.35)}`;document.head.appendChild(css);
@@ -101,6 +102,8 @@ function pinta(){const c=document.getElementById("sr_ia");if(!c||!ST)return;
  const s=ST,pc=Math.round(s.pct||0),seg=Math.round(((s.fin||Date.now())-s.ini)/1000);
  if(s.res){c.innerHTML=`<div class="sia"><div class="siah"><img src="claude-logo.png" alt=""><span>PDF de la actuación · PBB ${E(s.pos)}</span><span class="mu" style="flex:none;font-weight:400;font-size:12px">${seg} s</span></div>
   <div class="mu" style="font-size:12px;margin-top:4px">${E(s.motor||"")}${s.ot?` · guardado en la OT ${E(s.ot)} (Resolución Claude)`:""}</div>
+  ${s.otProp?`<div class="siaot"><b>Orden de trabajo solicitada</b><div>PBB ${E(s.otProp.pos||"-")} · ${E(s.otProp.tipo)} · ${E(s.otProp.desc)}</div><button class="pri" onclick="sosRegOT()">📝 Registrar la OT</button></div>`:""}
+  ${s.memo?`<div class="mu" style="font-size:12px;margin-top:4px">📁 ${E(s.memo)}</div>`:""}
   <div class="siabt"><a class="pri" href="${s.res.url}" download="${E(s.res.nom)}">⬇ Descargar PDF</a><button class="sec" onclick="sosIaAbre()">Abrir</button>${navigator.canShare?`<button class="sec" onclick="sosIaComparte()">Compartir</button>`:""}</div>
   <div class="siav" id="sia_v">${s.res.imgs?s.res.imgs.map(u=>`<img src="${u}" alt="Página del PDF">`).join(""):`<div class="mu" style="color:#fff;padding:10px">Preparando la vista…</div>`}</div></div>`;return}
  c.innerHTML=`<div class="sia${s.err?" err":""}"><div class="siah"><img src="claude-logo.png" alt=""><span>${s.err?"No se ha podido completar la consulta":/Gemini/.test(s.motor||"")?"Consultando a Gemini (reserva: falta la clave de Claude)":"Consultando a Claude en segundo plano"}</span></div>
@@ -115,23 +118,52 @@ window.sosIaClaudeAi=()=>{if(ST&&ST.pregunta&&typeof abreClaude=="function")abre
 
 /* el SOS conserva la consulta: al volver a abrir la hoja se ve el progreso o el PDF */
 const oR=window.sosRap;if(typeof oR=="function")window.sosRap=function(){const r=oR.apply(this,arguments);
- const b=document.querySelector("#sheetc .srobok");if(b&&!document.getElementById("sr_ia")){b.insertAdjacentHTML("afterend",`<div id="sr_ia"></div>`);
+ const b=document.querySelector("#sheetc .srobrow")||document.querySelector("#sheetc .srobok");if(b&&!document.getElementById("sr_ia")){b.insertAdjacentHTML("afterend",`<div id="sr_ia"></div>`);
   if(ST){const p=$("#sr_p");if(p&&!p.value)p.value=ST.pos;const o=$("#sr_ob");if(o&&!o.value)o.value=ST.obs||"";pinta()}}
  return r};
+
+/* ---------- v372: reinicio, orden de trabajo pedida en el mensaje y memoria de las actuaciones SOS ---------- */
+const OTRE=/\b(crea|crear|cr[eé]ame|crealo|genera|generar|gen[eé]rame|registra|registrar|reg[ií]stra(?:me|la)|abre|abrir|[aá]breme|da de alta|dar de alta|alta de|nueva)\b[^.\n]{0,60}\b(orden(?:es)? de trabajo|orden|OT|aviso)\b/i;
+function propOT(md,ob,pos,tipo){const sec=(String(md).split(/\n(?=##\s)/).find(x=>/^##\s*orden de trabajo/i.test(x))||"");
+ const v=k=>{const m=sec.match(new RegExp(k+"\\s*\\**\\s*[:：]\\s*\\**\\s*([^\\n]+)","i"));return m?m[1].replace(/\*\*/g,"").trim():""};
+ let p=(v("Posici[oó]n").match(/T?\d{3}/i)||[])[0]||pos||"";const t=(v("Tipo").toUpperCase().match(/PAS|AAA|AAP|HZ|SVGA/)||[])[0]||(ob.toUpperCase().match(/\b(PAS|AAA|AAP|HZ|SVGA)\b/)||[])[1]||tipo||"PAS";
+ let d=v("Descripci[oó]n");if(!d){d=ob.split(/(?<=[.!?])\s+/).filter(x=>!OTRE.test(x)&&!/^dame|^lista|^quiero|^necesito/i.test(x.trim())).join(" ").trim()||ob}
+ return{pos:String(p).toUpperCase(),tipo:t,desc:d.slice(0,240)}}
+window.sosRegOT=function(){if(!ST||!ST.otProp)return;const o=ST.otProp;closeSheet();go("new");
+ const pon=()=>{const n=document.getElementById("f_posn");if(n&&o.pos){n.value=o.pos;try{n.dispatchEvent(new Event("input",{bubbles:true}))}catch(e){}}
+  const sp=document.getElementById("f_pos");if(sp&&o.pos&&[...sp.options].some(x=>x.value==o.pos))sp.value=o.pos;
+  document.querySelectorAll(".eqc").forEach(c=>c.checked=c.value==o.tipo);if(typeof pintaEq=="function")pintaEq();
+  const d=document.getElementById("f_desc");if(d)d.value=o.desc;const f=document.getElementById("f_ord");if(f){try{f.focus({preventScroll:true})}catch(e){f.focus()}}};
+ setTimeout(pon,150);setTimeout(pon,600);msg("OT preparada: introduce el nº de orden CGA y guarda")};
+window.sosReinicia=function(){if(ST){try{ST.ac&&ST.ac.abort()}catch(e){}try{ST.res&&URL.revokeObjectURL(ST.res.url)}catch(e){}}ST=null;clearInterval(tic);
+ try{closeSheet()}catch(e){}if(typeof window.sosRap=="function")window.sosRap();msg("SOS reiniciado")};
+/* toda actuación SOS se guarda en «Casos» (carpeta Resoluciones) con su PDF y su texto, para tomarla de referencia en averías futuras */
+async function memoriza(S){if(typeof sb=="undefined"||!sb||!S.res||!S.md)return;
+ const d=new Date(),path=Date.now()+"_"+S.res.nom.replace(/[^\w.-]/g,"_");
+ const up=await sb.storage.from("docs_claude").upload(path,S.res.blob,{contentType:"application/pdf"});if(up.error)throw up.error;
+ const pri=(String(S.md).split(/\n(?=##\s)/).find(x=>/^##\s*primera actuaci/i.test(x))||"").replace(/^##[^\n]*\n/,"").trim();
+ const fila={titulo:`SOS · PBB ${S.pos||"-"} · ${S.obs.replace(/\s+/g," ").slice(0,70)}`,pdf_path:path,pos:S.pos||null,tipo:S.tipo||null,orden:S.orden||null,ot_id:S.otId||null,carpeta:"Resoluciones",
+  notas:`Actuación SOS memorizada automáticamente · ${S.motor||"Claude"} · ${d.toLocaleDateString("es-ES")}`,contenido:S.md,
+  registro:{pos:S.pos||"",tipo:S.tipo||"",orden:S.orden||"",fecha:d.toISOString().slice(0,10),desc:S.obs,obs:S.al||"",act:pri.slice(0,4000)},autor:(typeof tecNombre!="undefined"&&tecNombre)||(typeof user!="undefined"&&user&&user.email)||null};
+ const r=await sb.from("docs_claude").insert(fila).select();if(r.error)throw r.error;
+ S.memo="Actuación guardada en Casos para futuras averías";if(ST===S)pinta();try{window.docsCarga&&window.docsCarga(true)}catch(e){}}
 
 /* ---------- consulta ---------- */
 window.sosObClaude=async function(){const t=document.getElementById("sr_ob"),ob=(t&&t.value.trim())||"";
  if(!ob){msg("Escribe en Observaciones lo que has detectado");if(t)t.focus();return}
  if(ST&&ST.ac&&!ST.res&&!ST.err){msg("Ya hay una consulta en marcha");return}
- const pos=(($("#sr_p")||{}).value||"").trim().toUpperCase(),sa=$("#sr_a"),al=sa&&sa.value?sa.options[sa.selectedIndex].text:"",am=(($("#sr_t")||{}).value||"").trim();
+ let pos=(($("#sr_p")||{}).value||"").trim().toUpperCase();const sa=$("#sr_a");const al=sa&&sa.value?sa.options[sa.selectedIndex].text:"",am=(($("#sr_t")||{}).value||"").trim();
+ /* v372: si no se ha puesto la posición, se toma la que se nombra en las observaciones (p. ej. «en la 546») */
+ if(!pos){const PS=new Set((typeof POS!="undefined"?POS:[]).map(x=>String(x).toUpperCase()));const m=(ob.toUpperCase().match(/\bT?\d{3}\b/g)||[]).find(x=>PS.has(x));if(m){pos=m;const pe=$("#sr_p");if(pe)pe.value=m}}
+ const pideOT=OTRE.test(ob);
  const ot=(typeof inc!="undefined"&&Array.isArray(inc)&&pos)?inc.find(x=>String(x.pos).toUpperCase()==pos&&x.estado=="abierta"):null;
  const tipo=(ot&&ot.tipo)||"PAS";
  const pregunta=`Contexto: pasarela de embarque PBB ${pos||"(sin indicar)"} del Aeropuerto de Madrid Barajas (TK Elevator). Actuación directa SOS.
 ${ot?`OT abierta: tipo ${ot.tipo||"-"} · Nº de orden CGA ${ot.orden||"-"} · descripción: ${ot.desc||"(sin descripción)"}\n`:""}Alarma activada en la Magelis: ${al||"(no elegida)"}${am?`\nAlarma escrita a mano: ${am}`:""}
-Observaciones del técnico (lo detectado en campo):
+MENSAJE DEL TÉCNICO (te habla directamente, como en una conversación con Claude AI; analiza exhaustivamente cada frase y responde a TODO lo que pide: listas, relaciones de cables, explicaciones, medidas, procedimientos…):
 ${ob}
-
-Analiza minuciosamente lo detectado y cotéjalo con TODA la documentación del proyecto PBB TKE (planos eléctricos e hidráulicos, PLC, guía de averías, procedimientos y casos anteriores). Quiero instrucciones de campo de nivel profesional para localizar la avería:
+${pideOT?`\nEl técnico pide crear o registrar una ORDEN DE TRABAJO: la app PBB TKE la registra con su confirmación, así que no digas que no puedes. Añade al final un apartado «## Orden de trabajo propuesta» con Posición, Tipo (PAS, AAA, AAP, HZ o SVGA) y una Descripción breve de la incidencia.\n`:""}
+Si el mensaje describe una avería, analiza minuciosamente lo detectado y cotéjalo con TODA la documentación del proyecto PBB TKE (planos eléctricos e hidráulicos, PLC, guía de averías, procedimientos y casos anteriores). Quiero instrucciones de campo de nivel profesional para localizar la avería:
 1. Empieza con «Primera actuación en campo» (seguridad y pasos inmediatos, numerados y breves).
 2. Diagnóstico paso a paso: en cada paso indica el elemento y su referencia en plano (folio, borne, módulo PLC, entrada/salida, LED), la medida a tomar (magnitud, puntos de medida y valor esperado) y qué hacer según el resultado (si es correcto → siguiente paso; si no → causa probable y actuación).
 3. Medida a medida, con las comprobaciones de cada una, hasta acotar la avería.
@@ -167,7 +199,9 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
   const d=new Date(),f2=n=>String(n).padStart(2,"0");
   S.res={blob,url,nom:`SOS_PBB${pos||"X"}_${d.getFullYear()}-${f2(d.getMonth()+1)}-${f2(d.getDate())}_${f2(d.getHours())}${f2(d.getMinutes())}.pdf`};
   if(S.otId){const o=inc.find(x=>x.id==S.otId);if(o){o.resClaude={txt,ts:Date.now(),por:"SOS · "+(S.motor||"Claude"),croquis:S.croquis||undefined};try{sv("pbb_inc",inc)}catch(e){}S.ot=o.orden||o.id}}
+  if(pideOT)S.otProp=propOT(txt,ob,pos,tipo);
   S.pct=100;S.fin=Date.now();pinta();msg("PDF de la actuación listo");
+  memoriza(S).catch(e=>console.warn("memoriza SOS",e));
   vista(S)}
  catch(e){S.esperando=false;S.fin=Date.now();S.err=e&&e.name=="AbortError"?"Consulta cancelada.":String((e&&e.message)||e);pinta()}
  finally{clearInterval(tic);try{wl&&wl.release()}catch(e){}}};
