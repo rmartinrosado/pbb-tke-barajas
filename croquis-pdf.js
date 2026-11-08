@@ -36,6 +36,12 @@
   return{rx:x+3.2,ry:y+12.8,nx:x+7.8,ny:y+12.8}}
  function punta(d,x,y,col){d.setFillColor(...col);d.setDrawColor(...col);d.circle(x,y,.75,"F")}
 
+
+ /* v365: ubicación física del elemento por el prefijo de su rótulo (EPLAN «+P-», «+E-», …); si no, la que dé la IA */
+ const UBI=[[/^\+?CBTH/i,"Armario CBTH (exterior)"],[/^\+?IT-/i,"Tunel interior"],[/^\+?ET-/i,"Tunel exterior"],[/^\+?MT-/i,"Tunel medio"],[/^\+?CO\d*-/i,"Rotonda · columna"],
+  [/^\+?SS-/i,"Exterior · escalera de servicio"],[/^\+?P-/i,"Armario electrico pupitre"],[/^\+?E-/i,"Armario electrico principal"],[/^\+?R-/i,"Rotonda"],
+  [/^\+?C-/i,"Cabina"],[/^\+?H-/i,"Elevacion · exterior bajo tunel ext."],[/^\+?T-/i,"Carro traslacion · exterior bajo tunel ext."]];
+ const ubica=n=>{const r=String(n.ref||"").trim();for(const [re,t] of UBI)if(re.test(r))return t;return n.ubicacion||""};
  function dibuja(d,C,o){const {cab,W,H,M,PR,AC,GR,fnt,pS}=o;if(!C||!Array.isArray(C.nodos)||!C.nodos.length)return;
   const BOT=H-16,X0=M,BW=90,SY=14,GAP=15,MX=X0+BW+3,BX=MX+14,BWm=W-M-BX;
   const nuevaPag=t=>{d.addPage();cab();let y=24;d.setFillColor(...PR);d.roundedRect(M,y-5,W-2*M,8,1.5,1.5,"F");fnt(1,0,11);d.setTextColor(255,255,255);
@@ -74,7 +80,10 @@
    d.setFillColor(255,255,255);d.rect(X0+2,y+2,SY,SY,"F");simbolo(d,n.tipo,X0+2,y+2,SY);
    fnt(1,0,9.5);d.setTextColor(...PR);d.text(corta(d,pS(n.ref||"-"),BW-SY-24),X0+SY+5,y+5.5);d.setTextColor(0,0,0);
    if(n.folio){fnt(0,0,6.5);d.setTextColor(...GR);d.text(pS("fol. "+n.folio),X0+BW-2,y+4.5,{align:"right"});d.setTextColor(0,0,0)}
-   fnt(0,0,7);d.text(corta(d,pS(n.desc||n.tipo||""),BW-SY-8),X0+SY+5,y+9.3);
+   const ub=pS(ubica(n));let uw=0;
+   if(ub){fnt(1,0,5.8);uw=Math.min(40,d.getTextWidth(ub)+4);d.setFillColor(255,236,214);d.setDrawColor(...AC);d.setLineWidth(.25);d.roundedRect(X0+BW-2-uw,y+6.2,uw,3.9,.9,.9,"FD");
+    d.setTextColor(150,70,0);d.text(corta(d,ub,uw-2.5),X0+BW-2-uw/2,y+8.9,{align:"center"});d.setTextColor(0,0,0)}
+   fnt(0,0,7);d.text(corta(d,pS(n.desc||n.tipo||""),BW-SY-8-(uw?uw+3:0)),X0+SY+5,y+9.3);
    const nb={x:X0,w:BW,top:y,h,bornas:[]};
    if(bs.length){const tx=X0+SY+5,ty=y+12.2,st=Math.min(7,(BW-SY-8)/bs.length);
     bs.forEach((b,j)=>{const bx=tx+j*st;d.setDrawColor(...NG);d.setLineWidth(.3);d.setFillColor(255,255,255);d.rect(bx,ty,5,5,"FD");d.circle(bx+2.5,ty+2.5,1.1);
