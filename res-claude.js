@@ -80,7 +80,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
   const ed=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
   return `<details class="rcBox" ${ab.has(i.id)?"open":""} ontoggle="rcTog('${i.id}',this.open)" onclick="event.stopPropagation()">
   <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>Resolución Claude AI</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}${/Gemini/i.test(r.por||"")?" · generada por Gemini (reserva)":""}</small></span><button class="rcPdf" title="PDF A4 de la resolución" aria-label="PDF A4 de la resolución" onclick="event.preventDefault();event.stopPropagation();rcPdf('${i.id}')">PDF</button><span class="rcChev">▾</span></summary>
-  <div class="rcBody">${md(r.txt,i.id)}
+  <div class="rcBody">${typeof pdfHTML=="function"?pdfHTML(i.id):""}${md(r.txt,i.id)}
   <div class="rcFoot"><span>Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar en campo.</span>${ed?`<button class="sec rcDel" title="Borrar resolución Claude" aria-label="Borrar resolución Claude" onclick="event.stopPropagation();rcBorra('${i.id}')">🗑</button>`:""}</div></div></details>`}
  window.rcBorra=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(!confirm(`¿Borrar la resolución Claude de la OT ${i.orden}?`))return;delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Resolución Claude borrada")};
  /* Ficha de OT: la zona va antes de la fila de botones */
@@ -202,10 +202,27 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
      ["Técnicos",i.integrantes||i.tecnico||(typeof tecNombre!="undefined"&&tecNombre)||"-"],["Resolución",fe.toLocaleDateString("es-ES")+" "+fe.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})],["Motor IA",r.por||"Claude"]]};
    const blob=await window.sosIaPdf(S);P.fase("PDF listo",100);await new Promise(z=>setTimeout(z,P.avisado()?2200:500));P.fin();const d=new Date(r.ts||Date.now()),f2=n=>String(n).padStart(2,"0");
    const nom=`Resolucion_PBB${i.pos}_OT${i.orden||""}_${d.getFullYear()}-${f2(d.getMonth()+1)}-${f2(d.getDate())}.pdf`;
-   const f=new File([blob],nom,{type:"application/pdf"});
-   if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:nom});return}catch(e){if(e&&e.name=="AbortError")return}}
-   const u=URL.createObjectURL(blob);const w=window.open(u,"_blank");if(!w){const a=document.createElement("a");a.href=u;a.download=nom;document.body.appendChild(a);a.click();a.remove()}
-   setTimeout(()=>URL.revokeObjectURL(u),120000)}catch(e){P.fin();msg("No se pudo generar el PDF: "+((e&&e.message)||e))}};
+   /* v376: el PDF se incrusta en la ficha (como en el SOS): Descargar · Abrir · Compartir y vista de las páginas */
+   const ant=RPDF[id];if(ant)try{URL.revokeObjectURL(ant.url);(ant.imgs||[]).forEach(u=>URL.revokeObjectURL(u))}catch(e){}
+   RPDF[id]={blob,url:URL.createObjectURL(blob),nom,imgs:null,sin:!r.croquis,loc:!!(r.croquis&&r.croquis.local)};ab.add(id);render();
+   setTimeout(()=>{try{const b=document.getElementById("rcpdf_"+id);if(b)b.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}},150);
+   vistaPdf(id)}catch(e){P.fin();msg("No se pudo generar el PDF: "+((e&&e.message)||e))}};
+ const RPDF={};
+ async function vistaPdf(id){const R=RPDF[id];if(!R)return;try{await cargaLib();const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await R.blob.arrayBuffer())}).promise;const out=[];
+  const w=Math.min(1600,Math.max(900,Math.round((window.innerWidth||400)*(window.devicePixelRatio||2))));
+  for(let n=1;n<=pdf.numPages;n++){const pg=await pdf.getPage(n);const b=pg.getViewport({scale:1}),v=pg.getViewport({scale:w/b.width});
+   const c=document.createElement("canvas");c.width=v.width;c.height=v.height;await pg.render({canvasContext:c.getContext("2d"),viewport:v}).promise;
+   out.push(await new Promise(r=>c.toBlob(b=>r(URL.createObjectURL(b)),"image/jpeg",.9)))}
+  if(RPDF[id]===R){R.imgs=out;pintaPdf(id)}}catch(e){if(RPDF[id]===R){R.imgs=[];R.iframe=true;pintaPdf(id)}}}
+ const pdfHTML=id=>{const R=RPDF[id];if(!R)return"";
+  return `<div class="rcPdfB" id="rcpdf_${id}" onclick="event.stopPropagation()"><div class="rcPdfH"><img src="claude-logo.png" alt=""><b>PDF de la resolución</b><button class="rcPdfX" aria-label="Quitar el PDF de la ficha" title="Quitar el PDF de la ficha" onclick="rcPdfQuita('${id}')">✕</button></div>
+  ${R.sin?'<div class="rcPdfS">PDF SIN CROQUIS</div>':R.loc?'<div class="mu" style="font-size:12px;margin-top:2px">Croquis automático (referencias de la resolución)</div>':""}
+  <div class="siabt rcPdfBt"><a class="pri" href="${R.url}" download="${E(R.nom)}">⬇ Descargar PDF</a><button class="sec" onclick="rcPdfAbre('${id}')">Abrir</button>${navigator.canShare?`<button class="sec" onclick="rcPdfComparte('${id}')">Compartir</button>`:""}</div>
+  <div class="rcPdfV">${R.imgs?(R.iframe?`<iframe src="${R.url}" style="width:100%;height:65vh;border:0;background:#fff"></iframe>`:R.imgs.map(u=>`<img src="${u}" alt="Página del PDF">`).join("")):'<div style="color:#fff;padding:10px;font-size:13px">Preparando la vista…</div>'}</div></div>`};
+ const pintaPdf=id=>{const b=document.getElementById("rcpdf_"+id);if(b)b.outerHTML=pdfHTML(id);else{try{render()}catch(e){}}};
+ window.rcPdfQuita=id=>{const R=RPDF[id];if(R)try{URL.revokeObjectURL(R.url);(R.imgs||[]).forEach(u=>URL.revokeObjectURL(u))}catch(e){}delete RPDF[id];render()};
+ window.rcPdfAbre=id=>{const R=RPDF[id];if(!R)return;const w=window.open(R.url,"_blank");if(!w){const a=document.createElement("a");a.href=R.url;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}};
+ window.rcPdfComparte=async id=>{const R=RPDF[id];if(!R)return;try{const f=new File([R.blob],R.nom,{type:"application/pdf"});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:R.nom});else rcPdfAbre(id)}catch(e){}};
  /* v367: ventana con barra de progreso mientras se genera el PDF (arriba de la pantalla) */
  function pdfProg(tit){const ov=document.createElement("div");ov.id="rcPdfOv";
   ov.innerHTML=`<div class="rcPo"><div class="rcPoT"><img src="claude-logo.png" alt=""><b>${E(tit)}</b></div><div class="rcPgB"><i></i></div><div class="rcPgM"><span class="f">Iniciando…</span><b class="p">0%</b></div><div class="rcPoA"></div><div class="rcPoN"></div></div>`;
@@ -245,6 +262,13 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
 .rcDel{padding:4px 10px;margin:0}
 .cacts .gwa{order:-1}.gwa{color:#1fa855!important;border-color:#25d366!important}.gwa svg{width:22px!important;height:22px!important}
 .rcEd{margin-top:10px}
+.rcPdfB{margin:8px 0 12px;padding:10px;border:2px solid #d97757;border-radius:12px;background:rgba(217,119,87,.06)}
+.rcPdfH{display:flex;align-items:center;gap:8px;font-size:14px}.rcPdfH img{width:24px;height:24px;border-radius:6px}.rcPdfH b{flex:1}
+button.rcPdfX{width:32px!important;height:32px!important;margin:0!important;padding:0!important;border-radius:8px!important;border:1px solid rgba(127,127,127,.5)!important;background:transparent!important;color:inherit!important;font-size:15px!important}
+.rcPdfS{margin-top:4px;text-align:center;font-weight:800;letter-spacing:1px;color:#e65100;font-size:13px}
+.rcPdfBt{display:grid!important;grid-template-columns:1.3fr 1fr 1fr;gap:6px;margin-top:8px}.rcPdfBt>*{margin:0!important;text-align:center;display:flex;align-items:center;justify-content:center;padding:10px 6px!important;font-size:13px!important;text-decoration:none;border-radius:9px}
+.rcPdfV{margin-top:8px;background:#6b6b6b;border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:6px;max-height:70vh;overflow:auto;-webkit-overflow-scrolling:touch}
+.rcPdfV img{width:100%;display:block;background:#fff;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
 body.rcEscribe #pfix,body.rcEscribe #pmini{display:none!important}\nbody.rcEscribe #otsc{padding-bottom:75vh!important;top:var(--rcTop,0px)!important;left:var(--rcL,0px)!important;width:var(--rcW,100%)!important}
 input.rcDf{display:block;width:100%;margin:5px 0 2px;padding:7px 9px!important;font-size:13.5px!important;border:1.5px dashed #d97757!important;border-radius:8px!important;background:#fff!important;color:#111!important;height:auto!important}
 .rcAj{margin:12px 0 4px}.rcAjB{display:block;width:100%;margin:0!important;padding:12px!important;border-radius:10px!important;border:0!important;background:linear-gradient(90deg,#5b2a86,#d97757)!important;color:#fff!important;font-weight:800!important;letter-spacing:.8px;font-size:14px!important}
