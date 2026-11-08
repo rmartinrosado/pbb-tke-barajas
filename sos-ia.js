@@ -243,4 +243,6 @@ async function haceePdf(S){await cargaJsPDF();const {jsPDF}=window.jspdf;const d
   d.text(pS("PBB TKE Maintenance · Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar siempre en campo."),M,H-7);d.text(`Pág. ${n}/${N}`,W-M,H-7,{align:"right"});d.setTextColor(0,0,0)}
  return d.output("blob")}
 window.sosIaPdf=haceePdf;
+/* v352: la Resolución IA de la OT reutiliza la misma documentación (res-claude.js) */
+window.iaCtx={guiaCtx,primeraCtx,casosCtx,planosCtx};
 })();

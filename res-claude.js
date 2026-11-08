@@ -34,7 +34,7 @@
  function bloque(i){const r=i.resClaude;if(!r||!(r.txt||"").trim())return"";
   const ed=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
   return `<details class="rcBox" ${ab.has(i.id)?"open":""} ontoggle="rcTog('${i.id}',this.open)" onclick="event.stopPropagation()">
-  <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>Resolución Claude AI</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}</small></span><span class="rcChev">▾</span></summary>
+  <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>Resolución Claude AI</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}${/Gemini/i.test(r.por||"")?" · generada por Gemini (reserva)":""}</small></span><span class="rcChev">▾</span></summary>
   <div class="rcBody">${md(r.txt)}
   <div class="rcFoot"><span>Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar en campo.</span>${ed?`<button class="sec rcDel" title="Borrar resolución Claude" aria-label="Borrar resolución Claude" onclick="event.stopPropagation();rcBorra('${i.id}')">🗑</button>`:""}</div></div></details>`}
  window.rcBorra=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(!confirm(`¿Borrar la resolución Claude de la OT ${i.orden}?`))return;delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Resolución Claude borrada")};
@@ -73,6 +73,59 @@
   const ca=b.closest(".cacts");col.appendChild(b);if(ca&&!ca.querySelector("button"))ca.remove()})}
  const orw=render;render=function(){const r=orw.apply(this,arguments);try{mueveWA()}catch(e){}return r};
  new MutationObserver(()=>{try{mueveWA()}catch(e){}}).observe(document.body,{childList:true,subtree:true});
+
+ /* ===== v352: botón Claude de la Resolución IA → consulta en SEGUNDO PLANO (función consulta-sos, la misma del SOS):
+    no abre Claude.ai; barra de progreso debajo del icono de Claude; al terminar se cierra la pantalla y la respuesta
+    aparece en la ficha de la OT, en «Resolución Claude AI», desplegada en la «Primera actuación en campo». ===== */
+ let JOB=null;
+ const pbar=()=>{const c=document.getElementById("rc_prog");if(!c||!JOB)return;const j=JOB,pc=Math.round(j.pct||0),sg=Math.round(((j.fin||Date.now())-j.ini)/1000);
+  c.innerHTML=`<div class="rcPg${j.err?" err":""}"><div class="rcPgB"><i style="width:${j.err?100:pc}%"></i></div>
+  <div class="rcPgM"><span>${E(j.err?"No se ha podido completar la consulta":j.fase||"")}</span><b>${j.err?"":pc+"% · "}${sg} s</b></div>
+  ${j.err?`<div class="rcPgE">${E(j.err)}</div><div class="grid" style="margin-top:6px"><button class="sec" onclick="rcReintenta()">Reintentar</button><button class="sec" onclick="rcEnClaude()">Abrir en Claude.ai</button></div>`
+  :`${j.vista?`<div class="rcPgV">${E(j.vista)}</div>`:""}<button class="sec" style="width:100%;margin-top:6px" onclick="rcCancela()">Cancelar</button>`}</div>`};
+ const ponBarra=()=>{if(!JOB)return;const s=$("#t_sel");if(!s||s.value!=JOB.id)return;if(!document.getElementById("rc_prog")){
+  const cl=document.querySelector('#sheetc button[aria-label="Instrucciones IA"]');const d=document.createElement("div");d.id="rc_prog";
+  cl?cl.insertAdjacentElement("afterend",d):$("#sheetc").appendChild(d)}pbar()};
+ window.rcCancela=()=>{if(JOB&&JOB.ac)JOB.ac.abort()};
+ window.rcEnClaude=()=>{if(JOB&&JOB.pr)ab0(JOB.pr)};
+ window.rcReintenta=()=>{if(JOB&&JOB.pr)rcConsulta(JOB.id,JOB.pr)};
+ async function rcConsulta(id,pr){const i=inc.find(x=>x.id==id);if(!i)return;
+  if(JOB&&!JOB.fin&&!JOB.err){msg("Ya hay una consulta a Claude en marcha");return}
+  const J=JOB={id,pr,ini:Date.now(),pct:1,fase:"Preparando la consulta…",ac:new AbortController()};ponBarra();
+  const tic=setInterval(()=>{if(JOB!==J||J.fin||J.err){clearInterval(tic);return}if(J.esperando)J.pct=Math.min(J.pct+.3,24);pbar()},1000);
+  const av=(f,p)=>{if(f)J.fase=f;if(p!=null)J.pct=Math.max(J.pct,Math.min(99,p));pbar()};
+  let wl=null;try{if(navigator.wakeLock)wl=await navigator.wakeLock.request("screen")}catch(e){}
+  try{const X=window.iaCtx||{},tipo=i.tipo||"PAS",busca=[i.desc,i.def,i.com,i.guiada].filter(Boolean).join(" · ");
+   av("Reuniendo la guía de campo…",4);
+   const g=X.guiaCtx?X.guiaCtx(tipo,busca):"",pa=X.primeraCtx?X.primeraCtx(i.pos,busca):"";
+   av("Buscando casos parecidos…",7);const ca=X.casosCtx?await X.casosCtx(busca):"";
+   av("Cotejando planos…",9);const pl=X.planosCtx?await X.planosCtx(String(i.pos),tipo,busca,(f,x)=>av(f,9+9*(x||0))):{txt:""};
+   if(J.ac.signal.aborted)throw new DOMException("x","AbortError");
+   const contexto=[g,pa,ca,pl.txt].filter(Boolean).join("\n\n");
+   av("Enviando a Claude ("+Math.round(contexto.length/1024)+" KB de documentación)…",19);
+   const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;
+   if(!tok)throw new Error("Inicia sesión en la app para consultar a Claude.");
+   J.esperando=true;
+   const r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:J.ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({pregunta:pr,contexto})});
+   if(!r.ok){let m="";try{const j=await r.json();m=j.mensaje||j.error||""}catch(e){}throw new Error(`La consulta ha fallado (${r.status}) ${m}`)}
+   J.motor=(r.headers.get("x-motor")||"Claude").replace(" - "," · ");J.esperando=false;av((/Gemini/.test(J.motor)?"Gemini":"Claude")+" está redactando la resolución…",25);
+   const rd=r.body.getReader(),dec=new TextDecoder();let txt="";
+   for(;;){const {done,value}=await rd.read();if(done)break;txt+=dec.decode(value,{stream:true});
+    J.pct=Math.max(J.pct,25+70*(1-Math.exp(-txt.length/6000)));J.vista=txt.split("\n").filter(l=>l.trim()).slice(-2).join("\n").replace(/[#*|`]/g,"").slice(-160);J.fase=`Recibiendo respuesta · ${txt.length} caracteres`;pbar()}
+   txt=txt.trim();if(txt.length<200)throw new Error("Respuesta vacía o incompleta. Vuelve a intentarlo.");
+   const o=inc.find(x=>x.id==id);if(!o)throw new Error("La OT ya no existe");
+   o.resClaude={txt,ts:Date.now(),por:J.motor||"Claude"};sv("pbb_inc",inc);
+   J.pct=100;J.fin=Date.now();pbar();
+   ab.add(id);const s=$("#t_sel");if(s&&s.value==id)closeSheet();render();msg(`Resolución lista en la OT ${o.orden||""}`);
+   setTimeout(()=>{try{const b=[...document.querySelectorAll("#app .rcBox")].find(x=>(x.getAttribute("ontoggle")||"").includes("'"+id+"'"));
+    if(b){b.open=true;const c=b.closest(".card");if(c&&c.classList.contains("ot"))c.classList.add("oab");b.scrollIntoView({behavior:"smooth",block:"start"})}}catch(e){}},120)}
+  catch(e){J.esperando=false;J.fin=Date.now();J.err=e&&e.name=="AbortError"?"Consulta cancelada.":String((e&&e.message)||e);pbar()}
+  finally{clearInterval(tic);try{wl&&wl.release()}catch(e){}}}
+ window.rcConsulta=rcConsulta;
+ const ab0=abreClaude;let bg=null;
+ abreClaude=function(pr){if(bg){const id=bg;bg=null;try{localStorage.removeItem("pbb_ret")}catch(e){}rcConsulta(id,pr);return}return ab0.apply(this,arguments)};
+ const ogt=window.guardaTec;window.guardaTec=function(){const s=$("#t_sel");bg=s&&s.value||null;try{return ogt.apply(this,arguments)}finally{bg=null}};
+ const orT2=resTec;resTec=function(){const r=orT2.apply(this,arguments);try{ponBarra()}catch(e){}return r};
  const st=document.createElement("style");st.textContent=`
 .rcBox{margin:10px 0 4px;border:1px solid rgba(217,119,87,.55);border-left:4px solid #d97757;border-radius:12px;background:linear-gradient(180deg,rgba(217,119,87,.10),rgba(217,119,87,.03));overflow:hidden}
 .rcSum{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;list-style:none}
@@ -103,7 +156,13 @@
 .rcFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:7px;border-top:1px solid rgba(127,127,127,.25);font-size:11px;opacity:.85}
 .rcDel{padding:4px 10px;margin:0}
 .cacts .gwa{order:-1}.gwa{color:#1fa855!important;border-color:#25d366!important}.gwa svg{width:22px!important;height:22px!important}
-.rcEd{margin-top:10px}.rcOk{color:#2e7d32;font-size:12px;margin-left:6px}`;
+.rcEd{margin-top:10px}
+#rc_prog{margin-top:8px}.rcPg{border:2px solid #d97757;border-radius:12px;padding:9px 10px}
+.rcPgB{height:12px;border-radius:6px;background:rgba(127,127,127,.18);overflow:hidden}
+.rcPgB>i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#5b2a86,#d97757);transition:width .4s ease}
+.rcPg.err{border-color:#c62828}.rcPg.err .rcPgB>i{background:#c62828}
+.rcPgM{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-top:5px}
+.rcPgV{font-size:12px;margin-top:4px;white-space:pre-wrap;max-height:3.4em;overflow:hidden;opacity:.7}.rcPgE{font-size:13px;margin-top:6px;color:#c62828}.rcOk{color:#2e7d32;font-size:12px;margin-left:6px}`;
  document.head.appendChild(st);
  try{render()}catch(e){}
 })();
