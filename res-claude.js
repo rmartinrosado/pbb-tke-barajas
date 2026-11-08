@@ -45,7 +45,7 @@
     (la respuesta llega sola con la consulta en segundo plano). El campo t_gui queda oculto: conserva la actuación guiada de la OT para la consulta. */
  const orT=resTec;resTec=function(sel){const r=orT.apply(this,arguments);try{
   const g=$("#t_gui");if(g){g.style.display="none";const lb=g.previousElementSibling;if(lb&&lb.tagName=="LABEL")lb.style.display="none"}
-  document.querySelectorAll('#sheetc button[onclick^="pegaGui"]').forEach(b=>b.style.display="none")}catch(e){}return r};
+  document.querySelectorAll('#sheetc button[onclick^="pegaGui"]').forEach(b=>b.style.display="none");document.querySelectorAll("#sheetc .gprint,#sheetc .rcEd").forEach(b=>b.style.display="none") /* v354: solo queda el botón Claude */}catch(e){}return r};
  window.rcPega=async()=>{try{const t=await navigator.clipboard.readText();if(t)$("#rc_txt").value=t;else msg("Portapapeles vacío")}catch(e){msg("No se pudo leer el portapapeles: pega con pulsación larga")}};
  window.rcGuarda=()=>{const s=$("#t_sel"),t=$("#rc_txt");if(!s||!t)return;const i=inc.find(x=>x.id==s.value);if(!i)return;const v=t.value.trim();
   if(v)i.resClaude={txt:v,ts:Date.now(),por:(typeof tecNombre!="undefined"&&tecNombre)||"Claude"};else{delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id)}
