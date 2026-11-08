@@ -108,13 +108,14 @@ function pinta(){const c=document.getElementById("sr_ia");if(!c||!ST)return;
   <div class="siav" id="sia_v">${s.res.imgs?s.res.imgs.map(u=>`<img src="${u}" alt="Página del PDF">`).join(""):`<div class="mu" style="color:#fff;padding:10px">Preparando la vista…</div>`}</div></div>`;return}
  c.innerHTML=`<div class="sia${s.err?" err":""}"><div class="siah"><img src="claude-logo.png" alt=""><span>${s.err?"No se ha podido completar la consulta":/Gemini/.test(s.motor||"")?"Consultando a Gemini (reserva: falta la clave de Claude)":"Consultando a Claude en segundo plano"}</span></div>
  <div class="siab"><i style="width:${pc}%"></i></div><div class="siam"><span>${E(s.fase||"")}</span><b>${pc}% · ${seg} s</b></div>
- ${s.err?`<div class="gav" style="margin-top:6px;font-size:13px">${E(s.err)}</div><div class="siabt"><button class="sec" onclick="sosObClaude()">Reintentar</button><button class="sec" onclick="sosIaClaudeAi()">Abrir en Claude.ai</button></div>`
+ ${s.err?`<div class="gav" style="margin-top:6px;font-size:13px">${E(s.err)}</div><div class="siabt"><button class="sec" onclick="sosObClaude()">Reintentar</button><button class="sec" onclick="sosIaGemini()">Gemini AI Studio</button></div>`
  :`${s.vista?`<div class="siat">${E(s.vista)}</div>`:""}<div class="siabt"><button class="sec" onclick="sosIaCancela()">Cancelar</button></div>`}</div>`}
 let tic=null;const avanza=(fase,pct)=>{if(!ST)return;if(fase)ST.fase=fase;if(pct!=null)ST.pct=Math.max(ST.pct||0,Math.min(99,pct));pinta()};
 window.sosIaCancela=()=>{if(ST&&ST.ac)ST.ac.abort()};
 window.sosIaAbre=()=>{if(!ST||!ST.res)return;const w=window.open(ST.res.url,"_blank");if(!w){const a=document.createElement("a");a.href=ST.res.url;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}};
 window.sosIaComparte=async()=>{if(!ST||!ST.res)return;try{const f=new File([ST.res.blob],ST.res.nom,{type:"application/pdf"});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:ST.res.nom});else sosIaAbre()}catch(e){}};
 window.sosIaClaudeAi=()=>{if(ST&&ST.pregunta&&typeof abreClaude=="function")abreClaude(ST.pregunta)};
+window.sosIaGemini=()=>{if(ST&&ST.pregunta&&window.iaGeminiStudio)iaGeminiStudio(ST.pregunta)};
 
 /* el SOS conserva la consulta: al volver a abrir la hoja se ve el progreso o el PDF */
 const oR=window.sosRap;if(typeof oR=="function")window.sosRap=function(){const r=oR.apply(this,arguments);
@@ -187,7 +188,7 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
   if(!tok)throw new Error("Inicia sesión en la app para consultar a Claude.");
   S.esperando=true;
   const r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:S.ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({pregunta,contexto})});
-  if(!r.ok){let m="";try{const j=await r.json();m=j.mensaje||j.error||""}catch(e){}throw new Error(r.status==503&&/clave/i.test(m)?m:`La consulta ha fallado (${r.status}) ${m}`)}
+  if(!r.ok){let m="",jj={};try{jj=await r.json();m=jj.mensaje||jj.error||""}catch(e){}if(window.iaErrCorto&&(jj.sinCupo||/quota|exceeded|RESOURCE_EXHAUSTED|rate.?limit/i.test(m)))throw new Error(iaErrCorto(m,jj.claude));throw new Error(r.status==503&&/clave/i.test(m)?m:`La consulta ha fallado (${r.status}) ${m}`)}
   S.motor=(r.headers.get("x-motor")||"Claude").replace(" - "," · ");S.esperando=false;avanza((/Gemini/.test(S.motor)?"Gemini":"Claude")+" está redactando la actuación…",25);
   const rd=r.body.getReader(),dec=new TextDecoder();let txt="";
   for(;;){const {done,value}=await rd.read();if(done)break;txt+=dec.decode(value,{stream:true});

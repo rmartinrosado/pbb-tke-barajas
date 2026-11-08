@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-// v351 (v362: tiempos máximos por modelo y sin datos; v364: modo croquis; v373: gemini-3.8-flash, sin 2.5-flash retirado; v377: croquis estricto) · Consulta IA del SOS (actuación directa) en segundo plano.
+// v351 (v362: tiempos máximos por modelo y sin datos; v364: modo croquis; v373: gemini-3.8-flash, sin 2.5-flash retirado; v377: croquis estricto; v379: Claude primero y Gemini de reserva si Claude falla o agota su uso) · Consulta IA del SOS (actuación directa) en segundo plano.
 // La PWA manda el texto de la consulta (posición, alarma, observaciones) y el CONTEXTO ya preparado en el móvil:
 // guía de campo, comprobaciones por sistema, primera actuación, casos parecidos y las páginas de los planos
 // (texto extraído del bucket «planos», tabla kb_paginas) que mejor encajan con lo detectado.
@@ -125,16 +125,19 @@ function sacaJSON(t: string): unknown {
 
 async function croquis(ka: string, kg: string, texto: string, info: string): Promise<{ c: unknown; modelo: string }> {
   const usuario = `POSICIÓN: ${info}\n\nRESOLUCIÓN:\n\n${texto}`;
-  if (ka) {
-    const modelo = Deno.env.get("ANTHROPIC_MODEL_SOS") || Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5-5";
-    const r = await conTiempo("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": ka, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: modelo, max_tokens: 4000, system: SIST_CROQUIS, messages: [{ role: "user", content: usuario }] }) }, 90000);
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error?.message || `Claude ${r.status}`);
-    return { c: sacaJSON((j.content || []).map((p: { text?: string }) => p.text || "").join("")), modelo };
-  }
-  const lista = [Deno.env.get("GEMINI_MODEL"), "gemini-3.8-flash", "gemini-flash-latest", "gemini-3-flash-preview"].filter(Boolean) as string[];
   let err = "";
+  if (ka) {
+    try {
+      const modelo = Deno.env.get("ANTHROPIC_MODEL_SOS") || Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5-5";
+      const r = await conTiempo("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": ka, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify({ model: modelo, max_tokens: 4000, system: SIST_CROQUIS, messages: [{ role: "user", content: usuario }] }) }, 90000);
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) return { c: sacaJSON((j.content || []).map((p: { text?: string }) => p.text || "").join("")), modelo };
+      err = j?.error?.message || `Claude ${r.status}`; console.log("consulta-sos croquis: claude", r.status, err.slice(0, 160));
+    } catch (e) { err = String((e as Error).message || e); console.log("consulta-sos croquis: claude error", err.slice(0, 160)); }
+  }
+  if (!kg) throw new Error(err || "sin clave de Gemini");
+  const lista = [Deno.env.get("GEMINI_MODEL"), "gemini-3.8-flash", "gemini-flash-latest", "gemini-3-flash-preview"].filter(Boolean) as string[];
   for (const m of [...new Set(lista)]) {
     const cfg: Record<string, unknown> = { temperature: 0.1, maxOutputTokens: 6000, responseMimeType: "application/json" };
     if (/gemini-3/.test(m)) cfg.thinkingConfig = { thinkingLevel: "low" };
@@ -164,7 +167,7 @@ Deno.serve(async (req) => {
   const usuario = `DOCUMENTACIÓN DEL PROYECTO PBB TKE (seleccionada para esta consulta):\n\n${contexto}\n\n==============================\nCONSULTA DEL TÉCNICO:\n\n${pregunta}`;
 
   const ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY");
-  const kg = ka ? "" : (Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY"));
+  const kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
   if (!ka && !kg) return json({ error: "sin_clave", mensaje: "Falta ANTHROPIC_API_KEY (o GEMINI_API_KEY de reserva) en los secretos de Supabase" }, 503);
 
   if (modo === "croquis") {
@@ -173,22 +176,31 @@ Deno.serve(async (req) => {
   }
 
   const ini = Date.now();
-  let up: { r: Response; modelo: string };
-  try { up = ka ? await claude(ka, usuario) : await gemini(kg, usuario); }
-  catch (e) { return json({ error: "api", mensaje: String((e as Error).message || e) }, 502); }
-  if (!up.r.ok || !up.r.body) {
-    const d = await up.r.json().catch(() => ({}));
-    return json({ error: "api", mensaje: d?.error?.message || up.r.statusText || "sin respuesta del modelo" }, 502);
+  /* v379: primero Claude; si falla (sin crédito, límite de uso, caído…) se pasa a Gemini */
+  let up: { r: Response; modelo: string } | null = null, esClaude = false, errClaude = "";
+  if (ka) {
+    try { const c = await claude(ka, usuario); if (c.r.ok && c.r.body) { up = c; esClaude = true; } else { const d = await c.r.json().catch(() => ({})); errClaude = d?.error?.message || `Claude ${c.r.status}`; console.log("consulta-sos: claude", c.r.status, errClaude.slice(0, 160)); } }
+    catch (e) { errClaude = String((e as Error).message || e); console.log("consulta-sos: claude error", errClaude.slice(0, 160)); }
   }
-  console.log(`consulta-sos: ${up.modelo} · contexto ${Math.round(contexto.length / 1024)} KB`);
+  if (!up) {
+    if (!kg) return json({ error: "api", mensaje: errClaude || "sin clave de Gemini" }, 502);
+    try { up = await gemini(kg, usuario); }
+    catch (e) { return json({ error: "api", mensaje: String((e as Error).message || e), claude: errClaude }, 502); }
+    if (!up.r.ok || !up.r.body) {
+      const d = await up.r.json().catch(() => ({}));
+      return json({ error: "api", mensaje: d?.error?.message || up.r.statusText || "sin respuesta del modelo", claude: errClaude, sinCupo: up.r.status === 429 }, 502);
+    }
+  }
+  const U = up!;
+  console.log(`consulta-sos: ${U.modelo} · contexto ${Math.round(contexto.length / 1024)} KB`);
   const enc = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(c) {
       let n = 0;
       try {
-        await sse(up.r.body!, (d) => {
+        await sse(U.r.body!, (d) => {
           let t = "";
-          if (ka) { if (d.type === "content_block_delta" && d.delta?.type === "text_delta") t = d.delta.text || ""; else if (d.type === "error") t = `\n\n[ERROR DEL MODELO: ${d.error?.message || "desconocido"}]`; }
+          if (esClaude) { if (d.type === "content_block_delta" && d.delta?.type === "text_delta") t = d.delta.text || ""; else if (d.type === "error") t = `\n\n[ERROR DEL MODELO: ${d.error?.message || "desconocido"}]`; }
           else t = (d.candidates?.[0]?.content?.parts || []).filter((p: { thought?: boolean }) => !p.thought).map((p: { text?: string }) => p.text || "").join("");
           if (t) { n += t.length; c.enqueue(enc.encode(t)); }
         });
@@ -197,5 +209,5 @@ Deno.serve(async (req) => {
       c.close();
     },
   });
-  return new Response(stream, { headers: { ...cors, "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "x-motor": ka ? `Claude - ${up.modelo}` : `Gemini (reserva) - ${up.modelo}` } });
+  return new Response(stream, { headers: { ...cors, "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "x-motor": esClaude ? `Claude - ${up!.modelo}` : `Gemini (reserva) - ${up!.modelo}` } });
 });
