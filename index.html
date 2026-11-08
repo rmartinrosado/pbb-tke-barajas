@@ -40,9 +40,13 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
 </style>
 <link rel="preload" as="image" href="splash.jpg">
 <style>/* v357: pantalla de carga (5 s) con la foto de portada, barra de progreso y versión */
-#splash{position:fixed;inset:0;z-index:2147483000;background:#0b0d14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);transition:opacity .45s ease}
+#splash{position:fixed;inset:0;z-index:2147483000;background:#0b0d14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);transition:opacity 1.6s cubic-bezier(.4,0,.2,1)}
 #splash.fuera{opacity:0;pointer-events:none}
-#splash img{width:100%;max-width:1100px;height:auto;display:block;box-shadow:0 8px 30px rgba(0,0,0,.55)}
+#splash.fuera img{transform:scale(1.08);filter:blur(4px) brightness(1.15);opacity:0}
+#splash.fuera .spr{opacity:0;transform:translateY(12px)}
+#splash .spr{transition:opacity .9s ease,transform .9s ease}
+@keyframes spIn{from{opacity:0;transform:scale(1.04);filter:blur(6px)}to{opacity:1;transform:scale(1);filter:blur(0)}}
+#splash img{width:100%;max-width:1100px;height:auto;display:block;box-shadow:0 8px 30px rgba(0,0,0,.55);animation:spIn 1.4s cubic-bezier(.2,.7,.2,1) both;transition:transform 1.6s cubic-bezier(.4,0,.2,1),filter 1.6s ease,opacity 1.6s ease}
 #splash .spr{display:flex;align-items:center;gap:10px;width:min(86vw,560px);font:600 13px/1 ui-monospace,Menlo,Consolas,monospace;color:#e9ecf1}
 #splash .spv{flex:none;color:#ff8a1f;letter-spacing:.5px}
 #splash .spb{flex:1;height:10px;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden}
@@ -51,7 +55,7 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
 </style></head><body>
 <div id="splash"><img src="splash.jpg" alt="PBB TKE Maintenance"><div class="spr"><span class="spv" id="spv">v357</span><div class="spb"><i id="spi"></i></div><span class="spp" id="spp">0%</span></div></div>
 <script>(function(){const D=5000,sp=document.getElementById("splash"),i=document.getElementById("spi"),p=document.getElementById("spp");let t0=null;
- const fin=()=>{sp.classList.add("fuera");setTimeout(()=>sp.remove(),500)};
+ const fin=()=>{sp.classList.add("fuera");setTimeout(()=>sp.remove(),1700)};
  const paso=t=>{if(t0==null)t0=t;const k=Math.min(1,(t-t0)/D);i.style.width=(k*100)+"%";p.textContent=Math.round(k*100)+"%";if(k<1)requestAnimationFrame(paso);else fin()};
  const arranca=()=>requestAnimationFrame(paso);const im=sp.querySelector("img");
  if(im.complete)arranca();else{im.onload=arranca;im.onerror=arranca;setTimeout(()=>{if(t0==null)arranca()},2500)}
@@ -4545,7 +4549,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=357;
+const APP_VER=358;
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
