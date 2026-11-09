@@ -45,7 +45,11 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
     y se despliega solo al cerrarlas o cancelarlas */
  let escribe=false,focoOn=false;
  const sheetAbierta=()=>{const sh=document.getElementById("sheet");return !!sh&&getComputedStyle(sh).display!="none"};
- const quiereFoco=()=>escribe||rcAjEnCurso||sheetAbierta()||!!document.querySelector("#otsc details[open],#otsc .rcPdfB");
+ const quiereFoco=()=>escribe||rcAjEnCurso||sheetAbierta()||!!document.querySelector("#otsc details[open]");
+ /* v385: «Inicio» (barra de abajo o cualquier vuelta a Inicio) pliega las resoluciones abiertas y vuelve a mostrar el Panel de control */
+ {const og=go;go=function(v){if(v=="dash"){ab.clear();escribe=false;try{const a=document.activeElement;if(a&&a.blur)a.blur()}catch(e){}
+   try{if(sheetAbierta())closeSheet()}catch(e){}document.querySelectorAll("#otsc details[open]").forEach(d=>d.open=false)}
+  const r=og.apply(this,arguments);if(v=="dash"){setTimeout(()=>{aplicaFoco();try{const w=document.getElementById("otsc");if(w)w.scrollTo({top:0})}catch(e){}},30)}return r}}
  const aplicaFoco=()=>{const on=quiereFoco();if(on&&!focoOn){const R=document.documentElement.style;R.setProperty("--rcTop",cabBot()+"px");const f=document.getElementById("pfix");
    if(f){const r=f.getBoundingClientRect();if(r.width>0){R.setProperty("--rcL",Math.round(r.left)+"px");R.setProperty("--rcW",Math.round(r.width)+"px")}}}
   if(on!==focoOn){focoOn=on;document.body.classList.toggle("rcFoco",on)}document.body.classList.toggle("rcEscribe",escribe)};
