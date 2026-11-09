@@ -90,7 +90,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
   const ed=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
   return `<details class="rcBox" ${ab.has(i.id)?"open":""} ontoggle="rcTog('${i.id}',this.open)" onclick="event.stopPropagation()">
   <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>Resolución Claude AI</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}${/Gemini/i.test(r.por||"")?" · generada por Gemini (reserva)":""}</small></span><button class="rcPdf" title="PDF A4 de la resolución" aria-label="PDF A4 de la resolución" onclick="event.preventDefault();event.stopPropagation();rcPdf('${i.id}')">PDF</button><span class="rcChev">▾</span></summary>
-  <div class="rcBody">${typeof pdfHTML=="function"?pdfHTML(i.id):""}${md(r.txt,i.id)}
+  <div class="rcBody">${typeof rcAviso=="function"?rcAviso(i):""}${typeof pdfHTML=="function"?pdfHTML(i.id):""}${md(r.txt,i.id)}
   <div class="rcFoot"><span>Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar en campo.</span>${ed?`<button class="sec rcDel" title="Borrar resolución Claude" aria-label="Borrar resolución Claude" onclick="event.stopPropagation();rcBorra('${i.id}')">🗑</button>`:""}</div></div></details>`}
  window.rcBorra=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(!confirm(`¿Borrar la resolución Claude de la OT ${i.orden}?`))return;delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Resolución Claude borrada")};
  /* Ficha de OT: la zona va antes de la fila de botones */
@@ -185,7 +185,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
     J.pct=Math.max(J.pct,25+70*(1-Math.exp(-txt.length/6000)));J.vista=txt.split("\n").filter(l=>l.trim()).slice(-2).join("\n").replace(/[#*|`]/g,"").slice(-160);J.fase=`Recibiendo respuesta · ${txt.length} caracteres`;pbar()}
    txt=txt.trim();if(txt.length<200)throw new Error("Respuesta vacía o incompleta. Vuelve a intentarlo.");
    const o=inc.find(x=>x.id==id);if(!o)throw new Error("La OT ya no existe");
-   o.resClaude={txt,ts:Date.now(),por:J.motor||"Claude"};sv("pbb_inc",inc);
+   o.resClaude={txt,ts:Date.now(),por:J.motor||"Claude",base:[o.desc,o.def,o.com].map(x=>String(x||"").trim()).join(" | ")};sv("pbb_inc",inc);
    J.pct=100;J.fin=Date.now();pbar();
    ab.add(id);const s=$("#t_sel");if(s&&s.value==id)closeSheet();render();msg(`Resolución lista en la OT ${o.orden||""}`);
    setTimeout(()=>{try{const b=[...document.querySelectorAll("#app .rcBox")].find(x=>(x.getAttribute("ontoggle")||"").includes("'"+id+"'"));
@@ -193,6 +193,32 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
   catch(e){J.esperando=false;J.fin=Date.now();J.err=e&&e.name=="AbortError"?"Consulta cancelada.":String((e&&e.message)||e);pbar()}
   finally{clearInterval(tic);try{wl&&wl.release()}catch(e){}}}
  window.rcConsulta=rcConsulta;
+ /* ===== v384: si se edita la descripción de la OT, la resolución se rehace sola con la descripción nueva =====
+    · Al guardar «Editar registro» con otra descripción: la definición de la avería pasa a la nueva (si era la antigua),
+      se borra la actuación guiada de la descripción anterior y se lanza la consulta a la IA en segundo plano.
+    · Mientras tanto (o si la IA no responde) la caja avisa de que la resolución es de la descripción anterior, con botón para actualizarla. */
+ const baseDe=i=>[i.desc,i.def,i.com].map(x=>String(x||"").trim()).join(" | ");
+ const prDe=i=>{const gu=i.guiada&&!/^Contexto: pasarela de embarque/.test(i.guiada)?`\nActuación guiada (guía de campo):\n${i.guiada}`:"";
+  return `Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden}.
+Descripción del aviso: ${i.desc||"(sin descripción)"}
+Definición de la avería: ${i.def||i.desc||"(sin definir)"}
+Comentario: ${i.com||"(sin comentario)"}${gu}
+Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, guía de averías y procedimientos). Ajusta el diagnóstico EXACTAMENTE a lo que dice la descripción (sentido superior / inferior, izquierda / derecha, elemento concreto). Necesito diagnóstico y pasos a seguir de comprobaciones en campo. Empieza la respuesta con un apartado titulado "Primera actuación en campo" con pasos numerados, breves y claros.`};
+ window.rcActualiza=id=>{const i=inc.find(x=>x.id==id);if(!i)return;ab.add(id);setTimeout(()=>{try{render()}catch(e){}},60);rcConsulta(id,prDe(i))};
+ window.rcAviso=i=>{const r=i.resClaude;if(!r)return"";const enMarcha=JOB&&JOB.id==i.id&&(!JOB.fin||Date.now()-JOB.fin<60000);
+  const viejo=r.desfase||(r.base&&r.base!==baseDe(i));
+  if(!viejo&&!enMarcha)return"";
+  return `<div class="rcAv">${viejo?`⚠️ La descripción de la OT ha cambiado${r.descAnt?` (antes: «${E(r.descAnt)}»)`:""}. Esta resolución es de la descripción anterior.`:"Actualizando la resolución…"}
+   ${enMarcha?'<div id="rc_prog"></div>':`<button class="rcAjB" style="margin-top:8px" onclick="event.stopPropagation();rcActualiza('${i.id}')">ACTUALIZAR RESOLUCIÓN</button>`}</div>`};
+ {const og=window.guardaEdit;if(typeof og=="function")window.guardaEdit=guardaEdit=function(id){const i=inc.find(x=>x.id==id);const antes=i?{desc:i.desc,def:i.def,com:i.com}:null;
+  const r=og.apply(this,arguments);
+  try{const o=inc.find(x=>x.id==id);if(o&&antes&&String(antes.desc||"").trim()!==String(o.desc||"").trim()){
+    if(!o.def||String(o.def).trim()===String(antes.desc||"").trim()||String(o.def).trim()===String(antes.def||"").trim())o.def=o.desc;
+    if(o.guiada)delete o.guiada;
+    if(o.resClaude){o.resClaude.desfase=true;o.resClaude.descAnt=antes.desc||"";delete o.resClaude.croquis}
+    sv("pbb_inc",inc);if(o.resClaude&&o.estado!="cerrada")setTimeout(()=>rcActualiza(o.id),400)}}catch(e){console.warn("rc edita",e)}
+  return r}}
+
  const ab0=abreClaude;let bg=null;
  abreClaude=function(pr){if(bg){const id=bg;bg=null;try{localStorage.removeItem("pbb_ret")}catch(e){}rcConsulta(id,pr);return}return ab0.apply(this,arguments)};
  const ogt=window.guardaTec;window.guardaTec=function(){const s=$("#t_sel");bg=s&&s.value||null;try{return ogt.apply(this,arguments)}finally{bg=null}};
@@ -287,6 +313,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
 .rcDel{padding:4px 10px;margin:0}
 .cacts .gwa{order:-1}.gwa{color:#1fa855!important;border-color:#25d366!important}.gwa svg{width:22px!important;height:22px!important}
 .rcEd{margin-top:10px}
+.rcAv{margin:8px 0 10px;padding:9px 10px;border:2px solid #e65100;border-radius:10px;background:rgba(230,81,0,.10);font-size:13.5px;font-weight:600}
 .rcPdfB{margin:8px 0 12px;padding:10px;border:2px solid #d97757;border-radius:12px;background:rgba(217,119,87,.06)}
 .rcPdfH{display:flex;align-items:center;gap:8px;font-size:14px}.rcPdfH img{width:24px;height:24px;border-radius:6px}.rcPdfH b{flex:1}
 button.rcPdfX{width:32px!important;height:32px!important;margin:0!important;padding:0!important;border-radius:8px!important;border:1px solid rgba(127,127,127,.5)!important;background:transparent!important;color:inherit!important;font-size:15px!important}
