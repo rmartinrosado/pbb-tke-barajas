@@ -14,6 +14,11 @@
 .sigF .sigAct{margin-top:10px;padding:9px 10px;border-radius:8px;background:#7c3aed14;border:1px solid #7c3aed55;font-size:13px}
 .sigF .sigAct b{color:#7c3aed}
 .sigF .sigCGA{margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff4e5;border:1px solid #f59e0b;color:#7a4a00;font-size:12.5px}
+.sigF .sigG{display:grid;grid-template-columns:1fr 1fr 1fr;column-gap:8px;align-items:end}.sigF .sigG>*{min-width:0}.sigF .sigG select,.sigF .sigG input,.sigF .sigG .sigOk{width:100%;box-sizing:border-box;height:46px;margin:0}.sigF .sigG label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sigF .sigG #sg_r{font-size:14px;padding-left:8px;padding-right:4px}.sigF #sg_h{text-align:center;font-weight:700}
+.sigF .sigOk{width:100%;padding:11px 4px!important;font-size:15px!important;font-weight:800;letter-spacing:.5px;border-radius:10px}
+.sigEdP{display:block!important;cursor:default!important;padding:8px 8px 10px!important;margin:-1px 0 6px;border:2px solid #7c3aed!important;border-top:0!important;border-radius:0 0 8px 8px;background:#7c3aed0a}
+.sigEdP .sigEd{margin-top:0}.sigEdB{display:flex;gap:8px;margin-top:10px}.sigEdB .pri{flex:2}.sigEdB .sec{flex:1}
 .sigF .sigRow{display:flex;gap:8px;align-items:flex-end}.sigF .sigRow>*{min-width:0}.sigF .sigRow select,.sigF .sigRow input{width:100%;box-sizing:border-box}.sigF #sg_pn{text-align:center;font-weight:700}
 .sigF .sigRs{display:flex;gap:6px;margin-top:4px}.sigF .sigRs button{flex:1;padding:10px 2px;border-radius:8px;border:1px solid var(--bd,#ccc);background:var(--card,#fff);color:var(--tx,#111);font-weight:700;font-size:12.5px}
 .sigF .sigRs button.on{background:#16a34a;border-color:#16a34a;color:#fff}.sigF .sigRs button.on.no{background:#dc2626;border-color:#dc2626}
@@ -22,7 +27,7 @@
 .sigL li.nv{border-left:4px solid #16a34a;padding-left:6px;background:#16a34a0d}.sigL li .nvT{display:inline-block;margin-left:4px;padding:0 5px;border-radius:4px;background:#16a34a;color:#fff;font-size:10px;font-weight:800;vertical-align:middle}
 .sigH{margin-top:14px;border-top:1px solid var(--bd,#ddd);padding-top:8px}
 .sigH summary{font-weight:700;font-size:13px;cursor:pointer}
-.sigL{list-style:none;margin:6px 0 0;padding:0;max-height:34vh;overflow:auto}
+.sigL{list-style:none;margin:6px 0 0;padding:0}
 .sigL li{display:flex;gap:8px;align-items:flex-start;padding:6px 2px;border-bottom:1px dashed var(--bd,#ddd);font-size:12.5px}
 .sigL li .p{font-weight:800;min-width:54px}.sigL li .a{flex:1;min-width:0}.sigL li .t{color:var(--mu,#777);white-space:nowrap;text-align:right}
 .sigL li .ko{color:#dc2626;font-weight:700}.sigL li .pd{color:#b45309;font-weight:700}
@@ -67,33 +72,52 @@
    `<ul class="sigL">${S.vis.map((x,ix)=>`<li data-ix="${ix}" onclick="sigEdita(${ix})" class="${S.ed&&((S.ed.id&&S.ed.id==x.id)||(S.ed.lk&&S.ed.lk==x._lk))?"ed":""} ${enLote(x)?"nv":""}"><span class="p">PBB ${E(x.pos)}${x.tipo?`<br><small>${E(x.tipo)}</small>`:""}<br><button type="button" class="sigDel" aria-label="Eliminar del registro" onclick="event.stopPropagation();sigBorra(${ix},this)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button></span><span class="a">${x.alarma?E(x.alarma):'<i class="mu">sin texto de alarma</i>'}${enLote(x)?'<span class="nvT">NUEVA</span>':""}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}<br>${esBox(x.resultado)}</span></li>`).join("")}</ul>`}
 
  window.sigAbre=async function(){S.res="PENDIENTE";S.ed=null;S.lote=[];S.abierta=true;
-  const prev=lee(LK),al=[...new Set(prev.map(x=>x.alarma).filter(Boolean))].slice(0,40);
+  const prev=lee(LK);S.al=[...new Set(prev.map(x=>x.alarma).filter(Boolean))].slice(0,40);
   const ps=(typeof POS!="undefined"?POS:[]);
+  /* v398: registro rápido: posición · teclear · tipo / hora · reportado · GUARDAR (debajo del tipo, mismo ancho).
+     Estado, alarma y observaciones se rellenan después, tocando la Sigma en el historial. */
   $("#sheetc").innerHTML=`<div class="sigF"><h3><span class="sigI">${BELL}</span>Alarma Sigma (SCADA)</h3>
-  <div class="sigN">Aviso del SCADA sin número de orden. Normalmente lo pasa el Responsable de Turno. Toca una línea del historial para editarla.</div><div id="sg_ed"></div>
-  <div class="sigRow"><div style="flex:1.25"><label>Posición PBB</label><select id="sg_pos" onchange="sigPosS()"><option value="">Elegir…</option>${ps.map(p=>`<option>${p}</option>`).join("")}</select></div>
-  <div style="flex:.85"><label>Teclear</label><input id="sg_pn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="nº" oninput="sigPosT()"></div>
-  <div style="flex:1"><label>Tipo</label><select id="sg_t">${SIGT.map(t=>`<option>${t}</option>`).join("")}</select></div></div>
-  <label>Hora aviso</label><input id="sg_h" type="time" value="${hm()}">
-  <label>Reportado por</label><select id="sg_r" onchange="sigRep()"><option>Responsable Turno</option><option>CGA</option><option>Otro</option></select>
-  <input id="sg_ro" class="hide" style="margin-top:6px" placeholder="¿Quién?">
+  <div class="sigN">Sin número de orden; normalmente la pasa el Responsable de Turno. Se registra en <b>PENDIENTE</b>; toca una Sigma del historial para poner estado, alarma y observaciones.</div>
+  <div class="sigG"><div><label>Posición PBB</label><select id="sg_pos" onchange="sigPosS()"><option value="">Elegir…</option>${ps.map(p=>`<option>${p}</option>`).join("")}</select></div>
+  <div><label>Teclear</label><input id="sg_pn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="nº" oninput="sigPosT()"></div>
+  <div><label>Tipo</label><select id="sg_t">${SIGT.map(t=>`<option>${t}</option>`).join("")}</select></div>
+  <div><label>Hora aviso</label><input id="sg_h" type="text" inputmode="numeric" maxlength="5" autocomplete="off" value="${hm()}" oninput="sigHora(this)" onfocus="this.select()"></div>
+  <div><label>Reportado</label><select id="sg_r" onchange="sigRep()"><option value="Responsable Turno">Resp. Turno</option><option value="CGA">CGA</option><option value="Otro">Otro</option></select></div>
+  <div><label>&nbsp;</label><button type="button" class="pri sigOk" id="sg_ok" onclick="sigGuarda()">GUARDAR</button></div></div>
+  <input id="sg_ro" class="hide" style="margin-top:6px" placeholder="¿Quién la reporta?">
   <div id="sg_cga" class="sigCGA hide">Si la Sigma la reporta <b>CGA</b> se trata como una <b>OT normal con su número de orden</b>.<button class="pri" style="margin-top:8px;width:100%" onclick="sigAOT()">REGISTRAR COMO OT</button></div>
   <div class="sigAct">Actuación: ir a la posición indicada y <b>RESETEAR</b> la alarma.</div>
-  <label>Resultado</label><div class="sigRs"><button type="button" class="pe on" data-r="PENDIENTE" onclick="sigRes(this)">⏳ PENDIENTE</button><button type="button" data-r="RESETEADA" onclick="sigRes(this)">✔ RESETEADA</button><button type="button" class="no" data-r="NO RESETEA" onclick="sigRes(this)">✖ NO RESETEA</button></div>
-  <label>Alarma SCADA · opcional (recomendable)</label><input id="sg_a" list="sg_al" autocomplete="off" placeholder="Ej.: Fallo variador traslación"><datalist id="sg_al">${al.map(a=>`<option value="${E(a)}">`).join("")}</datalist>
-  <label>Observaciones</label><textarea id="sg_o" rows="2" placeholder="Opcional"></textarea>
-  <button class="pri" id="sg_ok" style="margin-top:12px;width:100%" onclick="sigGuarda()">GUARDAR SIGMA</button>
   <button type="button" class="sigAc" id="sg_ac" onclick="sigAcepta()"><span id="sg_act">ACEPTAR</span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></button>
+  <datalist id="sg_al">${S.al.map(a=>`<option value="${E(a)}">`).join("")}</datalist>
   <details class="sigH" open><summary>Historial de alarmas Sigma</summary><div id="sg_l">${lista(prev)}</div></details></div>`;
   const sh=$("#sheet");sh.style.display="flex";sh.classList.add("lpatop");setTimeout(()=>{if(document.querySelector("#sheetc .sigF"))sh.classList.add("lpatop")},0);
-  try{await subePend()}catch(e){}const l=await carga();const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(l)};
- window.sigEdita=function(ix){const x=(S.vis||[])[ix];if(!x)return;S.ed={id:x.id||null,lk:x._lk||null,x};
-  const v=(id,val)=>{const e=$(id);if(e)e.value=val==null?"":val};v("#sg_pos",posDe(x.pos)||"");v("#sg_pn",x.pos);v("#sg_t",x.tipo||"PAS");v("#sg_h",x.hora||"");
-  const rp=String(x.rep||"Responsable Turno");if(/^Otro/.test(rp)){v("#sg_r","Otro");v("#sg_ro",rp.replace(/^Otro:\s*/,""))}else v("#sg_r",rp);sigRep();
-  v("#sg_a",x.alarma||"");v("#sg_o",x.obs||"");const b=document.querySelector(`.sigRs button[data-r="${x.resultado||"RESETEADA"}"]`);if(b)sigRes(b);
-  $("#sg_ed").innerHTML=`<div class="sigEd">✏️ Editando <b>PBB ${E(x.pos)}${x.tipo?" "+E(x.tipo):""}</b> · ${E(fDM(x.fecha))} ${E(x.hora||"")}<button type="button" onclick="sigNueva()">Nueva</button></div>`;
-  $("#sg_ok").textContent="GUARDAR CAMBIOS";document.querySelectorAll(".sigL li").forEach(l=>l.classList.toggle("ed",l.dataset.ix==ix));
-  try{const c=$("#sheet").firstElementChild;(c&&c.scrollTo)?c.scrollTo({top:0,behavior:"smooth"}):0}catch(e){}};
+  try{await subePend()}catch(e){}const l=await carga();const d=document.getElementById("sg_l");if(d&&!S.ed)d.innerHTML=lista(l)};
+ window.sigHora=function(e){let v=e.value.replace(/\D/g,"").slice(0,4);if(v.length>=3)v=v.slice(0,2)+":"+v.slice(2);e.value=v};
+ const horaOK=v=>{const m=String(v||"").match(/^(\d{1,2}):?(\d{2})$/);if(!m)return"";const h=+m[1],mi=+m[2];if(h>23||mi>59)return"";return String(h).padStart(2,"0")+":"+String(mi).padStart(2,"0")};
+ /* panel de edición debajo de la Sigma tocada en el historial */
+ window.sigEdita=function(ix){const x=(S.vis||[])[ix];if(!x)return;
+  if(S.ed&&S.ed.ix==ix){sigCierraEd();return}
+  sigCierraEd();S.ed={id:x.id!=null?x.id:null,lk:x._lk||null,x,ix};S.res=x.resultado||"PENDIENTE";
+  const li=document.querySelector(`.sigL li[data-ix="${ix}"]`);if(!li)return;li.classList.add("ed");
+  const bt=(r,c,t)=>`<button type="button" class="${c}${S.res==r?" on":""}" data-r="${r}" onclick="sigRes(this)">${t}</button>`;
+  li.insertAdjacentHTML("afterend",`<li class="sigEdP" id="sg_edp"><div class="sigEd">✏️ <b>PBB ${E(x.pos)}${x.tipo?" "+E(x.tipo):""}</b> · ${E(fDM(x.fecha))} ${E(x.hora||"")} · ${E(x.rep||"")}</div>
+   <label>Estado</label><div class="sigRs">${bt("PENDIENTE","pe","⏳ PENDIENTE")}${bt("RESETEADA","","✔ RESETEADA")}${bt("NO RESETEA","no","✖ NO RESETEA")}</div>
+   <label>Alarma SCADA · opcional (recomendable)</label><input id="sg_a" list="sg_al" autocomplete="off" placeholder="Ej.: Fallo variador traslación" value="${E(x.alarma||"")}">
+   <label>Observaciones</label><textarea id="sg_o" rows="2" placeholder="Opcional">${E(x.obs||"")}</textarea>
+   <div class="sigEdB"><button type="button" class="pri" id="sg_okE" onclick="sigGuardaEd()">GUARDAR CAMBIOS</button><button type="button" class="sec" onclick="sigCierraEd()">Cerrar</button></div></li>`);
+  setTimeout(()=>{try{document.getElementById("sg_edp").scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}},50)};
+ window.sigCierraEd=function(){S.ed=null;const p=document.getElementById("sg_edp");if(p)p.remove();document.querySelectorAll(".sigL li.ed").forEach(l=>l.classList.remove("ed"))};
+ window.sigGuardaEd=async function(){const E0=S.ed;if(!E0)return;const ant=E0.x||{};const b=$("#sg_okE");
+  const r=Object.assign({},ant);["_pend","_lk","id","created_at","autor"].forEach(k=>delete r[k]);
+  r.resultado=S.res;r.alarma=($("#sg_a").value||"").trim()||null;r.obs=($("#sg_o").value||"").trim()||null;
+  r.hora_reset=r.resultado=="PENDIENTE"?null:((r.resultado!=ant.resultado||!ant.hora_reset)?hm():ant.hora_reset);
+  b.disabled=true;b.textContent="Guardando…";let ok=false;
+  if(E0.id!=null){try{const x=await sb.from("alarmas_sigma").update(r).eq("id",E0.id).select();ok=!x.error&&x.data&&x.data.length;if(ok){guarda(LK,lee(LK).map(y=>y.id==E0.id?x.data[0]:y))}else if(x.error)msg("No se pudo editar: "+x.error.message)}catch(e){}
+   if(!ok){b.disabled=false;b.textContent="GUARDAR CAMBIOS";msg(!navigator.onLine?"Sin conexión: no se puede editar ahora":"No se pudo guardar el cambio (¿permiso de Técnico/Admin?)");return}}
+  else{guarda(LP,lee(LP).map(y=>y._lk==E0.lk?Object.assign({_lk:y._lk},r):y));ok=true}
+  if(r.alarma&&S.al&&!S.al.includes(r.alarma)){S.al.unshift(r.alarma);const dl=document.getElementById("sg_al");if(dl)dl.insertAdjacentHTML("afterbegin",`<option value="${E(r.alarma)}">`)}
+  S.ed=null;const l=await carga();const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(l);
+  msg("Sigma actualizada · PBB "+ant.pos+" · "+r.resultado);if(r.resultado=="NO RESETEA")setTimeout(()=>msg("No resetea: avisa al Responsable de Turno / CGA para abrir OT"),2600)};
  window.sigBorra=async function(ix,b){const x=(S.vis||[])[ix];if(!x)return;
   if(!b.classList.contains("sure")){document.querySelectorAll(".sigDel.sure").forEach(z=>{z.classList.remove("sure");z.innerHTML=z.dataset.ic||z.innerHTML});b.dataset.ic=b.innerHTML;b.classList.add("sure");b.innerHTML="¿BORRAR?";
    clearTimeout(S.tb);S.tb=setTimeout(()=>{if(b.isConnected&&b.classList.contains("sure")){b.classList.remove("sure");b.innerHTML=b.dataset.ic}},4000);return}
@@ -101,39 +125,32 @@
   if(x._pend){guarda(LP,lee(LP).filter(y=>y._lk!=x._lk));ok=true}
   else if(x.id!=null){try{const r=await sb.from("alarmas_sigma").delete().eq("id",x.id).select();ok=!r.error&&r.data&&r.data.length>0;if(r.error)msg("No se pudo eliminar: "+r.error.message)}catch(e){}
    if(ok)guarda(LK,lee(LK).filter(y=>y.id!=x.id));else if(!navigator.onLine)msg("Sin conexión: no se puede eliminar ahora");else msg("No se pudo eliminar (¿permiso de Técnico/Admin?)")}
-  if(S.ed&&((S.ed.id&&S.ed.id==x.id)||(S.ed.lk&&S.ed.lk==x._lk)))sigNueva();
+  S.ed=null;
   const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(ok?(x._pend?lee(LK):lee(LK)):lee(LK));if(ok){msg("Sigma eliminada · PBB "+x.pos);const l=await carga();if(d&&d.isConnected)d.innerHTML=lista(l)}};
- window.sigNueva=function(){S.ed=null;["#sg_pos","#sg_pn","#sg_a","#sg_o","#sg_ro"].forEach(i=>{const e=$(i);if(e)e.value=""});$("#sg_h").value=hm();$("#sg_r").value="Responsable Turno";sigRep();
-  sigRes(document.querySelector('.sigRs button[data-r="PENDIENTE"]'));$("#sg_ed").innerHTML="";$("#sg_ok").textContent="GUARDAR SIGMA";document.querySelectorAll(".sigL li.ed").forEach(l=>l.classList.remove("ed"))};
+ window.sigNueva=function(){["#sg_pos","#sg_pn","#sg_ro"].forEach(i=>{const e=$(i);if(e)e.value=""});$("#sg_h").value=hm();$("#sg_r").value="Responsable Turno";sigRep()};
  window.sigAcepta=function(){const n=(S.lote||[]).length;S.abierta=false;S.lote=[];closeSheet();
   msg(n?`${n} alarma${n>1?"s":""} Sigma aceptada${n>1?"s":""}`:"Sin alarmas Sigma nuevas")};
  window.sigRep=function(){const v=$("#sg_r").value;$("#sg_ro").classList.toggle("hide",v!="Otro");$("#sg_cga").classList.toggle("hide",v!="CGA");$("#sg_ok").classList.toggle("hide",v=="CGA")};
- window.sigRes=function(b){S.res=b.dataset.r;document.querySelectorAll(".sigRs button").forEach(x=>{x.classList.toggle("on",x===b)})};
- window.sigAOT=function(){const p=$("#sg_pos").value,a=$("#sg_a").value.trim(),tp=$("#sg_t").value;S.abierta=false;closeSheet();
+ window.sigRes=function(b){S.res=b.dataset.r;b.parentNode.querySelectorAll("button").forEach(x=>{x.classList.toggle("on",x===b)})};
+ window.sigAOT=function(){const p=$("#sg_pos").value,a="",tp=$("#sg_t").value;S.abierta=false;closeSheet();
   setTimeout(()=>{try{const fp=$("#f_pos"),fn=$("#f_posn");if(p){if(fn){fn.value=p;fn.dispatchEvent(new Event("input",{bubbles:true}))}if(fp){fp.value=p;fp.dispatchEvent(new Event("change",{bubbles:true}))}}
    document.querySelectorAll(".eqc").forEach(c=>{const on=c.value=="Sigma";if(c.checked!=on){c.checked=on;c.dispatchEvent(new Event("change",{bubbles:true}))}});
    const r=$("#f_rep");if(r)r.value="CGA";const d=$("#f_desc");if(d&&a){d.value="Alarma Sigma "+tp+": "+a;d.dispatchEvent(new Event("input",{bubbles:true}))}
    const o=$("#f_ord");if(o)o.focus()}catch(e){}},80)};
- window.sigGuarda=async function(){const pos=$("#sg_pos").value,a=$("#sg_a").value.trim();
+ window.sigGuarda=async function(){const pos=$("#sg_pos").value;
   const pn=($("#sg_pn").value||"").trim();if(pn&&!posDe(pn)){msg(`La PBB ${pn} no está dada de alta`);$("#sg_pn").focus();return}
-  if(!pos){msg("Elige o teclea la posición PBB");return}const tipo=$("#sg_t").value;
+  if(!pos){msg("Elige o teclea la posición PBB");$("#sg_pn").focus();return}const tipo=$("#sg_t").value;
+  const h=horaOK($("#sg_h").value);if(!h){msg("Hora de aviso no válida (hh:mm)");$("#sg_h").focus();return}
   let rep=$("#sg_r").value;if(rep=="Otro")rep="Otro: "+($("#sg_ro").value.trim()||"s/d");
-  const r={pos:String(pos),tipo,alarma:a||null,rep,actuacion:"RESETEAR",resultado:S.res,obs:$("#sg_o").value.trim()||null,fecha:hoyS(),hora:$("#sg_h").value||hm(),hora_reset:S.res=="PENDIENTE"?null:hm(),tecnico:quien()||null};
-  const b=$("#sg_ok");b.disabled=true;b.textContent="Guardando…";let ok=false;
-  if(S.ed){const E0=S.ed;const ant=E0.x||{};r.fecha=ant.fecha||r.fecha;r.tecnico=ant.tecnico||r.tecnico;r.hora_reset=(r.resultado!=ant.resultado||!ant.hora_reset)&&r.resultado!="PENDIENTE"?hm():(ant.hora_reset||null);if(r.resultado=="PENDIENTE")r.hora_reset=null;
-   if(E0.id){try{const x=await sb.from("alarmas_sigma").update(r).eq("id",E0.id).select();ok=!x.error&&x.data&&x.data.length;if(ok){const c=lee(LK).map(y=>y.id==E0.id?x.data[0]:y);guarda(LK,c)}else if(x.error)msg("No se pudo editar: "+x.error.message)}catch(e){}
-    if(!ok){b.disabled=false;b.textContent="GUARDAR CAMBIOS";if(!navigator.onLine)msg("Sin conexión: no se puede editar ahora");else msg("No se pudo guardar el cambio (¿permiso de Técnico/Admin?)");return}}
-   else{const q=lee(LP).map(y=>y._lk==E0.lk?Object.assign({_lk:y._lk},r):y);guarda(LP,q);ok=true}
-   S.ed=null;b.disabled=false;b.textContent="GUARDAR SIGMA";$("#sg_ed").innerHTML="";const l=await carga();const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(l);
-   msg("Sigma actualizada · PBB "+pos+" · "+r.resultado);if(r.resultado=="NO RESETEA")setTimeout(()=>msg("No resetea: avisa al Responsable de Turno / CGA para abrir OT"),2600);sigNueva();return}
-  try{const x=await sb.from("alarmas_sigma").insert(r).select();ok=!x.error;if(ok){const c=lee(LK);c.unshift(x.data&&x.data[0]||r);guarda(LK,c.slice(0,300))}}catch(e){}
-  let k=null;if(ok){const c=lee(LK);k={id:c[0]&&c[0].id!=null?c[0].id:null}}
+  const r={pos:String(pos),tipo,alarma:null,rep,actuacion:"RESETEAR",resultado:"PENDIENTE",obs:null,fecha:hoyS(),hora:h,hora_reset:null,tecnico:quien()||null};
+  const b=$("#sg_ok");b.disabled=true;b.textContent="…";let ok=false,k=null;
+  try{const x=await sb.from("alarmas_sigma").insert(r).select();ok=!x.error;if(ok){const nr=x.data&&x.data[0]||r;const c=lee(LK);c.unshift(nr);guarda(LK,c.slice(0,300));k={id:nr.id!=null?nr.id:null}}}catch(e){}
   if(!ok){const lk="L"+Date.now();const p=lee(LP);p.push(Object.assign({_lk:lk},r));guarda(LP,p);k={lk}}
-  /* v397: no se cierra la ventana: se deja el formulario listo para la siguiente Sigma; se cierra con ACEPTAR */
-  (S.lote=S.lote||[]).push(k);b.disabled=false;sigNueva();pintaAc();
-  {const l=await carga();const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(l)}
-  msg((ok?"Sigma añadida · PBB "+pos:"Sin conexión: Sigma guardada en el móvil, se subirá sola")+(a?"":" · sin texto de alarma: es recomendable anotarla")+" · pulsa ACEPTAR al terminar");
-  if(r.resultado=="NO RESETEA")setTimeout(()=>msg("No resetea: avisa al Responsable de Turno / CGA para abrir OT"),2600)};
+  /* no se cierra la ventana: el formulario queda listo para la siguiente Sigma; se sale con ACEPTAR */
+  (S.lote=S.lote||[]).push(k);b.disabled=false;b.textContent="GUARDAR";sigCierraEd();sigNueva();pintaAc();
+  {const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(lee(LK))}
+  msg((ok?"Sigma añadida · PBB "+pos:"Sin conexión: Sigma guardada en el móvil, se subirá sola")+" · PENDIENTE");
+  carga().then(l=>{const d=document.getElementById("sg_l");if(d&&!S.ed)d.innerHTML=lista(l)}).catch(()=>{})};
  setInterval(()=>{if(lee(LP).length&&navigator.onLine)subePend().catch(()=>{})},60000);
 
  if(typeof closeSheet=="function"){const oc=closeSheet;closeSheet=function(){try{if(S.abierta&&document.querySelector("#sheetc .sigF")&&$("#sheet").style.display!="none"){
