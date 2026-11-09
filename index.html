@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=395;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=396;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -49,13 +49,13 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
 </style>
 <link rel="preload" as="image" href="splash.jpg"><link rel="preload" as="image" href="cabecera-pbb.webp">
 <style>/* v357: pantalla de carga (5 s) con la foto de portada, barra de progreso y versión */
-#splash{position:fixed;inset:0;z-index:2147483000;background:#0b0d14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);transition:opacity .45s ease-out;will-change:opacity}
+#splash{position:fixed;inset:0;z-index:2147483000;background:#0b0d14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);transition:opacity 1.6s cubic-bezier(.4,0,.2,1);will-change:opacity}
 #splash.fuera{opacity:0;pointer-events:none}
-#splash.fuera img{opacity:1}
+#splash.fuera img{transform:scale(1.08);filter:brightness(1.15);opacity:0}
 #splash.fuera .spr{opacity:0;transform:translateY(12px)}
 #splash .spr{transition:opacity .9s ease,transform .9s ease}
 @keyframes spIn{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
-#splash img{width:100%;max-width:1100px;height:auto;display:block;box-shadow:0 8px 30px rgba(0,0,0,.55);animation:spIn .6s cubic-bezier(.2,.7,.2,1) both}
+#splash img{width:100%;max-width:1100px;height:auto;display:block;box-shadow:0 8px 30px rgba(0,0,0,.55);animation:spIn 1.4s cubic-bezier(.2,.7,.2,1) both;transition:transform 1.6s cubic-bezier(.4,0,.2,1),filter 1.6s ease,opacity 1.6s ease;will-change:transform,opacity}
 #splash .spr{display:flex;align-items:center;gap:10px;width:min(86vw,560px);font:600 13px/1 ui-monospace,Menlo,Consolas,monospace;color:#e9ecf1}
 #splash .spv{flex:none;color:#ff8a1f;letter-spacing:.5px}
 #splash .spb{flex:1;height:10px;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden}
@@ -63,10 +63,10 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
 #splash .spp{flex:none;width:42px;text-align:right}
 </style></head><body>
 <div id="splash"><img src="splash.jpg" alt="PBB TKE Maintenance"><div class="spr"><span class="spv" id="spv"></span><div class="spb"><i id="spi"></i></div><span class="spp" id="spp">0%</span></div></div>
-<script>try{if(/[?&]recupera=1/.test(location.search)||/type=recovery/.test(location.hash))sessionStorage.setItem("pbb_recupera",String(Date.now()))}catch(e){}window.__recupera=(()=>{try{const t=+sessionStorage.getItem("pbb_recupera")||0;return t&&Date.now()-t<15*60000}catch(e){return false}})();</script><script>/* v394: pantalla de carga rápida: dura lo que tarda en cargar la app (mínimo 0,9 s, máximo 6 s) y la versión solo se muestra
+<script>try{if(/[?&]recupera=1/.test(location.search)||/type=recovery/.test(location.hash))sessionStorage.setItem("pbb_recupera",String(Date.now()))}catch(e){}window.__recupera=(()=>{try{const t=+sessionStorage.getItem("pbb_recupera")||0;return t&&Date.now()-t<15*60000}catch(e){return false}})();</script><script>/* v394: pantalla de carga rápida: dura lo que tarda en cargar la app (5 s de progreso) y la versión solo se muestra
  cuando está confirmada que es la última (window.__vOK), así nunca aparece un número de versión anterior. */
-(function(){const MIN=900,MAX=6000,sp=document.getElementById("splash"),i=document.getElementById("spi"),p=document.getElementById("spp");let t0=null,listo=false,vok=false,cerrado=false;
- const fin=()=>{if(cerrado)return;cerrado=true;sp.classList.add("fuera");setTimeout(()=>sp.remove(),500)};
+(function(){const D=5000,MAX=9000,sp=document.getElementById("splash"),i=document.getElementById("spi"),p=document.getElementById("spp");let t0=null,listo=false,vok=false,cerrado=false;
+ const fin=()=>{if(cerrado)return;cerrado=true;sp.classList.add("fuera");setTimeout(()=>sp.remove(),1700)};
  (window.__vOK||Promise.resolve(window.__APPV)).then(v=>{vok=true;try{document.getElementById("spv").textContent="v"+v}catch(e){}});
  /* v395: el splash no se retira hasta que el Panel de control está pintado y quieto (250 ms sin cambios en #app/#pfix)
     y la foto de cabecera está decodificada: así no se ve el panel montándose ni la cabecera apareciendo de golpe. */
@@ -75,8 +75,9 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
  new MutationObserver(ms=>{for(const m of ms){if(m.target&&m.target.closest&&m.target.closest("#splash"))continue;ultCambio=performance.now();return}}).observe(document.documentElement,{subtree:true,childList:true});
  setInterval(()=>{if(listo)return;const hay=!!document.getElementById("pfix")||!!document.getElementById("lock")&&getComputedStyle(document.getElementById("lock")).display!="none"||!!document.querySelector("#sheet[style*=flex]");
   if(cargado&&cab&&hay&&performance.now()-ultCambio>250)listo=true},60);
- const paso=t=>{if(t0==null)t0=t;const dt=t-t0;let k=(listo&&vok)?Math.min(1,Math.max(dt/MIN,0)):Math.min(.92,dt/(MAX*.8));if(dt>=MAX)k=1;
-  if(listo&&vok&&dt<MIN)k=dt/MIN;i.style.width=(k*100)+"%";p.textContent=Math.round(k*100)+"%";if(k>=1||dt>=MAX)fin();else requestAnimationFrame(paso)};
+ /* v396: progreso de 5 s (como antes); al llegar al 100 % se hace el fundido, siempre que el panel ya esté listo (si no, espera en 100 %, máx. 9 s) */
+ const paso=t=>{if(t0==null)t0=t;const dt=t-t0;const k=Math.min(1,dt/D);i.style.width=(k*100)+"%";p.textContent=Math.round(k*100)+"%";
+  if((k>=1&&listo&&vok)||dt>=MAX)fin();else requestAnimationFrame(paso)};
  requestAnimationFrame(paso);})();</script>
 <header><div class="lcol"><img class="logo" alt="TKE" src="data:image/webp;base64,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"><button type="button" id="bsal" class="bsal" onclick="salir()">Cerrar sesión</button></div><div><h1>PBB Maintenance</h1><small>Gestión de averías y avisos</small></div><div class="hb"><button id="adm" title="Administrador" onclick="adminBtn()">A</button><button id="mo" title="Operador" onclick="setO()">O</button><button id="modo" title="Técnico" onclick="toggleModo()">T</button></div><div id="mbar" class="mbar" role="status" aria-live="polite"></div></header>
 <main id="app"></main>
@@ -4561,7 +4562,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||395;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||396;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
