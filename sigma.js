@@ -14,7 +14,7 @@
 .sigF .sigAct{margin-top:10px;padding:9px 10px;border-radius:8px;background:#7c3aed14;border:1px solid #7c3aed55;font-size:13px}
 .sigF .sigAct b{color:#7c3aed}
 .sigF .sigCGA{margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff4e5;border:1px solid #f59e0b;color:#7a4a00;font-size:12.5px}
-.sigF .sigRow{display:flex;gap:8px}.sigF .sigRow>*{flex:1;min-width:0}
+.sigF .sigRow{display:flex;gap:8px;align-items:flex-end}.sigF .sigRow>*{min-width:0}.sigF .sigRow select,.sigF .sigRow input{width:100%;box-sizing:border-box}.sigF #sg_pn{text-align:center;font-weight:700}
 .sigF .sigRs{display:flex;gap:6px;margin-top:4px}.sigF .sigRs button{flex:1;padding:10px 4px;border-radius:8px;border:1px solid var(--bd,#ccc);background:var(--card,#fff);color:var(--tx,#111);font-weight:700;font-size:12.5px}
 .sigF .sigRs button.on{background:#16a34a;border-color:#16a34a;color:#fff}.sigF .sigRs button.on.no{background:#dc2626;border-color:#dc2626}
 .sigH{margin-top:14px;border-top:1px solid var(--bd,#ddd);padding-top:8px}
@@ -34,6 +34,10 @@
  const fDM=f=>{const m=String(f||"").match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return"";return m[0]==hoyS()?"HOY":m[3]+"/"+m[2]};
  const quien=()=>{try{return (typeof tecNombre!="undefined"&&tecNombre?tecNombre:"")+(typeof turno!="undefined"&&turno?" · "+turno:"")}catch(e){return""}};
  const S={res:"RESETEADA"};
+ const SIGT=["PAS","AAA","AAP","HZ","SVGA"];
+ const posDe=v=>{v=String(v||"").trim().toUpperCase();if(!v)return"";const ps=(typeof POS!="undefined"?POS:[]).map(String);return ps.find(x=>x==v||x=="T"+v)||""};
+ window.sigPosT=function(){const n=$("#sg_pn"),s=$("#sg_pos");const p=posDe(n.value);s.value=p;n.style.borderColor=n.value&&!p&&n.value.length>=3?"#dc2626":""};
+ window.sigPosS=function(){const n=$("#sg_pn");if(n){n.value=$("#sg_pos").value;n.style.borderColor=""}};
 
  async function subePend(){const p=lee(LP);if(!p.length||typeof sb=="undefined")return;const q=[];
   for(const r of p){try{const x=await sb.from("alarmas_sigma").insert(r).select();if(x.error)q.push(r)}catch(e){q.push(r)}}
@@ -44,17 +48,19 @@
 
  function lista(l){const p=lee(LP).map(x=>Object.assign({_pend:1},x));const t=[...p,...l];
   if(!t.length)return'<div class="mu" style="font-size:12.5px;margin-top:6px">Todavía no hay alarmas Sigma registradas.</div>';
-  const d30=Date.now()-30*864e5,cnt={};t.forEach(x=>{const ts=Date.parse(x.created_at||x.fecha||"")||Date.now();if(ts<d30)return;const k="PBB "+x.pos+" · "+x.alarma;cnt[k]=(cnt[k]||0)+1});
+  const d30=Date.now()-30*864e5,cnt={};t.forEach(x=>{const ts=Date.parse(x.created_at||x.fecha||"")||Date.now();if(ts<d30)return;const k="PBB "+x.pos+(x.tipo?" "+x.tipo:"")+" · "+x.alarma;cnt[k]=(cnt[k]||0)+1});
   const rep=Object.entries(cnt).filter(([,n])=>n>1).sort((a,b)=>b[1]-a[1]).slice(0,6);
   return (rep.length?`<div class="mu" style="font-size:12px;margin-top:6px"><b>Repetidas en 30 días</b> (posibles averías de fondo):</div><div class="sigTop">${rep.map(([k,n])=>`<span>${E(k)} ×${n}</span>`).join("")}</div>`:"")+
-   `<ul class="sigL">${t.slice(0,60).map(x=>`<li><span class="p">PBB ${E(x.pos)}</span><span class="a">${E(x.alarma)}${x.resultado&&x.resultado!="RESETEADA"?` · <span class="ko">${E(x.resultado)}</span>`:""}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}</span></li>`).join("")}</ul>`}
+   `<ul class="sigL">${t.slice(0,60).map(x=>`<li><span class="p">PBB ${E(x.pos)}${x.tipo?`<br><small>${E(x.tipo)}</small>`:""}</span><span class="a">${E(x.alarma)}${x.resultado&&x.resultado!="RESETEADA"?` · <span class="ko">${E(x.resultado)}</span>`:""}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}</span></li>`).join("")}</ul>`}
 
  window.sigAbre=async function(){S.res="RESETEADA";
   const prev=lee(LK),al=[...new Set(prev.map(x=>x.alarma).filter(Boolean))].slice(0,40);
   const ps=(typeof POS!="undefined"?POS:[]);
   $("#sheetc").innerHTML=`<div class="sigF"><h3><span class="sigI">${BELL}</span>Alarma Sigma (SCADA)</h3>
   <div class="sigN">Aviso del SCADA sin número de orden. Normalmente lo pasa el Responsable de Turno.</div>
-  <label>Posición PBB</label><select id="sg_pos"><option value="">Elegir…</option>${ps.map(p=>`<option>${p}</option>`).join("")}</select>
+  <div class="sigRow"><div style="flex:1.25"><label>Posición PBB</label><select id="sg_pos" onchange="sigPosS()"><option value="">Elegir…</option>${ps.map(p=>`<option>${p}</option>`).join("")}</select></div>
+  <div style="flex:.85"><label>Teclear</label><input id="sg_pn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="nº" oninput="sigPosT()"></div>
+  <div style="flex:1"><label>Tipo</label><select id="sg_t">${SIGT.map(t=>`<option>${t}</option>`).join("")}</select></div></div>
   <label>Hora aviso</label><input id="sg_h" type="time" value="${hm()}">
   <label>Alarma (tal como sale en el SCADA)</label><input id="sg_a" list="sg_al" autocomplete="off" placeholder="Ej.: Fallo variador traslación"><datalist id="sg_al">${al.map(a=>`<option value="${E(a)}">`).join("")}</datalist>
   <label>Reportado por</label><select id="sg_r" onchange="sigRep()"><option>Responsable Turno</option><option>CGA</option><option>Otro</option></select>
@@ -70,15 +76,16 @@
   try{await subePend()}catch(e){}const l=await carga();const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(l)};
  window.sigRep=function(){const v=$("#sg_r").value;$("#sg_ro").classList.toggle("hide",v!="Otro");$("#sg_cga").classList.toggle("hide",v!="CGA");$("#sg_ok").classList.toggle("hide",v=="CGA")};
  window.sigRes=function(b){S.res=b.dataset.r;document.querySelectorAll(".sigRs button").forEach(x=>{x.classList.toggle("on",x===b)})};
- window.sigAOT=function(){const p=$("#sg_pos").value,a=$("#sg_a").value.trim();closeSheet();
+ window.sigAOT=function(){const p=$("#sg_pos").value,a=$("#sg_a").value.trim(),tp=$("#sg_t").value;closeSheet();
   setTimeout(()=>{try{const fp=$("#f_pos"),fn=$("#f_posn");if(p){if(fn){fn.value=p;fn.dispatchEvent(new Event("input",{bubbles:true}))}if(fp){fp.value=p;fp.dispatchEvent(new Event("change",{bubbles:true}))}}
    document.querySelectorAll(".eqc").forEach(c=>{const on=c.value=="Sigma";if(c.checked!=on){c.checked=on;c.dispatchEvent(new Event("change",{bubbles:true}))}});
-   const r=$("#f_rep");if(r)r.value="CGA";const d=$("#f_desc");if(d&&a){d.value="Alarma Sigma: "+a;d.dispatchEvent(new Event("input",{bubbles:true}))}
+   const r=$("#f_rep");if(r)r.value="CGA";const d=$("#f_desc");if(d&&a){d.value="Alarma Sigma "+tp+": "+a;d.dispatchEvent(new Event("input",{bubbles:true}))}
    const o=$("#f_ord");if(o)o.focus()}catch(e){}},80)};
  window.sigGuarda=async function(){const pos=$("#sg_pos").value,a=$("#sg_a").value.trim();
-  if(!pos){msg("Elige la posición PBB");return}if(!a){msg("Teclea la alarma Sigma");return}
+  const pn=($("#sg_pn").value||"").trim();if(pn&&!posDe(pn)){msg(`La PBB ${pn} no está dada de alta`);$("#sg_pn").focus();return}
+  if(!pos){msg("Elige o teclea la posición PBB");return}const tipo=$("#sg_t").value;if(!a){msg("Teclea la alarma Sigma");return}
   let rep=$("#sg_r").value;if(rep=="Otro")rep="Otro: "+($("#sg_ro").value.trim()||"s/d");
-  const r={pos:String(pos),alarma:a,rep,actuacion:"RESETEAR",resultado:S.res,obs:$("#sg_o").value.trim()||null,fecha:hoyS(),hora:$("#sg_h").value||hm(),hora_reset:hm(),tecnico:quien()||null};
+  const r={pos:String(pos),tipo,alarma:a,rep,actuacion:"RESETEAR",resultado:S.res,obs:$("#sg_o").value.trim()||null,fecha:hoyS(),hora:$("#sg_h").value||hm(),hora_reset:hm(),tecnico:quien()||null};
   const b=$("#sg_ok");b.disabled=true;b.textContent="Guardando…";let ok=false;
   try{const x=await sb.from("alarmas_sigma").insert(r).select();ok=!x.error;if(ok){const c=lee(LK);c.unshift(x.data&&x.data[0]||r);guarda(LK,c.slice(0,300))}}catch(e){}
   if(!ok){const p=lee(LP);p.push(r);guarda(LP,p)}
