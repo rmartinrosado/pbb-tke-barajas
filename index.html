@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=394;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=395;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -47,15 +47,15 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
 .mbar{min-width:0;width:100%;max-width:100%;flex-direction:column;align-items:center!important;gap:5px!important}.mrow1,.mrow2{min-width:0;max-width:100%;display:flex;justify-content:center;align-items:center;gap:5px;width:100%}.mrow2{gap:4px!important;flex-wrap:nowrap;overflow:hidden;white-space:nowrap}.mrow2 .mopt{padding:1px 6px;flex:none}
 .pbbw{display:flex;gap:10px;align-items:stretch;margin-top:8px}.pbbd{position:relative;flex:1;min-width:0;background:#fff;border:1px solid var(--bd);border-radius:6px;overflow:hidden}.pbbd img{display:block;width:100%;height:auto}.ptag{position:absolute;transform:translate(-50%,-50%);font:700 10px/1 system-ui,sans-serif;padding:3px 5px;border-radius:4px;border:1.5px solid #111;background:#fff;color:#111;cursor:pointer}.ptag.on{background:var(--g);color:#fff;border-color:transparent}.pchk{display:flex;flex-direction:column;justify-content:space-between;gap:4px;flex:none}.pchk label{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;font-weight:600;color:var(--tx)}.pchk input{appearance:none;-webkit-appearance:none;width:24px;height:24px;margin:0;padding:0;border:2px solid #333;border-radius:4px;background:#fff;display:grid;place-content:center;flex:none}.pchk input:checked::after{content:"✓";color:#7a12b5;font-weight:900;font-size:17px;line-height:1}
 </style>
-<link rel="preload" as="image" href="splash.jpg">
+<link rel="preload" as="image" href="splash.jpg"><link rel="preload" as="image" href="cabecera-pbb.webp">
 <style>/* v357: pantalla de carga (5 s) con la foto de portada, barra de progreso y versión */
-#splash{position:fixed;inset:0;z-index:2147483000;background:#0b0d14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);transition:opacity .7s cubic-bezier(.4,0,.2,1)}
+#splash{position:fixed;inset:0;z-index:2147483000;background:#0b0d14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);transition:opacity .45s ease-out;will-change:opacity}
 #splash.fuera{opacity:0;pointer-events:none}
-#splash.fuera img{transform:scale(1.08);filter:blur(4px) brightness(1.15);opacity:0}
+#splash.fuera img{opacity:1}
 #splash.fuera .spr{opacity:0;transform:translateY(12px)}
 #splash .spr{transition:opacity .9s ease,transform .9s ease}
 @keyframes spIn{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
-#splash img{width:100%;max-width:1100px;height:auto;display:block;box-shadow:0 8px 30px rgba(0,0,0,.55);animation:spIn .6s cubic-bezier(.2,.7,.2,1) both;transition:transform .7s cubic-bezier(.4,0,.2,1),filter .7s ease,opacity .7s ease}
+#splash img{width:100%;max-width:1100px;height:auto;display:block;box-shadow:0 8px 30px rgba(0,0,0,.55);animation:spIn .6s cubic-bezier(.2,.7,.2,1) both}
 #splash .spr{display:flex;align-items:center;gap:10px;width:min(86vw,560px);font:600 13px/1 ui-monospace,Menlo,Consolas,monospace;color:#e9ecf1}
 #splash .spv{flex:none;color:#ff8a1f;letter-spacing:.5px}
 #splash .spb{flex:1;height:10px;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden}
@@ -66,9 +66,15 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
 <script>try{if(/[?&]recupera=1/.test(location.search)||/type=recovery/.test(location.hash))sessionStorage.setItem("pbb_recupera",String(Date.now()))}catch(e){}window.__recupera=(()=>{try{const t=+sessionStorage.getItem("pbb_recupera")||0;return t&&Date.now()-t<15*60000}catch(e){return false}})();</script><script>/* v394: pantalla de carga rápida: dura lo que tarda en cargar la app (mínimo 0,9 s, máximo 6 s) y la versión solo se muestra
  cuando está confirmada que es la última (window.__vOK), así nunca aparece un número de versión anterior. */
 (function(){const MIN=900,MAX=6000,sp=document.getElementById("splash"),i=document.getElementById("spi"),p=document.getElementById("spp");let t0=null,listo=false,vok=false,cerrado=false;
- const fin=()=>{if(cerrado)return;cerrado=true;sp.classList.add("fuera");setTimeout(()=>sp.remove(),800)};
+ const fin=()=>{if(cerrado)return;cerrado=true;sp.classList.add("fuera");setTimeout(()=>sp.remove(),500)};
  (window.__vOK||Promise.resolve(window.__APPV)).then(v=>{vok=true;try{document.getElementById("spv").textContent="v"+v}catch(e){}});
- addEventListener("load",()=>{listo=true});
+ /* v395: el splash no se retira hasta que el Panel de control está pintado y quieto (250 ms sin cambios en #app/#pfix)
+    y la foto de cabecera está decodificada: así no se ve el panel montándose ni la cabecera apareciendo de golpe. */
+ let cargado=false,ultCambio=0,cab=false;addEventListener("load",()=>{cargado=true});
+ try{const im=new Image();im.src="cabecera-pbb.webp";(im.decode?im.decode():new Promise(r=>{im.onload=im.onerror=r})).then(()=>cab=true,()=>cab=true)}catch(e){cab=true}
+ new MutationObserver(ms=>{for(const m of ms){if(m.target&&m.target.closest&&m.target.closest("#splash"))continue;ultCambio=performance.now();return}}).observe(document.documentElement,{subtree:true,childList:true});
+ setInterval(()=>{if(listo)return;const hay=!!document.getElementById("pfix")||!!document.getElementById("lock")&&getComputedStyle(document.getElementById("lock")).display!="none"||!!document.querySelector("#sheet[style*=flex]");
+  if(cargado&&cab&&hay&&performance.now()-ultCambio>250)listo=true},60);
  const paso=t=>{if(t0==null)t0=t;const dt=t-t0;let k=(listo&&vok)?Math.min(1,Math.max(dt/MIN,0)):Math.min(.92,dt/(MAX*.8));if(dt>=MAX)k=1;
   if(listo&&vok&&dt<MIN)k=dt/MIN;i.style.width=(k*100)+"%";p.textContent=Math.round(k*100)+"%";if(k>=1||dt>=MAX)fin();else requestAnimationFrame(paso)};
  requestAnimationFrame(paso);})();</script>
@@ -4555,7 +4561,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||394;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||395;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
