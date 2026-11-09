@@ -24,6 +24,8 @@
 .sigL li .p{font-weight:800;min-width:54px}.sigL li .a{flex:1;min-width:0}.sigL li .t{color:var(--mu,#777);white-space:nowrap;text-align:right}
 .sigL li .ko{color:#dc2626;font-weight:700}.sigL li .pd{color:#b45309;font-weight:700}
 .sigL li{cursor:pointer;-webkit-tap-highlight-color:transparent}.sigL li:active{background:#7c3aed12}.sigL li.ed{background:#7c3aed1f;outline:2px solid #7c3aed;border-radius:6px}
+.sigDel{margin-top:5px;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:34px;height:28px;padding:0 6px;border-radius:6px;border:1px solid #c6282866;background:transparent;color:#c62828;font-size:11px;font-weight:800}
+.sigDel.sure{background:#c62828;color:#fff;border-color:#c62828}
 .sigEs{display:inline-block;margin-top:3px;padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:800;letter-spacing:.4px;color:#fff;white-space:nowrap}
 .sigEs.eok{background:#16a34a}.sigL li .sigEs.eko{background:#dc2626;color:#fff}.sigEs.epe{background:#d97706}
 .sigF .sigRs button.on.pe{background:#d97706;border-color:#d97706}
@@ -57,7 +59,7 @@
   const d30=Date.now()-30*864e5,cnt={};t.forEach(x=>{const ts=Date.parse(x.created_at||x.fecha||"")||Date.now();if(ts<d30)return;const k="PBB "+x.pos+(x.tipo?" "+x.tipo:"")+(x.alarma?" · "+x.alarma:"");cnt[k]=(cnt[k]||0)+1});
   S.vis=t.slice(0,60);const rep=Object.entries(cnt).filter(([,n])=>n>1).sort((a,b)=>b[1]-a[1]).slice(0,6);
   return (rep.length?`<div class="mu" style="font-size:12px;margin-top:6px"><b>Repetidas en 30 días</b> (posibles averías de fondo):</div><div class="sigTop">${rep.map(([k,n])=>`<span>${E(k)} ×${n}</span>`).join("")}</div>`:"")+
-   `<ul class="sigL">${S.vis.map((x,ix)=>`<li data-ix="${ix}" onclick="sigEdita(${ix})" class="${S.ed&&((S.ed.id&&S.ed.id==x.id)||(S.ed.lk&&S.ed.lk==x._lk))?"ed":""}"><span class="p">PBB ${E(x.pos)}${x.tipo?`<br><small>${E(x.tipo)}</small>`:""}</span><span class="a">${x.alarma?E(x.alarma):'<i class="mu">sin texto de alarma</i>'}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}<br>${esBox(x.resultado)}</span></li>`).join("")}</ul>`}
+   `<ul class="sigL">${S.vis.map((x,ix)=>`<li data-ix="${ix}" onclick="sigEdita(${ix})" class="${S.ed&&((S.ed.id&&S.ed.id==x.id)||(S.ed.lk&&S.ed.lk==x._lk))?"ed":""}"><span class="p">PBB ${E(x.pos)}${x.tipo?`<br><small>${E(x.tipo)}</small>`:""}<br><button type="button" class="sigDel" aria-label="Eliminar del registro" onclick="event.stopPropagation();sigBorra(${ix},this)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button></span><span class="a">${x.alarma?E(x.alarma):'<i class="mu">sin texto de alarma</i>'}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}<br>${esBox(x.resultado)}</span></li>`).join("")}</ul>`}
 
  window.sigAbre=async function(){S.res="PENDIENTE";S.ed=null;
   const prev=lee(LK),al=[...new Set(prev.map(x=>x.alarma).filter(Boolean))].slice(0,40);
@@ -87,6 +89,15 @@
   $("#sg_ed").innerHTML=`<div class="sigEd">✏️ Editando <b>PBB ${E(x.pos)}${x.tipo?" "+E(x.tipo):""}</b> · ${E(fDM(x.fecha))} ${E(x.hora||"")}<button type="button" onclick="sigNueva()">Nueva</button></div>`;
   $("#sg_ok").textContent="GUARDAR CAMBIOS";document.querySelectorAll(".sigL li").forEach(l=>l.classList.toggle("ed",l.dataset.ix==ix));
   try{const c=$("#sheet").firstElementChild;(c&&c.scrollTo)?c.scrollTo({top:0,behavior:"smooth"}):0}catch(e){}};
+ window.sigBorra=async function(ix,b){const x=(S.vis||[])[ix];if(!x)return;
+  if(!b.classList.contains("sure")){document.querySelectorAll(".sigDel.sure").forEach(z=>{z.classList.remove("sure");z.innerHTML=z.dataset.ic||z.innerHTML});b.dataset.ic=b.innerHTML;b.classList.add("sure");b.innerHTML="¿BORRAR?";
+   clearTimeout(S.tb);S.tb=setTimeout(()=>{if(b.isConnected&&b.classList.contains("sure")){b.classList.remove("sure");b.innerHTML=b.dataset.ic}},4000);return}
+  b.disabled=true;b.textContent="…";let ok=false;
+  if(x._pend){guarda(LP,lee(LP).filter(y=>y._lk!=x._lk));ok=true}
+  else if(x.id!=null){try{const r=await sb.from("alarmas_sigma").delete().eq("id",x.id).select();ok=!r.error&&r.data&&r.data.length>0;if(r.error)msg("No se pudo eliminar: "+r.error.message)}catch(e){}
+   if(ok)guarda(LK,lee(LK).filter(y=>y.id!=x.id));else if(!navigator.onLine)msg("Sin conexión: no se puede eliminar ahora");else msg("No se pudo eliminar (¿permiso de Técnico/Admin?)")}
+  if(S.ed&&((S.ed.id&&S.ed.id==x.id)||(S.ed.lk&&S.ed.lk==x._lk)))sigNueva();
+  const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(ok?(x._pend?lee(LK):lee(LK)):lee(LK));if(ok){msg("Sigma eliminada · PBB "+x.pos);const l=await carga();if(d&&d.isConnected)d.innerHTML=lista(l)}};
  window.sigNueva=function(){S.ed=null;["#sg_pos","#sg_pn","#sg_a","#sg_o","#sg_ro"].forEach(i=>{const e=$(i);if(e)e.value=""});$("#sg_h").value=hm();$("#sg_r").value="Responsable Turno";sigRep();
   sigRes(document.querySelector('.sigRs button[data-r="PENDIENTE"]'));$("#sg_ed").innerHTML="";$("#sg_ok").textContent="GUARDAR SIGMA";document.querySelectorAll(".sigL li.ed").forEach(l=>l.classList.remove("ed"))};
  window.sigRep=function(){const v=$("#sg_r").value;$("#sg_ro").classList.toggle("hide",v!="Otro");$("#sg_cga").classList.toggle("hide",v!="CGA");$("#sg_ok").classList.toggle("hide",v=="CGA")};
