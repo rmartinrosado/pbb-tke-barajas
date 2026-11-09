@@ -58,7 +58,7 @@
   for(const r of p){try{const z=Object.assign({},r);delete z._lk;delete z._pend;const x=await sb.from("alarmas_sigma").insert(z).select();if(x.error)q.push(r)}catch(e){q.push(r)}}
   guarda(LP,q)}
  async function carga(){if(typeof sb=="undefined")return lee(LK);
-  try{const r=await sb.from("alarmas_sigma").select("*").order("created_at",{ascending:false}).limit(300);if(!r.error&&r.data){guarda(LK,r.data);return r.data}}catch(e){}
+  try{const r=await sb.from("alarmas_sigma").select("*").order("created_at",{ascending:false}).limit(300);if(!r.error&&r.data){guarda(LK,r.data);setTimeout(avisoPanel,0);return r.data}}catch(e){}
   return lee(LK)}
 
  const esBox=r=>{r=r||"RESETEADA";const c=r=="RESETEADA"?"ok":r=="NO RESETEA"?"ko":"pe";return`<span class="sigEs e${c}">${c=="ok"?"✔ ":c=="ko"?"✖ ":"⏳ "}${E(r)}</span>`};
@@ -153,6 +153,27 @@
   carga().then(l=>{const d=document.getElementById("sg_l");if(d&&!S.ed)d.innerHTML=lista(l)}).catch(()=>{})};
  setInterval(()=>{if(lee(LP).length&&navigator.onLine)subePend().catch(()=>{})},60000);
 
+ /* v399: aviso en el Panel de control mientras haya Sigmas PENDIENTES de resetear (encima de «Órdenes de trabajo abiertas»). Toque → ventana de Sigmas */
+ function avisoPanel(){try{let av=document.getElementById("sigAv");
+  const pend=[...lee(LP),...lee(LK)].filter(x=>(x.resultado||"PENDIENTE")=="PENDIENTE");
+  const h=(typeof view=="undefined"||view=="dash")?[...document.querySelectorAll("#app h3")].find(e=>/rdenes de trabajo abiertas/i.test(e.textContent)):null;
+  if(!pend.length||!h){if(av)av.remove();return}
+  const vistos={};const ls=pend.filter(x=>{const k=x.pos+"|"+(x.tipo||"");if(vistos[k])return false;vistos[k]=1;return true}).slice(0,6).map(x=>`<span>PBB ${E(x.pos)}${x.tipo?" "+E(x.tipo):""}</span>`).join("");
+  const n=pend.length,html=`<span class="sigAvI">${BELL}</span><span class="sigAvT"><b>${n} Sigma${n>1?"s":""} pendiente${n>1?"s":""} de resetear</b><span class="sigAvL">${ls}${n>6?"<span>…</span>":""}</span></span><span class="sigAvG">›</span>`;
+  if(!av){av=document.createElement("button");av.type="button";av.id="sigAv";av.onclick=()=>sigAbre()}
+  if(av.dataset.h!==html){av.innerHTML=html;av.dataset.h=html}
+  if(av.nextElementSibling!==h||av.parentNode!==h.parentNode)h.parentNode.insertBefore(av,h)}catch(e){}}
+ window.sigAvisoPanel=avisoPanel;
+ {const st2=document.createElement("style");st2.textContent=`#sigAv{display:flex;align-items:center;gap:10px;width:100%;margin:6px 0 10px;padding:10px 12px;border:2px solid #7c3aed;border-radius:12px;background:linear-gradient(90deg,#7c3aed1f,#7c3aed08);color:var(--tx,#111);text-align:left;font:inherit;cursor:pointer;animation:sigAvL 2s ease-in-out infinite}
+#sigAv .sigAvI{flex:none;width:36px;height:36px;border-radius:50%;background:#7c3aed;color:#fff;display:flex;align-items:center;justify-content:center}#sigAv .sigAvI svg{width:20px;height:20px;animation:sigRing 2.4s ease-in-out infinite;transform-origin:50% 10%}
+#sigAv .sigAvT{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:14px}#sigAv .sigAvT b{color:#5b21b6;text-transform:uppercase;letter-spacing:.4px;font-size:13px}
+#sigAv .sigAvL{display:flex;flex-wrap:wrap;gap:4px}#sigAv .sigAvL span{font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:10px;background:#d97706;color:#fff}
+#sigAv .sigAvG{flex:none;font-size:26px;color:#7c3aed;font-weight:700}
+@keyframes sigAvL{0%,100%{box-shadow:0 0 0 0 #7c3aed55}50%{box-shadow:0 0 0 5px #7c3aed00}}
+@media(prefers-color-scheme:dark){#sigAv .sigAvT b{color:#c4b5fd}}`;document.head.appendChild(st2)}
+ {const ap=document.getElementById("app");if(ap)new MutationObserver(()=>{if(!document.getElementById("sigAv")||!document.getElementById("sigAv").isConnected)avisoPanel()}).observe(ap,{childList:true,subtree:true})}
+ setTimeout(()=>{avisoPanel();carga().catch(()=>{})},1500);setInterval(()=>{if(!document.hidden)carga().catch(()=>{})},60000);
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden)carga().catch(()=>{})});
  if(typeof closeSheet=="function"){const oc=closeSheet;closeSheet=function(){try{if(S.abierta&&document.querySelector("#sheetc .sigF")&&$("#sheet").style.display!="none"){
    const b=document.getElementById("sg_ac");if(b){b.classList.remove("lat");void b.offsetWidth;b.classList.add("lat");b.scrollIntoView({block:"center",behavior:"smooth"})}msg("Pulsa ACEPTAR para terminar con las Sigmas");return}}catch(e){}
   return oc.apply(this,arguments)}}
