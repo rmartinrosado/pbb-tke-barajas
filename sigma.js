@@ -48,10 +48,10 @@
 
  function lista(l){const p=lee(LP).map(x=>Object.assign({_pend:1},x));const t=[...p,...l];
   if(!t.length)return'<div class="mu" style="font-size:12.5px;margin-top:6px">Todavía no hay alarmas Sigma registradas.</div>';
-  const d30=Date.now()-30*864e5,cnt={};t.forEach(x=>{const ts=Date.parse(x.created_at||x.fecha||"")||Date.now();if(ts<d30)return;const k="PBB "+x.pos+(x.tipo?" "+x.tipo:"")+" · "+x.alarma;cnt[k]=(cnt[k]||0)+1});
+  const d30=Date.now()-30*864e5,cnt={};t.forEach(x=>{const ts=Date.parse(x.created_at||x.fecha||"")||Date.now();if(ts<d30)return;const k="PBB "+x.pos+(x.tipo?" "+x.tipo:"")+(x.alarma?" · "+x.alarma:"");cnt[k]=(cnt[k]||0)+1});
   const rep=Object.entries(cnt).filter(([,n])=>n>1).sort((a,b)=>b[1]-a[1]).slice(0,6);
   return (rep.length?`<div class="mu" style="font-size:12px;margin-top:6px"><b>Repetidas en 30 días</b> (posibles averías de fondo):</div><div class="sigTop">${rep.map(([k,n])=>`<span>${E(k)} ×${n}</span>`).join("")}</div>`:"")+
-   `<ul class="sigL">${t.slice(0,60).map(x=>`<li><span class="p">PBB ${E(x.pos)}${x.tipo?`<br><small>${E(x.tipo)}</small>`:""}</span><span class="a">${E(x.alarma)}${x.resultado&&x.resultado!="RESETEADA"?` · <span class="ko">${E(x.resultado)}</span>`:""}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}</span></li>`).join("")}</ul>`}
+   `<ul class="sigL">${t.slice(0,60).map(x=>`<li><span class="p">PBB ${E(x.pos)}${x.tipo?`<br><small>${E(x.tipo)}</small>`:""}</span><span class="a">${x.alarma?E(x.alarma):'<i class="mu">sin texto de alarma</i>'}${x.resultado&&x.resultado!="RESETEADA"?` · <span class="ko">${E(x.resultado)}</span>`:""}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}</span></li>`).join("")}</ul>`}
 
  window.sigAbre=async function(){S.res="RESETEADA";
   const prev=lee(LK),al=[...new Set(prev.map(x=>x.alarma).filter(Boolean))].slice(0,40);
@@ -62,12 +62,12 @@
   <div style="flex:.85"><label>Teclear</label><input id="sg_pn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="nº" oninput="sigPosT()"></div>
   <div style="flex:1"><label>Tipo</label><select id="sg_t">${SIGT.map(t=>`<option>${t}</option>`).join("")}</select></div></div>
   <label>Hora aviso</label><input id="sg_h" type="time" value="${hm()}">
-  <label>Alarma (tal como sale en el SCADA)</label><input id="sg_a" list="sg_al" autocomplete="off" placeholder="Ej.: Fallo variador traslación"><datalist id="sg_al">${al.map(a=>`<option value="${E(a)}">`).join("")}</datalist>
   <label>Reportado por</label><select id="sg_r" onchange="sigRep()"><option>Responsable Turno</option><option>CGA</option><option>Otro</option></select>
   <input id="sg_ro" class="hide" style="margin-top:6px" placeholder="¿Quién?">
   <div id="sg_cga" class="sigCGA hide">Si la Sigma la reporta <b>CGA</b> se trata como una <b>OT normal con su número de orden</b>.<button class="pri" style="margin-top:8px;width:100%" onclick="sigAOT()">REGISTRAR COMO OT</button></div>
   <div class="sigAct">Actuación: ir a la posición indicada y <b>RESETEAR</b> la alarma.</div>
   <label>Resultado</label><div class="sigRs"><button type="button" class="on" data-r="RESETEADA" onclick="sigRes(this)">✔ RESETEADA</button><button type="button" class="no" data-r="NO RESETEA" onclick="sigRes(this)">✖ NO RESETEA</button></div>
+  <label>Alarma SCADA · opcional (recomendable)</label><input id="sg_a" list="sg_al" autocomplete="off" placeholder="Ej.: Fallo variador traslación"><datalist id="sg_al">${al.map(a=>`<option value="${E(a)}">`).join("")}</datalist>
   <label>Observaciones</label><textarea id="sg_o" rows="2" placeholder="Opcional"></textarea>
   <button class="pri" id="sg_ok" style="margin-top:12px;width:100%" onclick="sigGuarda()">GUARDAR SIGMA</button>
   <button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>
@@ -83,13 +83,13 @@
    const o=$("#f_ord");if(o)o.focus()}catch(e){}},80)};
  window.sigGuarda=async function(){const pos=$("#sg_pos").value,a=$("#sg_a").value.trim();
   const pn=($("#sg_pn").value||"").trim();if(pn&&!posDe(pn)){msg(`La PBB ${pn} no está dada de alta`);$("#sg_pn").focus();return}
-  if(!pos){msg("Elige o teclea la posición PBB");return}const tipo=$("#sg_t").value;if(!a){msg("Teclea la alarma Sigma");return}
+  if(!pos){msg("Elige o teclea la posición PBB");return}const tipo=$("#sg_t").value;
   let rep=$("#sg_r").value;if(rep=="Otro")rep="Otro: "+($("#sg_ro").value.trim()||"s/d");
-  const r={pos:String(pos),tipo,alarma:a,rep,actuacion:"RESETEAR",resultado:S.res,obs:$("#sg_o").value.trim()||null,fecha:hoyS(),hora:$("#sg_h").value||hm(),hora_reset:hm(),tecnico:quien()||null};
+  const r={pos:String(pos),tipo,alarma:a||null,rep,actuacion:"RESETEAR",resultado:S.res,obs:$("#sg_o").value.trim()||null,fecha:hoyS(),hora:$("#sg_h").value||hm(),hora_reset:hm(),tecnico:quien()||null};
   const b=$("#sg_ok");b.disabled=true;b.textContent="Guardando…";let ok=false;
   try{const x=await sb.from("alarmas_sigma").insert(r).select();ok=!x.error;if(ok){const c=lee(LK);c.unshift(x.data&&x.data[0]||r);guarda(LK,c.slice(0,300))}}catch(e){}
   if(!ok){const p=lee(LP);p.push(r);guarda(LP,p)}
-  closeSheet();msg(ok?"Alarma Sigma guardada · PBB "+pos:"Sin conexión: Sigma guardada en el móvil, se subirá sola");
+  closeSheet();msg((ok?"Alarma Sigma guardada · PBB "+pos:"Sin conexión: Sigma guardada en el móvil, se subirá sola")+(a?"":" · sin texto de alarma: es recomendable anotarla para el análisis"));
   if(S.res=="NO RESETEA")setTimeout(()=>msg("No resetea: avisa al Responsable de Turno / CGA para abrir OT"),2600)};
  setInterval(()=>{if(lee(LP).length&&navigator.onLine)subePend().catch(()=>{})},60000);
 
