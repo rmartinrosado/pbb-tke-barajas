@@ -21,6 +21,9 @@ window.segOT=segOT=function(i){const S=o.apply(this,arguments);if(!S||!S.lim)ret
   S.sentido=up&&!dn?"superior":dn&&!up?"inferior":iz&&!de?"izquierda":de&&!iz?"derecha":""}
  S.itSeg=[];S.itNor=[];S.zs.forEach(z=>z.it.forEach(it=>(esSeg(it)?S.itSeg:S.itNor).push(it)));
  if(!S.itSeg.length&&S.itNor.length)S.limT="nor";else if(!S.itNor.length&&S.itSeg.length)S.limT="seg";
+ /* v383: si la OT NO habla de final de carrera / seguridad y hay límite de trabajo, NO se muestra nada del módulo de seguridad
+    (ni puente en E-A8, ni «F.C.», ni 2ª opción amarilla): solo el límite de trabajo (módulo verde) */
+ if(S.limT=="nor"&&!S.limMix&&S.itNor.length&&!RSEG.test(t)){S.itSeg=[];S.zs=S.zs.map(z=>({...z,it:z.it.filter(it=>!esSeg(it))})).filter(z=>z.it.length);S.soloTrabajo=true}
  return S};
 const GRP={
  seg:{c:"lmseg",t:"Final de carrera de SEGURIDAD · módulo safety (amarillo)",
