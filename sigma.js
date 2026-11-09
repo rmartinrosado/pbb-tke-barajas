@@ -38,7 +38,7 @@
  const hoyS=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
  const fDM=f=>{const m=String(f||"").match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return"";return m[0]==hoyS()?"HOY":m[3]+"/"+m[2]};
  const quien=()=>{try{return (typeof tecNombre!="undefined"&&tecNombre?tecNombre:"")+(typeof turno!="undefined"&&turno?" · "+turno:"")}catch(e){return""}};
- const S={res:"RESETEADA"};
+ const S={res:"PENDIENTE"};
  const SIGT=["PAS","AAA","AAP","HZ","SVGA"];
  const posDe=v=>{v=String(v||"").trim().toUpperCase();if(!v)return"";const ps=(typeof POS!="undefined"?POS:[]).map(String);return ps.find(x=>x==v||x=="T"+v)||""};
  window.sigPosT=function(){const n=$("#sg_pn"),s=$("#sg_pos");const p=posDe(n.value);s.value=p;n.style.borderColor=n.value&&!p&&n.value.length>=3?"#dc2626":""};
@@ -59,7 +59,7 @@
   return (rep.length?`<div class="mu" style="font-size:12px;margin-top:6px"><b>Repetidas en 30 días</b> (posibles averías de fondo):</div><div class="sigTop">${rep.map(([k,n])=>`<span>${E(k)} ×${n}</span>`).join("")}</div>`:"")+
    `<ul class="sigL">${S.vis.map((x,ix)=>`<li data-ix="${ix}" onclick="sigEdita(${ix})" class="${S.ed&&((S.ed.id&&S.ed.id==x.id)||(S.ed.lk&&S.ed.lk==x._lk))?"ed":""}"><span class="p">PBB ${E(x.pos)}${x.tipo?`<br><small>${E(x.tipo)}</small>`:""}</span><span class="a">${x.alarma?E(x.alarma):'<i class="mu">sin texto de alarma</i>'}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}<br>${esBox(x.resultado)}</span></li>`).join("")}</ul>`}
 
- window.sigAbre=async function(){S.res="RESETEADA";S.ed=null;
+ window.sigAbre=async function(){S.res="PENDIENTE";S.ed=null;
   const prev=lee(LK),al=[...new Set(prev.map(x=>x.alarma).filter(Boolean))].slice(0,40);
   const ps=(typeof POS!="undefined"?POS:[]);
   $("#sheetc").innerHTML=`<div class="sigF"><h3><span class="sigI">${BELL}</span>Alarma Sigma (SCADA)</h3>
@@ -72,7 +72,7 @@
   <input id="sg_ro" class="hide" style="margin-top:6px" placeholder="¿Quién?">
   <div id="sg_cga" class="sigCGA hide">Si la Sigma la reporta <b>CGA</b> se trata como una <b>OT normal con su número de orden</b>.<button class="pri" style="margin-top:8px;width:100%" onclick="sigAOT()">REGISTRAR COMO OT</button></div>
   <div class="sigAct">Actuación: ir a la posición indicada y <b>RESETEAR</b> la alarma.</div>
-  <label>Resultado</label><div class="sigRs"><button type="button" class="pe" data-r="PENDIENTE" onclick="sigRes(this)">⏳ PENDIENTE</button><button type="button" class="on" data-r="RESETEADA" onclick="sigRes(this)">✔ RESETEADA</button><button type="button" class="no" data-r="NO RESETEA" onclick="sigRes(this)">✖ NO RESETEA</button></div>
+  <label>Resultado</label><div class="sigRs"><button type="button" class="pe on" data-r="PENDIENTE" onclick="sigRes(this)">⏳ PENDIENTE</button><button type="button" data-r="RESETEADA" onclick="sigRes(this)">✔ RESETEADA</button><button type="button" class="no" data-r="NO RESETEA" onclick="sigRes(this)">✖ NO RESETEA</button></div>
   <label>Alarma SCADA · opcional (recomendable)</label><input id="sg_a" list="sg_al" autocomplete="off" placeholder="Ej.: Fallo variador traslación"><datalist id="sg_al">${al.map(a=>`<option value="${E(a)}">`).join("")}</datalist>
   <label>Observaciones</label><textarea id="sg_o" rows="2" placeholder="Opcional"></textarea>
   <button class="pri" id="sg_ok" style="margin-top:12px;width:100%" onclick="sigGuarda()">GUARDAR SIGMA</button>
@@ -88,7 +88,7 @@
   $("#sg_ok").textContent="GUARDAR CAMBIOS";document.querySelectorAll(".sigL li").forEach(l=>l.classList.toggle("ed",l.dataset.ix==ix));
   try{const c=$("#sheet").firstElementChild;(c&&c.scrollTo)?c.scrollTo({top:0,behavior:"smooth"}):0}catch(e){}};
  window.sigNueva=function(){S.ed=null;["#sg_pos","#sg_pn","#sg_a","#sg_o","#sg_ro"].forEach(i=>{const e=$(i);if(e)e.value=""});$("#sg_h").value=hm();$("#sg_r").value="Responsable Turno";sigRep();
-  sigRes(document.querySelector('.sigRs button[data-r="RESETEADA"]'));$("#sg_ed").innerHTML="";$("#sg_ok").textContent="GUARDAR SIGMA";document.querySelectorAll(".sigL li.ed").forEach(l=>l.classList.remove("ed"))};
+  sigRes(document.querySelector('.sigRs button[data-r="PENDIENTE"]'));$("#sg_ed").innerHTML="";$("#sg_ok").textContent="GUARDAR SIGMA";document.querySelectorAll(".sigL li.ed").forEach(l=>l.classList.remove("ed"))};
  window.sigRep=function(){const v=$("#sg_r").value;$("#sg_ro").classList.toggle("hide",v!="Otro");$("#sg_cga").classList.toggle("hide",v!="CGA");$("#sg_ok").classList.toggle("hide",v=="CGA")};
  window.sigRes=function(b){S.res=b.dataset.r;document.querySelectorAll(".sigRs button").forEach(x=>{x.classList.toggle("on",x===b)})};
  window.sigAOT=function(){const p=$("#sg_pos").value,a=$("#sg_a").value.trim(),tp=$("#sg_t").value;closeSheet();
