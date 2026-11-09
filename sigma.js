@@ -17,6 +17,9 @@
 .sigF .sigRow{display:flex;gap:8px;align-items:flex-end}.sigF .sigRow>*{min-width:0}.sigF .sigRow select,.sigF .sigRow input{width:100%;box-sizing:border-box}.sigF #sg_pn{text-align:center;font-weight:700}
 .sigF .sigRs{display:flex;gap:6px;margin-top:4px}.sigF .sigRs button{flex:1;padding:10px 2px;border-radius:8px;border:1px solid var(--bd,#ccc);background:var(--card,#fff);color:var(--tx,#111);font-weight:700;font-size:12.5px}
 .sigF .sigRs button.on{background:#16a34a;border-color:#16a34a;color:#fff}.sigF .sigRs button.on.no{background:#dc2626;border-color:#dc2626}
+.sigAc{margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;border:0;border-radius:10px;background:#16a34a;color:#fff;font-weight:800;font-size:16px;letter-spacing:1px;text-transform:uppercase;box-shadow:0 2px 6px #16a34a55}
+.sigAc.lat{animation:sigLat .5s ease-in-out 3}@keyframes sigLat{50%{transform:scale(1.04);box-shadow:0 0 0 6px #16a34a44}}
+.sigL li.nv{border-left:4px solid #16a34a;padding-left:6px;background:#16a34a0d}.sigL li .nvT{display:inline-block;margin-left:4px;padding:0 5px;border-radius:4px;background:#16a34a;color:#fff;font-size:10px;font-weight:800;vertical-align:middle}
 .sigH{margin-top:14px;border-top:1px solid var(--bd,#ddd);padding-top:8px}
 .sigH summary{font-weight:700;font-size:13px;cursor:pointer}
 .sigL{list-style:none;margin:6px 0 0;padding:0;max-height:34vh;overflow:auto}
@@ -54,14 +57,16 @@
   return lee(LK)}
 
  const esBox=r=>{r=r||"RESETEADA";const c=r=="RESETEADA"?"ok":r=="NO RESETEA"?"ko":"pe";return`<span class="sigEs e${c}">${c=="ok"?"✔ ":c=="ko"?"✖ ":"⏳ "}${E(r)}</span>`};
+ const enLote=x=>(S.lote||[]).some(k=>(k.id!=null&&k.id==x.id)||(k.lk&&k.lk==x._lk));
+ const pintaAc=()=>{const t=document.getElementById("sg_act");if(t){const n=(S.lote||[]).length;t.textContent=n?`ACEPTAR (${n} registrada${n>1?"s":""})`:"ACEPTAR"}};
  function lista(l){const p=lee(LP).map(x=>Object.assign({_pend:1},x)).reverse();const t=[...p,...l];
   if(!t.length)return'<div class="mu" style="font-size:12.5px;margin-top:6px">Todavía no hay alarmas Sigma registradas.</div>';
   const d30=Date.now()-30*864e5,cnt={};t.forEach(x=>{const ts=Date.parse(x.created_at||x.fecha||"")||Date.now();if(ts<d30)return;const k="PBB "+x.pos+(x.tipo?" "+x.tipo:"")+(x.alarma?" · "+x.alarma:"");cnt[k]=(cnt[k]||0)+1});
   S.vis=t.slice(0,60);const rep=Object.entries(cnt).filter(([,n])=>n>1).sort((a,b)=>b[1]-a[1]).slice(0,6);
   return (rep.length?`<div class="mu" style="font-size:12px;margin-top:6px"><b>Repetidas en 30 días</b> (posibles averías de fondo):</div><div class="sigTop">${rep.map(([k,n])=>`<span>${E(k)} ×${n}</span>`).join("")}</div>`:"")+
-   `<ul class="sigL">${S.vis.map((x,ix)=>`<li data-ix="${ix}" onclick="sigEdita(${ix})" class="${S.ed&&((S.ed.id&&S.ed.id==x.id)||(S.ed.lk&&S.ed.lk==x._lk))?"ed":""}"><span class="p">PBB ${E(x.pos)}${x.tipo?`<br><small>${E(x.tipo)}</small>`:""}<br><button type="button" class="sigDel" aria-label="Eliminar del registro" onclick="event.stopPropagation();sigBorra(${ix},this)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button></span><span class="a">${x.alarma?E(x.alarma):'<i class="mu">sin texto de alarma</i>'}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}<br>${esBox(x.resultado)}</span></li>`).join("")}</ul>`}
+   `<ul class="sigL">${S.vis.map((x,ix)=>`<li data-ix="${ix}" onclick="sigEdita(${ix})" class="${S.ed&&((S.ed.id&&S.ed.id==x.id)||(S.ed.lk&&S.ed.lk==x._lk))?"ed":""} ${enLote(x)?"nv":""}"><span class="p">PBB ${E(x.pos)}${x.tipo?`<br><small>${E(x.tipo)}</small>`:""}<br><button type="button" class="sigDel" aria-label="Eliminar del registro" onclick="event.stopPropagation();sigBorra(${ix},this)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button></span><span class="a">${x.alarma?E(x.alarma):'<i class="mu">sin texto de alarma</i>'}${enLote(x)?'<span class="nvT">NUEVA</span>':""}${x.obs?`<br><span class="mu">${E(x.obs)}</span>`:""}${x._pend?` · <span class="pd">pendiente de subir</span>`:""}</span><span class="t">${E(fDM(x.fecha))} ${E(x.hora||"")}<br>${E(x.rep||"")}<br>${esBox(x.resultado)}</span></li>`).join("")}</ul>`}
 
- window.sigAbre=async function(){S.res="PENDIENTE";S.ed=null;
+ window.sigAbre=async function(){S.res="PENDIENTE";S.ed=null;S.lote=[];S.abierta=true;
   const prev=lee(LK),al=[...new Set(prev.map(x=>x.alarma).filter(Boolean))].slice(0,40);
   const ps=(typeof POS!="undefined"?POS:[]);
   $("#sheetc").innerHTML=`<div class="sigF"><h3><span class="sigI">${BELL}</span>Alarma Sigma (SCADA)</h3>
@@ -78,7 +83,7 @@
   <label>Alarma SCADA · opcional (recomendable)</label><input id="sg_a" list="sg_al" autocomplete="off" placeholder="Ej.: Fallo variador traslación"><datalist id="sg_al">${al.map(a=>`<option value="${E(a)}">`).join("")}</datalist>
   <label>Observaciones</label><textarea id="sg_o" rows="2" placeholder="Opcional"></textarea>
   <button class="pri" id="sg_ok" style="margin-top:12px;width:100%" onclick="sigGuarda()">GUARDAR SIGMA</button>
-  <button class="sec" style="width:100%;margin-top:8px" onclick="closeSheet()">Cancelar</button>
+  <button type="button" class="sigAc" id="sg_ac" onclick="sigAcepta()"><span id="sg_act">ACEPTAR</span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></button>
   <details class="sigH" open><summary>Historial de alarmas Sigma</summary><div id="sg_l">${lista(prev)}</div></details></div>`;
   const sh=$("#sheet");sh.style.display="flex";sh.classList.add("lpatop");setTimeout(()=>{if(document.querySelector("#sheetc .sigF"))sh.classList.add("lpatop")},0);
   try{await subePend()}catch(e){}const l=await carga();const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(l)};
@@ -100,9 +105,11 @@
   const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(ok?(x._pend?lee(LK):lee(LK)):lee(LK));if(ok){msg("Sigma eliminada · PBB "+x.pos);const l=await carga();if(d&&d.isConnected)d.innerHTML=lista(l)}};
  window.sigNueva=function(){S.ed=null;["#sg_pos","#sg_pn","#sg_a","#sg_o","#sg_ro"].forEach(i=>{const e=$(i);if(e)e.value=""});$("#sg_h").value=hm();$("#sg_r").value="Responsable Turno";sigRep();
   sigRes(document.querySelector('.sigRs button[data-r="PENDIENTE"]'));$("#sg_ed").innerHTML="";$("#sg_ok").textContent="GUARDAR SIGMA";document.querySelectorAll(".sigL li.ed").forEach(l=>l.classList.remove("ed"))};
+ window.sigAcepta=function(){const n=(S.lote||[]).length;S.abierta=false;S.lote=[];closeSheet();
+  msg(n?`${n} alarma${n>1?"s":""} Sigma aceptada${n>1?"s":""}`:"Sin alarmas Sigma nuevas")};
  window.sigRep=function(){const v=$("#sg_r").value;$("#sg_ro").classList.toggle("hide",v!="Otro");$("#sg_cga").classList.toggle("hide",v!="CGA");$("#sg_ok").classList.toggle("hide",v=="CGA")};
  window.sigRes=function(b){S.res=b.dataset.r;document.querySelectorAll(".sigRs button").forEach(x=>{x.classList.toggle("on",x===b)})};
- window.sigAOT=function(){const p=$("#sg_pos").value,a=$("#sg_a").value.trim(),tp=$("#sg_t").value;closeSheet();
+ window.sigAOT=function(){const p=$("#sg_pos").value,a=$("#sg_a").value.trim(),tp=$("#sg_t").value;S.abierta=false;closeSheet();
   setTimeout(()=>{try{const fp=$("#f_pos"),fn=$("#f_posn");if(p){if(fn){fn.value=p;fn.dispatchEvent(new Event("input",{bubbles:true}))}if(fp){fp.value=p;fp.dispatchEvent(new Event("change",{bubbles:true}))}}
    document.querySelectorAll(".eqc").forEach(c=>{const on=c.value=="Sigma";if(c.checked!=on){c.checked=on;c.dispatchEvent(new Event("change",{bubbles:true}))}});
    const r=$("#f_rep");if(r)r.value="CGA";const d=$("#f_desc");if(d&&a){d.value="Alarma Sigma "+tp+": "+a;d.dispatchEvent(new Event("input",{bubbles:true}))}
@@ -120,11 +127,18 @@
    S.ed=null;b.disabled=false;b.textContent="GUARDAR SIGMA";$("#sg_ed").innerHTML="";const l=await carga();const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(l);
    msg("Sigma actualizada · PBB "+pos+" · "+r.resultado);if(r.resultado=="NO RESETEA")setTimeout(()=>msg("No resetea: avisa al Responsable de Turno / CGA para abrir OT"),2600);sigNueva();return}
   try{const x=await sb.from("alarmas_sigma").insert(r).select();ok=!x.error;if(ok){const c=lee(LK);c.unshift(x.data&&x.data[0]||r);guarda(LK,c.slice(0,300))}}catch(e){}
-  if(!ok){const p=lee(LP);p.push(Object.assign({_lk:"L"+Date.now()},r));guarda(LP,p)}
-  closeSheet();msg((ok?"Alarma Sigma guardada · PBB "+pos:"Sin conexión: Sigma guardada en el móvil, se subirá sola")+(a?"":" · sin texto de alarma: es recomendable anotarla para el análisis"));
-  if(S.res=="NO RESETEA")setTimeout(()=>msg("No resetea: avisa al Responsable de Turno / CGA para abrir OT"),2600)};
+  let k=null;if(ok){const c=lee(LK);k={id:c[0]&&c[0].id!=null?c[0].id:null}}
+  if(!ok){const lk="L"+Date.now();const p=lee(LP);p.push(Object.assign({_lk:lk},r));guarda(LP,p);k={lk}}
+  /* v397: no se cierra la ventana: se deja el formulario listo para la siguiente Sigma; se cierra con ACEPTAR */
+  (S.lote=S.lote||[]).push(k);b.disabled=false;sigNueva();pintaAc();
+  {const l=await carga();const d=document.getElementById("sg_l");if(d)d.innerHTML=lista(l)}
+  msg((ok?"Sigma añadida · PBB "+pos:"Sin conexión: Sigma guardada en el móvil, se subirá sola")+(a?"":" · sin texto de alarma: es recomendable anotarla")+" · pulsa ACEPTAR al terminar");
+  if(r.resultado=="NO RESETEA")setTimeout(()=>msg("No resetea: avisa al Responsable de Turno / CGA para abrir OT"),2600)};
  setInterval(()=>{if(lee(LP).length&&navigator.onLine)subePend().catch(()=>{})},60000);
 
+ if(typeof closeSheet=="function"){const oc=closeSheet;closeSheet=function(){try{if(S.abierta&&document.querySelector("#sheetc .sigF")&&$("#sheet").style.display!="none"){
+   const b=document.getElementById("sg_ac");if(b){b.classList.remove("lat");void b.offsetWidth;b.classList.add("lat");b.scrollIntoView({block:"center",behavior:"smooth"})}msg("Pulsa ACEPTAR para terminar con las Sigmas");return}}catch(e){}
+  return oc.apply(this,arguments)}}
  if(typeof vNew=="function"){const o=vNew;vNew=function(){const r=o.apply(this,arguments);try{const h=document.querySelector("#app>.card>h3");
    if(h&&!h.querySelector(".sigB")){h.innerHTML=`<span>Registrar OT</span><button type="button" class="sigB" onclick="sigAbre()" aria-label="Registrar alarma Sigma">${BELL}SIGMAS</button>`}}catch(e){}return r}}
 })();
