@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=399;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=400;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -4562,7 +4562,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||399;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||400;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4681,14 +4681,16 @@ try{if(/[?&]v=\d/.test(location.search))history.replaceState(null,"",location.pa
     const b=k.querySelector("b");if(b&&/^\d$/.test(b.textContent.trim()))b.textContent="0"+b.textContent.trim()})}
   const g=[...app.querySelectorAll(":scope>.grid")].find(x=>x.querySelector("button.btn"));
   if(g){g.classList.add("tkbt");g.querySelectorAll(":scope>button.btn:not([data-tkb])").forEach(b=>{
-   const tx=b.textContent.trim(),img=b.querySelector("img");let ic="",nm=tx,sub="";
+   const tx=b.textContent.trim(),img=b.querySelector("img");let ic="",sub="";
+   /* v400: el nombre se toma sin el subtítulo que otro bloque (v285) pudo poner antes en el mismo botón; así no sale «RegistrarOT · N…» / «SeguimientoOT» al volver a Inicio */
+   let nm=((b.querySelector(".t285>b")||{}).textContent||tx).replace(/OT\s*·.*$/,"").replace(/\s*OT\s*$/,"").trim()||tx;
    if(/Registrar/.test(tx)){ic=sv("reg");sub="OT · NUEVA"}
-   else if(/Importar/.test(tx)){ic=sv("imp");sub="HOJA · FOTO"}
-   else if(/Seguimiento/.test(tx)){const s=b.querySelector("span");ic=s?s.outerHTML:sv("seg");sub="OT · ESTADO"}
+   else if(/Importar/.test(tx)){ic=sv("imp");sub="OT HOJA · FOTO"}
+   else if(/Seguimiento/.test(tx)){const s=b.querySelector("span:not(.t285)");ic=s?s.outerHTML:sv("seg");sub="OT · ESTADO"}
    else if(img&&!tx){b.dataset.tkb="1";b.innerHTML=`<span class="tbi cl"><img src="claude-logo.png" alt=""></span><span class="tbt"><b>Claude</b><small>RESOLUCIÓN IA</small></span>`;return}
    else return;
    b.dataset.tkb="1";b.innerHTML=`<span class="tbi">${ic}</span><span class="tbt"><b>${nm}</b><small>${sub}</small></span>`})}
-  const dm=app.querySelector(".dmpres");if(dm){dm.classList.add("tkb");const di=dm.querySelector(".dmi");if(di&&!di.dataset.tkb){di.innerHTML=sv("mant");di.dataset.tkb="1"}}};
+  const dm=app.querySelector(".dmpres");if(dm){dm.classList.add("tkb");const di=dm.querySelector(".dmi");if(di&&!di.dataset.tkb){di.innerHTML=sv("mant");di.dataset.tkb="1"}}try{if(window.__subPanel)window.__subPanel()}catch(e){}};
  const o=render;render=function(){const r=o.apply(this,arguments);try{pon()}catch(e){}return r};
  let tt=0;new MutationObserver(()=>{clearTimeout(tt);tt=setTimeout(()=>{try{pon()}catch(e){}},30)}).observe(document.body,{childList:true,subtree:true});
  try{pon()}catch(e){}})();
@@ -5616,7 +5618,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   document.querySelectorAll("#app .p230g>button.btn").forEach(b=>{if(b.closest(".card:not(.btn)")||b.classList.contains("cl232"))return;
    const tx=b.textContent;const m=SUB.find(([re])=>re.test(tx));if(!m)return;
    const tb=b.querySelector(".tbt");
-   if(tb){const tbb=tb.querySelector(":scope>b");if(tbb&&tbb.textContent.includes(m[1])){const t=tbb.textContent.replace(m[1],"").replace(/\s*OT\s*$/,"").trim();if(t)tbb.textContent=t} /* v288: «RegistrarOT · NUEVA» → «Registrar» */
+   if(tb){const tbb=tb.querySelector(":scope>b");if(tbb){const t0=tbb.textContent;const t=t0.replace(m[1],"").replace(/OT\s*·.*$/,"").replace(/\s*OT\s*$/,"").trim();if(t&&(t!==t0||tbb.children.length))tbb.textContent=t} /* v288/v400: «RegistrarOT · N…» / «SeguimientoOT» → «Registrar» / «Seguimiento» */
     let sm=tb.querySelector("small");if(!sm){sm=document.createElement("small");tb.appendChild(sm)}if(sm.textContent!==m[1])sm.textContent=m[1];return}
    if(b.querySelector(".t285"))return;
    const tn=[...b.childNodes].find(n=>n.nodeType==3&&m[0].test(n.nodeValue));if(!tn)return;
@@ -5625,6 +5627,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   /* v286 */
   const dt=document.querySelector("#app #dmpres .dmt");if(dt&&!dt.querySelector(".s286"))dt.insertAdjacentHTML("beforeend",'<span class="s286">PLAN · M · S · C</span>');
   const cb=document.querySelector("#app .p230g>button.cl232");if(cb)cb.querySelectorAll(".s286").forEach(x=>x.remove()) /* v332: sin «OT · ANÁLISIS»: solo logo y «Resolución IA» */}catch(e){}};
+ window.__subPanel=pon; /* v400: el bloque v213 lo vuelve a llamar justo después de rehacer los botones (sin esperar al temporizador) */
  const o=vDash;vDash=function(){const r=o.apply(this,arguments);pon();return r};
  let t=0;new MutationObserver(()=>{if(t)return;t=setTimeout(()=>{t=0;pon()},40)}).observe(document.getElementById("app"),{childList:true,subtree:true});
  setInterval(pon,1500);pon()})();
