@@ -159,7 +159,7 @@
   const h=(typeof view=="undefined"||view=="dash")?[...document.querySelectorAll("#app h3")].find(e=>/rdenes de trabajo abiertas/i.test(e.textContent)):null;
   if(!pend.length||!h){if(av)av.remove();return}
   const vistos={};const ls=pend.filter(x=>{const k=x.pos+"|"+(x.tipo||"");if(vistos[k])return false;vistos[k]=1;return true}).slice(0,6).map(x=>`<span>PBB ${E(x.pos)}${x.tipo?" "+E(x.tipo):""}</span>`).join("");
-  const n=pend.length,html=`<span class="sigAvI">${BELL}</span><span class="sigAvT"><b>${n} Sigma${n>1?"s":""} pendiente${n>1?"s":""} de resetear</b><span class="sigAvL">${ls}${n>6?"<span>…</span>":""}</span></span><span class="sigAvG">›</span>`;
+  const n=pend.length,html=`<span class="sigAvI">${BELL}</span><span class="sigAvT"><b>${n} Sigma${n>1?"s":""} pendiente${n>1?"s":""} de resetear</b></span><span class="sigAvG">›</span>`;
   if(!av){av=document.createElement("button");av.type="button";av.id="sigAv";av.onclick=()=>sigAbre()}
   if(av.dataset.h!==html){av.innerHTML=html;av.dataset.h=html}
   if(av.nextElementSibling!==h||av.parentNode!==h.parentNode)h.parentNode.insertBefore(av,h)}catch(e){}}
