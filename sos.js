@@ -85,8 +85,9 @@ window.sosFoto=function(inp){foto=inp.files&&inp.files[0]||null;if(fotoURL)URL.r
 /* v425: la DESCRIPCIÓN EN CAMPO (Observaciones) es el aviso de la OT y manda: se analiza primero; la alarma de la Magelis
    (lista, a mano o foto) es complementaria: se suma a la descripción para afinar y, si apunta a otro elemento, se muestra aparte. */
 window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpperCase(),res=$("#sr_res");
- if(!pos){msg("Indica la posición PBB");$("#sr_p").focus();return}
  const ob=((document.getElementById("sr_ob")||{}).value||"").replace(/\s+/g," ").trim();
+ /* v426: la posición solo es obligatoria si no hay descripción (con descripción se busca igual, con el plano general) */
+ if(!pos&&!ob){msg("Indica la posición PBB y la descripción en campo");$("#sr_p").focus();return}
  let al=[($("#sr_a").value||""),($("#sr_t").value||"")].map(x=>x.trim()).filter(Boolean).join(" · ");
  if(!foto&&!al&&!ob){msg("Escribe la descripción en campo (o elige la alarma, escríbela o haz la foto de la Magelis)");const t=document.getElementById("sr_ob");if(t)t.focus();return}
  if(foto){res.innerHTML=`<div class="mu" style="margin-top:10px">Leyendo la foto…</div>`;
@@ -106,8 +107,8 @@ window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpp
  else A=ana(mk(al,""));
  const txt=[ob,al].filter(Boolean).join(" · ");
  const leido=`<details class="srtx" style="margin-top:8px"><summary class="mu">Texto analizado</summary><div class="mu" style="white-space:pre-wrap;font-size:12px">${ob?`<b>Descripción en campo:</b> ${esc(ob)}`:""}${ob&&al?"\n":""}${al?`<b>Alarma (complementaria):</b> ${esc(al)}`:""}</div></details>`;
- if(!A.ok&&!B){res.innerHTML=`<div class="gav" style="margin-top:10px">Con lo descrito no hay puente provisional en la PBB ${esc(pos)} (o no se ha reconocido). Detalla el elemento en la descripción (p. ej. «freno de cabina derecho activado»), elige la alarma de la lista o usa la guía completa de la OT.</div><div id="sr_cas"></div>${leido}`;const d=document.querySelector(".srtx");if(d)d.open=true;sosCasRap(txt,pos);return}
- res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos)}</b>${A.ok?` · según ${A.src||"la alarma"}`:` · según la alarma`}</div>${A.ok?pinta(A):`<div class="gav">La descripción en campo no nombra un elemento con puente provisional; se muestra lo que indica la alarma.</div>`}
+ if(!A.ok&&!B){res.innerHTML=`<div class="gav" style="margin-top:10px">Con lo descrito no hay puente provisional ni reset en la PBB ${esc(pos||"")} (o no se ha reconocido). Mira abajo la actuación más eficaz o detalla el elemento (p. ej. «freno de cabina derecho activado»).</div><div id="sr_cas"></div>${leido}`;const d=document.querySelector(".srtx");if(d)d.open=true;sosCasRap(txt,pos);return}
+ res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos||"(sin posición · plano general)")}</b>${A.ok?` · según ${A.src||"la alarma"}`:` · según la alarma`}</div>${A.ok?pinta(A):`<div class="gav">La descripción en campo no nombra un elemento con puente provisional; se muestra lo que indica la alarma.</div>`}
   ${B?(A.ok?`<details class="srtx srcomp"><summary><b>Según la alarma de la Magelis</b> (complementaria · otro elemento)</summary>${pinta(B)}</details>`:pinta(B)):""}<div id="sr_cas"></div>${leido}`;sosCasRap(txt,pos);
  res.scrollIntoView({block:"start",behavior:"smooth"})};
 const st=document.createElement("style");st.textContent=`.grid.sosgrid{grid-template-columns:1fr 1fr 74px!important;align-items:stretch}

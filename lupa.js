@@ -21,12 +21,16 @@ window.lupaAbre=function(){LC=[];LT="";
 /* palabras propias de cada sistema (código + nombre de la guía) para inclinar el sistema cuando se nombra */
 const pista=(T,G,t)=>{let b=0;const w=new Set([T,...String(G.n||"").split(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9]+/)].map(norm).filter(x=>x.length>=3||x==T.toLowerCase()));
  w.forEach(x=>{if(new RegExp("\\b"+x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\b").test(t))b+=x==T.toLowerCase()?3:1.5});return Math.min(b,4.5)};
-window.lupaBusca=function(){const inp=document.getElementById("lp_t"),res=document.getElementById("lp_res");if(!inp||!res)return;
- const txt=(inp.value||"").replace(/\s+/g," ").trim();if(!txt){msg("Escribe lo que quieres buscar");inp.focus();return}inp.blur();
+/* v426: lupaBusca(texto, posición) también desde la pantalla unificada SOS (sin caja #lp_t); con posición se aplican sus
+   planos (504/507/508) y en las posiciones remotas (sin pasarela) no se buscan cajas de la pasarela */
+window.lupaBusca=function(txt0,pos0){const inp=document.getElementById("lp_t"),res=document.getElementById("lp_res");if(!res||(!inp&&txt0==null))return;
+ const txt=String(txt0!=null?txt0:(inp.value||"")).replace(/\s+/g," ").trim();if(!txt){msg("Escribe lo que quieres buscar");if(inp)inp.focus();return}if(inp&&txt0==null)inp.blur();
+ const POS=String(pos0||"").trim().toUpperCase();const REM=typeof REMOTAS!="undefined"&&REMOTAS.has(POS);
  LT=txt;const t=norm(txt);const st=Date.now();const S=[];
  /* 1º relevancia directa del texto con cada caja de cada sistema (sin las prioridades memorizadas, que solo ordenan dentro de un sistema) */
  Object.keys((typeof GUIA!="undefined"&&GUIA.tipos)||{}).forEach(T=>{const G=GUIA.tipos[T];if(!G||!G.s||!G.s.length)return;
-  const ot={id:"lupa_"+T+"_"+st,pos:"",tipo:T,equipos:[T],estado:"abierta",desc:txt,def:"",com:"",obs:"",orden:"LUPA",fecha:""};
+  if(REM&&T=="PAS")return;
+  const ot={id:"lupa_"+T+"_"+st,pos:POS,tipo:T,equipos:[T],estado:"abierta",desc:txt,def:"",com:"",obs:"",orden:"LUPA",fecha:""};
   let A=null;try{A=anaTerminos(ot)}catch(e){return}const bo=pista(T,G,t);
   /* v341: una caja solo cuenta si coincide en alguna palabra CLAVE (no solo en contexto: cabina, derecha, activado…);
      y si el texto nombra una zona (cabina, pupitre, túnel, armario) la caja que no la cita pierde peso */
@@ -124,7 +128,7 @@ window.lupaPinta=function(k,an){if(an)LA=an;const res=document.getElementById("l
  window.__lupaK=LC[k]?k:0;let SB=null;try{SB=typeof lupaSub=="function"?lupaSub(c.s,LT):null}catch(e){SB=null}
  const P=pasos(SB?SB.s:c.s);const RB=LA&&LA.R&&SB&&SB.rel?Object.assign({},LA.R,{rel:(LA.R.rel||[]).filter(SB.rel)}):(LA&&LA.R);
  if(c.gen&&an){res.innerHTML=`<div class="gav" style="margin-top:10px">En la guía de <b>${E(G.n||c.T)}</b> no hay una actuación que cite «${E(LT)}». Elige la caja del sistema que corresponda al síntoma:</div><div class="anass" style="margin-top:8px">${LC.map((x,ix)=>`<button class="anag" onclick="LUPA_GEN(${ix})">📋 ${E(x.s.t)}</button>`).join("")}</div>${ana}<div id="lp_cas"></div>`;return}
- let prim="";if(c.T=="PAS"){try{const S=typeof segOT=="function"?segOT(c.ot):null,Pu=typeof puentesOT=="function"?puentesOT(c.ot):[];
+ let prim="";if(c.T=="PAS"&&!window.__lupaEnSOS){try{const S=typeof segOT=="function"?segOT(c.ot):null,Pu=typeof puentesOT=="function"?puentesOT(c.ot):[];
   const h=(S?segHTML(c.ot,S):"")+(Pu&&Pu.length?puenteHTML(c.ot,Pu):"");if(h)prim=`<details class="lpapr"><summary>⚠️ Primera actuación en campo (seguridad)</summary><div class="card pucard">${h}</div></details>`}catch(e){}}
  const alt=LC.map((x,ix)=>ix==k?"":`<button class="anag" onclick="lupaPinta(${ix},null)">📋 ${E(GUIA.tipos[x.T].n||x.T)} · ${E(x.s.t)}</button>`).join("");
  const vg=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
@@ -134,7 +138,7 @@ window.lupaPinta=function(k,an){if(an)LA=an;const res=document.getElementById("l
   ${P.inf.length?`<details class="gelem"><summary>Elementos y referencias (${P.inf.length})</summary>${P.inf.map(p=>`<div class="gelit"><span>${E(typeof gInfoTxt=="function"?gInfoTxt(p):p)}</span></div>`).join("")}</details>`:""}
   ${vg?`<button class="sec" style="width:100%;margin-top:8px" onclick="lupaGuia('${c.T}',${c.si})">Abrir en la guía de campo</button>`:""}</div>
   ${(()=>{try{return borneros(c,RB,P.acc.concat(P.inf))}catch(e){return ""}})()}${prim}${alt?`<div class="anal" style="margin-top:10px">Otras actuaciones relacionadas</div><div class="anass">${alt}</div>`:""}${an?ana:(document.querySelector("#lp_res .lpaan")||{}).outerHTML||""}<div id="lp_cas">${(document.getElementById("lp_cas")||{}).innerHTML||""}</div>`;
- if(an!==undefined&&an!==null)res.scrollIntoView({block:"start",behavior:"smooth"});else{const e=res.querySelector(".lpaef");if(e)e.scrollIntoView({block:"start",behavior:"smooth"})}};
+ if(window.__lupaEnSOS){}else if(an!==undefined&&an!==null)res.scrollIntoView({block:"start",behavior:"smooth"});else{const e=res.querySelector(".lpaef");if(e)e.scrollIntoView({block:"start",behavior:"smooth"})}};
 async function casos(txt){if(typeof casosParecidos!="function")return;let l=[];try{l=await casosParecidos(txt)}catch(e){}
  const c=document.getElementById("lp_cas");if(!c||txt!==LT)return;c.innerHTML=l.length&&typeof casosHTML=="function"?`<div style="margin-top:10px">${casosHTML(l,"")}</div>`:""}
 window.LUPA_GEN=function(ix){LC=LC.map((x,i)=>Object.assign({},x,{gen:0}));const c=LC.splice(ix,1)[0];LC.unshift(c);lupaPinta(0,null)};

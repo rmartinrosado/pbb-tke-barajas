@@ -10,7 +10,9 @@ window.sosRap=function(){const r=o.apply(this,arguments);try{
  if(lab)lab.textContent="Descripción en campo · aviso de la OT (lo que detectas)";
  t.placeholder="Ej. Freno de cabina derecho activado · la PBB no baja · la Magelis indica protección seguridades 2…";
  if(la)la.innerHTML='Alarma activada <small class="mu" style="text-transform:none;letter-spacing:0">(complementaria)</small>';
- const sub=c.querySelector(".sosrh .mu");if(sub)sub.textContent="Posición y descripción en campo (el aviso de la OT); la alarma de la Magelis o su foto la complementan. Se muestra la primera actuación más eficaz.";
+ const bv=[...c.querySelectorAll("button.pri")].find(x=>/primera actuaci/i.test(x.textContent));if(bv)bv.textContent="Ver actuación · sacar en servicio y reparar";
+ const h3=c.querySelector(".sosrh h3");if(h3)h3.textContent="SOS · ACTUACIÓN Y BÚSQUEDA";
+ const sub=c.querySelector(".sosrh .mu");if(sub)sub.textContent="Posición y descripción en campo (el aviso de la OT); la alarma de la Magelis o su foto la complementan. Sale: 1 sacar en servicio ya · 2 reparar (actuación más eficaz) · 3 análisis con Claude. Cualquier sistema: pasarela, 400 Hz, aire acondicionado.";
  }catch(e){}return r};
 const st=document.createElement("style");st.textContent=`.srcomp{margin-top:10px;border:1px dashed var(--bd,#888);border-radius:10px;padding:8px}.srcomp>summary{cursor:pointer;font-size:13px}`;document.head.appendChild(st);
 })();
