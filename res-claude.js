@@ -66,11 +66,11 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
   const L=String(t||"").replace(/\r/g,"").split("\n");let h="",i=0,df=false,dk=0;const items=[];
   const caja=x=>{if(!df||!id)return"";const k=dk++;items.push(x.replace(/\*\*/g,"").replace(/`/g,""));return `<input class="rcDf" autocomplete="off" autocorrect="on" name="rcdf${k}" placeholder="Comentario / dato comprobado en campo" value="${E(dfGet(id,k))}" oninput="rcDfSet('${id}',${k},this.value)" onclick="event.stopPropagation()">`};
   const boton=()=>df&&id?`<div class="rcAj"><button class="rcAjB" onpointerdown="rcAjPre()" onclick="event.stopPropagation();rcAjusta('${id}')">AJUSTAR RESOLUCIÓN</button>${JOB&&JOB.id==id&&(!JOB.fin||Date.now()-JOB.fin<60000)?'<div id="rc_prog"></div>':""}</div>`:"";
-  while(i<L.length){let l=L[i];const s=l.trim();
+  let olN=0;/* v416: numeración seguida de los pasos aunque haya líneas en blanco o sublistas entre ellos */while(i<L.length){let l=L[i];const s=l.trim();
    if(!s){i++;continue}
    if(/^-{3,}$|^\*{3,}$/.test(s)){h+='<hr class="rcHr">';i++;continue}
    let m;
-   if(m=s.match(/^(#{1,3})\s+(.*)$/)){const n=m[1].length,pr=/primera actuaci/i.test(m[2]);
+   if(m=s.match(/^(#{1,3})\s+(.*)$/)){const n=m[1].length,pr=/primera actuaci/i.test(m[2]);olN=0;
     h+=boton();df=/datos\s+que\s+faltan|datos\s+pendientes|faltan\s+datos/i.test(m[2]);
     h+=`<div class="rcH${n} ${pr?"rcPri":""}">${pr?"⚡ ":""}${inl(m[2])}</div>`;i++;continue}
    if(/^\|/.test(s)){const rows=[];while(i<L.length&&/^\|/.test(L[i].trim())){rows.push(L[i].trim());i++}
@@ -79,7 +79,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
     h+='<div class="rcTw"><table class="rcT">'+body.map((r,k)=>"<tr>"+cel(r).map(c=>k?`<td>${inl(c)}</td>`:`<th>${inl(c)}</th>`).join("")+"</tr>").join("")+"</table></div>";continue}
    if(/^\d+[.)]\s+/.test(s)){let o='<ol class="rcOl">';
     while(i<L.length&&(/^\d+[.)]\s+/.test(L[i].trim())||(/^\s{2,}\S/.test(L[i])&&!/^\s*$/.test(L[i])))){const x=L[i].trim();
-     if(/^\d+[.)]\s+/.test(x)){const tx=x.replace(/^\d+[.)]\s+/,"");o+=`<li>${inl(tx)}${caja(tx)}</li>`}else o=o.replace(/<\/li>$/,"<br>"+inl(x.replace(/^[-*]\s+/,"· "))+"</li>");i++}
+     if(/^\d+[.)]\s+/.test(x)){const tx=x.replace(/^\d+[.)]\s+/,"");let nn=parseInt(x,10);if(!(nn>olN))nn=olN+1;olN=nn;o+=`<li data-n="${nn}">${inl(tx)}${caja(tx)}</li>`}else o=o.replace(/<\/li>$/,"<br>"+inl(x.replace(/^[-*]\s+/,"· "))+"</li>");i++}
     h+=o+"</ol>";continue}
    if(/^[-*•]\s+/.test(s)){let u='<ul class="rcUl">';while(i<L.length&&/^\s*[-*•]\s+/.test(L[i])){const tx=L[i].trim().replace(/^[-*•]\s+/,"");u+=`<li>${inl(tx)}${caja(tx)}</li>`;i++}h+=u+"</ul>";continue}
    let p=[];while(i<L.length&&L[i].trim()&&!/^(#{1,3}\s|\||\d+[.)]\s|[-*•]\s|-{3,}$)/.test(L[i].trim())){p.push(L[i].trim());i++}
@@ -303,7 +303,7 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 .rcPri{background:#c62828;color:#fff}
 .rcOl{counter-reset:rc;list-style:none;margin:4px 0;padding:0}
 .rcOl>li{counter-increment:rc;position:relative;padding:6px 6px 6px 36px;margin:5px 0;border-radius:8px;background:rgba(127,127,127,.08)}
-.rcOl>li::before{content:counter(rc);position:absolute;left:7px;top:6px;width:22px;height:22px;border-radius:50%;background:#d97757;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+.rcOl>li::before{content:attr(data-n);position:absolute;left:7px;top:6px;width:22px;height:22px;border-radius:50%;background:#d97757;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
 .rcUl{margin:4px 0;padding-left:18px}.rcUl li{margin:3px 0}
 .rcP{margin:6px 0}
 .rcTw{overflow-x:auto;margin:6px 0}

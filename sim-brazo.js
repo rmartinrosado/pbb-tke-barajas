@@ -111,7 +111,7 @@ function init(el){
    el.querySelectorAll("[data-f]").forEach(b=>b.classList.toggle("on",FILAS[+b.dataset.f]===f))}
  }
  function paso(t){
-  if(!el.isConnected)return;// se paró al cerrar la caja o cambiar de pantalla
+  if(!el.isConnected)return;if(el.__oc===undefined){el.__oc=1;try{new IntersectionObserver(e=>{el.__vis=e[e.length-1].isIntersecting}).observe(el)}catch(x){}}if(el.__vis===false){last=t;requestAnimationFrame(paso);return}/* v416: fuera de pantalla o caja cerrada → no se pinta */// se paró al cerrar la caja o cambiar de pantalla
   const dt=Math.min(.05,(t-last)/1000);last=t;
   if(!pausa){const meta=fija!=null?fija:obj,v=40*dt,dif=meta-mm;
    if(Math.abs(dif)<=v){mm=meta;if(fija==null){espera+=dt;if(espera>1.1){espera=0;objIdx=(objIdx+1)%SEQ.length;obj=SEQ[objIdx]}}}

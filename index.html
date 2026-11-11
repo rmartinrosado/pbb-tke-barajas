@@ -2,13 +2,14 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=415;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=416;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
     const go=()=>location.replace(location.pathname+"?v="+Date.now()+(sp.get("recupera")?"&recupera=1":"")+location.hash);
     (window.caches?caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))).catch(()=>{}):Promise.resolve()).then(go,go);return}
    fin(window.__APPV)}).catch(()=>fin(window.__APPV));setTimeout(()=>fin(window.__APPV),2500)}catch(e){fin(window.__APPV)}});</script>
+<script src="mo-filtro.js?v=416"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>PBB TKE Maintenance</title>
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -3493,7 +3494,7 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=297"></script><script src="sos.js?v=335"></script><script src="lupa.js?v=408"></script><script src="iconos.js?v=284"></script><script src="sim-brazo.js?v=4"></script><script src="sim-almena.js?v=275"></script><script>
+</script><script src="sistemas.js?v=297"></script><script src="sos.js?v=335"></script><script src="lupa.js?v=408"></script><script src="iconos.js?v=284"></script><script src="sim-brazo.js?v=416"></script><script src="sim-almena.js?v=416"></script><script>
 /* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
 function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
  msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
@@ -4564,7 +4565,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||415;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||416;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -4672,7 +4673,7 @@ try{if(/[?&]v=\d/.test(location.search))history.replaceState(null,"",location.pa
   if(typeof view=="undefined")return;
   const nav=document.getElementById("nav");
   if(nav){nav.classList.add("tkb");[...nav.querySelectorAll(":scope>button")].forEach((b,k)=>{
-   let n=b.querySelector("i.tkn");if(!n){n=document.createElement("i");n.className="tkn";b.prepend(n)}n.textContent=String(k+1).padStart(2,"0");
+   let n=b.querySelector("i.tkn");if(!n){n=document.createElement("i");n.className="tkn";b.prepend(n)}{const nn=String(k+1).padStart(2,"0");if(n.textContent!==nn)n.textContent=nn}/* v416: sin reescribir si no cambia (bucle de vigías) */
    const t=b.textContent.replace(/^\d+/,"").trim(),key=/^Inicio/.test(t)?"home":/^Nueva/.test(t)?"nueva":/^Planos/.test(t)?"plan":/^Casos/.test(t)?"casos":/^Gu[ií]a/.test(t)?"guia":/^Seg/.test(t)?"seg":/^Mant/.test(t)?"mant":"";
    const sp=b.querySelector("span");if(key&&sp&&sp.dataset.tkb!=key){sp.innerHTML=sv(key,b.classList.contains("ninicio")?2:1.8);sp.dataset.tkb=key}})}
   if(view!="dash")return;const app=document.getElementById("app");if(!app)return;
@@ -5806,7 +5807,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  try{ANA_C={k:"",r:null}}catch(e){}
 })();
 </script>
-<script src="sistemas-guia.js?v=4"></script><script src="freno-cabina.js?v=341"></script><script src="borneros-st.js?v=342"></script><script src="croquis-bor.js?v=342"></script><script src="croquis-pdf.js?v=377"></script><script src="res-claude.js?v=385"></script><script src="sos-ia.js?v=379"></script><script src="recupera.js?v=380"></script><script src="fechas-ot.js?v=345"></script><script src="seg-sub.js?v=387"></script><script src="sigma.js?v=401"></script><script src="fab.js?v=402"></script><script src="atras.js?v=403"></script><script src="llegada-prio.js?v=405"></script><script src="nombres.js?v=406"></script><script src="columnas.js?v=415"></script>
+<script src="sistemas-guia.js?v=4"></script><script src="freno-cabina.js?v=341"></script><script src="borneros-st.js?v=342"></script><script src="croquis-bor.js?v=342"></script><script src="croquis-pdf.js?v=377"></script><script src="res-claude.js?v=416"></script><script src="sos-ia.js?v=379"></script><script src="recupera.js?v=380"></script><script src="fechas-ot.js?v=345"></script><script src="seg-sub.js?v=387"></script><script src="sigma.js?v=401"></script><script src="fab.js?v=402"></script><script src="atras.js?v=403"></script><script src="llegada-prio.js?v=405"></script><script src="nombres.js?v=406"></script><script src="columnas.js?v=415"></script>
 <script>
 /* ===== v350: Panel de control · Seguimiento y Claude permutados: Registrar | Claude (fila 1) · Seguimiento | SOS (fila 3) ===== */
 (function(){const P=["html body #app #pfix.p230","html body #app#app.p230"];const R=(sel,css)=>P.map(p=>p+" "+sel).join(",")+"{"+css+"}";

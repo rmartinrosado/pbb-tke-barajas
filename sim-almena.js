@@ -183,7 +183,7 @@ function init(el){
   rI.setAttribute("stroke-dashoffset",tr*(d>0?-1:1));rD.setAttribute("stroke-dashoffset",tr*(d>0?1:-1));
   if(lee().FC)fcAbierto=true;return true}
  function paso(t){
-  if(!el.isConnected)return;
+  if(!el.isConnected)return;if(el.__oc===undefined){el.__oc=1;try{new IntersectionObserver(e=>{el.__vis=e[e.length-1].isIntersecting}).observe(el)}catch(x){}}if(el.__vis===false){last=t;requestAnimationFrame(paso);return}/* v416: fuera de pantalla o caja cerrada → no se pinta */
   const dt=Math.min(.05,(t-last)/1000);last=t;
   if(fcAbierto&&!lee().FC&&Math.abs(g)<E-2)fcAbierto=false;   // rearme al salir del resalte y volver dentro
   if(pausa){dirVis=0;pinta();requestAnimationFrame(paso);return}
