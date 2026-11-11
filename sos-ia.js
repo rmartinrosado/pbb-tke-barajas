@@ -109,7 +109,7 @@ function pinta(){const c=document.getElementById("sr_ia");if(!c||!ST)return;
  c.innerHTML=`<div class="sia${s.err?" err":""}"><div class="siah"><img src="claude-logo.png" alt=""><span>${s.err?"No se ha podido completar la consulta":/Gemini/.test(s.motor||"")?"Consultando a Gemini (reserva: falta la clave de Claude)":"Consultando a Claude en segundo plano"}</span></div>
  <div class="siab"><i style="width:${pc}%"></i></div><div class="siam"><span>${E(s.fase||"")}</span><b>${pc}% · ${seg} s</b></div>
  ${s.err?`<div class="gav" style="margin-top:6px;font-size:13px">${E(s.err)}</div><div class="siabt"><button class="sec" onclick="sosObClaude()">Reintentar</button><button class="sec" onclick="sosIaGemini()">Gemini AI Studio</button></div>`
- :`${s.vista?`<div class="siat">${E(s.vista)}</div>`:""}<div class="siabt"><button class="sec" onclick="sosIaCancela()">Cancelar</button></div>`}</div>`}
+ :`<div class="siat">${E(s.vista||"")}</div><div class="siabt"><button class="sec" onclick="sosIaCancela()">Cancelar</button></div>`}</div>`}
 let tic=null;const avanza=(fase,pct)=>{if(!ST)return;if(fase)ST.fase=fase;if(pct!=null)ST.pct=Math.max(ST.pct||0,Math.min(99,pct));pinta()};
 window.sosIaCancela=()=>{if(ST&&ST.ac)ST.ac.abort()};
 window.sosIaAbre=()=>{if(!ST||!ST.res)return;const w=window.open(ST.res.url,"_blank");if(!w){const a=document.createElement("a");a.href=ST.res.url;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}};
