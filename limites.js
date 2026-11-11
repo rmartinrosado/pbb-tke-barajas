@@ -65,3 +65,30 @@ const st=document.createElement("style");st.textContent=`
 .lmq{margin:8px 0;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--pr,#7b3fe4) 10%,transparent);font-size:13px;line-height:1.4}`;
 document.head.appendChild(st);
 })();
+/* v403: procedimiento de recuperación validado en campo (PBB 546, 11/11/2026, alarmas «4 Límite FC de extensión»,
+   «11 Línea de seguridades activada», «24 Contactor de seguridades 2»), para FINALES DE CARRERA DE SEGURIDAD pisados:
+   1) puente provisional indicado en el módulo del PLC; 2) bypass CP-S33 activado ANTES de encender la PBB en LOCAL;
+   3) en LOCAL, con el bypass, mover en sentido CONTRARIO al FC pisado (FC de retracción → EXTENSIÓN) hasta liberarlo;
+   4) quitar el puente, bypass a normal, comprobar LED y causa. */
+(function(){
+"use strict";
+if(typeof segHTML!="function")return;
+const contra=t=>{
+ if(/retracc|retraid|recogid|recoge|recoger|retrae|retraer|plegad/.test(t))return["FC de retracción","EXTENSIÓN (extender túneles)"];
+ if(/extendid|maxima extension|extender del todo|fuera del todo/.test(t))return["FC de extensión máxima","RETRACCIÓN (recoger túneles)"];
+ if(/superior|arriba|sube del todo|subid/.test(t)&&/inclin|altura|elev|sub|baj/.test(t))return["FC de inclinación superior","BAJAR"];
+ if(/inferior|abajo|bajad/.test(t)&&/inclin|altura|elev|sub|baj/.test(t))return["FC de inclinación inferior","SUBIR"];
+ if(/izquierd/.test(t))return["FC izquierda","hacia la DERECHA"];if(/derech/.test(t))return["FC derecha","hacia la IZQUIERDA"];
+ if(/extensi|tunel|telescop/.test(t))return["FC de extensión de túneles (ET-S1)","el sentido contrario al último movimiento: si quedó recogida → EXTENSIÓN; si quedó extendida → RETRACCIÓN"];
+ return[null,"el sentido contrario al último movimiento"]};
+const o=segHTML;
+window.segHTML=segHTML=function(i,S){let h=o.apply(this,arguments);try{
+ if(!S||!S.lim||S.limT=="nor"||S.soloTrabajo)return h;
+ const t=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));const[fc,sen]=contra(t);
+ const b=`<div class="puit" style="border:2px solid #16a34a;background:#16a34a0d"><b>✅ Procedimiento de recuperación (validado en campo · PBB 546)</b>
+  <div class="puac"><b>1.</b> Hacer el <b>puente provisional</b> indicado en el módulo del PLC (croquis y lista de puentes de abajo), con el compañero vigilando.</div>
+  <div class="puac"><b>2.</b> Accionar el <b>bypass CP-S33 «BYPASS SEGURIDADES»</b> <b>ANTES de encender la PBB en LOCAL</b>.</div>
+  <div class="puac"><b>3.</b> Encender en <b>LOCAL</b> y, con el <b>bypass + sentido contrario</b>${fc?` al <b>${fc}</b>`:" al final de carrera pisado"}, mover en <b>${sen}</b>, despacio, hasta <b>liberar el final de carrera</b>.</div>
+  <div class="puac"><b>4.</b> Liberado el FC: quitar el puente, bypass a posición normal, comprobar que el LED de la entrada safety vuelve a encender y que desaparecen «Línea de seguridades activada» / «Contactor de seguridades». Revisar por qué se pasó del límite (límite de trabajo, ajuste o freno).</div></div>`;
+ return h.replace(/(<div class="pucab">[\s\S]*?<\/div>)/,"$1"+b)}catch(e){return h}};
+})();
