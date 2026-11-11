@@ -82,20 +82,33 @@ async function sosCasRap(txt,pos){const c=document.getElementById("sr_cas");if(!
  let l=[];try{l=await casosParecidos(txt)}catch(e){}const c2=document.getElementById("sr_cas");if(!c2)return;c2.innerHTML=l.length?`<div style="margin-top:10px">${casosHTML(l,pos)}</div>`:""}
 window.sosFoto=function(inp){foto=inp.files&&inp.files[0]||null;if(fotoURL)URL.revokeObjectURL(fotoURL);fotoURL=foto?URL.createObjectURL(foto):"";
  $("#sr_pv").innerHTML=foto?`<img src="${fotoURL}" alt="Foto Magelis" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:8px;background:#000">`:""};
+/* v425: la DESCRIPCIÓN EN CAMPO (Observaciones) es el aviso de la OT y manda: se analiza primero; la alarma de la Magelis
+   (lista, a mano o foto) es complementaria: se suma a la descripción para afinar y, si apunta a otro elemento, se muestra aparte. */
 window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpperCase(),res=$("#sr_res");
  if(!pos){msg("Indica la posición PBB");$("#sr_p").focus();return}
- let txt=[($("#sr_a").value||""),($("#sr_t").value||"")].map(x=>x.trim()).filter(Boolean).join(" · ");
- if(!foto&&!txt){msg("Elige la alarma activada, escríbela o haz la foto de la Magelis");return}
+ const ob=((document.getElementById("sr_ob")||{}).value||"").replace(/\s+/g," ").trim();
+ let al=[($("#sr_a").value||""),($("#sr_t").value||"")].map(x=>x.trim()).filter(Boolean).join(" · ");
+ if(!foto&&!al&&!ob){msg("Escribe la descripción en campo (o elige la alarma, escríbela o haz la foto de la Magelis)");const t=document.getElementById("sr_ob");if(t)t.focus();return}
  if(foto){res.innerHTML=`<div class="mu" style="margin-top:10px">Leyendo la foto…</div>`;
   try{await tess();const w=await Tesseract.createWorker("spa",1,{logger:m=>{if(m.status=="recognizing text")res.innerHTML=`<div class="mu" style="margin-top:10px">Leyendo la foto… ${Math.round(m.progress*100)}%</div>`}});
-   const r=await w.recognize(foto);await w.terminate();txt=(txt+" "+(r.data.text||"")).trim()}
-  catch(e){res.innerHTML=`<div class="gav" style="margin-top:10px">No se pudo leer la foto. Escribe la alarma a mano y vuelve a pulsar.</div>`;const d=document.querySelector(".srtx");if(d)d.open=true;return}}
- const ot={id:"sos_"+pos+"_"+txt.length,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:txt.replace(/\s+/g," "),def:"",com:"",obs:"",orden:"SOS",fecha:""};
- let P=[],S=null;try{P=puentesOT(ot)}catch(e){}try{S=segOT(ot)}catch(e){}
- const leido=`<details class="srtx" style="margin-top:8px"><summary class="mu">Texto analizado</summary><div class="mu" style="white-space:pre-wrap;font-size:12px">${esc(txt)}</div></details>`;
- const RS=typeof resetAplica=="function"&&resetAplica(ot);
- if(!P.length&&!S&&!RS){res.innerHTML=`<div class="gav" style="margin-top:10px">Esta alarma no tiene puente provisional en la PBB ${esc(pos)} (o no se ha reconocido). Elige otra de la lista, revisa la foto o usa la guía completa de la OT.</div><div id="sr_cas"></div>${leido}`;const d=document.querySelector(".srtx");if(d)d.open=true;sosCasRap(txt,pos);return}
- res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos)}</b></div>${RS&&!S?`<div class="card pucard">${resetHTML(ot)}</div>`:""}${S?`<div class="card pucard">${segHTML(ot,S)}</div>`:""}${P.length?`<div class="card pucard">${puenteHTML(ot,P)}</div>`:""}<div id="sr_cas"></div>${leido}`;sosCasRap(txt,pos);
+   const r=await w.recognize(foto);await w.terminate();al=(al+" "+(r.data.text||"")).trim()}
+  catch(e){if(!ob&&!al){res.innerHTML=`<div class="gav" style="margin-top:10px">No se pudo leer la foto. Escribe la descripción en campo o la alarma a mano y vuelve a pulsar.</div>`;const d=document.querySelector(".srtx");if(d)d.open=true;return}}}
+ al=al.replace(/\s+/g," ").trim();
+ const mk=(d,f)=>({id:"sos_"+pos+"_"+(d+f).length,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:f||"",com:"",obs:"",orden:"SOS",fecha:""});
+ const ana=ot=>{let P=[],S=null;try{P=puentesOT(ot)}catch(e){}try{S=segOT(ot)}catch(e){}const RS=typeof resetAplica=="function"&&resetAplica(ot);return{ot,P,S,RS,ok:!!(P.length||S||RS)}};
+ const pinta=A=>`${A.RS&&!A.S?`<div class="card pucard">${resetHTML(A.ot)}</div>`:""}${A.S?`<div class="card pucard">${segHTML(A.ot,A.S)}</div>`:""}${A.P.length?`<div class="card pucard">${puenteHTML(A.ot,A.P)}</div>`:""}`;
+ const firma=A=>JSON.stringify([(A.P||[]).map(x=>x.key||x.id+x.k+x.l).sort(),A.S?(A.S.sen||[]).map(e=>e[0]+e[1]).concat(A.S.lim?[String(A.S.lim.id||A.S.lim)]:[]).sort():[]]);
+ /* 1º la descripción en campo con la alarma como complemento; si la alarma añade algo que la descripción no dice, la descripción sola manda */
+ let A=null,B=null;
+ if(ob){const Ao=ana(mk(ob,""));const Aj=al?ana(mk(ob,al)):null;
+  A=Ao.ok?Ao:(Aj&&Aj.ok?Aj:Ao);A.src=A===Aj?"la descripción en campo y la alarma":"la descripción en campo";
+  if(al){const Aa=ana(mk(al,""));if(Aa.ok&&(!A.ok||firma(Aa)!=firma(A)))B=Aa}}
+ else A=ana(mk(al,""));
+ const txt=[ob,al].filter(Boolean).join(" · ");
+ const leido=`<details class="srtx" style="margin-top:8px"><summary class="mu">Texto analizado</summary><div class="mu" style="white-space:pre-wrap;font-size:12px">${ob?`<b>Descripción en campo:</b> ${esc(ob)}`:""}${ob&&al?"\n":""}${al?`<b>Alarma (complementaria):</b> ${esc(al)}`:""}</div></details>`;
+ if(!A.ok&&!B){res.innerHTML=`<div class="gav" style="margin-top:10px">Con lo descrito no hay puente provisional en la PBB ${esc(pos)} (o no se ha reconocido). Detalla el elemento en la descripción (p. ej. «freno de cabina derecho activado»), elige la alarma de la lista o usa la guía completa de la OT.</div><div id="sr_cas"></div>${leido}`;const d=document.querySelector(".srtx");if(d)d.open=true;sosCasRap(txt,pos);return}
+ res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos)}</b>${A.ok?` · según ${A.src||"la alarma"}`:` · según la alarma`}</div>${A.ok?pinta(A):`<div class="gav">La descripción en campo no nombra un elemento con puente provisional; se muestra lo que indica la alarma.</div>`}
+  ${B?(A.ok?`<details class="srtx srcomp"><summary><b>Según la alarma de la Magelis</b> (complementaria · otro elemento)</summary>${pinta(B)}</details>`:pinta(B)):""}<div id="sr_cas"></div>${leido}`;sosCasRap(txt,pos);
  res.scrollIntoView({block:"start",behavior:"smooth"})};
 const st=document.createElement("style");st.textContent=`.grid.sosgrid{grid-template-columns:1fr 1fr 74px!important;align-items:stretch}
 .sosk{display:flex!important;align-items:center;justify-content:center;align-self:stretch;box-sizing:border-box;padding:6px!important;margin:0 0 10px!important;width:auto!important;height:auto!important;background:var(--card,#fff)!important;border:1px solid var(--bd,#e3dbec)!important;border-top:3px solid var(--ac)!important;border-radius:12px!important;cursor:pointer}
