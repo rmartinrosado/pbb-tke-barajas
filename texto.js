@@ -2,15 +2,15 @@
  1. Las referencias técnicas no se parten entre dos líneas: bornas y elementos (+E-X68.1:3, +P-K61/2, EP-W4, H07RN-F),
     hilos («hilo 205»), conductores («cond. 3»), folios, módulos y LED, bornas de módulo (7.1), tensiones e intensidades
     (24 V⎓, 400 V~, 10 A, 2 mm) y secciones (27x1,5). Se envuelven en <span class="nw"> (white-space:nowrap).
- 2. Los párrafos de texto (más de una línea) se justifican al ancho de la pantalla, con las líneas a la misma alineación.
+ 2. v408: los párrafos ya NO se justifican al recuadro (alineados a la izquierda, sin huecos entre palabras).
  Se aplica sobre lo que se pinta en cada momento (MutationObserver), sin tocar botones, campos de texto, gráficos ni
  títulos centrados. No cambia el texto: solo cómo se corta y se alinea. */
 (function(){
 "use strict";
 const st=document.createElement("style");st.textContent=`
 .nw{white-space:nowrap}
-.tj{text-align:justify;text-justify:inter-word;hyphens:manual;overflow-wrap:break-word}
-li.tj,.tj li{text-align:justify}`;
+.tj{text-align:left;hyphens:manual;overflow-wrap:break-word}
+li.tj,.tj li{text-align:left}`;
 document.head.appendChild(st);
 const RE=new RegExp([
  "[+\\-]?[A-Z][A-Z0-9]*(?:\\.\\d+)?-[A-Z0-9]+(?:[.\\/'’\"][A-Z0-9'’\"]*)*(?:\\([A-Z0-9]+\\))?(?::[A-Za-z0-9.()]+(?:-[A-Za-z0-9.()]+)?)?",

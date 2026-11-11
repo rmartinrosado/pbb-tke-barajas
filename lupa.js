@@ -150,7 +150,7 @@ const st=document.createElement("style");st.textContent=`
 .lpaf{display:flex;gap:8px;align-items:stretch}.lpaf input{flex:1;min-width:0;margin:0!important;font-size:16px}.lpaf button{width:52px!important;flex:none;margin:0!important;padding:0!important;display:grid;place-items:center}.lpaf button svg{width:22px;height:22px}#sheet#sheet .lpaf .lpabo{color:#c62828!important;border:1px solid #c6282866!important}
 .lpaef{margin-top:12px;border:2px solid #ef6c00;border-radius:10px;padding:10px 12px;background:color-mix(in srgb,#ef6c00 6%,transparent)}
 .lpaef h3{margin:4px 0 8px;font-size:16px}.lpasy{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mu);margin-top:2px}
-.lpap{display:flex;gap:6px;margin:6px 0;line-height:1.35;text-align:justify}.lpap b{flex:none}
+.lpap{display:flex;gap:6px;margin:6px 0;line-height:1.35;text-align:left}.lpap b{flex:none}
 .lpaan,.lpapr{margin-top:10px}.lpaan>summary,.lpapr>summary{cursor:pointer;font-weight:600;font-size:13px}.lpasg{font-size:12px;margin:3px 0}
 .lbx{margin-top:8px;border:1px solid var(--bd,#d9d2e3);border-radius:10px;padding:8px;background:var(--card)}
 .lbxh{font-size:13px;margin-bottom:6px}.lbcols{display:grid;grid-template-columns:1fr 54px 1fr;font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);text-align:center;margin-bottom:2px}
