@@ -24,7 +24,7 @@ const st=document.createElement("style");st.textContent=`
 .bct{margin-top:4px}`;
 document.head.appendChild(st);
 
-const NO=".cxrec,svg,button,textarea,input,select,script,style,code,pre,header,nav,#nav,#navtab,[contenteditable=true],.bcol,.bcl,.bct,[data-nocol]";
+const NO=".cxrec,summary,svg,button,textarea,input,select,script,style,code,pre,header,nav,#nav,#navtab,[contenteditable=true],.bcol,.bcl,.bct,[data-nocol]";
 /* zonas con instrucciones: guía de campo, actuaciones, análisis, lupa, SOS, Resolución IA, croquis y hoja imprimible */
 const ZONA=".gst,.gblq,.anal,.anaw,.anap,.anass,.gav,.sia,.srtx,.puac,.elusd,.elh,.gfix,.gsub,.gres,.grec,.gpaso,[class*=lpa],.rcOl,.rcUl,.rcT,.rcSum,.rcSt,.cxmed,#infov .indoc,.gelem";
 const BLOQUE=/^(DIV|P|LI|TD|DD|UL|OL|TABLE|DETAILS|SUMMARY|SECTION|H\d|BR|HR|LABEL|FIGURE)$/;
@@ -120,7 +120,7 @@ function procesa(el){if(el.dataset.bcol)return;
  el.insertBefore(frag,ns[0]);ns.forEach(n=>n.remove())}
 
 function candidatos(root){if(!root||root.nodeType!=1)return [];
- const out=[root,...root.querySelectorAll("span,div,p,li,td,dd,small,summary")].filter(e=>!(e.dataset&&e.dataset.bcol)&&PRUEBA.test(e.textContent)&&!e.closest(NO)&&e.closest(ZONA));
+ const out=[root,...root.querySelectorAll("span,div,p,li,td,dd,small")].filter(e=>!(e.dataset&&e.dataset.bcol)&&PRUEBA.test(e.textContent)&&!e.closest(NO)&&e.closest(ZONA));
  /* de dentro a fuera: si un elemento interior ya tiene la lista, el exterior ya no la ve en su texto inicial */
  return out.reverse()}
 function corre(root){candidatos(root).forEach(e=>{try{procesa(e)}catch(x){}})}

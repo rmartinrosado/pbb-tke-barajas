@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=412;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=413;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -2401,11 +2401,11 @@ function anaHTML(i,R,dentro){if(!R||(!R.rel.length&&!R.guia.length&&!R.elem.leng
   return `<button class="anas${on?" on":""}" onclick="anaVa('${x.mod}','${String(x.S.id).replace(/'/g,"\\'")}')"><b>${ix+1}</b><span><b>${esc(x.mod)}</b> · Mód. ${x.S.k||"-"} · LED ${x.S.l||"-"}${x.S.led?" · IN "+esc(x.S.led):""}<br>${esc(x.S.t)}</span></button>`}).join("");
  const gd=R.guia.map(g=>`<button class="anag" onclick="anaGuia(${g.si})">📋 ${esc(g.t)}</button>`).join("");
  return `<details class="anap" open><summary><b>🎯 Análisis de la OT</b> <span class="mu" style="font-weight:400">· ${R.rel.length} señal(es) · ${R.mods.length} módulo(s) · ${R.elem.length} elemento(s)</span></summary>
-  ${R.mods.length?`<div class="anal">Módulos PLC implicados</div><div class="anaw">${R.mods.map(m=>`<button class="anam${dentro&&m==gIMod?" on":""}" onclick="anaVa('${m}')">${m}</button>`).join("")}</div>`:""}
- ${R.rel.length?`<div class="anal">Señales implicadas (de más a menos probable)</div><select class="anasel" onchange="anaSelSig(this.value)"><option value="">— Elige una señal (${R.rel.length}) —</option>${R.rel.map((x,ix)=>{const on=dentro&&x.mod==gIMod&&x.S.id==gISig;return `<option value="${esc(x.mod+"¦"+x.S.id)}"${on?" selected":""}>${ix+1}. ${esc(x.mod)} · Mód. ${x.S.k||"-"} · LED ${x.S.l||"-"}${x.S.led?" · IN "+esc(x.S.led):""} — ${esc(x.S.t)}</option>`}).join("")}</select>`:""}
- ${R.elem.length?`<div class="anal">Elementos de campo a revisar</div><div class="anaw">${R.elem.map(t=>`<span class="anae">${esc(t)}</span>`).join("")}</div>`:""}
+  ${R.mods.length?`<div class="anal">① Módulos PLC implicados</div><div class="anah">Dónde mirar los LED en el PLC (E = armario eléctrico, P = pupitre). Toca el módulo para verlo.</div><div class="anaw">${R.mods.map(m=>`<button class="anam${dentro&&m==gIMod?" on":""}" onclick="anaVa('${m}')">${m}</button>`).join("")}</div>`:""}
+ ${R.rel.length?`<div class="anal">② Señales implicadas (de más a menos probable)</div><div class="anah">Entrada o salida del PLC que corresponde a la avería. Elige una para ver su ruta cable a cable.</div><select class="anasel" onchange="anaSelSig(this.value)"><option value="">— Elige una señal (${R.rel.length}) —</option>${R.rel.map((x,ix)=>{const on=dentro&&x.mod==gIMod&&x.S.id==gISig;return `<option value="${esc(x.mod+"¦"+x.S.id)}"${on?" selected":""}>${ix+1}. ${esc(x.mod)} · Mód. ${x.S.k||"-"} · LED ${x.S.l||"-"}${x.S.led?" · IN "+esc(x.S.led):""} — ${esc(x.S.t)}</option>`}).join("")}</select>`:""}
+ ${R.elem.length?`<div class="anal">③ Elementos de campo a revisar</div><div class="anah">Sensores, cables y bornas de la pasarela relacionados con la avería, con su recorrido debajo.</div><div class="anaw">${R.elem.map(t=>`<span class="anae">${esc(t)}</span>`).join("")}</div>`:""}
  ${gd?`<div class="anal">Guía de campo · actuación más eficaz</div><div class="anass">${gd}</div>`:""}
- <div class="mu" style="font-size:11px;margin-top:6px">Orden propuesto: empezar por la señal 1 y sus elementos; si el LED es coherente, pasar a la siguiente.</div></details>`}
+ <div class="mu" style="font-size:11px;margin-top:6px">Orden propuesto: 1º mira el LED de la señal 1 en su módulo; si no es coherente, revisa sus elementos y su recorrido; si es correcto, pasa a la señal 2.</div></details>`}
 function anaSelSig(v){if(!v)return;const k=v.indexOf("¦");const mod=v.slice(0,k),sid=v.slice(k+1);
  if(!document.querySelector(".insov")){const id=gOT||anaGOT;if(id)insOT(id)}anaVa(mod,sid)}
 function anaVa(mod,sid){if(!RUTAS[mod])return;gIMod=mod;const R=RUTAS[mod];const S=sid?R.s.find(x=>x.id==sid):null;
@@ -2446,7 +2446,7 @@ details.anap>summary{cursor:pointer;list-style:none}details.anap>summary::-webki
 .anas>b{flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--pr);color:#fff;font-size:12px}
 .anas.on{border:2px solid #ef6c00;background:color-mix(in srgb,#ef6c00 8%,var(--card))}
 .gmods button.rel{box-shadow:0 0 0 2px #ef6c00 inset;color:#ef6c00;font-weight:800}.gmods button.rel.on{color:#fff}
-.anat{color:#ef6c00}#anag details.anap{margin:0;border:0;padding:0;background:none}`;document.head.appendChild(st)})();
+.anat{color:#ef6c00}.anah{font-size:12px;color:var(--mu);margin:-2px 0 6px;line-height:1.35}#anag details.anap{margin:0;border:0;padding:0;background:none}`;document.head.appendChild(st)})();
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v80"}})();
 /* ===== v81: el botón «Módulos PLC» de la tarjeta OT vuelve a funcionar como en v79
  (sin panel de análisis, sin señal propuesta por la descripción y sin resaltados 🎯).
@@ -2766,7 +2766,7 @@ function elHTML(tag,corto){const z=elZona(tag),R=elRutas(tag);
  return `<div class="elu"><div class="elh"><b>${esc(tag)}</b> ${zh}</div>${rs}${mas}${nada}</div>`}
 (function(){const st=document.createElement("style");st.textContent=`.elus{margin-top:8px;display:flex;flex-direction:column;gap:8px}.elu{border-left:3px solid var(--bd);padding:2px 0 2px 8px;font-size:12px}.elh{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.eln{opacity:.75;font-size:11px}.elr{margin-top:3px;line-height:1.35}.els{display:block;font-weight:600;font-size:11px;opacity:.8}.elb{font-size:11px;opacity:.85;margin-top:2px}.gpaso .elus{margin-top:6px}`;document.head.appendChild(st)})();
 (function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);if(!R||!R.elem||!R.elem.length)return h;
- const k=h.indexOf('Elementos de campo a revisar</div><div class="anaw">');if(k<0)return h;const e=h.indexOf("</div>",k+45);if(e<0)return h;
+ const k0=h.indexOf('Elementos de campo a revisar</div>');if(k0<0)return h;const k=h.indexOf('<div class="anaw">',k0);if(k<0)return h;const e=h.indexOf("</div>",k+18);if(e<0)return h;
  return h.slice(0,e+6)+`<div class="elus">${R.elem.map(t=>elHTML(t)).join("")}</div>`+h.slice(e+6)}})();
 function elPasos(){if(view!="tec")return;document.querySelectorAll("#app details.gd .gst > label.gpaso > span:not([data-u])").forEach(sp=>{sp.dataset.u="1";
  const tags=[...new Set((sp.textContent.toUpperCase().match(ANA_TAG)||[]).map(t=>t.replace(/'+$/,"")))].filter(t=>elZona(t)).slice(0,6);if(!tags.length)return;
@@ -4564,7 +4564,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||412;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||413;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5705,7 +5705,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   try{eval(fn+"=window."+fn)}catch(e){}});
 })();
 </script>
-<script src="puente-croquis.js?v=328"></script><script src="guia-titulos.js?v=284"></script><script src="pdf-pellizco.js?v=280"></script>
+<script src="puente-croquis.js?v=328"></script><script src="guia-titulos.js?v=413"></script><script src="pdf-pellizco.js?v=280"></script>
 <script>
 /* ===== v267: CROQUIS DEL PUENTE en la Guía de campo · cuando la OT tiene primera actuación en campo por LÍMITE, entre la caja SOS y la
    de «Primera actuación en campo» se dibuja el bloque exacto del módulo del PLC (colores reales de E-A… / P-A…), con el cable del puente
@@ -5806,7 +5806,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  try{ANA_C={k:"",r:null}}catch(e){}
 })();
 </script>
-<script src="sistemas-guia.js?v=4"></script><script src="freno-cabina.js?v=341"></script><script src="borneros-st.js?v=342"></script><script src="croquis-bor.js?v=342"></script><script src="croquis-pdf.js?v=377"></script><script src="res-claude.js?v=385"></script><script src="sos-ia.js?v=379"></script><script src="recupera.js?v=380"></script><script src="fechas-ot.js?v=345"></script><script src="seg-sub.js?v=387"></script><script src="sigma.js?v=401"></script><script src="fab.js?v=402"></script><script src="atras.js?v=403"></script><script src="llegada-prio.js?v=405"></script><script src="nombres.js?v=406"></script><script src="columnas.js?v=411"></script>
+<script src="sistemas-guia.js?v=4"></script><script src="freno-cabina.js?v=341"></script><script src="borneros-st.js?v=342"></script><script src="croquis-bor.js?v=342"></script><script src="croquis-pdf.js?v=377"></script><script src="res-claude.js?v=385"></script><script src="sos-ia.js?v=379"></script><script src="recupera.js?v=380"></script><script src="fechas-ot.js?v=345"></script><script src="seg-sub.js?v=387"></script><script src="sigma.js?v=401"></script><script src="fab.js?v=402"></script><script src="atras.js?v=403"></script><script src="llegada-prio.js?v=405"></script><script src="nombres.js?v=406"></script><script src="columnas.js?v=413"></script>
 <script>
 /* ===== v350: Panel de control · Seguimiento y Claude permutados: Registrar | Claude (fila 1) · Seguimiento | SOS (fila 3) ===== */
 (function(){const P=["html body #app #pfix.p230","html body #app#app.p230"];const R=(sel,css)=>P.map(p=>p+" "+sel).join(",")+"{"+css+"}";
