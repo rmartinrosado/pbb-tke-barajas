@@ -36,6 +36,7 @@ const QK={
    "Medir la resistencia de las PTC (hilos 1-14); revisar el apriete y el estado de los pines A, B, C y N."]}]},
  AAA:{n:"Aire acondicionado (PCA)",re:/aire acondicionado|\ba\/a\b|\bpca\b|\badx\b|climatiz|compresor|\baaa\b|maquina de aire|carro (de )?aire/,c:[
   {re:/carro|puerta|tapa|bloque/,t:"Bloqueo carro A/A · puerta del carro",p:[
+   "PRIORIDAD 1 · Desbloqueo en el módulo del PLC de la PBB: con el carro COMPROBADO cerrado y recogido, en E-A2 soltar el hilo de la borna IN 5.1 (bloqueo carro A/A, no puentear). Anotarlo en la OT.",
    "Cerrar la puerta / tapa del carro de aire y dejar la manguera recogida.",
    "Si sigue bloqueada: ajuste del FC del carro (E-S100) + cierre de puerta, hasta que el FC detecte la puerta cerrada."]},
   {re:/alimentaci|no arranca|apagad|display|diferencial|disparo|sin tension|no enciende/,t:"Máquina ADX sin alimentación / no arranca",p:[
@@ -46,7 +47,16 @@ const QK={
   {re:/ventilador|variador|filtro|condensad/,t:"Ventilador interior / variador / filtro",p:[
    "Fallo de variador (clemas 28/29): leer el código en el variador Omron y resetear; magnetotérmico FGVI.",
    "Piloto amarillo FILTRO: limpiar o sustituir el filtro; revisar condensados."]}]}};
-function tipoDe(t){t=nrm(t);
+/* v430: BLOQUEO de la PBB por un equipo de servicio → 1ª opción SIEMPRE el desbloqueo en el módulo del PLC (E-A2) */
+const BLQ=t=>{t=nrm(t);return /\bbloque(o|os|ad[ao]s?|an?)\b|interbloque/.test(t)&&/carr(o|ito)|a\/a|\baa\b|aire|\bpca\b|pc ?air|climatiz|maquina|convertidor|\b400\b|\bhz\b|\bgpu\b|conector|90 ?%|equipo/.test(t)};
+const BLQ_EQ=[[/carr(o|ito)|pc ?air|e-?s100/,"E-A2|3|1","Carro A/A","Cerrar la puerta / tapa del carro de aire con la manguera recogida; si sigue: ajuste del FC del carro E-S100 + cierre de puerta. Reponer el hilo de E-A2."],
+ [/90 ?%|conector/,"E-A2|3|3","90 % conector 400 Hz","Desconectar el conector del avión y recogerlo; LED 90 % apagado. Si sigue encendido: interruptor 90 % pegado (hilos 9-13). Reponer el hilo de E-A2."],
+ [/convertidor|\b400\b|\bhz\b|\bgpu\b/,"E-A2|3|2","Convertidor 400 Hz en servicio","Parar el 400 Hz (OFF, LED ON apagado) y recoger el cable; revisar el contacto de servicio y la manguera CBTH-X61 ↔ E-X61. Reponer el hilo de E-A2."],
+ [/a\/a|\baa\b|aire|\bpca\b|climatiz|maquina/,"E-A2|2|4","Máquina A/A","Parar la PCA y recoger la manguera; revisar el contacto de la máquina y la manguera CBTH-X61 ↔ E-X61. Reponer el hilo de E-A2."]];
+function blqHTML(t,conPlc){t=nrm(t);const L=BLQ_EQ.filter(([re])=>re.test(t));const S=L.length?L:BLQ_EQ;
+ const plc=conPlc?S.map(([,k,n])=>`<div class="card pucard"><div class="pucab">🔌 1ª OPCIÓN · DESBLOQUEO EN EL MÓDULO DEL PLC · ${E(n)}</div><div class="puac">${E(typeof PUENTE!="undefined"&&PUENTE[k]||"En E-A2, con el equipo COMPROBADO parado y recogido, soltar el hilo de la entrada del bloqueo (no puentear).")}</div><div class="puac mu">Anotarlo en la OT y reponer el hilo al reparar.</div></div>`).join(""):"";
+ return plc+`<div class="card pucard qkc"><div class="pucab">⚡ 2ª OPCIÓN · EN EL EQUIPO</div>${S.map(([,,n,a],ix)=>`<div class="puac qkp">${ix+1}. <b>${E(n)}:</b> ${E(a)}</div>`).join("")}</div>`}
+function tipoDe(t){t=nrm(t);if(BLQ(t))return "PAS";
  /* la PAS bloqueada por el carro de aire es de la pasarela */
  if(/\b(pas|pbb|pasarela)\b[^.]{0,30}bloquead|bloquead[^.]{0,30}\b(pas|pbb|pasarela)\b/.test(t))return "PAS";
  if(QK.HZ.re.test(t))return "HZ";if(QK.AAA.re.test(t))return "AAA";return "PAS"}
@@ -80,6 +90,9 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
  /* bloque 1 */
  let b1=res.innerHTML;
  if(T!="PAS")b1=`<div class="mu" style="margin:10px 0 6px"><b>${pos?"Posición "+E(pos)+" · ":""}${E(QK[T].n)}</b> · según la descripción en campo</div>${qkHTML(T,ob+" "+al)}`+((res.querySelector("#sr_cas")||{}).outerHTML||"<div id=\"sr_cas\"></div>")+((res.querySelector("details.srtx")||{}).outerHTML||"");
+ else if(BLQ(ob+" "+al)&&!REM){const tb=ob+" "+al,tiene=/E-A2/.test(b1)&&/soltar el hilo/i.test(b1);
+  b1=tiene?b1.replace(/(<div id="sr_cas")/,blqHTML(tb,false)+"$1"):`<div class="mu" style="margin:10px 0 6px"><b>${pos?"PBB "+E(pos)+" · ":""}Bloqueo por equipo de servicio</b></div>`+blqHTML(tb,true)+((res.querySelector("#sr_cas")||{}).outerHTML||"<div id=\"sr_cas\"></div>")+((res.querySelector("details.srtx")||{}).outerHTML||"");
+  if(tiene&&!/2ª OPCIÓN/.test(b1))b1+=blqHTML(tb,false)}
  else if(REM)b1=`<div class="gav" style="margin-top:10px">La posición ${E(pos)} es REMOTA (sin pasarela): no hay actuación de pasarela. Indica el sistema en la descripción (400 Hz, aire acondicionado…).</div>`;
  /* v427: si hay puente provisional, croquis del módulo afectado al principio del bloque 1 */
  let cro="";if(T=="PAS"&&!REM&&typeof window._croqLista=="function"&&typeof croquisPuente=="function"){try{
