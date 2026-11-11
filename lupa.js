@@ -37,6 +37,11 @@ window.lupaBusca=function(){const inp=document.getElementById("lp_t"),res=docume
    if(k>=1.5||(!AK.term.size&&A.tags.size)){r=anaPunt(s.t,A)*2+Math.min(anaPunt((s.p||[]).join(" "),A),6)*.5;
     ctx.forEach(z=>{if(!new RegExp("\\b"+z).test(norm(s.t)))r*=new RegExp("\\b"+z).test(tx)?.8:.5});
     /* v423: las cajas propias de una posición (PBB 504 / 507 / 508) solo encabezan si el texto nombra esa posición */
+    /* v424: las palabras de la descripción que están en el TÍTULO de la caja suman (p. ej. «no rearma», «no traslada») */
+    {const VW=/^(para|pero|con|sin|del|las|los|una|que|por|esta|este|pbb|pasarela|fallo|activado|activada)$/;const tt=norm(s.t).split(/[^a-z0-9]+/).filter(w=>w.length>=4);
+     const qw=[...new Set(t.split(/[^a-z0-9]+/).filter(w=>w.length>=4&&!VW.test(w)))];r+=qw.reduce((a,w)=>a+(tt.includes(w)?2:tt.some(x=>w.length>=5&&x.startsWith(w.slice(0,6)))?1:0),0);
+     /* el síntoma en negativo («no rearma», «no traslada», «no sube»…) igual que en el título pesa más */
+     const nt=norm(s.t);(t.match(/\bno [a-z]{4,}/g)||[]).forEach(ng=>{if(nt.includes(ng))r+=4})}
     const pp=(String(s.t).match(/^PBB (\d{3})/)||[])[1];if(pp&&!new RegExp("\\b"+pp+"\\b").test(t))r*=.4}}catch(e){}return{si,r}});
   const mx=Math.max(0,...raw.map(x=>x.r));const nom=bo>=3;S.push({T,G,ot,raw,mx,nom,sc:mx>=1.5?mx+bo:(nom?bo:0)})});
  /* el sistema nombrado en el texto (p. ej. «aire acondicionado», «400 Hz») va por delante */
