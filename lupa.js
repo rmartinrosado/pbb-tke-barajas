@@ -35,7 +35,9 @@ window.lupaBusca=function(){const inp=document.getElementById("lp_t"),res=docume
   const raw=G.s.map((s,si)=>{let r=0;try{const tx=norm(s.t+" "+(s.p||[]).join(" "));
    const k=anaPunt(s.t,AK)*2+Math.min(anaPunt((s.p||[]).join(" "),AK),6)*.5;
    if(k>=1.5||(!AK.term.size&&A.tags.size)){r=anaPunt(s.t,A)*2+Math.min(anaPunt((s.p||[]).join(" "),A),6)*.5;
-    ctx.forEach(z=>{if(!new RegExp("\\b"+z).test(norm(s.t)))r*=new RegExp("\\b"+z).test(tx)?.8:.5})}}catch(e){}return{si,r}});
+    ctx.forEach(z=>{if(!new RegExp("\\b"+z).test(norm(s.t)))r*=new RegExp("\\b"+z).test(tx)?.8:.5});
+    /* v423: las cajas propias de una posición (PBB 504 / 507 / 508) solo encabezan si el texto nombra esa posición */
+    const pp=(String(s.t).match(/^PBB (\d{3})/)||[])[1];if(pp&&!new RegExp("\\b"+pp+"\\b").test(t))r*=.4}}catch(e){}return{si,r}});
   const mx=Math.max(0,...raw.map(x=>x.r));const nom=bo>=3;S.push({T,G,ot,raw,mx,nom,sc:mx>=1.5?mx+bo:(nom?bo:0)})});
  /* el sistema nombrado en el texto (p. ej. «aire acondicionado», «400 Hz») va por delante */
  S.sort((a,b)=>(b.nom-a.nom)||(b.sc-a.sc));let C=[],an=null;
@@ -112,18 +114,21 @@ window.lupaPinta=function(k,an){if(an)LA=an;const res=document.getElementById("l
   ${an.R.elem&&an.R.elem.length?`<div class="anal">Elementos de campo a revisar</div><div class="anaw">${an.R.elem.map(m=>`<span class="anae">${E(m)}</span>`).join("")}</div>`:""}
   ${an.R.rel&&an.R.rel.length?`<div class="anal">Señales implicadas (de más a menos probable)</div>${an.R.rel.slice(0,6).map((x,ix)=>`<div class="lpasg"><b>${ix+1}.</b> ${E(x.mod)} · Mód. ${E(x.S.k||"-")} · LED ${E(x.S.l||"-")} — ${E(x.S.t)}</div>`).join("")}`:""}</details>`:"";
  if(!LC.length){res.innerHTML=`<div class="gav" style="margin-top:10px">No se ha relacionado ninguna actuación con «${E(LT)}». Detalla el elemento, el síntoma o la alarma (p. ej. «no sube», «límite extensión», «400 Hz no recoge manguera»).</div>${ana}<div id="lp_cas"></div>`;return}
- const c=LC[k]||LC[0],G=GUIA.tipos[c.T],P=pasos(c.s);
+ const c=LC[k]||LC[0],G=GUIA.tipos[c.T];
+ /* v423: cajas con varios elementos (p. ej. medidas analógicas): solo los pasos del elemento que nombra la descripción o el desplegable */
+ window.__lupaK=LC[k]?k:0;let SB=null;try{SB=typeof lupaSub=="function"?lupaSub(c.s,LT):null}catch(e){SB=null}
+ const P=pasos(SB?SB.s:c.s);const RB=LA&&LA.R&&SB&&SB.rel?Object.assign({},LA.R,{rel:(LA.R.rel||[]).filter(SB.rel)}):(LA&&LA.R);
  if(c.gen&&an){res.innerHTML=`<div class="gav" style="margin-top:10px">En la guía de <b>${E(G.n||c.T)}</b> no hay una actuación que cite «${E(LT)}». Elige la caja del sistema que corresponda al síntoma:</div><div class="anass" style="margin-top:8px">${LC.map((x,ix)=>`<button class="anag" onclick="LUPA_GEN(${ix})">📋 ${E(x.s.t)}</button>`).join("")}</div>${ana}<div id="lp_cas"></div>`;return}
  let prim="";if(c.T=="PAS"){try{const S=typeof segOT=="function"?segOT(c.ot):null,Pu=typeof puentesOT=="function"?puentesOT(c.ot):[];
   const h=(S?segHTML(c.ot,S):"")+(Pu&&Pu.length?puenteHTML(c.ot,Pu):"");if(h)prim=`<details class="lpapr"><summary>⚠️ Primera actuación en campo (seguridad)</summary><div class="card pucard">${h}</div></details>`}catch(e){}}
  const alt=LC.map((x,ix)=>ix==k?"":`<button class="anag" onclick="lupaPinta(${ix},null)">📋 ${E(GUIA.tipos[x.T].n||x.T)} · ${E(x.s.t)}</button>`).join("");
  const vg=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
- res.innerHTML=`<div class="lpaef"><span class="gefb">⭐ Actuación más eficaz</span><div class="lpasy">${E(G.n||c.T)}</div><h3>${E(c.s.t)}</h3>
-  ${P.acc.map((p,ix)=>{let cx="";try{const C=window.croquisPaso&&croquisPaso(p,"");if(C)cx=`<details class="elusd cxd"${C.n?" open":""}><summary>🔌 Croquis entre borneros${C.n?` · ${C.n} conexión${C.n>1?"es":""} borna a borna`:" · recorrido"}</summary><div class="cxin">${C.html}</div></details>`}catch(e){}
+ res.innerHTML=`<div class="lpaef"><span class="gefb">⭐ Actuación más eficaz</span><div class="lpasy">${E(G.n||c.T)}</div><h3>${E(c.s.t)}</h3>${SB?SB.sel:""}
+  ${P.acc.map((p,ix)=>{let cx="";try{const C=window.croquisPaso&&!(SB&&SB.gen.has(p))&&croquisPaso(p,"");if(C)cx=`<details class="elusd cxd"${C.n?" open":""}><summary>🔌 Croquis entre borneros${C.n?` · ${C.n} conexión${C.n>1?"es":""} borna a borna`:" · recorrido"}</summary><div class="cxin">${C.html}</div></details>`}catch(e){}
    return `<div class="lpap"><b>${ix+1}.</b><span>${E(p)}${cx}</span></div>`}).join("")}
   ${P.inf.length?`<details class="gelem"><summary>Elementos y referencias (${P.inf.length})</summary>${P.inf.map(p=>`<div class="gelit"><span>${E(typeof gInfoTxt=="function"?gInfoTxt(p):p)}</span></div>`).join("")}</details>`:""}
   ${vg?`<button class="sec" style="width:100%;margin-top:8px" onclick="lupaGuia('${c.T}',${c.si})">Abrir en la guía de campo</button>`:""}</div>
-  ${(()=>{try{return borneros(c,LA&&LA.R,P.acc.concat(P.inf))}catch(e){return ""}})()}${prim}${alt?`<div class="anal" style="margin-top:10px">Otras actuaciones relacionadas</div><div class="anass">${alt}</div>`:""}${an?ana:(document.querySelector("#lp_res .lpaan")||{}).outerHTML||""}<div id="lp_cas">${(document.getElementById("lp_cas")||{}).innerHTML||""}</div>`;
+  ${(()=>{try{return borneros(c,RB,P.acc.concat(P.inf))}catch(e){return ""}})()}${prim}${alt?`<div class="anal" style="margin-top:10px">Otras actuaciones relacionadas</div><div class="anass">${alt}</div>`:""}${an?ana:(document.querySelector("#lp_res .lpaan")||{}).outerHTML||""}<div id="lp_cas">${(document.getElementById("lp_cas")||{}).innerHTML||""}</div>`;
  if(an!==undefined&&an!==null)res.scrollIntoView({block:"start",behavior:"smooth"});else{const e=res.querySelector(".lpaef");if(e)e.scrollIntoView({block:"start",behavior:"smooth"})}};
 async function casos(txt){if(typeof casosParecidos!="function")return;let l=[];try{l=await casosParecidos(txt)}catch(e){}
  const c=document.getElementById("lp_cas");if(!c||txt!==LT)return;c.innerHTML=l.length&&typeof casosHTML=="function"?`<div style="margin-top:10px">${casosHTML(l,"")}</div>`:""}
