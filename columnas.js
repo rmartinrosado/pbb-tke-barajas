@@ -1,5 +1,6 @@
 /* ===== v408-v409: bornas y listas en columnas (pantalla y PDF) =====
    v409: también listas «CLAVE: …» y bornas numeradas sin «=» («1 +24 V · 2 0 V · 3 señal»), claves largas y los PDF de jsPDF.
+   v410: corregido · en la guía de campo no se aplicaba porque el desplegable «Elementos» del paso tapaba la detección.
    En la guía de campo, la actuación más eficaz, la actuación guiada, el análisis, la lupa, el SOS y la Resolución IA,
    los textos del tipo «BORNERO E-X62 (…): 1 = +24 V común (…) · 2 = 0 V común (…) · 3 = señal ALTURA …»
    se muestran en dos columnas: a la izquierda la borna (o la clave) y a la derecha lo que lleva, una fila por borna.
@@ -96,11 +97,10 @@ function procesa(el){if(el.dataset.bcol)return;
  if(r.tail[1]>r.tail[0]){const ft=trozo(tx,r.tail[0],r.tail[1]);if(ft){const t=document.createElement("span");t.className="bct";t.append(limpia(ft));if(t.textContent.trim())frag.append(t)}}
  el.insertBefore(frag,ns[0]);ns.forEach(n=>n.remove())}
 
-function candidatos(root){const out=[];if(!root||root.nodeType!=1)return out;
- const mira=e=>{if(e.dataset&&e.dataset.bcol)return;if(e.closest(NO)||!e.closest(ZONA))return;const t=e.textContent;if(t.length<40||!PRUEBA.test(t))return;out.push(e)};
- mira(root);root.querySelectorAll("span,div,p,li,td,dd,label,small,summary").forEach(e=>{if(PRUEBA.test(e.textContent))mira(e)});
- /* el más interior que contiene la lista en su texto inline */
- return out.filter(e=>!out.some(o=>o!==e&&e.contains(o)&&PRUEBA.test(o.textContent)&&o.textContent.length>=e.textContent.length*0.5))}
+function candidatos(root){if(!root||root.nodeType!=1)return [];
+ const out=[root,...root.querySelectorAll("span,div,p,li,td,dd,small,summary")].filter(e=>!(e.dataset&&e.dataset.bcol)&&PRUEBA.test(e.textContent)&&!e.closest(NO)&&e.closest(ZONA));
+ /* de dentro a fuera: si un elemento interior ya tiene la lista, el exterior ya no la ve en su texto inicial */
+ return out.reverse()}
 function corre(root){candidatos(root).forEach(e=>{try{procesa(e)}catch(x){}})}
 
 let cola=new Set(),pend=false;
