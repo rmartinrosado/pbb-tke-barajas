@@ -30,7 +30,7 @@ const n_=t=>typeof segNorm=="function"?segNorm(t):String(t||"").toLowerCase().no
 const txt=i=>n_([i&&i.desc,i&&i.def,i&&i.com,i&&i.obs].filter(Boolean).join(" "));
 const RE_ALA=/\bradar\b|\blazar\b|\balas?\b|detecc\w*\s+(de\s+)?alas?\b|detect\w*\s+(el\s+|un\s+)?alas?\b/;
 const RE_LASER=/\bla[sz]er\b/;
-const RE_MED=/extensi|retracc|telescop|medid|\bmide\b|\bmedir\b|elongaci|analog/;
+const RE_MED=/extensi|retracc|telescop|medid|\bmide\b|\bmedir\b|elongaci|analog|longitud|altura|ultrason/;
 function esAla(i){if(!i)return false;const t=txt(i);if(RE_ALA.test(t))return true;return RE_LASER.test(t)&&!RE_MED.test(t)}
 window.esLaserAla=esAla;
 
@@ -63,7 +63,8 @@ window.LASER_ALA_IX=IX;
 const esAnalog=si=>{const s=PAS.s[si];return !!s&&/medidas anal/i.test(s.t)};
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r._ala)return r;r._ala=1;
  if(r.tipo&&r.tipo!="PAS")return r;
- if(!esAla(i)){r.guia=(r.guia||[]).filter(g=>g.si!=IX);return r}
+ /* v412: si la OT no es del láser de ala, fuera también sus señales de P-A6 (la palabra «láser» del láser de extensión no cuenta) */
+ if(!esAla(i)){r.guia=(r.guia||[]).filter(g=>g.si!=IX);if(Array.isArray(r.rel)){r.rel=r.rel.filter(x=>!(x.mod=="P-A6"&&x.S&&/detector de ala/i.test(x.S.t)));r.mods=[...new Set(r.rel.map(x=>x.mod))]}if(Array.isArray(r.elem))r.elem=r.elem.filter(t=>!/LASER-ALA/.test(t));return r}
  /* PBB 507: su plano propio usa P-A6 7.1 / 8.1 para los AKS y el ala es el bumper A380 (C-B25): no se fuerza el láser */
  if(String(i.pos)=="507"){r.guia=(r.guia||[]).filter(g=>g.si!=IX);return r}
  r.guia=(r.guia||[]).filter(g=>g.si!=IX&&!esAnalog(g.si));

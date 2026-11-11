@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=411;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=412;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -2045,7 +2045,9 @@ function ppBanner(pos){const o=document.querySelector(".insov .card");if(!o)retu
   .replace(/leídos del folio ESQUEMA GENERAL rev. J/g,'leídos del folio del "+ppNom()+"')
   .replace(/`ESQUEMA GENERAL rev. J · folio/g,"`${ppNom()} · folio");
  gIPdf=(0,eval)("("+s.replace(/^async function gIPdf/,"async function")+")")}catch(e){console.warn("v61 gIPdf",e)}})();
-ppBase();
+/* v412: la copia base de las rutas se toma cuando ya han cargado TODOS los scripts (antes se tomaba aquí y le faltaban
+   las señales añadidas después, p. ej. E-A4 analógicas: al abrir la inspección desaparecían y salía el láser de ala) */
+window.addEventListener("load",()=>{if(!PPACT)PPBASE=null});
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v61"}})();
 /* ===== v62: polímetro en OT de aire (AAP, AAR, AAC) → cierre de la OT con tipo de equipo y alarma ===== */
 const AIRE_T=["AAP","AAR","AAC"];
@@ -3754,7 +3756,7 @@ const POS_PROPIO=["504","507","508"];
 <script src="cableado507.js?v=325"></script>
 <script src="cab507.js?v=325"></script>
 <script src="sai.js?v=1"></script>
-<script src="laser-ala.js?v=4"></script>
+<script src="laser-ala.js?v=412"></script>
 <script src="hidraulica.js?v=279"></script>
 <script src="antiatrap.js?v=407"></script><script src="analisis-filtro.js?v=273"></script>
 <script src="reset-pbb.js?v=2"></script>
@@ -4097,7 +4099,7 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
   {n:"Capota",re:/capota|toldo|fuelle/,ids:["P-A4-2.3","P-A4-2.4","E-A1-2.4","E-A1-2.5","E-A1-2.6","E-A1-2.7","E-A2-3.4","E-A2-4.1","E-A0-3.4"]},
   {n:"Portón",re:/porton|persiana/,ids:["P-A4-3.1","P-A4-4.4","E-A1-4.7","E-A1-4.8","E-A8-1.1","E-A0-4.1"]},
   {n:"Brazo autonivelador",re:/brazo|autonivel/,ids:["P-A1-1.4","P-A1-2.1","P-A5-3.1","P-A5-3.2","P-A5-3.3","P-A5-3.4","P-A5-4.1","P-A5-4.2","P-A5-4.3","P-A4-3.3","E-A10-1.1"]},
-  {n:"Radar / láser de ala",re:/radar|laser|lazar|\bala\b/,ids:["P-A6-4.2","P-A6-4.1"]},
+  {n:"Radar / láser de ala",re:/radar|laser|lazar|\bala\b/,no:/^(?!.*(radar|lazar|\bala\b|detecc)).*(extensi|retracc|telescop|medid|\bmide\b|\bmedir\b|elongaci|analog|longitud|altura|ultrason)/,ids:["P-A6-4.2","P-A6-4.1"]},
   {n:"Setas de emergencia",re:/\bseta|emergencia/,ids:["E-A8-2.2","P-A3-1.1","E-A3-1.1","E-A3-1.3","E-A0-3.1"]},
   {n:"Zapata",re:/zapata/,ids:["E-A10-4.2","P-A2-2.2"]},
   {n:"Antiatrapamientos / bumpers",re:/antiatrap|bumper|parachoq/,ids:["DIS05","DIS06","DIS02","DIS08","E-A10-1.2","E-A10-1.1"]},
@@ -4562,7 +4564,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||411;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||412;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
