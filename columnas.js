@@ -1,4 +1,5 @@
-/* ===== v408: bornas y listas «clave = valor» en columnas =====
+/* ===== v408-v409: bornas y listas en columnas (pantalla y PDF) =====
+   v409: también listas «CLAVE: …» y bornas numeradas sin «=» («1 +24 V · 2 0 V · 3 señal»), claves largas y los PDF de jsPDF.
    En la guía de campo, la actuación más eficaz, la actuación guiada, el análisis, la lupa, el SOS y la Resolución IA,
    los textos del tipo «BORNERO E-X62 (…): 1 = +24 V común (…) · 2 = 0 V común (…) · 3 = señal ALTURA …»
    se muestran en dos columnas: a la izquierda la borna (o la clave) y a la derecha lo que lleva, una fila por borna.
@@ -11,8 +12,8 @@ const st=document.createElement("style");st.textContent=`
 .bcol{display:grid;grid-template-columns:fit-content(46%) minmax(0,1fr);column-gap:8px;margin:6px 0 4px;text-align:left}
 .bcol>.bck,.bcol>.bcv{padding:4px 0;border-top:1px dashed var(--bd,rgba(127,127,127,.35))}
 .bcol>.bck:first-child,.bcol>.bck:first-child+.bcv{border-top:0}
-.bck{align-self:start;justify-self:start;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ac,#ff6a13);
- border:1.5px solid currentColor;border-radius:6px;padding:0 6px!important;margin-top:3px;line-height:1.45;min-width:1.6em;text-align:center;white-space:normal}
+.bck{font-weight:800;text-align:left;overflow-wrap:anywhere}
+.bckc{display:inline-block;font-variant-numeric:tabular-nums;color:var(--ac,#ff6a13);border:1.5px solid currentColor;border-radius:6px;padding:0 6px;line-height:1.4;min-width:1.6em;text-align:center}
 .bcv{min-width:0;overflow-wrap:anywhere;text-align:left}
 .bcv.bcw{grid-column:1/-1}
 .bcl,.bct{display:block;text-align:left}
@@ -20,8 +21,9 @@ const st=document.createElement("style");st.textContent=`
 document.head.appendChild(st);
 
 const NO="svg,button,textarea,input,select,script,style,code,pre,header,nav,#nav,#navtab,[contenteditable=true],.bcol,.bcl,.bct,[data-nocol]";
+/* zonas con instrucciones: guía de campo, actuaciones, análisis, lupa, SOS, Resolución IA, croquis y hoja imprimible */
+const ZONA=".gst,.gblq,.anal,.anaw,.anap,.anass,.gav,.sia,.srtx,.puac,.elusd,.elh,.gfix,.gsub,.gres,.grec,.gpaso,[class*=lpa],.rcOl,.rcUl,.rcT,.rcSum,.rcSt,.cxmed,.cxrec,#infov .indoc,.gelem";
 const BLOQUE=/^(DIV|P|LI|TD|DD|UL|OL|TABLE|DETAILS|SUMMARY|SECTION|H\d|BR|HR|LABEL|FIGURE)$/;
-const PRUEBA=/ = [^·]*·[^=]* = [^·]*·[^=]* = /;
 
 /* posiciones de « · » y del primer «: » fuera de paréntesis */
 function corta(s){const sep=[];let d=0,dosp=-1;
@@ -29,34 +31,37 @@ function corta(s){const sep=[];let d=0,dosp=-1;
   if(c=="("||c=="["||c=="«")d++;else if((c==")"||c=="]"||c=="»")&&d>0)d--;
   else if(d==0){if(c=="·"&&s[i-1]==" "&&s[i+1]==" ")sep.push(i-1);else if(c==":"&&dosp<0&&/\s/.test(s[i+1]||""))dosp=i}}
  return {sep,dosp}}
-const CLAVE=/^\s*([^=·]{1,42}?)\s=\s+/;
+/* clave de cada fila: «CLAVE = …», «CLAVE: …» o borna numerada «1 …» / «E-X62:3 …» */
+const CL_EQ=/^\s*([^=·]{1,60}?)\s=\s+/;
+const CL_DP=/^\s*([A-ZÁÉÍÓÚÑ0-9+][^:=·()]{0,28}?):\s+/;
+const CL_NUM=/^\s*((?:\d{1,3}(?:[-–\/.]\d{1,3})?)|(?:[+]?[A-Z]{1,5}\d?-[A-Z]{1,3}\d+(?:\.\d+)?:\d{1,3}(?:[-–\/]\d{1,3})?))\s+(?=\S)/;
 /* final de la última fila: primera frase nueva fuera de paréntesis («…). En 504/508 …») */
 function finFila(s,ini){let d=0;
  for(let i=ini;i<s.length-2;i++){const c=s[i];
   if(c=="("||c=="["||c=="«")d++;else if((c==")"||c=="]"||c=="»")&&d>0)d--;
-  else if(d==0&&c=="."&&s[i+1]==" "&&/[A-ZÁÉÍÓÚÑ¿0-9]/.test(s[i+2])){
+  else if(d==0&&c=="."&&s[i+1]==" "&&/[A-ZÁÉÍÓÚÑ¿]/.test(s[i+2])){
    const w=(s.slice(Math.max(0,i-6),i).match(/(\S+)$/)||[""])[0];
-   if(/^(rev|pág|pag|nº|aprox|fig|cond|izq|dcha|dch|izqda|aprox|máx|mín|ej|p)$/i.test(w))continue;
+   if(/^(rev|pág|pag|nº|aprox|fig|cond|izq|dcha|dch|izqda|máx|mín|ej|p|sr)$/i.test(w))continue;
    return i+1}}
  return s.length}
-
-function analiza(s){if(!PRUEBA.test(s))return null;
- const {sep,dosp}=corta(s);
- const ini=dosp>=0?dosp+1:0;
- const cortes=[ini,...sep.filter(p=>p>ini)];
- const filas=[];
- for(let k=0;k<cortes.length;k++){
-  let a=cortes[k]+(k?3:0);const b=k+1<cortes.length?cortes[k+1]:s.length;
-  while(a<b&&/\s/.test(s[a]))a++;
-  const t=s.slice(a,b);const m=t.match(CLAVE);
-  filas.push({a,b,k:m?[a+t.indexOf(m[1]),a+t.indexOf(m[1])+m[1].length]:null,v:m?a+m[0].length:a})}
- const con=filas.filter(f=>f.k).length;
- if(con<3||con<filas.length*0.7)return null;
- if(!filas[0].k&&dosp<0)return null;
- /* texto que sigue a la última fila */
+function analiza(s){s=String(s||"");if(s.length<20||(s.match(/ · /g)||[]).length<2)return null;
+ const {sep,dosp}=corta(s);if(sep.length<2)return null;
+ const ini=dosp>=0&&dosp<sep[0]+400?dosp+1:0;
+ const cortes=[ini,...sep.filter(p=>p>ini)];if(cortes.length<3)return null;
+ const tr=[];
+ for(let k=0;k<cortes.length;k++){let a=cortes[k]+(k?3:0);const b=k+1<cortes.length?cortes[k+1]:s.length;while(a<b&&/\s/.test(s[a]))a++;tr.push([a,b])}
+ const prueba=re=>tr.map(([a,b])=>{const t=s.slice(a,b);const m=t.match(re);if(!m)return null;const i=a+t.indexOf(m[1]);return {k:[i,i+m[1].length],v:a+m[0].length}});
+ let mejor=null;
+ for(const [re,min] of [[CL_EQ,0.7],[CL_DP,0.7],[CL_NUM,1]]){const r=prueba(re);
+  /* en las bornas numeradas sin «=» todas las filas deben empezar por la borna (la última puede llevar texto detrás) */
+  const n=r.filter(Boolean).length;if(n>=3&&n>=tr.length*min){mejor=r;break}}
+ if(!mejor)return null;
+ if(!mejor[0]&&dosp<0)return null;
+ const filas=tr.map(([a,b],i)=>mejor[i]?{a,b,k:mejor[i].k,v:mejor[i].v}:{a,b,k:null,v:a});
  const u=filas[filas.length-1];let fin=s.length;
  if(u.k){fin=finFila(s,u.v);u.b=fin}
  return {lead:[0,ini],filas,tail:[fin,s.length]}}
+const PRUEBA={test:t=>(t.match(/ · /g)||[]).length>=2};
 
 /* texto inline inicial del elemento (hasta un <br> o un bloque) */
 function tramo(el){const ns=[];
@@ -81,8 +86,9 @@ function procesa(el){if(el.dataset.bcol)return;
  el.dataset.bcol="1";
  const lead=document.createElement("span");lead.className="bcl";const fl=trozo(tx,r.lead[0],r.lead[1]);if(fl)lead.append(limpia(fl));
  const g=document.createElement("span");g.className="bcol";
+ const chip=r.filas.every(f=>!f.k||f.k[1]-f.k[0]<=10);
  r.filas.forEach(f=>{
-  if(f.k){const k=document.createElement("span");k.className="bck";k.append(trozo(tx,f.k[0],f.k[1])||"");
+  if(f.k){const k=document.createElement("span");k.className="bck";const kc=trozo(tx,f.k[0],f.k[1]);if(chip){const c=document.createElement("span");c.className="bckc";if(kc)c.append(kc);k.append(c)}else if(kc)k.append(kc);
    const v=document.createElement("span");v.className="bcv";const fv=trozo(tx,f.v,f.b);if(fv)v.append(limpia(fv));g.append(k,v)}
   else{const v=document.createElement("span");v.className="bcv bcw";const fv=trozo(tx,f.a,f.b);if(fv)v.append(limpia(fv));g.append(v)}});
  const frag=document.createDocumentFragment();
@@ -91,7 +97,7 @@ function procesa(el){if(el.dataset.bcol)return;
  el.insertBefore(frag,ns[0]);ns.forEach(n=>n.remove())}
 
 function candidatos(root){const out=[];if(!root||root.nodeType!=1)return out;
- const mira=e=>{if(e.dataset&&e.dataset.bcol)return;if(e.closest(NO))return;const t=e.textContent;if(t.length<40||!PRUEBA.test(t))return;out.push(e)};
+ const mira=e=>{if(e.dataset&&e.dataset.bcol)return;if(e.closest(NO)||!e.closest(ZONA))return;const t=e.textContent;if(t.length<40||!PRUEBA.test(t))return;out.push(e)};
  mira(root);root.querySelectorAll("span,div,p,li,td,dd,label,small,summary").forEach(e=>{if(PRUEBA.test(e.textContent))mira(e)});
  /* el más interior que contiene la lista en su texto inline */
  return out.filter(e=>!out.some(o=>o!==e&&e.contains(o)&&PRUEBA.test(o.textContent)&&o.textContent.length>=e.textContent.length*0.5))}
@@ -107,4 +113,47 @@ new MutationObserver(ms=>{for(const m of ms){const t=m.type=="characterData"?m.t
 function inicio(){corre(document.body)}
 if(document.readyState!="loading")inicio();else document.addEventListener("DOMContentLoaded",inicio);
 window.bcolAnaliza=analiza;
+
+/* ===== PDF (jsPDF): las mismas listas en dos columnas =====
+   Se envuelve cada documento nuevo: splitTextToSize() devuelve las filas marcadas (borna | texto) y text() las pinta
+   en dos columnas, la borna a la izquierda y el texto a la derecha, con las líneas que siguen sangradas bajo el texto.
+   El número de líneas es el real, así que los cálculos de alto de cada PDF siguen valiendo. */
+const M1="\u0001",M2="\u0002",M3="\u0003";
+function parteL(l){const i=l.indexOf(M3),j=l.indexOf(M2);return {kw:parseFloat(l.slice(1,i))||0,k:l.slice(i+1,j),v:l.slice(j+1)}}
+const sinM=l=>typeof l=="string"&&l.charAt(0)==M1?(p=>(p.k?p.k+"  ":"")+p.v)(parteL(l)):l;
+function envuelvePdf(d){if(!d||d.__bcol)return d;d.__bcol=1;
+ const oS=d.splitTextToSize,oT=d.text,oW=d.getTextWidth;
+ const split=(t,w,o)=>oS.call(d,t,w,o);
+ d.splitTextToSize=function(t,w,o){try{
+   if(typeof t!="string"||!(w>30))return split(t,w,o);
+   const r=analiza(t);if(!r)return split(t,w,o);
+   const out=[],sl=(a,b)=>t.slice(a,b).replace(/^[\s·]+|[\s·]+$/g,"");
+   const lead=sl(r.lead[0],r.lead[1]);if(lead)out.push(...split(lead,w,o));
+   const ks=r.filas.filter(f=>f.k).map(f=>sl(f.k[0],f.k[1]));
+   const kw=Math.min(Math.max(...ks.map(k=>oW.call(d,k)))+2.5,w*0.42);
+   r.filas.forEach(f=>{
+    if(!f.k){split(sl(f.a,f.b),w,o).forEach(l=>out.push(l));return}
+    const kl=split(sl(f.k[0],f.k[1]),kw-1.5,o),vl=split(sl(f.v,f.b)||" ",w-kw,o);
+    for(let i=0;i<Math.max(kl.length,vl.length);i++)out.push(M1+kw.toFixed(2)+M3+(kl[i]||"")+M2+(vl[i]||""))});
+   const tl=sl(r.tail[0],r.tail[1]);if(tl)out.push(...split(tl,w,o));
+   return out}catch(e){return split(t,w,o)}};
+ d.getTextWidth=function(t){if(typeof t=="string"&&t.charAt(0)==M1){const p=parteL(t);return p.kw+oW.call(d,p.v)}return oW.apply(d,arguments)};
+ d.text=function(t,x,y,o,tr){try{
+   if(typeof t=="string"&&o&&o.maxWidth&&analiza(t)){const oo=Object.assign({},o);delete oo.maxWidth;return d.text(d.splitTextToSize(t,o.maxWidth),x,y,oo,tr)}
+   const arr=Array.isArray(t)?t:[t];
+   if(!arr.some(l=>typeof l=="string"&&l.charAt(0)==M1))return oT.apply(d,arguments);
+   if(o&&(o.align&&o.align!="left"||o.angle)||typeof x!="number")return oT.call(d,arr.map(sinM),x,y,o,tr);
+   const lh=d.getFontSize()*(d.getLineHeightFactor?d.getLineHeightFactor():1.15)/d.internal.scaleFactor;
+   arr.forEach((l,i)=>{const yy=y+i*lh;
+    if(typeof l=="string"&&l.charAt(0)==M1){const p=parteL(l);if(p.k){const f=d.getFont();d.setFont(f.fontName,"bold");oT.call(d,p.k,x,yy,o,tr);d.setFont(f.fontName,f.fontStyle)}if(p.v)oT.call(d,p.v,x+p.kw,yy,o,tr)}
+    else oT.call(d,l,x,yy,o,tr)});
+   return d}catch(e){return oT.call(d,(Array.isArray(t)?t:[t]).map(sinM),x,y,o,tr)}};
+ return d}
+function envuelveLib(){const L=window.jspdf;if(!L||!L.jsPDF||L.jsPDF.__bcol)return;const O=L.jsPDF;
+ const W=function(...a){return envuelvePdf(new O(...a))};Object.setPrototypeOf(W,O);W.prototype=O.prototype;W.API=O.API;W.__bcol=1;
+ try{L.jsPDF=W}catch(e){}}
+function engancha(){if(typeof window.cargaJsPDF!="function"||window.cargaJsPDF.__bcol)return;const o=window.cargaJsPDF;
+ const n=function(){return Promise.resolve(o.apply(this,arguments)).then(r=>{envuelveLib();return r})};n.__bcol=1;window.cargaJsPDF=n}
+engancha();envuelveLib();if(document.readyState=="loading")document.addEventListener("DOMContentLoaded",()=>{engancha();envuelveLib()});
+window.bcolPdf=envuelvePdf;
 })();
