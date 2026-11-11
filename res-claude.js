@@ -95,7 +95,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
   return `<details class="rcBox" ${ab.has(i.id)?"open":""} ontoggle="rcTog('${i.id}',this.open)" onclick="event.stopPropagation()">
   <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>Resolución Claude AI</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}${/Gemini/i.test(r.por||"")?" · generada por Gemini (reserva)":""}</small></span><button class="rcPdf" title="PDF A4 de la resolución" aria-label="PDF A4 de la resolución" onclick="event.preventDefault();event.stopPropagation();rcPdf('${i.id}')">PDF</button><span class="rcChev">▾</span></summary>
   <div class="rcBody">${typeof rcAviso=="function"?rcAviso(i):""}${typeof pdfHTML=="function"?pdfHTML(i.id):""}${md(r.txt,i.id)}
-  <div class="rcFoot"><span>Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar en campo.</span>${ed?`<button class="sec rcDel" title="Borrar resolución Claude" aria-label="Borrar resolución Claude" onclick="event.stopPropagation();rcBorra('${i.id}')">🗑</button>`:""}</div></div></details>`}
+  <div class="rcFoot"><span>Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar en campo.</span><span class="rcBts"><button class="sec rcDel rcWAr" title="Enviar Resolución Claude AI por WhatsApp" aria-label="Enviar Resolución Claude AI por WhatsApp" onclick="event.stopPropagation();rcWAres('${i.id}')">${WAI}</button>${ed?`<button class="sec rcDel" title="Borrar resolución Claude" aria-label="Borrar resolución Claude" onclick="event.stopPropagation();rcBorra('${i.id}')">🗑</button>`:""}</span></div></div></details>`}
  window.rcBorra=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(!confirm(`¿Borrar la resolución Claude de la OT ${i.orden}?`))return;delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Resolución Claude borrada")};
  /* Ficha de OT: la zona va antes de la fila de botones */
  const oc=card;card=function(i){const h=oc.apply(this,arguments);const b=i&&bloque(i);if(!b)return h;
@@ -130,6 +130,13 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
    try{if(navigator.share){await navigator.share({text:tx});return}}catch(e){if(e&&e.name=="AbortError")return}
    msg("No se ha podido abrir WhatsApp: el texto está copiado, pégalo en el chat")},1600)}
  window.waAbre=waAbre;
+ /* v420: botón WhatsApp junto a la papelera de la Resolución Claude AI: envía la resolución completa (formato WhatsApp) */
+ const waFmt=t=>String(t||"").replace(/\r/g,"").split("\n").map(l=>{const h=l.match(/^\s*#{1,6}\s+(.*)$/);if(h)return "*"+h[1].replace(/\*\*/g,"").trim().toUpperCase()+"*";
+  return l.replace(/^\s*[-*]\s+/,"• ").replace(/\*\*(.+?)\*\*/g,"*$1*").replace(/`([^`]+)`/g,"$1")}).join("\n").replace(/\n{3,}/g,"\n\n").trim();
+ window.rcWAres=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;
+  const tx=`*PBB ${i.pos} · ${i.tipo} · OT ${i.orden}*${i.desc?"\n"+i.desc:""}\n\n*Resolución Claude AI*\n${waFmt(i.resClaude.txt)}`;
+  try{navigator.clipboard&&navigator.clipboard.writeText(tx).catch(()=>{})}catch(e){}
+  waAbre(tx)};
  const WAI=`<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.3 14.7L2.3 21.8l5-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.7-.3z"/></svg>`;
  const ow=card;card=function(i){const h=ow.apply(this,arguments);if(!i||!i.resClaude||!(i.resClaude.txt||"").trim())return h;
   const b=`<button class="sec gwr gwa" title="Enviar primera actuación por WhatsApp" aria-label="Enviar primera actuación por WhatsApp" onclick="event.stopPropagation();rcWA('${i.id}')">${WAI}</button>`;
@@ -315,6 +322,7 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 .rcHr{border:0;border-top:1px solid rgba(127,127,127,.3);margin:10px 0}
 .rcFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:7px;border-top:1px solid rgba(127,127,127,.25);font-size:11px;opacity:.85}
 .rcDel{padding:4px 10px;margin:0}
+.rcBts{display:flex;gap:6px;flex:0 0 auto}.rcWAr{color:#25D366;display:inline-flex;align-items:center}
 .cacts .gwa{order:-1}.gwa{color:#1fa855!important;border-color:#25d366!important}.gwa svg{width:22px!important;height:22px!important}
 .rcEd{margin-top:10px}
 .rcAv{margin:8px 0 10px;padding:9px 10px;border:2px solid #e65100;border-radius:10px;background:rgba(230,81,0,.10);font-size:13.5px;font-weight:600}
