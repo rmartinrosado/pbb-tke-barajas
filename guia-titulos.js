@@ -5,7 +5,7 @@
  icono · título (con «…» si no cabe) · contador compacto a la derecha · ▾. El título completo sale al dejar el dedo encima. */
 (function(){
 "use strict";
-const S="#app details:is(.gd,.ggrp,.anap,.otrel)";
+const S=":is(#app,.insov) details:is(.gd,.ggrp,.anap,.otrel)";
 const css=document.createElement("style");css.textContent=`
 ${S}>summary{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:8px!important;list-style:none;cursor:pointer;min-height:38px;padding:2px 0!important;font-family:inherit!important}
 ${S}>summary::-webkit-details-marker{display:none}
