@@ -1,4 +1,4 @@
-/* ===== v426: SOS y lupa en UNA sola pantalla · «Funcionó / No funcionó» · SOS de 400 Hz y A/A · posición en la búsqueda ·
+/* ===== v426-v427 (v427: croquis del módulo del puente en el bloque 1; «Funcionó» pliega el resto y pasa a reparar; casos parecidos, borneros y croquis de medidas plegados; análisis profundo parpadeando): SOS y lupa en UNA sola pantalla · «Funcionó / No funcionó» · SOS de 400 Hz y A/A · posición en la búsqueda ·
    aprendizaje de lo que resolvió · dictado por voz =====
    1. El botón SOS y la lupa del Panel de control abren la misma pantalla: posición + descripción en campo (+ alarma o foto).
       «Ver primera actuación» da, en este orden:
@@ -81,10 +81,15 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
  let b1=res.innerHTML;
  if(T!="PAS")b1=`<div class="mu" style="margin:10px 0 6px"><b>${pos?"Posición "+E(pos)+" · ":""}${E(QK[T].n)}</b> · según la descripción en campo</div>${qkHTML(T,ob+" "+al)}`+((res.querySelector("#sr_cas")||{}).outerHTML||"<div id=\"sr_cas\"></div>")+((res.querySelector("details.srtx")||{}).outerHTML||"");
  else if(REM)b1=`<div class="gav" style="margin-top:10px">La posición ${E(pos)} es REMOTA (sin pasarela): no hay actuación de pasarela. Indica el sistema en la descripción (400 Hz, aire acondicionado…).</div>`;
+ /* v427: si hay puente provisional, croquis del módulo afectado al principio del bloque 1 */
+ let cro="";if(T=="PAS"&&!REM&&typeof window._croqLista=="function"&&typeof croquisPuente=="function"){try{
+  const mk=(d,f)=>({id:"sosc_"+pos,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:f||"",com:"",obs:"",orden:"SOS",fecha:""});
+  let L=ob?_croqLista(mk(ob,"")):[];if(!L.length)L=_croqLista(mk(ob||al,ob?al:""));
+  if(L.length)cro=`<div class="card gcroq ubcro"><div class="gcrh">🔌 Croquis del puente provisional · módulo ${E([...new Set(L.map(o=>o.mod))].join(" / "))}${L.length>1?` · ${L.length} posibles (desliza)`:""}</div><div class="gcrs">${L.map(o=>`<div class="gcri">${croquisPuente(o,5)}</div>`).join("")}</div></div>`}catch(e){}}
  const ap=parecidos(ob||al,T);
  const apH=ap.length?`<div class="apr"><div class="aprh">⭐ Lo que resolvió avisos parecidos</div>${ap.slice(0,3).map(x=>`<div class="apri"><b>${x.n}×</b> ${E(x.t)}${x.pos.size?` <small>(PBB ${E([...x.pos].slice(0,4).join(", "))})</small>`:""}</div>`).join("")}</div>`:"";
- res.innerHTML=`${apH}<div class="ubh ub1">🚨 1 · SACAR EN SERVICIO YA</div><div class="ubb">${b1}</div>
-  <div class="ubh ub2">🔧 2 · REPARAR · actuación más eficaz</div><div class="ubb"><div id="lp_res"><div class="mu">Buscando la actuación más eficaz…</div></div></div>
+ res.innerHTML=`${apH}<div class="ubh ub1">🚨 1 · SACAR EN SERVICIO YA</div><div class="ubb ubb1">${cro}${b1}</div>
+  <div class="ubh ub2">🔧 2 · REPARAR · actuación más eficaz</div><div class="ubb ubb2"><div id="lp_res"><div class="mu">Buscando la actuación más eficaz…</div></div></div>
   <div class="ubh ub3">🤖 3 · ANÁLISIS PROFUNDO</div><div class="ubb"><button class="sec srobok ub3b" onclick="sosObClaude()"><span><b>Analizar con Claude</b> · paso a paso con medidas</span><img src="claude-logo.png" alt="Claude"></button></div>`;
  /* bloque 2: la lupa con la descripción (y la alarma como complemento) y la posición */
  window.__lupaEnSOS=1;try{lupaBusca([ob,al].filter(Boolean).join(" · "),pos)}catch(e){const r=document.getElementById("lp_res");if(r)r.innerHTML=`<div class="gav">No se ha podido buscar la actuación más eficaz.</div>`}
@@ -97,7 +102,17 @@ const oC=window.closeSheet;if(typeof oC=="function")window.closeSheet=function()
 /* ---------- 2 · Funcionó / No funcionó en cada paso ---------- */
 const FB=`<div class="fbw"><button type="button" class="fbok">✅ Funcionó</button><button type="button" class="fbno">❌ No funcionó</button></div>`;
 const pasoTxt=el=>{const c=el.cloneNode(true);c.querySelectorAll(".fbw,.fbst,.apb,details,svg,.cxd").forEach(x=>x.remove());return c.textContent.replace(/\s+/g," ").trim()};
-function decora(){const res=document.getElementById("sr_res");if(!res||!CTX)return;
+/* v427: casos parecidos, borneros del sistema y croquis de medidas plegados */
+function pliega(res){
+ res.querySelectorAll("#lp_res .lbwrap:not([data-pl])").forEach(w=>{w.dataset.pl="1";const d=document.createElement("details");d.className="ubfold";
+  const n=w.querySelectorAll(".lbx").length;d.innerHTML=`<summary>🔌 Borneros del sistema · croquis y medidas${n?` (${n})`:""}</summary>`;
+  [...w.childNodes].forEach(c=>{if(!(c.classList&&c.classList.contains("anal")))d.appendChild(c);else c.remove()});w.appendChild(d)});
+ res.querySelectorAll("details.cxd[open], details.lbm[open]").forEach(d=>{if(!d.dataset.pl){d.dataset.pl="1";d.open=false}});
+ ["sr_cas","lp_cas"].forEach(id=>{const c=document.getElementById(id);if(!c||!c.closest("#sr_res"))return;if(id=="lp_cas"&&document.getElementById("sr_cas")){c.style.display="none";return}
+  if(!c.innerHTML.trim()||c.querySelector(":scope>details.ubcas"))return;const n=c.querySelectorAll(".card,li,.caso,.cpar").length;
+  const d=document.createElement("details");d.className="ubfold ubcas";d.innerHTML=`<summary>📚 Casos parecidos${n?` (${n})`:""}</summary>`;[...c.childNodes].forEach(x=>d.appendChild(x));c.appendChild(d)})}
+new MutationObserver(()=>{const r=document.getElementById("sr_res");if(r&&CTX)try{pliega(r)}catch(e){}}).observe(document.body,{childList:true,subtree:true});
+function decora(){const res=document.getElementById("sr_res");if(!res||!CTX)return;try{pliega(res)}catch(e){}
  const ap=new Map(parecidos(CTX.ob||CTX.al,CTX.T).map(x=>[x.k,x]));
  res.querySelectorAll(".pucard .puac, .lpaef .lpap").forEach(el=>{if(el.dataset.fb)return;el.dataset.fb="1";
   const t=pasoTxt(el);if(t.length<12||/^(⛔|no se puentean)/i.test(t))return;const tg=el.matches(".lpap")&&el.querySelector(":scope>span")||el;tg.insertAdjacentHTML("beforeend",FB);
@@ -109,7 +124,17 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
   const all=[...document.querySelectorAll("#sr_res .puac[data-fb], #sr_res .lpap[data-fb]")].filter(x=>x.querySelector(".fbw"));const k=all.indexOf(el);
   document.querySelectorAll("#sr_res .fbnext").forEach(x=>x.classList.remove("fbnext"));
   const nx=all.slice(k+1).find(x=>!x.classList.contains("fbx"));if(nx){nx.classList.add("fbnext");nx.scrollIntoView({block:"center",behavior:"smooth"})}else msg("No quedan más pasos: usa el análisis profundo con Claude (bloque 3)");return}
- registra(t,el);el.classList.add("fbsi");el.classList.remove("fbx","fbnext")},true);
+ registra(t,el);el.classList.add("fbsi");el.classList.remove("fbx","fbnext");
+ /* v427: funcionó en la primera actuación → el resto se pliega y se pasa a REPARAR (bloque 2) */
+ const b1=el.closest(".ubb1");if(b1&&!b1.querySelector(":scope>details.ubresto")){const ok=document.createElement("div");ok.className="ubok";
+  ok.dataset.nonm="1";ok.innerHTML=`<div class="ubokh">✅ Pasarela recuperada con:</div>`;const cl=el.cloneNode(true);cl.querySelectorAll(".fbw").forEach(x=>x.remove());ok.appendChild(cl);
+  const d=document.createElement("details");d.className="ubfold ubresto";d.innerHTML="<summary>Ver el resto de la primera actuación</summary>";
+  [...b1.childNodes].forEach(x=>d.appendChild(x));b1.appendChild(ok);b1.appendChild(d);
+  /* bloque 2 centrado en REPARAR: los pasos de recuperación (puente, bypass, liberar, reset…) ya hechos se pliegan */
+  const lp=document.querySelector("#sr_res .ubb2 .lpaef");if(lp&&!lp.querySelector(".ubrec")){const REC=/puente provisional|\bbypass\b|cp-s33|liberar|liberarlo|recuperar la pasarela|lado contrario|sacar la cabina|resetear|reset de pasarela|cp-s16|remoto a local|quitar el puente/i;
+   const ps=[...lp.querySelectorAll(":scope>.lpap")].filter(x=>REC.test(pasoTxt(x)));if(ps.length){const d=document.createElement("details");d.className="ubfold ubrec";
+    d.innerHTML=`<summary>Pasos de recuperación ya hechos (${ps.length})</summary>`;ps[0].parentNode.insertBefore(d,ps[0]);ps.forEach(x=>d.appendChild(x))}}
+  const h2=document.querySelector("#sr_res .ub2");if(h2){h2.classList.add("ubgo");h2.textContent="🔧 2 · AHORA: REPARAR el elemento afectado";setTimeout(()=>h2.scrollIntoView({block:"start",behavior:"smooth"}),150)}}},true);
 function registra(t,el){const C=CTX||{};const hh=new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
  const src=el.closest(".lpaef")?"actuación más eficaz":"primera actuación";
  const rec={k:clave(t),t:t.replace(/^\d+[.)]\s*/,"").slice(0,300),desc:C.ob||C.al||"",al:C.al||"",src,ts:Date.now()};
@@ -133,6 +158,11 @@ if(SR)new MutationObserver(()=>{micEn(document.getElementById("sr_ob"));micEn(do
 const st=document.createElement("style");st.textContent=`
 .ubh{margin:14px 0 6px;padding:8px 10px;border-radius:9px;font-weight:800;font-size:13.5px;letter-spacing:.4px;color:#fff}
 .ub1{background:#c62828}.ub2{background:#ef6c00}.ub3{background:#5b3fa0}.ubb{padding:0 2px}
+.ubfold{margin:8px 0;border:1px solid var(--bd,#555);border-radius:10px;padding:6px 8px}.ubfold>summary{cursor:pointer;font-weight:700;font-size:13px}
+.ubok{margin:6px 0;padding:8px;border:2px solid #2e7d32;border-radius:10px;background:rgba(46,125,50,.10)}.ubokh{font-weight:800;color:#2e7d32;font-size:13px;margin-bottom:4px}
+.ubgo{animation:ubgo 1s ease-in-out 4}@keyframes ubgo{50%{filter:brightness(1.4);transform:scale(1.02)}}
+@keyframes ub3p{0%,100%{box-shadow:0 0 0 0 rgba(124,77,255,.9);opacity:1}50%{box-shadow:0 0 0 7px rgba(124,77,255,0);opacity:.6}}
+.ub3b{animation:ub3p 1.2s ease-in-out infinite}.ub3{animation:ub3p 1.2s ease-in-out infinite}
 .ub3b{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px!important}.ub3b img{height:26px;border-radius:6px;background:#fff;padding:2px}
 .fbw{display:flex;gap:6px;margin:6px 0 2px;flex-wrap:wrap}.fbw button{flex:1;min-width:110px;padding:7px 8px;margin:0;font-size:13px;font-weight:700;border-radius:8px;border:1.5px solid}
 .fbok{background:rgba(46,125,50,.12)!important;border-color:#2e7d32!important;color:#2e7d32!important}.fbno{background:rgba(198,40,40,.10)!important;border-color:#c62828!important;color:#c62828!important}
