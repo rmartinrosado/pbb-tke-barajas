@@ -53,10 +53,10 @@
  /* --- posición (debajo del «+») y visibilidad --- */
  const coloca=()=>{const f=document.getElementById("fab");let x,y;
   if(f&&f.style.left){x=parseFloat(f.style.left);y=parseFloat(f.style.top)+S+GAP}else{x=innerWidth-S-14;y=innerHeight-S-110+S+GAP}
-  y=Math.min(innerHeight-S-8,y);b.style.left=x+"px";b.style.top=y+"px"};
+  y=Math.min(innerHeight-S-8,y);const L=x+"px",T=y+"px";if(b.style.left!==L)b.style.left=L;if(b.style.top!==T)b.style.top=T};
  const oculto=()=>{try{if(typeof user=="undefined"||!user)return true;if(document.getElementById("splash"))return true;
   const l=document.getElementById("lock");if(l&&l.style.display!="none"&&l.style.display!="")return true;
   const lg=document.getElementById("login");if(lg&&getComputedStyle(lg).display!="none")return true;
   return !hayAlgo()}catch(e){return false}};
- setInterval(()=>{coloca();b.classList.toggle("oc",oculto())},250);coloca();
+ setInterval(()=>{coloca();const o=oculto();if(b.classList.contains("oc")!==o)b.classList.toggle("oc",o)},500);coloca();/* v418: cada 0,5 s y sin tocar nada si no cambia */
 })();

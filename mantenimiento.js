@@ -329,9 +329,9 @@ function dashMantCaja(){const pinta=()=>{if(view!="dash")return;const old=docume
    iba a su ritmo, por eso se veía a saltos o fijo. Ahora un único reloj (clase «mbOff» en <html>) apaga y enciende a la vez
    todos los correctivos pendientes: el nº de la posición en las píldoras y en el calendario y el texto «Correctivo». */
 .mchip.mparp b,.mmini.mparp,.mfila:not(.ok):not(.cx) .mcorr{animation:none!important;transition:opacity .15s linear}
-html.mbOff .mchip.mparp b,html.mbOff .mmini.mparp,html.mbOff .mfila:not(.ok):not(.cx) .mcorr{opacity:.12}
+.mchip.mparp b.mbOff,.mmini.mparp.mbOff,.mfila:not(.ok):not(.cx) .mcorr.mbOff{opacity:.12}
 .mcorr{color:#c62828;font-weight:800}
-@media (prefers-reduced-motion:reduce){html.mbOff .mchip.mparp b,html.mbOff .mmini.mparp,html.mbOff .mfila .mcorr{opacity:1}}
+@media (prefers-reduced-motion:reduce){.mbOff{opacity:1!important}}
 .mchip.ok{border-color:#2e9e44;color:#2e9e44;background:color-mix(in srgb,#2e9e44 12%,transparent)}.mchip.g{font-size:15px;padding:5px 11px}
 .mchip.cx{border-color:#9e9e9e;color:#757575;background:color-mix(in srgb,#9e9e9e 12%,transparent);text-decoration:line-through}.mmini.cx{background:#9e9e9e;text-decoration:line-through}
 .mfila.cx{opacity:.85}.mizq{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none;width:86px}.mizq .mchip.g{font-size:13px;padding:4px 8px;max-width:100%;box-sizing:border-box}.mest{font-size:10.5px;color:var(--mu);text-align:center;line-height:1.25;overflow-wrap:anywhere}.mest.ok{color:#2e9e44;font-weight:600}.mest.cx{color:#757575;font-weight:600}
@@ -367,4 +367,6 @@ html.mbOff .mchip.mparp b,html.mbOff .mmini.mparp,html.mbOff .mfila:not(.ok):not
 })();
 /* v302: reloj único del parpadeo de correctivos: 0,8 s encendido · 0,4 s apagado (ciclo de 1,2 s), igual en todas las pantallas */
 (function(){if(window.__mbReloj)return;window.__mbReloj=1;const h=document.documentElement;
- const tic=()=>{const t=Date.now()%1200;h.classList.toggle("mbOff",t>=800);setTimeout(tic,t>=800?1200-t:800-t)};tic()})();
+ /* v418: la clase va SOLO en los elementos que parpadean (en <html> obligaba al móvil a recalcular toda la pantalla 2-3 veces por segundo) */
+ const SEL=".mchip.mparp b,.mmini.mparp,.mfila:not(.ok):not(.cx) .mcorr";
+ const tic=()=>{const t=Date.now()%1200,off=t>=800;if(h.classList.contains("mbOff"))h.classList.remove("mbOff");document.querySelectorAll(SEL).forEach(e=>{if(e.classList.contains("mbOff")!==off)e.classList.toggle("mbOff",off)});setTimeout(tic,off?1200-t:800-t)};tic()})();

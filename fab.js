@@ -51,5 +51,5 @@
  const oculto=()=>{try{if(typeof user=="undefined"||!user)return true;const l=document.getElementById("lock");if(l&&l.style.display!="none"&&l.style.display!="")return true;
   const sh=document.getElementById("sheet");if(sh&&sh.style.display=="flex")return true;if(document.getElementById("splash"))return true;
   if(typeof view!="undefined"&&view=="new")return true;return false}catch(e){return false}};
- setInterval(()=>{const o=oculto();f.classList.toggle("oc",o);if(o)cierra()},300);
+ setInterval(()=>{const o=oculto();if(f.classList.contains("oc")!==o)f.classList.toggle("oc",o);if(o)cierra()},500);
 })();
