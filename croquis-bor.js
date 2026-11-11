@@ -99,13 +99,13 @@ window.croquisPaso=function(txt,fol){const R=refs(txt);const nX=R.o.filter(esX).
   ${faltan.length?`<div class="cxno">${F.rows.length?"Sin":"Los datos cargados no tienen"} el detalle borna a borna de <b>${E(faltan.join(", "))}</b>${fol?` · ver folio ${E(fol)}`:" · ver plano"}. No se dibujan conexiones que no estén en el esquema.</div>`:""}`;
  return {n:F.rows.length,html:body,cols:F.cols}};
 /* ---------- guía de campo: todos los sistemas ---------- */
-function pasos(){document.querySelectorAll("#app details.gd .gst > label.gpaso > span:not([data-cx])").forEach(sp=>{sp.dataset.cx="1";
+function pasos(){document.querySelectorAll("#app details.gd[open] .gst > label.gpaso > span:not([data-cx])").forEach(sp=>{if(sp.closest("details:not([open])"))return;/* v419: solo cajas abiertas */sp.dataset.cx="1";
  const txt=(sp.firstChild&&sp.firstChild.nodeType==3?sp.firstChild.textContent:"")||[...sp.childNodes].filter(n=>!(n.nodeType==1&&n.tagName=="DETAILS")).map(n=>n.textContent).join(" ");
  const gd=sp.closest("details.gd");const fol=gd?((gd.textContent.match(/folios? (\d+(?:\s*[-–]\s*\d+)?)/i)||[])[1]||""):"";
  const C=croquisPaso(txt,fol);if(!C)return;const d=document.createElement("details");d.className="elusd cxd";
  d.innerHTML=`<summary onclick="event.preventDefault();event.stopPropagation();this.parentNode.open=!this.parentNode.open">🔌 Croquis entre borneros${C.n?` · ${C.n} conexión${C.n>1?"es":""} borna a borna`:" · recorrido"}</summary><div class="cxin">${C.html}</div>`;
  d.addEventListener("click",e=>{if(e.target.closest("summary"))return;e.stopPropagation();e.preventDefault()});sp.appendChild(d)})}
-new MutationObserver(()=>{try{pasos()}catch(e){}}).observe(document.body,{childList:true,subtree:true});
+new MutationObserver(()=>{try{pasos()}catch(e){}}).observe(document.body,{childList:true,subtree:true});document.addEventListener("toggle",e=>{if(e.target.open)try{pasos()}catch(x){}},true);
 const st=document.createElement("style");st.textContent=`
 .cxin{margin-top:6px;padding:8px;border:1px solid var(--bd,#d9d2e3);border-radius:10px;background:var(--card)}
 .cxsvg{width:100%;height:auto;display:block;margin:6px 0}

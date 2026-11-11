@@ -37,7 +37,9 @@
   if(z){z.classList.remove("llegfl");void z.offsetWidth;z.classList.add("llegfl");try{z.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}}
   try{navigator.vibrate&&navigator.vibrate(120)}catch(x){}
   if(Date.now()-avisado>1500){avisado=Date.now();try{msg("Marca primero la llegada: «He llegado a la posición»")}catch(x){}}};
- ["click","pointerdown","pointerup","touchstart","touchend","mousedown","dblclick"].forEach(t=>document.addEventListener(t,para,{capture:true,passive:false}));
+ /* v419: touchstart y pointerdown pasivos (no anulan nada): así el desplazamiento con el dedo no espera a este código */
+ ["click","pointerup","touchend","mousedown","dblclick"].forEach(t=>document.addEventListener(t,para,{capture:true,passive:false}));
+ ["pointerdown","touchstart"].forEach(t=>document.addEventListener(t,para,{capture:true,passive:true}));
  /* <details> se abre antes del click en algunos navegadores: se vuelve a cerrar */
  document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.tagName=="DETAILS"&&d.open&&bloqueado(d))d.open=false},true);
  try{if(typeof render=="function")render()}catch(e){}

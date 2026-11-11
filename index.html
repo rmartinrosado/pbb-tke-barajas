@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=418;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=419;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -2769,14 +2769,14 @@ function elHTML(tag,corto){const z=elZona(tag),R=elRutas(tag);
 (function(){const o=anaHTML;anaHTML=function(i,R,dentro){let h=o(i,R,dentro);if(!R||!R.elem||!R.elem.length)return h;
  const k0=h.indexOf('Elementos de campo a revisar</div>');if(k0<0)return h;const k=h.indexOf('<div class="anaw">',k0);if(k<0)return h;const e=h.indexOf("</div>",k+18);if(e<0)return h;
  return h.slice(0,e+6)+`<div class="elus">${R.elem.map(t=>elHTML(t)).join("")}</div>`+h.slice(e+6)}})();
-function elPasos(){if(view!="tec")return;document.querySelectorAll("#app details.gd .gst > label.gpaso > span:not([data-u])").forEach(sp=>{sp.dataset.u="1";
+function elPasos(){if(view!="tec")return;document.querySelectorAll("#app details.gd[open] .gst > label.gpaso > span:not([data-u])").forEach(sp=>{if(sp.closest("details:not([open])"))return;sp.dataset.u="1";
  const tags=[...new Set((sp.textContent.toUpperCase().match(ANA_TAG)||[]).map(t=>t.replace(/'+$/,"")))].filter(t=>elZona(t)).slice(0,6);if(!tags.length)return;
  const d=document.createElement("details");d.className="elusd";
  d.innerHTML=`<summary onclick="event.preventDefault();event.stopPropagation();this.parentNode.open=!this.parentNode.open">📍 Elementos (${tags.length}) · ${tags.map(esc).join(", ")}</summary><div class="elus">${tags.map(t=>elHTML(t,true)).join("")}</div>`;
  d.addEventListener("click",e=>{if(e.target.closest("summary"))return;e.stopPropagation()});sp.appendChild(d)})}
 (function(){const st=document.createElement("style");st.textContent=`.elusd{margin-top:6px}.elusd>summary{cursor:pointer;font-size:12px;font-weight:600;opacity:.8;list-style:none}.elusd>summary::-webkit-details-marker{display:none}.elusd>summary::before{content:"▸ "}.elusd[open]>summary::before{content:"▾ "}`;document.head.appendChild(st)})();
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);elPasos();return r}})();
-new MutationObserver(elPasos).observe(document.body,{childList:true,subtree:true});
+new MutationObserver(elPasos).observe(document.body,{childList:true,subtree:true});document.addEventListener("toggle",e=>{if(e.target.open)try{elPasos()}catch(x){}},true);/* v419 */
 /* ===== v9: AAA · actuación más eficaz (memorizada): cerrar la puerta del carro y ajuste del FC del carro + cierre de puerta ===== */
 GUIA.tipos.AAA.s.unshift({t:"Bloqueo carro A/A · puerta del carro",p:["Cerrar la puerta del carro.","Ajuste del FC del carro + cierre de puerta."],r:"AAA pág. 7, 16 · PBB E-A2 DIN09 (carro A/A)",ef:1});
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r.tipo!="AAA")return r;
@@ -4223,8 +4223,12 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
  const st=document.createElement("style");st.textContent=`html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%}button,a,label,input,select,textarea{touch-action:manipulation}`;document.head.appendChild(st);
  const no=e=>e.preventDefault();
  ["gesturestart","gesturechange","gestureend"].forEach(t=>document.addEventListener(t,no,{passive:false}));
- document.addEventListener("touchmove",e=>{if(e.touches.length>1||(e.scale!==undefined&&e.scale!==1))e.preventDefault()},{passive:false});
- let ult=0;document.addEventListener("touchend",e=>{const t=Date.now();if(t-ult<300&&e.touches.length==0&&!e.target.closest("input,textarea,select,[contenteditable]"))e.preventDefault();ult=t},{passive:false});
+ /* v419: el bloqueo del pellizco solo escucha mientras hay DOS dedos. Antes: un «touchmove» no pasivo en toda la página hacía
+    esperar al desplazamiento en cada movimiento del dedo, y un «touchend» anulaba cualquier toque hecho a menos de 0,3 s del anterior
+    (el segundo botón no respondía y había que volver a pulsar). El doble toque ya no amplía por el touch-action pan-x pan-y. */
+ const dos=e=>{if(e.touches.length>1||(e.scale!==undefined&&e.scale!==1))e.preventDefault()};let dosOn=false;
+ document.addEventListener("touchstart",e=>{if(e.touches.length>1&&!dosOn){dosOn=true;document.addEventListener("touchmove",dos,{passive:false})}},{passive:true});
+ document.addEventListener("touchend",e=>{if(dosOn&&e.touches.length<2){dosOn=false;document.removeEventListener("touchmove",dos,{passive:false})}},{passive:true});
  document.addEventListener("wheel",e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})})();
 /* ===== v170/v171: Seguimiento OT · en la primera línea de la tarjeta, entre el tipo y el estado, una caja del mismo tamaño en los tres colores:
    verde (sin llegada) → cuenta atrás de llegada · amarilla (con llegada) → inicio y llegada · roja (cerrada) → inicio, llegada y cierre.
@@ -4565,7 +4569,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||418;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||419;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5807,7 +5811,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  try{ANA_C={k:"",r:null}}catch(e){}
 })();
 </script>
-<script src="sistemas-guia.js?v=4"></script><script src="freno-cabina.js?v=341"></script><script src="borneros-st.js?v=342"></script><script src="croquis-bor.js?v=342"></script><script src="croquis-pdf.js?v=377"></script><script src="res-claude.js?v=416"></script><script src="sos-ia.js?v=379"></script><script src="recupera.js?v=380"></script><script src="fechas-ot.js?v=345"></script><script src="seg-sub.js?v=387"></script><script src="sigma.js?v=401"></script><script src="fab.js?v=418"></script><script src="atras.js?v=418"></script><script src="llegada-prio.js?v=405"></script><script src="nombres.js?v=406"></script><script src="columnas.js?v=415"></script><script src="analisis-canal.js?v=418"></script>
+<script src="sistemas-guia.js?v=4"></script><script src="freno-cabina.js?v=341"></script><script src="borneros-st.js?v=342"></script><script src="croquis-bor.js?v=419"></script><script src="croquis-pdf.js?v=377"></script><script src="res-claude.js?v=416"></script><script src="sos-ia.js?v=379"></script><script src="recupera.js?v=380"></script><script src="fechas-ot.js?v=345"></script><script src="seg-sub.js?v=387"></script><script src="sigma.js?v=401"></script><script src="fab.js?v=418"></script><script src="atras.js?v=418"></script><script src="llegada-prio.js?v=419"></script><script src="nombres.js?v=419"></script><script src="columnas.js?v=419"></script><script src="analisis-canal.js?v=418"></script>
 <script>
 /* ===== v350: Panel de control · Seguimiento y Claude permutados: Registrar | Claude (fila 1) · Seguimiento | SOS (fila 3) ===== */
 (function(){const P=["html body #app #pfix.p230","html body #app#app.p230"];const R=(sel,css)=>P.map(p=>p+" "+sel).join(",")+"{"+css+"}";

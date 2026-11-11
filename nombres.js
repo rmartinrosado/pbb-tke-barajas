@@ -154,9 +154,12 @@ function procCont(c){const w=document.createTreeWalker(c,NodeFilter.SHOW_TEXT,{a
 /* Solo se revisa lo que cambia (la app refresca cada pocos segundos): contenedores añadidos o modificados */
 const COLA=new Set();let pend=false;
 function encola(n){if(!n)return;const el=n.nodeType==1?n:n.parentElement;if(!el||!el.isConnected)return;
- if(el.classList&&el.classList.contains("elnm"))return;const c=el.closest(SEL);if(c)COLA.add(c);
- if(el.querySelectorAll)el.querySelectorAll(SEL).forEach(x=>COLA.add(x))}
-function corre(){pend=false;const cs=[...COLA];COLA.clear();cs.forEach(c=>{if(c.isConnected)procCont(c)})}
+ if(el.classList&&el.classList.contains("elnm"))return;const c=el.closest(SEL);if(c&&!cerr(c))COLA.add(c);
+ if(el.querySelectorAll)el.querySelectorAll(SEL).forEach(x=>{if(!cerr(x))COLA.add(x)})}
+/* v419: las cajas cerradas se nombran al abrirlas */
+function cerr(e){const d=e.closest("details:not([open])");if(!d)return false;const sm=d.querySelector(":scope>summary");return !(sm&&sm.contains(e))}
+document.addEventListener("toggle",ev=>{const d=ev.target;if(d&&d.open){encola(d);plan()}},true);
+function corre(){pend=false;const cs=[...COLA];COLA.clear();cs.forEach(c=>{if(c.isConnected&&!cerr(c))procCont(c)})}
 function plan(){if(pend)return;pend=true;(window.requestAnimationFrame||setTimeout)(corre)}
 new MutationObserver(ms=>{for(const m of ms){if(m.type=="characterData")encola(m.target);else m.addedNodes.forEach(encola)}if(COLA.size)plan()})
  .observe(document.documentElement,{childList:true,subtree:true,characterData:true});

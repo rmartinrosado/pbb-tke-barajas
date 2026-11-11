@@ -160,8 +160,12 @@ function procesa(el){if(el.dataset.bcol)return;
  /* el texto que sigue puede llevar otra lista */
  if(typeof cola2!="undefined"&&cola2&&(procesa.n=(procesa.n||0)+1)<20){try{procesa(cola2)}finally{procesa.n--}}}
 
+/* v419: solo lo que se ve: lo de dentro de una caja cerrada se procesa al abrirla (antes se hacía todo de golpe y tardaba segundos) */
+function cerrado(e){for(let d=e.closest("details:not([open])");d;d=d.parentElement&&d.parentElement.closest("details:not([open])")){const sm=d.querySelector(":scope>summary");if(!(sm&&sm.contains(e)))return true}return false}
+document.addEventListener("toggle",ev=>{const d=ev.target;if(d&&d.open)setTimeout(()=>{try{corre(d)}catch(x){}},0)},true);
 function candidatos(root){if(!root||root.nodeType!=1)return [];
- const out=[root,...root.querySelectorAll("span,div,p,li,td,dd,small")].filter(e=>!(e.dataset&&e.dataset.bcol)&&PRUEBA.test(e.textContent)&&!e.closest(NO)&&e.closest(ZONA));
+ if(cerrado(root))return [];
+ const out=[root,...root.querySelectorAll("span,div,p,li,td,dd,small")].filter(e=>!(e.dataset&&e.dataset.bcol)&&!cerrado(e)&&PRUEBA.test(e.textContent)&&!e.closest(NO)&&e.closest(ZONA));
  /* de dentro a fuera: si un elemento interior ya tiene la lista, el exterior ya no la ve en su texto inicial */
  return out.reverse()}
 function corre(root){candidatos(root).forEach(e=>{try{procesa(e)}catch(x){}})}
