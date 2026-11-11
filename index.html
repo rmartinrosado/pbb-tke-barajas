@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=430;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=431;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -643,7 +643,7 @@ const GUIA={
 "PRIORIDAD 2 · En cabina, revisar los conectores X1 y X3 de C-H41 (humedad, pines flojos o doblados) y el apriete de EC-W20 en la regleta E-X70 del armario E.",
 "BARRERA DE ROTONDA (evento 294 «Barrera de rotonda activada»): emisores R-B1 / R-B3 y receptores R-B2 / R-B4 → E-A10 módulo 2 LED 1, que debe estar ENCENDIDO FIJO. Test de la barrera desde E-A1 módulo 2 LED 8 ●. Si el evento se activa y desactiva varias veces en pocos segundos: ópticas sucias o desalineadas, soporte flojo, cable dañado o algo que corta el haz en la rotonda. Limpiar ópticas, realinear y comprobar que el LED queda fijo.",
 "CIERRE: rearmar, comprobar en la Magelis que 138 y 140 quedan desactivadas y que la barrera de rotonda no genera eventos, probar la sirena (suena y se confirma) y subir/bajar el portón. Dejar el portón ABAJO antes de cualquier traslación."],r:"RCS pág. 54, 64, 69, 70, 89, 91"},
-   {t:"Bloqueada por equipos de servicio (A/A, 400 Hz, carro)",g:[58, 12, 60, 11],p:["PRIORIDAD 1 · DESBLOQUEO EN EL MÓDULO DEL PLC: con el equipo COMPROBADO parado y recogido, en E-A2 soltar el hilo de la entrada del bloqueo activado (no puentear): máquina A/A borna IN 4.4 · carro A/A borna IN 5.1 · convertidor 400 Hz borna IN 6.1 · 90 % conector borna IN 5.4. Anotarlo en la OT y reponerlo al reparar.","E-A2 en reposo deben estar apagados: bloqueo máquina A/A (DIN08), carro A/A (DIN09), convertidor en servicio (DIN10), 90 % conector (DIN11).","Carro PCAir: final de carrera E-S100.","Seta AO (E-A3 DIN01) / bypass AO (DIN02).","Equipo parado y bloqueo activo → revisar manguera CBTH-X61 ↔ E-X61 y el contacto en el equipo."],r:"pág. 11-12, 58-60"},
+   {t:"Bloqueada por equipos de servicio (A/A, 400 Hz, carro)",g:[58, 12, 60, 11],p:["PRIORIDAD 1 · EN EL EQUIPO: cerrar la puerta del carro A/A (ajuste del FC E-S100), parar la PCA o el 400 Hz y recoger manguera, cable o conector.","PRIORIDAD 2 · DESBLOQUEO EN EL MÓDULO DEL PLC: con el equipo COMPROBADO parado y recogido, en E-A2 soltar el hilo de la entrada del bloqueo activado (no puentear): máquina A/A borna IN 4.4 · carro A/A borna IN 5.1 · convertidor 400 Hz borna IN 6.1 · 90 % conector borna IN 5.4. Anotarlo en la OT y reponerlo al reparar.","E-A2 en reposo deben estar apagados: bloqueo máquina A/A (DIN08), carro A/A (DIN09), convertidor en servicio (DIN10), 90 % conector (DIN11).","Carro PCAir: final de carrera E-S100.","Seta AO (E-A3 DIN01) / bypass AO (DIN02).","Equipo parado y bloqueo activo → revisar manguera CBTH-X61 ↔ E-X61 y el contacto en el equipo."],r:"pág. 11-12, 58-60"},
    {t:"Zapata / bordes / bumpers",g:[45, 41, 92],p:["Zapata C-B4 → Gelbau P-U5 → E-A10 DIN08. Ver LEDs de P-U5 y cable CP-W14.","Bordes ruedas T-B5/T-B6 → E-U5.","Bumpers brazo y cabina C-B27…C-B30 → E-A10 DIN01/02."],r:"pág. 41, 45, 92"},
    {t:"Iluminación, enchufes, caldeos, lunetas",g:[19, 23, 21, 18],p:["Interior: E-Q10 + E-K10 / E-K18. Exterior/cabina: E-Q10.1. Focos: E-Q15.1 + E-K15.","Enchufes sin tensión → diferencial E-Q13 (30 mA): buscar derivación antes de rearmar.","Caldeo: E-Q12 + E-K60, termostato E-B4. Lunetas: E-Q17.1 + E-K17.","Cae todo el monofásico → E-Q150 o E-K0.1."],r:"pág. 18-28"},
    {t:"Cámaras, display, comunicaciones",g:[93, 49, 71],p:["Switch E-V1 (MikroTik PoE) por E-Q18 (6 A 30 mA) → fuente 48 V E-X4.1.","Display CP-A1 a 24 V desde P-X92 / P-X53.","Sin comunicación pupitre ↔ armario → Interbus E-A11 ↔ P-A0 (cable EP-W3)."],r:"pág. 49, 71-72, 93-95"},
@@ -2778,7 +2778,7 @@ function elPasos(){if(view!="tec")return;document.querySelectorAll("#app details
 (function(){const o=render;render=function(){const r=o.apply(this,arguments);elPasos();return r}})();
 new MutationObserver(elPasos).observe(document.body,{childList:true,subtree:true});document.addEventListener("toggle",e=>{if(e.target.open)try{elPasos()}catch(x){}},true);/* v419 */
 /* ===== v9: AAA · actuación más eficaz (memorizada): cerrar la puerta del carro y ajuste del FC del carro + cierre de puerta ===== */
-GUIA.tipos.AAA.s.unshift({t:"Bloqueo carro A/A · puerta del carro",p:["PRIORIDAD 1 · Desbloqueo en el módulo del PLC de la PBB: con el carro COMPROBADO cerrado y recogido, en E-A2 soltar el hilo de la borna IN 5.1 (bloqueo carro A/A, no puentear). Anotarlo en la OT.","Cerrar la puerta del carro.","Ajuste del FC del carro + cierre de puerta (y reponer el hilo de E-A2)."],r:"AAA pág. 7, 16 · PBB E-A2 DIN09 (carro A/A)",ef:1});
+GUIA.tipos.AAA.s.unshift({t:"Bloqueo carro A/A · puerta del carro",p:["Cerrar la puerta del carro.","Ajuste del FC del carro + cierre de puerta.","2ª opción · Desbloqueo en el módulo del PLC de la PBB: con el carro COMPROBADO cerrado y recogido, en E-A2 soltar el hilo de la borna IN 5.1 (bloqueo carro A/A, no puentear). Anotarlo en la OT y reponerlo al reparar."],r:"AAA pág. 7, 16 · PBB E-A2 DIN09 (carro A/A)",ef:1});
 (function(){const o=anaOT;anaOT=function(i){const r=o(i);if(!r||r.tipo!="AAA")return r;
  if(!r.guia.some(g=>g.si==0))r.guia.unshift({si:0,t:GUIA.tipos.AAA.s[0].t,sc:99});else{r.guia.sort((a,b)=>(b.si==0)-(a.si==0))}return r}})();
 /* ===== v10: recorridos de potencia y salidas leídos a mano de ESQUEMA GENERAL rev. J (T87911031210ES rev. D) + localizaciones oficiales (folio 2) ===== */
@@ -4569,7 +4569,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||430;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||431;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5710,7 +5710,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   try{eval(fn+"=window."+fn)}catch(e){}});
 })();
 </script>
-<script src="puente-croquis.js?v=328"></script><script src="guia-titulos.js?v=417"></script><script src="pdf-pellizco.js?v=280"></script>
+<script src="puente-croquis.js?v=431"></script><script src="guia-titulos.js?v=417"></script><script src="pdf-pellizco.js?v=280"></script>
 <script>
 /* ===== v267: CROQUIS DEL PUENTE en la Guía de campo · cuando la OT tiene primera actuación en campo por LÍMITE, entre la caja SOS y la
    de «Primera actuación en campo» se dibuja el bloque exacto del módulo del PLC (colores reales de E-A… / P-A…), con el cable del puente
@@ -5824,4 +5824,4 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 /* ===== v351: SOS · «Aceptar · analizar con Claude» consulta en segundo plano (función consulta-sos) con barra de progreso
    en la misma pantalla del SOS y, al terminar, PDF A4 incrustado para ver, descargar o compartir (sos-ia.js). ===== */
 </script>
-<script src="sos-obs.js?v=426"></script><script src="unifica.js?v=430"></script><script src="antiatrap-lado.js?v=428"></script><script src="sos-ia-fijo.js?v=429"></script></body></html>
+<script src="sos-obs.js?v=426"></script><script src="unifica.js?v=431"></script><script src="antiatrap-lado.js?v=428"></script><script src="sos-ia-fijo.js?v=429"></script></body></html>
