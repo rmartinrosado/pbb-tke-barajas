@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=436;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=437;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -3096,7 +3096,7 @@ function puVa(id){gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(view!="tec
  Las entradas de límite del PLC de seguridad y las salidas de los contactores de seguridad NO se puentean con hilo. ===== */
 const LIM_DEF=[
  {z:"tras",re:/traslac|giro|rueda|bogie|avance|retroce/,it:[["E-A8","5.1","5.2","H-S1","F.C. traslación (safety)"],["E-A3","7.1",null,"H-B3","Límite giro traslación izquierda"],["E-A3","8.1",null,"H-B4","Límite giro traslación derecha"]]},
- {z:"ext",re:/extensi|tunel|telescop|recoger|extender/,it:[["E-A2","4.1",null,"ET-B6","Límite de trabajo extensión / retracción · detector 1 (inductivo)"],["E-A2","3.4",null,"ET-B7","Límite de trabajo extensión / retracción · detector 2 (inductivo)"],["E-A8","6.1","6.2","ET-S1","F.C. extensión túneles (safety)"]]},
+ {z:"ext",re:/extensi|tunel|telescop|recoger|extender|retracc|retrae|recogid/,it:[["E-A2","4.1",null,"ET-B6","Límite de trabajo extensión / retracción · detector 1 (inductivo)"],["E-A2","3.4",null,"ET-B7","Límite de trabajo extensión / retracción · detector 2 (inductivo)"],["E-A8","6.1","6.2","ET-S1","F.C. extensión túneles (safety)"]]},
  {z:"rot",re:/rotonda/,it:[["E-A0","3.4",null,"CO-B1","Límite de trabajo giro rotonda · detector 1 (inductivo)"],["E-A0","4.4",null,"CO-B2","Límite de trabajo giro rotonda · detector 2 (inductivo)"],["E-A8","7.1","7.2","CO-S1","F.C. rotonda (safety)"]]},
  {z:"inc",re:/inclinac|altura|subir|bajar|sube|baja|elevac/,it:[["E-A8","8.1","8.2","IT-S3 / IT-S2","F.C. inclinación inferior / superior (safety)"],["E-A2","2.4",null,"IT-B10","Límite inferior inclinación"],["E-A2","3.1",null,"IT-B11","Límite superior inclinación"]]},
  {z:"cab",re:/cabina/,it:[["P-A6","1.1",null,"C-B2","Límite cabina izquierda"],["P-A6","2.1",null,"C-B1","Límite cabina derecha"]]},
@@ -3494,7 +3494,7 @@ function gCroquisHTML(k,tipo){const C=CROQ[k];if(!C)return"";
   return h};
  const oc=cab;cab=function(){oc();const x=document.querySelector("header small");if(x&&user)x.textContent=user.email+" · "+rol+" · v81"};
 })();
-</script><script src="sistemas.js?v=297"></script><script src="sos.js?v=435"></script><script src="lupa.js?v=436"></script><script src="subel.js?v=424"></script><script src="iconos.js?v=284"></script><script src="sim-brazo.js?v=416"></script><script src="sim-almena.js?v=416"></script><script>
+</script><script src="sistemas.js?v=297"></script><script src="sos.js?v=435"></script><script src="lupa.js?v=437"></script><script src="subel.js?v=424"></script><script src="iconos.js?v=284"></script><script src="sim-brazo.js?v=416"></script><script src="sim-almena.js?v=416"></script><script>
 /* ===== v82: descripción del aviso obligatoria; se pega sola en «Definición de la avería»; el botón Claude abre el proyecto PBB TKE con la conversación ya iniciada ===== */
 function descVacia(campo){const t=$(campo);if(!t)return false;if(t.value.trim())return false;
  msg("La descripción de la incidencia es obligatoria: el campo está vacío");t.style.borderColor="#d33";t.style.boxShadow="0 0 0 2px #d333";t.focus();
@@ -4569,7 +4569,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||436;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||437;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5722,13 +5722,18 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   const deIt=(it,lt)=>{const[id,a,b,el,nom]=it;const M=PLC.find(m=>m.id==id);const m=/^(\d+)\.(\d)/.exec(a);if(!M||!m)return;
    const n=+m[1],c=+m[2],k=Math.ceil(n/2);let b1,b2,k2;
    if(M.t=="SDI"){b1=n+".1";b2=n+".2";k2=sig(id,b2)||"UT"}
-   else{const l=(c==1?1:3)+(n%2?0:1),L=M.m[k-1]&&M.m[k-1][l-1];if(L&&(L[1]==0||lt)){(out.sinPte=out.sinPte||[]).push({id,a,el,nom});return}if(c!=1&&c!=4)return;b1=a;b2=n+"."+(c+1);k2="+24 V"}
+   else{const l=(c==1?1:3)+(n%2?0:1),L=M.m[k-1]&&M.m[k-1][l-1];
+    /* v437: un LÍMITE DE TRABAJO (módulo verde) lleva su croquis igual que el texto de «Puentes provisionales» (segPuente):
+       entrada que se activa al pisar el límite (estado 0) → croquis «soltar y aislar el hilo»; resto → croquis del PUENTE IN → +24 V que libera el límite */
+    if(lt&&(c==1||c==4)){if(L&&L[1]==0){add({mod:id,b1:a,b2:a,k1:sig(id,a)||("IN · "+el),k2:"",d:String(nom),suelta:true});return}
+     b1=a;b2=n+"."+(c+1);add({mod:id,b1,b2,k1:sig(id,b1)||("IN · "+el),k2:"+24 V",d:String(nom)});return}
+    if(L&&(L[1]==0||lt)){(out.sinPte=out.sinPte||[]).push({id,a,el,nom});return}if(c!=1&&c!=4)return;b1=a;b2=n+"."+(c+1);k2="+24 V"}
    add({mod:id,b1,b2,k1:sig(id,b1)||("IN · "+el),k2,d:String(nom).replace(/\s*\(safety\)/i,"")})};
   /* v269: elementos de seguridad activados (bordes, zapata, portón, bumper, barreras, antiatrapamientos…) primero, luego límites */
   if(S&&S.sen)S.sen.forEach(deIt);
   /* v328: límite de trabajo → croquis del módulo verde; final de carrera de seguridad → módulo amarillo (limites.js) */
   const soloNor=!!(S&&S.lim&&S.limT=="nor"&&!S.limMix),soloSeg=!!(S&&S.lim&&S.limT=="seg"&&!S.limMix);
-  if(S&&S.lim){if(S.itSeg&&S.itNor)(soloNor?S.itNor.concat(S.itSeg):S.itSeg.concat(S.itNor)).forEach(it=>deIt(it,1));else S.zs.forEach(z=>z.it.forEach(it=>deIt(it,1)))}/* v434: un límite de trabajo (módulo verde) nunca se puentea */
+  if(S&&S.lim){if(S.itSeg&&S.itNor)(soloNor?S.itNor.concat(S.itSeg):S.itSeg.concat(S.itNor)).forEach(it=>deIt(it,1));else S.zs.forEach(z=>z.it.forEach(it=>deIt(it,1)))}/* v437: límite de trabajo (módulo verde) → croquis del puente en su entrada (v434 lo quitaba) */
   /* puentes de la tabla PUENTE (caja «puente provisional para recuperar la pasarela») */
   try{if(typeof puentesOT=="function")puentesOT(i).forEach(p=>{if(p.suelta||!p.b)return;const bi=/^(\d+\.\d)/.exec(p.b.in||""),bv=/(\d+\.\d)/.exec(p.b.v||"");if(!bi||!bv)return;if(+bv[1].split(".")[1]>4||+bi[1].split(".")[1]>4)return;
    const M=PLC.find(m=>m.id==p.id),sd=M&&M.t=="SDI";if(sd&&soloNor&&!S.cont&&!(S.sen&&S.sen.length))return;if(!sd&&soloSeg&&!(S.sen&&S.sen.length))return;
@@ -5824,4 +5829,4 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 /* ===== v351: SOS · «Aceptar · analizar con Claude» consulta en segundo plano (función consulta-sos) con barra de progreso
    en la misma pantalla del SOS y, al terminar, PDF A4 incrustado para ver, descargar o compartir (sos-ia.js). ===== */
 </script>
-<script src="sos-obs.js?v=426"></script><script src="unifica.js?v=431"></script><script src="antiatrap-lado.js?v=428"></script><script src="sos-ia-fijo.js?v=433"></script><script src="bordes-ruedas.js?v=436"></script></body></html>
+<script src="sos-obs.js?v=426"></script><script src="unifica.js?v=431"></script><script src="antiatrap-lado.js?v=428"></script><script src="sos-ia-fijo.js?v=433"></script><script src="bordes-ruedas.js?v=436"></script><script src="limite-trabajo.js?v=437"></script></body></html>

@@ -49,7 +49,10 @@ window.lupaBusca=function(txt0,pos0){const inp=document.getElementById("lp_t"),r
     /* v436: una caja de LÍMITE solo encabeza si el texto habla de límite / tope / final de carrera (no por «ruedas», «giro»…);
        y con «borde» o «banda» manda la caja de los bordes de seguridad */
     {const nt=norm(s.t);if(/^limite/.test(nt)&&!/limite|tope|final(es)? de carrera|\bfc\b|no traslada|no gira/.test(t))r*=.15;
-     if(/\b(borde|banda)s?\b/.test(t)&&/^bordes de seguridad/.test(nt))r+=8}
+     if(/\b(borde|banda)s?\b/.test(t)&&/^bordes de seguridad/.test(nt))r+=8;
+     /* v437: una caja de un elemento concreto (antiatrapamiento, portón, zapata, bumper…) solo sale si el texto lo nombra
+        (p. ej. «Límite de extensión» ya no trae la caja del antiatrapamiento) */
+     try{if(typeof EL_FAM!="undefined"){const fs=EL_FAM.filter(([re])=>re.test(s.t));if(fs.length&&!fs.some(([,q])=>q.test(t)))r=0}}catch(e){}}
     const pp=(String(s.t).match(/^PBB (\d{3})/)||[])[1];if(pp&&!new RegExp("\\b"+pp+"\\b").test(t))r*=.4}}catch(e){}return{si,r}});
   const mx=Math.max(0,...raw.map(x=>x.r));const nom=bo>=3;S.push({T,G,ot,raw,mx,nom,sc:mx>=1.5?mx+bo:(nom?bo:0)})});
  /* el sistema nombrado en el texto (p. ej. «aire acondicionado», «400 Hz») va por delante */
