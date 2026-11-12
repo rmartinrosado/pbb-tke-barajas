@@ -25,7 +25,7 @@ const o=window.sosRap;if(typeof o!="function")return;
 window.sosRap=function(){const r=o.apply(this,arguments);try{
  const h=document.querySelector("#sheetc .sosrh");if(!h)return r;h.classList.add("sosr2");h.dataset.nocol="1";
  h.innerHTML=`<div class="sosr2t">SOS - ACTUACIÓN RÁPIDA</div>
- <p class="sosr2p">Posición y descripción en campo (el aviso de la OT); la alarma de la Magelis o su foto la complementan. Sale:</p>
+ <p class="sosr2p">Posición y avería en campo (lo que se detecta, el aviso de la OT); la alarma de la Magelis (lista o a mano) y su foto son complementarias y acotan el problema. Sale:</p>
  <ol class="sosr2l"><li>SACAR EN SERVICIO YA</li><li>REPARAR (ACTUACIÓN MÁS EFICAZ)</li><li>ANÁLISIS CON CLAUDE</li></ol>
  <p class="sosr2p">Cualquier sistema: pasarela, 400 Hz, aire acondicionado.</p>`}catch(e){}return r};
 const st=document.createElement("style");st.textContent=`

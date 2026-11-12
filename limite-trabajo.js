@@ -23,7 +23,7 @@ const SI=PAS.s.push({t:T,ef:1,g:[58,58],
 const nrm=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const txt=i=>nrm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
 const RE_AT=/antiatrap|atrapamiento|barrera optica/;
-const esLimER=t=>/limite|tope/.test(t)&&/extensi|extend|retracc|retrae|recog|telescop/.test(t)&&!RE_AT.test(t);
+const esLimER=t=>/limite|tope/.test(t)&&/extensi|extend|retracc|retrae|recog|telescop/.test(t)&&!RE_AT.test(t)&&!/final(es)? de carrera|fin de carrera|\bf\.?c\.?\b|\bfc\b|pisad|linea de seguridad/.test(t);
 window.esLimiteTrabajoER=i=>!!i&&String(i.tipo||"PAS")=="PAS"&&esLimER(txt(i));
 const sinAT=g=>!/antiatrap/i.test((PAS.s[g.si]&&PAS.s[g.si].t)||g.t||"");
 if(typeof anaOT=="function"){const o=anaOT;window.anaOT=anaOT=function(i){const r=o.apply(this,arguments);try{

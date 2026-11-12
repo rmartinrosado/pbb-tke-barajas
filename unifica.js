@@ -44,7 +44,7 @@ const QK={
    "Rearmar DIF ZONA DE MANDO (ID6) tras comprobar la causa del disparo; FGT, F1-F6 y 24 Vdc en la clema 6.",
    "Rearmar DIF ZONA DE FUERZA (ID1-ID5) tras comprobar la causa; IG, relé de fases RCP, FGG1-FGG4, FGVI, FGVE1-FGVE4.",
    "Seta de emergencia desenclavada, selectores MANTENIMIENTO/NORMAL y MANUAL/AUTO; detector de humos DH rearmado en central."]},
-  {re:/ventilador|variador|filtro|condensad/,t:"Ventilador interior / variador / filtro",p:[
+  {re:/ventilador|variador|filtro|condensad|no enfria|enfriar|poco aire|no sale aire|caudal|calor/,t:"Ventilador interior / variador / filtro",p:[
    "Fallo de variador (clemas 28/29): leer el código en el variador Omron y resetear; magnetotérmico FGVI.",
    "Piloto amarillo FILTRO: limpiar o sustituir el filtro; revisar condensados."]}]}};
 /* v430-v431: BLOQUEO de la PBB por un equipo de servicio → 1ª opción en el equipo (cierre del carro…), 2ª desbloqueo en el módulo del PLC (E-A2) */
@@ -66,7 +66,7 @@ function tipoDe(t){t=nrm(t);if(BLQ(t))return "PAS";
  /* la PAS bloqueada por el carro de aire es de la pasarela */
  if(/\b(pas|pbb|pasarela)\b[^.]{0,30}bloquead|bloquead[^.]{0,30}\b(pas|pbb|pasarela)\b/.test(t))return "PAS";
  if(QK.HZ.re.test(t))return "HZ";if(QK.AAA.re.test(t))return "AAA";return "PAS"}
-function qkHTML(T,t){const Q=QK[T];t=nrm(t);let cs=Q.c.filter(c=>c.re.test(t));if(!cs.length)cs=Q.c.slice(0,1);
+function qkHTML(T,t){const Q=QK[T];t=nrm(t);let cs=Q.c.filter(c=>c.re.test(t));/* v438: sin coincidencia no se propone el bloqueo del carro (1ª caja) por defecto */if(!cs.length)cs=T=="AAA"?[]:Q.c.slice(0,1);
  return cs.map(c=>`<div class="card pucard qkc"><div class="pucab">⚡ ${E(Q.n)} · ${E(c.t)}</div>${c.p.map((p,ix)=>`<div class="puac qkp">${ix+1}. ${E(p)}</div>`).join("")}</div>`).join("")}
 
 /* ---------- 4 · aprendizaje: lo que resolvió avisos parecidos ---------- */
