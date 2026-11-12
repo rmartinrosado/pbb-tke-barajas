@@ -46,6 +46,10 @@ window.lupaBusca=function(txt0,pos0){const inp=document.getElementById("lp_t"),r
      const qw=[...new Set(t.split(/[^a-z0-9]+/).filter(w=>w.length>=4&&!VW.test(w)))];r+=qw.reduce((a,w)=>a+(tt.includes(w)?2:tt.some(x=>w.length>=5&&x.startsWith(w.slice(0,6)))?1:0),0);
      /* el síntoma en negativo («no rearma», «no traslada», «no sube»…) igual que en el título pesa más */
      const nt=norm(s.t);(t.match(/\bno [a-z]{4,}/g)||[]).forEach(ng=>{if(nt.includes(ng))r+=4})}
+    /* v436: una caja de LÍMITE solo encabeza si el texto habla de límite / tope / final de carrera (no por «ruedas», «giro»…);
+       y con «borde» o «banda» manda la caja de los bordes de seguridad */
+    {const nt=norm(s.t);if(/^limite/.test(nt)&&!/limite|tope|final(es)? de carrera|\bfc\b|no traslada|no gira/.test(t))r*=.15;
+     if(/\b(borde|banda)s?\b/.test(t)&&/^bordes de seguridad/.test(nt))r+=8}
     const pp=(String(s.t).match(/^PBB (\d{3})/)||[])[1];if(pp&&!new RegExp("\\b"+pp+"\\b").test(t))r*=.4}}catch(e){}return{si,r}});
   const mx=Math.max(0,...raw.map(x=>x.r));const nom=bo>=3;S.push({T,G,ot,raw,mx,nom,sc:mx>=1.5?mx+bo:(nom?bo:0)})});
  /* el sistema nombrado en el texto (p. ej. «aire acondicionado», «400 Hz») va por delante */
