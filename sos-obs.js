@@ -20,7 +20,7 @@ window.sosRap=function(){const r=o.apply(this,arguments);try{
 const st=document.createElement("style");st.textContent=`#sheetc .srvblink{font-size:19px;letter-spacing:.08em;animation:srvbl 1s ease-in-out infinite}
 @keyframes srvbl{50%{opacity:.35}}@media (prefers-reduced-motion:reduce){#sheetc .srvblink{animation:none}}
 /* v438: títulos de las cajas del SOS en verde y algo más grandes */
-#sheetc:has(#sr_ob) label:not(.srfoto),#sheetc:has(#sr_ob) details.srtx>summary{color:#1fa64a!important;font-size:15.5px!important;font-weight:800!important}
+#sheetc:has(#sr_ob) label:not(.srfoto),#sheetc:has(#sr_ob) details.srtx>summary{color:#1fa64a!important;font-size:14px!important;font-weight:800!important}
 #sheetc:has(#sr_ob) label small,#sheetc:has(#sr_ob) details.srtx>summary small{color:inherit;font-weight:700;opacity:.85}
 .srcomp{margin-top:10px;border:1px dashed var(--bd,#888);border-radius:10px;padding:8px}.srcomp>summary{cursor:pointer;font-size:13px}`;document.head.appendChild(st);
 })();
