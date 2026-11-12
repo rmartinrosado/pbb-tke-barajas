@@ -107,34 +107,43 @@ window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpp
  const ob=((document.getElementById("sr_ob")||{}).value||"").replace(/\s+/g," ").trim();
  /* v426: la posición solo es obligatoria si no hay descripción (con descripción se busca igual, con el plano general) */
  if(!pos&&!ob){msg("Indica la posición PBB y la avería en campo");$("#sr_p").focus();return}
+ /* v447: PRIORIDAD · 1º la avería en campo y 2º la alarma (lista o a mano); la FOTO de la Magelis es complementaria:
+    solo entra en el análisis si lo anterior no da actuación, y lo que diga de otro elemento se muestra aparte y plegado. */
  let al=[($("#sr_a").value||""),($("#sr_t").value||"")].map(x=>x.trim()).filter(Boolean).join(" · ");
- if(!foto&&!al&&!ob){msg("Escribe la avería en campo, lo que se detecta (o elige la alarma, escríbela o haz la foto de la Magelis)");const t=document.getElementById("sr_ob");if(t)t.focus();return}
+ const reab=window.__sosFotoReabre||"";window.__sosFotoReabre="";
+ if(!foto&&!al&&!ob&&!reab){msg("Escribe la avería en campo, lo que se detecta (o elige la alarma, escríbela o haz la foto de la Magelis)");const t=document.getElementById("sr_ob");if(t)t.focus();return}
  /* v442: la foto se lee con IA (magelis-foto.js); solo las alarmas ACTIVAS van al análisis */
- window.__sosFotoHTML="";window.__sosFotoAl="";
+ window.__sosFotoHTML="";window.__sosFotoAl=reab;let fa=reab;
  if(foto){const set=t=>{res.innerHTML=`<div class="mu" style="margin-top:10px">${t}</div>`};set("Leyendo la foto…");
-  try{if(typeof sosLeeFoto=="function"){const F=await sosLeeFoto(foto,set,!!ob||!!al);window.__sosFotoAl=F.al||"";al=(al+" "+(F.al||"")).trim()}
-   else{await tess();const w=await Tesseract.createWorker("spa",1);const r=await w.recognize(foto);await w.terminate();al=(al+" "+(r.data.text||"")).trim()}}
+  try{if(typeof sosLeeFoto=="function"){const F=await sosLeeFoto(foto,set,!!ob||!!al);fa=F.al||""}
+   else{await tess();const w=await Tesseract.createWorker("spa",1);const r=await w.recognize(foto);await w.terminate();fa=r.data.text||""}}
   catch(e){if(!ob&&!al){res.innerHTML=`<div class="gav" style="margin-top:10px">No se pudo leer la foto. Escribe la avería en campo o la alarma a mano y vuelve a pulsar.</div>`;const d=document.querySelector(".srtx");if(d)d.open=true;return}}}
- al=al.replace(/\s+/g," ").trim();
+ al=al.replace(/\s+/g," ").trim();fa=String(fa||"").replace(/\s+/g," ").trim();window.__sosFotoAl=fa;
  const mk=(d,f)=>({id:"sos_"+pos+"_"+(d+f).length,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:f||"",com:"",obs:"",orden:"SOS",fecha:""});
  const ana=ot=>{let P=[],S=null;try{P=puentesOT(ot)}catch(e){}try{S=segOT(ot)}catch(e){}const RS=typeof resetAplica=="function"&&resetAplica(ot);return{ot,P,S,RS,ok:!!(P.length||S||RS)}};
  const pinta=A=>`${A.RS&&!A.S?`<div class="card pucard">${resetHTML(A.ot)}</div>`:""}${A.S?`<div class="card pucard">${segHTML(A.ot,A.S)}</div>`:""}${A.P.length?`<div class="card pucard">${puenteHTML(A.ot,A.P)}</div>`:""}`;
  const firma=A=>JSON.stringify([(A.P||[]).map(x=>x.key||x.id+x.k+x.l).sort(),A.S?(A.S.sen||[]).map(e=>e[0]+e[1]).concat(A.S.lim?[String(A.S.lim.id||A.S.lim)]:[]).sort():[]]);
- /* 1º la descripción en campo con la alarma como complemento; si la alarma añade algo que la descripción no dice, la descripción sola manda */
- let A=null,B=null;
- if(ob){const Ao=ana(mk(ob,""));const Aj=al?ana(mk(ob,al)):null;
-  A=Ao.ok?Ao:(Aj&&Aj.ok?Aj:Ao);A.src=A===Aj?"la descripción en campo y la alarma":"la descripción en campo";
-  if(al){const Aa=ana(mk(al,""));if(Aa.ok&&(!A.ok||firma(Aa)!=firma(A)))B=Aa}}
- else A=ana(mk(al,""));
- const txt=[ob,al].filter(Boolean).join(" · ");
- const leido=(window.__sosFotoHTML||"")+`<details class="srtx" style="margin-top:8px"><summary class="mu">Texto analizado</summary><div class="mu" style="white-space:pre-wrap;font-size:12px">${ob?`<b>Avería en campo:</b> ${esc(ob)}`:""}${ob&&al?"\n":""}${al?`<b>Alarma (complementaria):</b> ${esc(al)}`:""}</div></details>`;
- if(!A.ok&&!B){res.innerHTML=`<div class="gav" style="margin-top:10px">Con lo descrito no hay puente provisional ni reset en la PBB ${esc(pos||"")} (o no se ha reconocido). Mira abajo la actuación más eficaz o detalla el elemento (p. ej. «freno de cabina derecho activado»).</div><div id="sr_cas"></div>${leido}`;const d=document.querySelector(".srtx");if(d)d.open=true;sosCasRap(txt,pos);return}
- res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos||"(sin posición · plano general)")}</b>${A.ok?` · según ${A.src||"la alarma"}`:` · según la alarma`}</div>${A.ok?pinta(A):`<div class="gav">La descripción en campo no nombra un elemento con puente provisional; se muestra lo que indica la alarma.</div>`}
-  ${B?(A.ok?`<details class="srtx srcomp"><summary><b>Según la alarma de la Magelis</b> (complementaria · otro elemento)</summary>${pinta(B)}</details>`:pinta(B)):""}<div id="sr_cas"></div>${leido}`;sosCasRap(txt,pos);
+ /* orden de prioridad: descripción → descripción + alarma → (si nada) + foto */
+ const pasos=[];
+ if(ob){pasos.push([ob,"","la avería en campo"]);if(al)pasos.push([ob,al,"la avería en campo y la alarma"]);if(fa)pasos.push([ob,[al,fa].filter(Boolean).join(" · "),"la avería en campo (con la foto como apoyo)"])}
+ else if(al){pasos.push([al,"","la alarma"]);if(fa)pasos.push([al,fa,"la alarma (con la foto como apoyo)"])}
+ else if(fa)pasos.push([fa,"","la foto de la Magelis (no hay avería escrita)"]);
+ let A=null;for(const [d,f,src] of pasos){const X=ana(mk(d,f));X.src=src;if(!A)A=X;if(X.ok){A=X;break}}
+ /* complementarias: lo que la alarma o la foto señalan de OTRO elemento, aparte */
+ let B=null,C=null;
+ if(ob&&al){const Aa=ana(mk(al,""));if(Aa.ok&&(!A.ok||firma(Aa)!=firma(A)))B=Aa}
+ if(fa&&(ob||al)){const Af=ana(mk(fa,""));if(Af.ok&&(!A.ok||firma(Af)!=firma(A))&&(!B||firma(Af)!=firma(B)))C=Af}
+ const txt=[ob,al].filter(Boolean).join(" · ")||fa;
+ const lin=[ob?`<b>1 · Avería en campo (manda):</b> ${esc(ob)}`:"",al?`<b>2 · Alarma (complementaria):</b> ${esc(al)}`:"",fa?`<b>3 · Foto de la Magelis (complementaria):</b> ${esc(fa)}`:""].filter(Boolean).join("\n");
+ const leido=`<div id="sr_leido"><details class="srtx" style="margin-top:8px"><summary class="mu">Texto analizado (orden de prioridad)</summary><div class="mu" style="white-space:pre-wrap;font-size:12px">${lin}</div></details>${window.__sosFotoHTML?`<details class="srtx srfotol"><summary class="mu">📷 Lectura de la foto de la Magelis <small>(complementaria)</small></summary>${window.__sosFotoHTML}</details>`:""}</div>`;
+ const comp=(X,n)=>X?`<details class="srtx srcomp"><summary><b>Según ${n}</b> (complementaria · otro elemento)</summary>${pinta(X)}</details>`:"";
+ if(!A.ok&&!B&&!C){res.innerHTML=`<div class="gav" style="margin-top:10px">Con lo descrito no hay puente provisional ni reset en la PBB ${esc(pos||"")} (o no se ha reconocido). Mira abajo la actuación más eficaz o detalla el elemento (p. ej. «freno de cabina derecho activado»).</div><div id="sr_cas"></div>${leido}`;sosCasRap(txt,pos);return}
+ res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos||"(sin posición · plano general)")}</b>${A.ok?` · según ${A.src}`:""}</div>${A.ok?pinta(A):`<div class="gav">${ob?"La avería en campo":"La alarma"} no nombra un elemento con puente provisional; abajo, plegado, lo que señala ${B?"la alarma":"la foto"} (complementaria).</div>`}
+  ${comp(B,"la alarma de la Magelis")}${comp(C,"la foto de la Magelis")}<div id="sr_cas"></div>${leido}`;sosCasRap(txt,pos);
  res.scrollIntoView({block:"start",behavior:"smooth"})};
 const st=document.createElement("style");st.textContent=`.grid.sosgrid{grid-template-columns:1fr 1fr 74px!important;align-items:stretch}
 .sosk{display:flex!important;align-items:center;justify-content:center;align-self:stretch;box-sizing:border-box;padding:6px!important;margin:0 0 10px!important;width:auto!important;height:auto!important;background:var(--card,#fff)!important;border:1px solid var(--bd,#e3dbec)!important;border-top:3px solid var(--ac)!important;border-radius:12px!important;cursor:pointer}
 .sosk img{width:54px;height:54px;border-radius:50%;animation:sosparp 2s ease-in-out infinite;filter:drop-shadow(0 2px 4px rgba(198,40,40,.4))}
 .sosrh{display:flex;gap:10px;align-items:center;margin-bottom:6px}.sosrh img{width:44px;height:44px;flex:none}
-.srfoto{display:block;text-align:center;padding:12px;margin-top:4px;cursor:pointer}.srtx{margin-top:8px}.srtx summary{cursor:pointer;font-size:13px}`;document.head.appendChild(st);
+.srfotol .mgbox{margin-top:6px}.srfoto{display:block;text-align:center;padding:12px;margin-top:4px;cursor:pointer}.srtx{margin-top:8px}.srtx summary{cursor:pointer;font-size:13px}`;document.head.appendChild(st);
 })();

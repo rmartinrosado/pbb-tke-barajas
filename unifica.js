@@ -90,18 +90,20 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
  const ob=((document.getElementById("sr_ob")||{}).value||"").replace(/\s+/g," ").trim();
  const sa=document.getElementById("sr_a");let al=[(sa&&sa.value?sa.options[sa.selectedIndex].text:""),((document.getElementById("sr_t")||{}).value||"").trim()].filter(Boolean).join(" · ");
  await oA.apply(this,arguments);
- /* v442: lo leído en la FOTO de la Magelis (alarmas activas) también va al análisis (antes se perdía y el bloque 2 se quedaba en «Buscando…») */
- if(window.__sosFotoAl)al=[al,window.__sosFotoAl].filter(Boolean).join(" · ");
- const T=tipoDe(ob+" "+al);
+ /* v447: PRIORIDAD · avería en campo + alarma (lista o a mano) mandan; la FOTO es complementaria: solo se usa si no hay
+    nada escrito (avería ni alarma) */
+ const fa=window.__sosFotoAl||"";const base=[ob,al].filter(Boolean).join(" ");
+ const T=tipoDe(base||fa);
+ if(!ob&&!al&&fa)al=fa;
  const res=document.getElementById("sr_res");if(!res||!res.innerHTML.trim())return;
  CTX={pos,ob,al,T};const REM=typeof REMOTAS!="undefined"&&REMOTAS.has(pos);
  /* bloque 1 */
  let b1=res.innerHTML;
- if(T!="PAS")b1=`<div class="mu" style="margin:10px 0 6px"><b>${pos?"Posición "+E(pos)+" · ":""}${E(QK[T].n)}</b> · según la descripción en campo</div>${qkHTML(T,ob+" "+al)}`+((res.querySelector("#sr_cas")||{}).outerHTML||"<div id=\"sr_cas\"></div>")+((res.querySelector("details.srtx")||{}).outerHTML||"");
+ if(T!="PAS")b1=`<div class="mu" style="margin:10px 0 6px"><b>${pos?"Posición "+E(pos)+" · ":""}${E(QK[T].n)}</b> · según la descripción en campo</div>${qkHTML(T,ob+" "+al)}`+((res.querySelector("#sr_cas")||{}).outerHTML||"<div id=\"sr_cas\"></div>")+((res.querySelector("#sr_leido")||{}).outerHTML||"");
  else if(BLQ(ob+" "+al)&&!REM){const tb=ob+" "+al,tiene=/E-A2/.test(b1)&&/soltar el hilo/i.test(b1);
   const cab=`<div class="mu" style="margin:10px 0 6px"><b>${pos?"PBB "+E(pos)+" · ":""}Bloqueo por equipo de servicio</b></div>`;
   const cq=blqCroq(tb);
-  b1=tiene?cab+blqHTML(tb,false)+`<div class="mu" style="margin:10px 0 4px"><b>🔌 2ª OPCIÓN · desbloqueo en el módulo del PLC</b></div>`+cq+b1:cab+blqHTML(tb,false)+cq+blqHTML(tb,true).replace(/^[\s\S]*?(?=<div class="card pucard"><div class="pucab">🔌)/,"").replace(/<div class="card pucard qkc">[\s\S]*$/,"")+((res.querySelector("#sr_cas")||{}).outerHTML||"<div id=\"sr_cas\"></div>")+((res.querySelector("details.srtx")||{}).outerHTML||"");
+  b1=tiene?cab+blqHTML(tb,false)+`<div class="mu" style="margin:10px 0 4px"><b>🔌 2ª OPCIÓN · desbloqueo en el módulo del PLC</b></div>`+cq+b1:cab+blqHTML(tb,false)+cq+blqHTML(tb,true).replace(/^[\s\S]*?(?=<div class="card pucard"><div class="pucab">🔌)/,"").replace(/<div class="card pucard qkc">[\s\S]*$/,"")+((res.querySelector("#sr_cas")||{}).outerHTML||"<div id=\"sr_cas\"></div>")+((res.querySelector("#sr_leido")||{}).outerHTML||"");
 }
  else if(REM)b1=`<div class="gav" style="margin-top:10px">La posición ${E(pos)} es REMOTA (sin pasarela): no hay actuación de pasarela. Indica el sistema en la descripción (400 Hz, aire acondicionado…).</div>`;
  /* v427: si hay puente provisional, croquis del módulo afectado al principio del bloque 1 */
@@ -115,13 +117,15 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
  res.innerHTML=`${apH}<div class="ubh ub1">🚨 1 · SACAR EN SERVICIO YA</div><div class="ubb ubb1">${cro}${b1}</div>
   <div class="ubh ub2">🔧 2 · REPARAR · actuación más eficaz</div><div class="ubb ubb2"><div id="lp_res"><div class="mu">Buscando la actuación más eficaz…</div></div></div>
   <div class="ubh ub3">🤖 3 · ANÁLISIS PROFUNDO</div><div class="ubb"><button class="sec srobok ub3b" onclick="sosObClaude()"><span><b>Analizar con Claude</b> · paso a paso con medidas</span><img src="claude-logo.png" alt="Claude"></button></div>`;
+ /* v447: lo analizado y la lectura de la foto (complementaria) al final, plegados */
+ try{const lw=res.querySelector(".ubb1 #sr_leido");if(lw){lw.remove();res.appendChild(lw)}}catch(e){}
  /* bloque 2: la lupa con la descripción (y la alarma como complemento) y la posición */
- window.__lupaEnSOS=1;const qL=[ob,al].filter(Boolean).join(" · ");
+ window.__lupaEnSOS=1;const qL=[ob,al].filter(Boolean).join(" · ");/* v447: sin la foto (complementaria) */
  const fallo=m=>{const r=document.getElementById("lp_res");if(r&&/Buscando la actuaci/.test(r.textContent))r.innerHTML=`<div class="gav">${E(m)}</div>`};
  try{if(qL.trim())lupaBusca(qL,pos);else fallo("No hay texto que analizar: escribe la avería en campo (lo que se detecta) o la alarma.")}catch(e){fallo("No se ha podido buscar la actuación más eficaz ("+(e&&e.message||e)+"). Escribe la avería en campo y vuelve a pulsar ACEPTAR.")}
  /* v442: vigilancia · nunca se queda en «Buscando…» */
  setTimeout(()=>{const r=document.getElementById("lp_res");if(!r||!/Buscando la actuaci/.test(r.textContent))return;
-  try{if(ob)lupaBusca(ob,pos)}catch(e){}setTimeout(()=>fallo("No se ha relacionado ninguna actuación con lo leído. Escribe la avería en campo (lo que se detecta) y vuelve a pulsar ACEPTAR."),1500)},4000);
+  try{if(ob)lupaBusca(ob,pos);else if(fa&&fa!=qL)lupaBusca(fa,pos)}catch(e){}setTimeout(()=>fallo("No se ha relacionado ninguna actuación con lo leído. Escribe la avería en campo (lo que se detecta) y vuelve a pulsar ACEPTAR."),1500)},4000);
  decora();try{res.scrollIntoView({block:"start",behavior:"smooth"})}catch(e){}};
 /* la lupa se repinta (desplegable del elemento, alternativas): volver a poner los botones */
 const oP=window.lupaPinta;if(typeof oP=="function")window.lupaPinta=function(){const r=oP.apply(this,arguments);try{if(document.getElementById("sr_res"))decora()}catch(e){}return r};

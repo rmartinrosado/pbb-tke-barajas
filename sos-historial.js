@@ -65,7 +65,8 @@ window.sosHistorial=pinta;
 /* ---------- 3 · acciones ---------- */
 function reabre(h){sosRap();setTimeout(()=>{const set=(id,v)=>{const x=document.getElementById(id);if(x)x.value=v||""};
  set("sr_p",h.pos);set("sr_ob",h.ob);const sa=document.getElementById("sr_a");if(sa&&h.alL){const o=[...sa.options].find(x=>x.text==h.alL);if(o)sa.value=o.value}
- const man=[h.alM,h.foto].filter(Boolean).join(" · ");if(man){set("sr_t",man);const d=document.querySelector("#sheetc details.srtx");if(d)d.open=true}
+ /* v447: la foto sigue siendo complementaria al reabrir (no pasa a «alarma a mano») */
+ window.__sosFotoReabre=h.foto||"";const man=h.alM||"";if(man){set("sr_t",man);const d=document.querySelector("#sheetc details.srtx");if(d)d.open=true}
  window.__sosReabre=1;try{sosAnaliza()}catch(e){window.__sosReabre=0}},120)}
 function selOT(box,h){const L=otsAbiertas();if(!L.length){box.innerHTML=`<div class="gav">No hay OT abiertas a las que asociar el SOS.</div>`;return}
  const p=String(h.pos||"").toUpperCase();L.sort((a,b)=>(String(b.pos).toUpperCase()==p)-(String(a.pos).toUpperCase()==p)||(b.ts||0)-(a.ts||0));
