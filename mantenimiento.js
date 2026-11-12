@@ -245,7 +245,7 @@ async function textoExcel(file){await carga("https://cdnjs.cloudflare.com/ajax/l
  return wb.SheetNames.map(n=>XLSX.utils.sheet_to_csv(wb.Sheets[n],{dateNF:"yyyy-mm-dd"})).join("\n").replace(/,/g," , ")}
 
 /* ---------- importar (admin) ---------- */
-window._mantTest={analiza,analizaGeo,canonico,fechaIzq,huecos,posOK};
+window._mantTest={analiza,analizaGeo,canonico,fechaIzq,huecos,posOK,soloCal};
 window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");return}if(!mImpMes)mImpMes=[...mMes];
  const op=[];for(let k=-1;k<13;k++){const d=new Date(new Date().getFullYear(),new Date().getMonth()+k,1);op.push([d.getFullYear(),d.getMonth()])}
  $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Importar programa de mantenimiento</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>
@@ -271,6 +271,16 @@ function mPrev(){const e=$("#mi_prev");if(!e)return;const{filas,mal}=canonico(mT
  const raras=[...new Set(filas.filter(x=>!posOK(x.pos)).map(x=>x.pos))];
  const avR=(raras.length?`<div style="color:#d32f2f;font-weight:600;margin-top:4px">⚠️ Posiciones que no existen: ${raras.map(esc).join(", ")}. Corrígelas o bórralas antes de guardar.</div>`:"")+(mLector?`<div style="margin-top:4px">Leído con: ${esc(mLector)}</div>`:"");
  e.innerHTML=filas.length?`${filas.length} mantenimientos en ${dias} día${dias>1?"s":""}${mal.length?` · <span style="color:#d32f2f">líneas sin fecha válida: ${mal.join(", ")}</span>`:""}${hu.length?`<div style="color:#d32f2f;font-weight:600;margin-top:4px">⚠️ Sin posiciones: ${hu.map(fLarga).join(", ")}. Comprueba en la foto que esas filas no se hayan pasado a otro día.</div>`:""}${avR}`:(mal.length?`<span style="color:#d32f2f">Formato: AAAA-MM-DD: T30 M 20:30-23:30 (E81); 386 S</span>`:"")}
+/* v452: recorta las líneas del OCR a la zona del calendario: a partir de la columna de días, que va justo a la izquierda
+   de las líneas «posición …» (margen = 12 % del ancho leído); las palabras de más a la izquierda se quitan de cada línea */
+function soloCal(lines){const its=lines.filter(l=>l&&l.bbox&&itemLinea(l.text));if(its.length<3)return null;
+ const xs=its.map(l=>{const w=(l.words||[]).find(w=>/NOP/.test(NORM(w.text)))||(l.words||[])[0];return (w&&w.bbox||l.bbox).x0}).sort((a,b)=>a-b);
+ const ix=xs[xs.length>>1];const W=Math.max(...lines.filter(l=>l.bbox).map(l=>l.bbox.x1))-Math.min(...lines.filter(l=>l.bbox).map(l=>l.bbox.x0));/* la columna de días: mediana de las palabras LUNES…DOMINGO a la izquierda de las líneas (la cabecera «semana del lunes…» queda fuera) */
+ const dx=[];lines.forEach(l=>(l.words||[l]).forEach(w=>{if(w.bbox&&w.bbox.x1<=ix&&diaIx(w.text)>=0)dx.push(w.bbox.x0)}));dx.sort((a,b)=>a-b);
+ const lim=dx.length>=3?dx[dx.length>>1]-Math.max(30,W*.03):ix-Math.max(60,W*.12);
+ const out=[];lines.forEach(l=>{if(!l||!l.bbox)return;const ws=(l.words||[]).filter(w=>w.bbox&&w.bbox.x0>=lim);
+  if(l.words&&l.words.length){if(!ws.length)return;out.push(Object.assign({},l,{words:ws,text:ws.map(w=>w.text).join(" "),bbox:{x0:Math.min(...ws.map(w=>w.bbox.x0)),y0:Math.min(...ws.map(w=>w.bbox.y0)),x1:Math.max(...ws.map(w=>w.bbox.x1)),y1:Math.max(...ws.map(w=>w.bbox.y1))}}))}
+  else if(l.bbox.x0>=lim)out.push(l)});return out.length?out:null}
 /* v451: lectura con IA (función «leer-mantenimiento», Gemini): solo el calendario semanal, sin el cuadro de la obra */
 let mLector="";
 const b64=blob=>new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=ko;r.readAsDataURL(blob)});
@@ -278,7 +288,7 @@ function imgIA(file){return new Promise((ok,ko)=>{const u=URL.createObjectURL(fi
  const c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL("image/jpeg",.9).split(",")[1])};
  im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error("no se pudo abrir la foto"))};im.src=u})}
 async function conIA(file,set){if(typeof sb=="undefined"||!sb.functions)throw new Error("sin conexión");
- const pdf=/\.pdf$/i.test(file.name)||file.type=="application/pdf";set("Leyendo el programa con IA… (unos segundos)");
+ const pdf=/\.pdf$/i.test(file.name)||file.type=="application/pdf";set("Leyendo con IA solo el calendario semanal… (unos segundos)");
  const img=pdf?await b64(file):await imgIA(file);
  const r=await Promise.race([sb.functions.invoke("leer-mantenimiento",{body:{img,tipo:pdf?"application/pdf":"image/jpeg"}}),new Promise((_,no)=>setTimeout(()=>no(new Error("tiempo")),65000))]);
  if(r.error||!r.data||!Array.isArray(r.data.dias))throw new Error((r.error&&r.error.message)||"sin lectura");
@@ -296,6 +306,8 @@ window.mantImpFile=async file=>{if(!file||mOcup)return;mOcup=true;const st=$("#m
   let geo=null;
 
   if(/^image\//.test(file.type)){set("Leyendo la foto… (la primera vez descarga el lector, puede tardar)");const d=await textoImagen(file,(p,g)=>set(g!==undefined&&g?`Girando la foto ${g}° y leyendo…`:`Leyendo la foto… ${p}%`));txt=d.text;
+   /* v452: solo la parte del CALENDARIO SEMANAL (columna de días + líneas «posición …»); lo de la izquierda (cuadro de la obra) fuera */
+   const cal=soloCal(d.lines||[]);if(cal){d.lines=cal;txt=cal.map(l=>l.text).join("\n")}
    geo=d.lines&&d.lines.length?analizaGeo(d.lines,mImpMes[0],mImpMes[1],mImpTipo):null}
   else if(n.endsWith(".pdf")){set("Leyendo PDF…");txt=await textoPdf(file)}
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");txt=await textoExcel(file)}
@@ -304,7 +316,9 @@ window.mantImpFile=async file=>{if(!file||mOcup)return;mOcup=true;const st=$("#m
      escritas en la hoja ni deja días vacíos (con el cuadro de la obra a la izquierda, la de posición podía correr un día) */
   const lin=analiza(txt,mImpMes[0],mImpMes[1],mImpTipo);let r=(geo&&geo.txt)?geo:lin;
   if(geo&&geo.txt&&lin.txt){const esc=new Set();String(txt).split(/\n/).forEach(l=>{const f=fechaIzq(l,mImpMes[0],mImpMes[1]);if(f)esc.add(f)});
-   const mal=R=>{const F=canonico(R.txt).filas;return huecos(F).length+[...new Set(F.map(x=>x.fecha))].filter(f=>esc.size&&!esc.has(f)).length};
+   /* v452: cuenta como fuera de sitio la fecha que se sale de la semana de las fechas escritas (lunes a domingo) */
+   const lun=(()=>{const c=new Map();esc.forEach(f=>{const l=lunesDe(f);c.set(l,(c.get(l)||0)+1)});let b=null,n=0;c.forEach((k,l)=>{if(k>n){n=k;b=l}});return b})();
+   const mal=R=>{const F=canonico(R.txt).filas;return huecos(F).length+[...new Set(F.map(x=>x.fecha))].filter(f=>lun&&(f<lun||f>sumaD(lun,6))).length};
    if(mal(lin)<mal(geo))r=lin}
   const ev=/S\s*G\s*[C(]\W{0,3}(\d[\d\s]{3,8}\d)/i.exec(NORM(txt))||/EVENTO\W{0,3}(\d[\d\s]{3,8}\d)/i.exec(NORM(txt));if(ev){mEvt=ev[1].replace(/\s/g,"");const e=$("#mi_evt");if(e)e.value=mEvt}
   mTxt=r.txt;const t=$("#mi_txt");if(t)t.value=mTxt;mPrev();
