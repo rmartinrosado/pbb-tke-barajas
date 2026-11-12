@@ -78,6 +78,8 @@ const REG=[
  {q:t=>/bumper|parachoq/.test(t)&&!/\bala\b|a380/.test(t),box:/^bumpers brazo y cabina/,fuera:/^zapata \/ bordes \/ bumpers/},
  /* PCA que no enfría / poco caudal → ventilador interior, variador o filtro del equipo */
  {q:t=>/no enfria|enfria poco|poco aire|no sale aire|caudal|no climatiza/.test(t),box:/^fallo ventilador interior|^filtro sucio/},
+ /* v443: «Máquina off / ON remoto», «máquina autorizada» (Magelis) = la PBB, no la máquina de aire ADX */
+ {q:t=>/maquina (on|off)\b|maquina (on|off) remoto|maquina autorizada|pbb pasarela (on|off)/.test(t)&&!/aire acondicionado|\badx\b|\bpca\b|\baaa\b|\ba\/a\b|climatiz/.test(t),fuera:/^maquina adx|^equipo no arranca|^interbloqueo con la pasarela|^disparo de diferencial|^fallo ventilador|^filtro sucio|^bloqueo carro a\/a/},
  /* aire acondicionado de la pasarela (PCA / AAA): no son las lunetas ni el suelo térmico de la cabina */
  {q:t=>/\bpca\b|aire acondicionado|\badx\b|\baaa\b|\ba\/a\b|climatizador/.test(t),fuera:/^climatizacion ·/},
  /* sin bloqueo, carro, puerta o tapa no hay caja de bloqueo del carro (p. ej. «PCA no enfría») */

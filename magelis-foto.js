@@ -24,6 +24,8 @@ function resume(filas){const M=new Map();(filas||[]).forEach((f,ix)=>{if(!f||!St
  const L=[...M.values()].sort((a,b)=>b.t-a.t||a.ix-b.ix).map(x=>x.f);
  return {act:L.filter(f=>/^activ/i.test(f.estado||"")),des:L.filter(f=>!/^activ/i.test(f.estado||""))}}
 const lin=f=>`${f.cod?f.cod+" ":""}${f.texto}`.trim();
+/* v443: en la Magelis «Máquina» (off / ON remoto, autorizada…) es la PBB (pasarela), NO la máquina de aire ADX */
+const pbb=t=>String(t).replace(/\bm[aá]quina\b(?!\s+(de\s+)?(aire|adx|a\/a|pca))/gi,"PBB pasarela");
 async function conIA(c,set){if(typeof sb=="undefined"||!sb.functions)throw new Error("sin conexión");
  set("Leyendo la foto de la Magelis con IA…");const img=c.toDataURL("image/jpeg",.86).split(",")[1];
  const r=await Promise.race([sb.functions.invoke("leer-magelis",{body:{img,tipo:"image/jpeg"}}),new Promise((_,no)=>setTimeout(()=>no(new Error("tiempo")),60000))]);
@@ -41,14 +43,21 @@ async function conOCR(c,set){if(!window.Tesseract)await new Promise((ok,ko)=>{co
 window.sosLeeFoto=async function(file,set,hayDesc){const c=await img2canvas(file);let d=null,err="";
  try{d=await conIA(c,set)}catch(e){err=String(e.message||e)}
  if(!d||!d.filas.length){try{const o=await conOCR(c,set);if(o.filas.length||!d)d=o}catch(e){if(!d)throw e}}
- const R=resume(d.filas);let usa=R.act,nota="";
- if(!usa.length&&!hayDesc){usa=R.des.filter(f=>f.tabla!="evento").slice(0,3);if(!usa.length)usa=R.des.slice(0,3);
+ const R=resume(d.filas);
+ /* v443: estados de OPERACIÓN de la PBB (no son avería): «Máquina» = la PBB, off / ON remoto, autorizada, esperando autorización */
+ const OPE=f=>/m[aá]quina\s+(on|off)|m[aá]quina\s+autorizad|esperando\s+autorizaci|conectada\s+esperando/i.test(f.texto||"");
+ const ope=R.act.filter(OPE);let usa=R.act.filter(f=>!OPE(f)),nota="";
+ if(!usa.length&&!hayDesc){const D=R.des.filter(f=>!OPE(f));usa=D.filter(f=>f.tabla!="evento").slice(0,3);if(!usa.length)usa=D.slice(0,3);
   if(usa.length)nota="En la foto no hay alarmas ACTIVAS (todas desactivadas): se analizan las más recientes."}
- const al=[...usa.map(lin),d.otros||""].filter(Boolean).join(" · ");
+ /* v443: la alarma de FALLO es la que indica la avería presente en el equipo: va la primera en el análisis (activa o la más reciente) */
+ const FA=[...R.act,...R.des].filter(f=>!OPE(f)&&/\bfallo\b/i.test(f.texto||""));
+ if(FA.length){usa=[...FA,...usa.filter(f=>!FA.includes(f))].slice(0,3);nota=(nota?nota+" ":"")+"Prioridad: la alarma de FALLO ("+lin(FA[0])+"), que indica la avería presente en el equipo."}
+ const al=[...usa.map(f=>pbb(lin(f))),pbb(d.otros||"")].filter(Boolean).join(" · ");
  const fila=f=>`<tr class="${/^activ/i.test(f.estado||"")?"mgact":""}"><td>${e_(f.cod||"")}</td><td>${e_(f.texto)}</td><td>${e_(f.hora||"")}</td><td>${e_(f.estado||"")}</td></tr>`;
  const tb=(n,L)=>L.length?`<div class="mgt">${n}</div><table class="mgtab">${L.map(fila).join("")}</table>`:"";
  const html=`<div class="mgbox"><div class="mgh">📷 Lectura de la foto de la Magelis <small>(${e_(d.lector||"")}${err&&!/^Gemini|^Claude/.test(d.lector||"")?" · IA no disponible":""})</small></div>
-  ${R.act.length?`<div class="mgok">🔴 Activas ahora: <b>${e_(R.act.map(lin).join(" · "))}</b></div>`:`<div class="mgno">Sin alarmas activas en la foto (último estado: desactivado).</div>`}
+  ${usa.length&&usa===usa?"":""}${R.act.filter(f=>!OPE(f)).length?`<div class="mgok">🔴 Activas ahora: <b>${e_(R.act.filter(f=>!OPE(f)).map(lin).join(" · "))}</b></div>`:`<div class="mgno">Sin alarmas de avería activas en la foto (último estado: desactivado).</div>`}
+  ${ope.length?`<div class="mgno">ℹ️ Estado de operación de la PBB (no es avería; «máquina» = la pasarela): <b>${e_(ope.map(lin).join(" · "))}</b></div>`:""}
   ${nota?`<div class="mgno">${e_(nota)}</div>`:""}
   <details class="mgdet"><summary>Ver todo lo leído (${d.filas.length} filas)</summary>${tb("ALARMAS",d.filas.filter(f=>f.tabla!="evento"))}${tb("EVENTOS",d.filas.filter(f=>f.tabla=="evento"))}${d.otros?`<div class="mgt">OTROS</div><div>${e_(d.otros)}</div>`:""}</details></div>`;
  window.__sosFotoHTML=html;return {al,html,filas:d.filas}};
