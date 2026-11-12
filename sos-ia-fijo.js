@@ -18,3 +18,25 @@ const oa=window.sosAnaliza;if(typeof oa=="function")window.sosAnaliza=function()
 const st=document.createElement("style");st.textContent=`#sheetc,#sheetc *{overflow-anchor:none}
 #sr_ia .siat{height:3.6em;max-height:3.6em}#sr_ia .siam{min-height:1.3em}`;document.head.appendChild(st);
 })();
+/* ===== v432: cabecera del SOS · sin campana, título «SOS - ACTUACIÓN RÁPIDA» en una línea (recuadro rojo, letra blanca negrita
+   parpadeando), texto justificado, pasos en MAYÚSCULAS y rótulos de las casillas algo más grandes ===== */
+(function(){
+const o=window.sosRap;if(typeof o!="function")return;
+window.sosRap=function(){const r=o.apply(this,arguments);try{
+ const h=document.querySelector("#sheetc .sosrh");if(!h)return r;h.classList.add("sosr2");h.dataset.nocol="1";
+ h.innerHTML=`<div class="sosr2t">SOS - ACTUACIÓN RÁPIDA</div>
+ <p class="sosr2p">Posición y descripción en campo (el aviso de la OT); la alarma de la Magelis o su foto la complementan. Sale:</p>
+ <ol class="sosr2l"><li>SACAR EN SERVICIO YA</li><li>REPARAR (ACTUACIÓN MÁS EFICAZ)</li><li>ANÁLISIS CON CLAUDE</li></ol>
+ <p class="sosr2p">Cualquier sistema: pasarela, 400 Hz, aire acondicionado.</p>`}catch(e){}return r};
+const st=document.createElement("style");st.textContent=`
+#sheetc .sosr2{display:block!important;margin:0 0 8px}
+.sosr2t{background:#d7191c;color:#fff;font-weight:900;font-size:clamp(15px,5vw,20px);letter-spacing:.04em;text-align:center;white-space:nowrap;
+ border:2px solid #ff4d4f;border-radius:10px;padding:8px 6px;margin:0 0 10px;animation:sosr2b 1s steps(1,end) infinite}
+@keyframes sosr2b{50%{color:transparent}}
+.sosr2p{margin:0 0 6px;font-size:14px;line-height:1.4;text-align:justify;hyphens:none;color:var(--mu,#9aa3b2)}
+.sosr2l{margin:0 0 6px;padding:0;list-style:none;counter-reset:s}
+.sosr2l li{counter-increment:s;display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;text-transform:uppercase;padding:6px 0;border-bottom:1px dashed var(--bd,rgba(127,127,127,.35))}
+.sosr2l li::before{content:counter(s);flex:none;width:26px;height:26px;border:2px solid var(--ac,#ff6a13);color:var(--ac,#ff6a13);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900}
+#sheetc:has(.sosr2)>label,#sheetc:has(.sosr2) label:not(.srfoto){font-size:15px!important}`;
+document.head.appendChild(st);
+})();
