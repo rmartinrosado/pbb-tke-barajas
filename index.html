@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=438;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=439;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -4057,14 +4057,14 @@ function abrirSegOT(id){try{bqOT=""}catch(e){}if(typeof segPl!="undefined")segPl
    para un análisis minucioso cotejado con toda la documentación, paso a paso y con medidas ===== */
 (function(){const st=document.createElement("style");st.textContent=`.srobsw{position:relative}.srobsw textarea{padding-right:52px;min-height:96px}
 .srobdel{position:absolute;right:8px;top:8px;width:38px;height:38px;padding:0;margin:0;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid #e5534b;background:transparent;color:#e5534b}
-.srobdel svg{width:20px;height:20px}.srobok{margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}.srobok img{height:26px;border-radius:6px;background:#fff;padding:2px}#sheetc .srobok.srobok{background:#2e7d32!important;border-color:#1b5e20!important;color:#fff!important;font-weight:600;padding:12px!important}#sheetc .srobok b{font-weight:800;letter-spacing:.5px}.srobrow{display:flex;gap:8px;align-items:stretch;margin-top:8px}.srobrow .srobok{flex:1;margin-top:0!important}#sheetc .srobrst{flex:none;width:58px!important;margin:0!important;padding:0!important;display:flex;align-items:center;justify-content:center;border:2px solid #c62828!important;color:#c62828!important;background:transparent!important;border-radius:10px}.srobrst svg{width:24px;height:24px}`;document.head.appendChild(st);
+.srobdel svg{width:20px;height:20px}.srobok{margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}.srobok img{height:26px;border-radius:6px;background:#fff;padding:2px}.srobok img.srobwm{height:30px;padding:3px 8px}#sheetc .srobok.srobok{background:#2e7d32!important;border-color:#1b5e20!important;color:#fff!important;font-weight:600;padding:12px!important}#sheetc .srobok b{font-weight:800;letter-spacing:.5px}.srobrow{display:flex;gap:8px;align-items:stretch;margin-top:8px}.srobrow .srobok{flex:1;margin-top:0!important}#sheetc .srobrst{flex:none;width:58px!important;margin:0!important;padding:0!important;display:flex;align-items:center;justify-content:center;border:2px solid #c62828!important;color:#c62828!important;background:transparent!important;border-radius:10px}.srobrst svg{width:24px;height:24px}`;document.head.appendChild(st);
  const PAP=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>`;
  const o=window.sosRap;if(typeof o!="function")return;
  window.sosRap=function(){const r=o.apply(this,arguments);const b=[...document.querySelectorAll("#sheetc button.pri")].find(x=>/primera actuaci/i.test(x.textContent));
   if(b&&!document.getElementById("sr_ob"))b.insertAdjacentHTML("beforebegin",`<label for="sr_ob">Observaciones (lo que detectas en campo)</label>
 <div class="srobsw"><textarea id="sr_ob" rows="4" placeholder="Ej. La PBB no baja; la Magelis indica protección seguridades 2; el LED del módulo… está apagado; medido 0 V en…"></textarea>
 <button type="button" class="srobdel" aria-label="Borrar lo escrito" title="Borrar lo escrito" onclick="sosObLimpia()">${PAP}</button></div>
-<div class="srobrow"><button type="button" class="sec srobok" onclick="sosObClaude()"><span><b>ACEPTAR</b> · analizar con Claude</span><img src="claude-logo.png" alt="Claude"></button><button type="button" class="sec srobrst" aria-label="Borrar el PDF y reiniciar el SOS" title="Borrar el PDF y reiniciar el SOS" onclick="sosReinicia()">${PAP}</button></div>`);
+<div class="srobrow"><button type="button" class="sec srobok" onclick="sosObClaude()"><span><b>ACEPTAR</b></span><img class="srobwm" src="claude-wordmark-sos.png" alt="Claude"></button><button type="button" class="sec srobrst" aria-label="Borrar el PDF y reiniciar el SOS" title="Borrar el PDF y reiniciar el SOS" onclick="sosReinicia()">${PAP}</button></div>`);
   return r};
  window.sosObLimpia=function(){const t=document.getElementById("sr_ob");if(!t)return;t.value="";t.focus()};
  window.sosObClaude=function(){const t=document.getElementById("sr_ob"),ob=(t&&t.value.trim())||"";
@@ -4569,7 +4569,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||438;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||439;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5830,4 +5830,4 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 /* ===== v351: SOS · «Aceptar · analizar con Claude» consulta en segundo plano (función consulta-sos) con barra de progreso
    en la misma pantalla del SOS y, al terminar, PDF A4 incrustado para ver, descargar o compartir (sos-ia.js). ===== */
 </script>
-<script src="sos-obs.js?v=438"></script><script src="unifica.js?v=438"></script><script src="antiatrap-lado.js?v=428"></script><script src="sos-ia-fijo.js?v=438"></script><script src="bordes-ruedas.js?v=436"></script><script src="limite-trabajo.js?v=438"></script><script src="conceptos.js?v=438"></script></body></html>
+<script src="sos-obs.js?v=439"></script><script src="unifica.js?v=438"></script><script src="antiatrap-lado.js?v=439"></script><script src="sos-ia-fijo.js?v=438"></script><script src="bordes-ruedas.js?v=436"></script><script src="limite-trabajo.js?v=438"></script><script src="conceptos.js?v=438"></script></body></html>

@@ -33,7 +33,7 @@ const ro=window.sosRap;if(typeof ro=="function")window.sosRap=function(){const r
  ["ANTIATRAPAMIENTO TUNEL INTERIOR","ANTIATRAPAMIENTO TUNEL INTERIOR IZQUIERDO","ANTIATRAPAMIENTO TUNEL INTERIOR DERECHO","ANTIATRAPAMIENTO TUNEL MEDIO","ANTIATRAPAMIENTO TUNEL MEDIO IZQUIERDO","ANTIATRAPAMIENTO TUNEL MEDIO DERECHO"].map(by).filter(Boolean).reverse().forEach(e=>g.insertBefore(e,g.firstChild));
  const gen=[...g.children];gen.forEach(e=>{if(e.value=="ANTIATRAPAMIENTO TUNEL INTERIOR")e.textContent="Antiatrapamiento túnel interior (A-B) · ambos lados";if(e.value=="ANTIATRAPAMIENTO TUNEL MEDIO")e.textContent="Antiatrapamiento túnel medio (B-C) · ambos lados · 3 túneles"});
  /* v428: «Ver actuación» antes que «Aceptar · analizar con Claude» */
- const c=document.getElementById("sheetc"),row=c&&c.querySelector(".srobrow"),bv=c&&[...c.querySelectorAll("button.pri")].find(x=>/actuaci/i.test(x.textContent));
+ const c=document.getElementById("sheetc"),row=c&&c.querySelector(".srobrow"),bv=c&&[...c.querySelectorAll("button.pri")].find(x=>/sosAnaliza/.test(x.getAttribute("onclick")||"")||/actuaci/i.test(x.textContent));
  if(row&&bv&&row.compareDocumentPosition(bv)&Node.DOCUMENT_POSITION_FOLLOWING){row.parentNode.insertBefore(bv,row);bv.style.marginTop="12px";row.style.marginTop="8px"}
  }catch(e){}return r};
 })();
