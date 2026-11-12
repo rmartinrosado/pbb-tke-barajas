@@ -63,7 +63,25 @@ const SOS_AL=[
  ["Seguridades / cabina",[["Zapata activada","ZAPATA ACTIVADA"],["Fallo autonivelación subir","FALLO AUTONIVELACION SUBIR"],["Fallo autonivelación bajar","FALLO AUTONIVELACION BAJAR"],["Sensores neutrales brazo","FALLO AUTONIVELACION SENSORES NEUTRALES"],["Bumper brazo autonivelador","BUMPER BRAZO AUTONIVELADOR"],["Bumper lateral cabina","BUMPER LATERAL CABINA"],["Línea de seguridades activada","LINEA DE SEGURIDAD ACTIVADA"],["Protección seguridades 1","PROTECCION DE SEGURIDADES 1 ACTIVADO"],["Protección seguridades 2","PROTECCION DE SEGURIDADES 2 ACTIVADO"]]],
  ["Antiatrapamiento y accesos",[["Antiatrapamiento túnel interior (A-B)","ANTIATRAPAMIENTO TUNEL INTERIOR"],["Antiatrapamiento túnel medio (B-C)","ANTIATRAPAMIENTO TUNEL MEDIO"],["Sensor portón enrollable","SENSOR PORTON ENROLLABLE"],["Puerta de servicio abierta","INDUCTIVO PUERTA DE SERVICIO"],["Barrera seguridad rotonda","BARRERA SEGURIDAD ROTONDA"]]],
  ["Límites",[["Límite extensión","LIMITE EXTENSION ACTIVADO"],["Límite retracción","LIMITE RETRACCION ACTIVADO"],["Límite traslación","LIMITE TRASLACION ACTIVADO"],["Límite giro traslación","LIMITE GIRO TRASLACION"],["Límite rotonda","LIMITE ROTONDA ACTIVADO"],["Límite inclinación","LIMITE INCLINACION ACTIVADO"],["Límite cabina","LIMITE CABINA"],["Límite suelo","LIMITE SUELO ACTIVADO"]]],
- ["Finales de carrera de SEGURIDAD (pisados, caen contactores)",[["FC seguridad extensión túneles","FC SEGURIDAD EXTENSION PISADO"],["FC seguridad traslación","FC SEGURIDAD TRASLACION PISADO"],["FC seguridad rotonda","FC SEGURIDAD ROTONDA PISADO"],["FC seguridad inclinación","FC SEGURIDAD INCLINACION PISADO"]]],
+ /* v435: SEGURIDADES FC ACTIVADAS · todos los finales de carrera y elementos de seguridad de movimiento y maniobra (módulos safety
+    amarillos E-A8, E-A9, E-A10). Primera actuación: croquis del puente provisional en la entrada del módulo correspondiente. */
+ ["Seguridades FC activadas",[
+  ["FC seguridad traslación (H-S1 · E-A8 5.1)","FC SEGURIDAD TRASLACION PISADO"],
+  ["FC seguridad extensión túneles (ET-S1 · E-A8 6.1)","FC SEGURIDAD EXTENSION PISADO"],
+  ["FC seguridad rotonda (CO-S1 · E-A8 7.1)","FC SEGURIDAD ROTONDA PISADO"],
+  ["FC seguridad inclinación inferior (IT-S3 · E-A8 8.1)","FC SEGURIDAD INCLINACION INFERIOR PISADO"],
+  ["FC seguridad inclinación superior (IT-S2 · E-A8 8.1)","FC SEGURIDAD INCLINACION SUPERIOR PISADO"],
+  ["Bordes de seguridad de ruedas (T-B5 / T-B6 · E-A8 2.1)","BORDE DE SEGURIDAD RUEDAS ACTIVADO"],
+  ["Sensor portón enrollable (C-S9 · E-A8 1.1)","SENSOR PORTON ENROLLABLE ACTIVADO"],
+  ["Antiatrapamiento túnel interior izquierdo (E-A9 5.1)","ANTIATRAPAMIENTO TUNEL INTERIOR IZQUIERDO"],
+  ["Antiatrapamiento túnel interior derecho (E-A9 6.1)","ANTIATRAPAMIENTO TUNEL INTERIOR DERECHO"],
+  ["Antiatrapamiento túnel medio izquierdo (E-A9 2.1)","ANTIATRAPAMIENTO TUNEL MEDIO IZQUIERDO"],
+  ["Antiatrapamiento túnel medio derecho (E-A9 8.1)","ANTIATRAPAMIENTO TUNEL MEDIO DERECHO"],
+  ["Zapata de seguridad cabina (C-B4 · E-A10 8.1)","ZAPATA DE SEGURIDAD ACTIVADA"],
+  ["Bumper brazo autonivelador (C-B27 / C-B28 · E-A10 1.1)","BUMPER BRAZO AUTONIVELADOR ACTIVADO"],
+  ["Bumper lateral cabina (C-B30 / C-B29 · E-A10 2.1)","BUMPER LATERAL CABINA ACTIVADO"],
+  ["Barrera de seguridad rotonda (R-B4 · E-A10 3.1)","BARRERA SEGURIDAD ROTONDA ACTIVADA"],
+  ["Inductivo puerta de servicio (SS-B15 · E-A10 4.1)","INDUCTIVO PUERTA DE SERVICIO ACTIVADO"]]],
  ["Traslación",[["Bordes de ruedas","BORDE SEGURIDAD DELANTERO TRASERO"],["Freno manual izquierdo","FRENO MANUAL MOTOR IZQUIERDO"],["Freno manual derecho","FRENO MANUAL MOTOR DERECHO"]]],
  ["Bloqueos por equipos de servicio",[["Bloqueo PBB carro A/A","BLOQUEO PBB CARRO A/A"],["Bloqueo PBB máquina A/A","BLOQUEO PBB MAQUINA A/A"],["Bloqueo convertidor 400 Hz en servicio","BLOQUEO PBB CONVERTIDOR EN SERVICIO"],["Bloqueo 90 % conector 400 Hz","BLOQUEO PBB 90% CONECTOR"]]]];
 const tess=()=>window.Tesseract?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";s.onload=ok;s.onerror=ko;document.head.appendChild(s)});
