@@ -143,7 +143,9 @@ function posLibres(txt,tipoDef){const out=[];String(txt||"").toUpperCase().split
  if(!m)return;const pos=m[1].replace(/\s+/g,"");const t=m[2]?(m[2][0]=="S"?"S":m[2][0]=="C"?"C":"M"):tipoDef;if(!out.some(x=>x.pos==pos&&x.tipo==t))out.push({pos,tipo:t})});return out}
 const NORM=t=>String(t||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 /* Línea tipo «Inop SIN AVO posición T30 (E81) 20:30 LT a 23:30 LT [SIN MOVER PASARELA]» */
-function itemLinea(l0){const U=NORM(l0).replace(/[|]/g,"I").replace(/§/g,"5").replace(/(POSICI\S{0,3}\W{0,3})T[IL]([A-Z])?(?=\s*[\/\-(]|\s|$)/,"$1T1$2");const m=/POSICI[O0E6]?N\W{0,3}(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
+function itemLinea(l0){let U=NORM(l0).replace(/[|]/g,"I").replace(/§/g,"5").replace(/(POSICI\S{0,3}\W{0,3})T[IL]([A-Z])?(?=\s*[\/\-(]|\s|$)/,"$1T1$2");
+ /* v450: el OCR lee T5 como «TS» y T6 como «TO» (T5B / T5, T6B / T6 / T6W): se corrigen en la zona de la posición */
+ U=U.replace(/(POSICI\S{0,3}\W{0,3})([^(]{0,24})/,(m0,a,b)=>a+b.replace(/\bT([SO])([BW]?)(?=\s*[\/\-(]|\s|$)/g,(x,c,d)=>"T"+(c=="S"?"5":"6")+d));const m=/POSICI[O0E6]?N\W{0,3}(T?\s?\d{1,3}[A-Z]?(?:\s*[\/\-]\s*T?\s?\d{1,3}[A-Z]?)*)/.exec(U);if(!m)return null;
  const pos=m[1].replace(/\s+/g,"");const resto=U.slice(m.index+m[0].length);const r=/\(([^)]{1,20})\)/.exec(resto);
  const h=/(\d{1,2})\s*[:.,\-]?\s*(\d{2})\s*(?:L\s*[TI])?\s*(?:A|-|HASTA)\s*(\d{1,2})\s*[:.,\-]?\s*(\d{2})/.exec(resto);
  let ps=pos;const rf=r?r[1].trim().replace(/£/g,"E").replace(/\$/g,"S").replace(/^([A-Z])\s*[I|L]\s*(\d)/,"$11$2").replace(/^([A-Z])\s+(\d)/,"$1$2"):"";if(/^[B-E]\d/i.test(rf)&&!/^T/.test(ps)){if(/^1\d\d$/.test(ps))ps="T"+ps.slice(1);else if(/^\d{1,2}$/.test(ps))ps="T"+ps}
@@ -160,7 +162,7 @@ function analiza(texto,y0,m0,tipoDef){const por=new Map();let cur=null,tipo=tipo
 /* v187: etiquetas de día (LUNES…DOMINGO) y fechas sueltas de la columna izquierda */
 const DIAS_N=["LUNES","MARTES","MIERCOLES","JUEVES","VIERNES","SABADO","DOMINGO"];
 function lev(a,b){const d=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=d[0];d[0]=i;for(let j=1;j<=b.length;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]==b[j-1]?0:1));p=t}}return d[b.length]}
-function diaIx(w){const U=NORM(w).replace(/[^A-Z]/g,"");if(U.length<4)return -1;let bi=-1,bd=9;DIAS_N.forEach((k,i)=>{const d=lev(U,k);if(d<bd){bd=d;bi=i}});return bd<=(DIAS_N[bi].length>=7?2:1)?bi:-1}
+function diaIx(w){const U=NORM(w).replace(/[^A-Z]/g,"");if(U.length<4)return -1;let bi=-1,bd=9;DIAS_N.forEach((k,i)=>{const d=lev(U,k);if(d<bd){bd=d;bi=i}});return bi>=0&&bd<=(DIAS_N[bi].length>=7?2:1)?bi:-1}/* v450: palabras largas sin parecido a ningún día (cuadro de la obra a la izquierda) ya no rompen la lectura */
 const sumaD=(f,n)=>{const[a,b,c]=f.split("-").map(Number);return iso(new Date(a,b-1,c+n))};
 const dif=(f,g)=>Math.round((new Date(g+"T12:00")-new Date(f+"T12:00"))/864e5);
 const lunesDe=f=>{const d=new Date(f+"T12:00");return sumaD(f,-((d.getDay()+6)%7))};
@@ -239,7 +241,7 @@ async function textoExcel(file){await carga("https://cdnjs.cloudflare.com/ajax/l
  return wb.SheetNames.map(n=>XLSX.utils.sheet_to_csv(wb.Sheets[n],{dateNF:"yyyy-mm-dd"})).join("\n").replace(/,/g," , ")}
 
 /* ---------- importar (admin) ---------- */
-window._mantTest={analiza,analizaGeo,canonico};
+window._mantTest={analiza,analizaGeo,canonico,fechaIzq,huecos};
 window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");return}if(!mImpMes)mImpMes=[...mMes];
  const op=[];for(let k=-1;k<13;k++){const d=new Date(new Date().getFullYear(),new Date().getMonth()+k,1);op.push([d.getFullYear(),d.getMonth()])}
  $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Importar programa de mantenimiento</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>
@@ -271,7 +273,12 @@ window.mantImpFile=async file=>{if(!file||mOcup)return;mOcup=true;const st=$("#m
   else if(n.endsWith(".pdf")){set("Leyendo PDF…");txt=await textoPdf(file)}
   else if(/\.xlsx?$/.test(n)){set("Leyendo Excel…");txt=await textoExcel(file)}
   else txt=await file.text();
-  const r=(geo&&geo.txt)?geo:analiza(txt,mImpMes[0],mImpMes[1],mImpTipo);
+  /* v450: se comparan la lectura por posición en la foto y la de orden de lectura; manda la que no se sale de las fechas
+     escritas en la hoja ni deja días vacíos (con el cuadro de la obra a la izquierda, la de posición podía correr un día) */
+  const lin=analiza(txt,mImpMes[0],mImpMes[1],mImpTipo);let r=(geo&&geo.txt)?geo:lin;
+  if(geo&&geo.txt&&lin.txt){const esc=new Set();String(txt).split(/\n/).forEach(l=>{const f=fechaIzq(l,mImpMes[0],mImpMes[1]);if(f)esc.add(f)});
+   const mal=R=>{const F=canonico(R.txt).filas;return huecos(F).length+[...new Set(F.map(x=>x.fecha))].filter(f=>esc.size&&!esc.has(f)).length};
+   if(mal(lin)<mal(geo))r=lin}
   const ev=/S\s*G\s*[C(]\W{0,3}(\d[\d\s]{3,8}\d)/i.exec(NORM(txt))||/EVENTO\W{0,3}(\d[\d\s]{3,8}\d)/i.exec(NORM(txt));if(ev){mEvt=ev[1].replace(/\s/g,"");const e=$("#mi_evt");if(e)e.value=mEvt}
   mTxt=r.txt;const t=$("#mi_txt");if(t)t.value=mTxt;mPrev();
   set(r.txt?`Leído «${file.name}». Revisa y corrige las líneas antes de guardar.${r.sueltas?` ${r.sueltas} posición(es) sin fecha asociada se han ignorado.`:""}`:
