@@ -247,7 +247,7 @@ async function textoExcel(file){await carga("https://cdnjs.cloudflare.com/ajax/l
 /* ---------- importar (admin) ---------- */
 window._mantTest={analiza,analizaGeo,canonico,fechaIzq,huecos,posOK,soloCal};
 window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");return}if(!mImpMes)mImpMes=[...mMes];
- /* v453: al abrir la pantalla, la caja del programa sale vacía (sin ejemplo ni lectura anterior) para evitar confusiones */
+ /* v453-v454: al abrir la pantalla, la caja del programa sale vacía (sin lectura anterior); en gris solo «Ejemplo:» y la línea de ejemplo */
  mTxt="";mLector="";
  const op=[];for(let k=-1;k<13;k++){const d=new Date(new Date().getFullYear(),new Date().getMonth()+k,1);op.push([d.getFullYear(),d.getMonth()])}
  $("#sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap"><h3 style="margin:0">Importar programa de mantenimiento</h3><button class="sec" aria-label="Cerrar" onclick="closeSheet()" style="padding:4px 12px">✕</button></div>
@@ -258,7 +258,7 @@ window.mantImp=()=>{if(!admin){msg("Solo el administrador importa el programa");
  <div id="mi_est" class="mu" style="font-size:12px;margin-top:6px"></div>
  <label>Nº de evento de mantenimiento AENA (SGC)</label><input id="mi_evt" inputmode="numeric" placeholder="Ej. 127318" value="${esc(mEvt)}" oninput="mEvtSet(this.value)">
  <label>Programa reconocido · una línea por día (AAAA-MM-DD: posición tipo hora-hora (ref); …)</label>
- <textarea id="mi_txt" rows="10" style="font-family:ui-monospace,monospace;font-size:13px" oninput="mTxtSet(this.value)" placeholder="">${esc(mTxt)}</textarea>
+ <textarea id="mi_txt" rows="10" style="font-family:ui-monospace,monospace;font-size:13px" oninput="mTxtSet(this.value)" placeholder="Ejemplo:&#10;2026-10-26: T30 M 20:30-23:30 (E81); 386 M 13:00-16:00 (H15)">${esc(mTxt)}</textarea>
  <div id="mi_prev" class="mu" style="font-size:12px;margin-top:4px"></div>
  <button class="pri" style="margin-top:10px;width:100%" onclick="mantImpGuarda()">Guardar en el calendario</button>`;
  $("#sheet").style.display="flex";mPrev()};
