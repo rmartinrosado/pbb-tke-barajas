@@ -137,7 +137,9 @@ new MutationObserver(()=>{const r=document.getElementById("sr_res");if(r&&CTX)tr
 function decora(){const res=document.getElementById("sr_res");if(!res||!CTX)return;try{pliega(res)}catch(e){}
  const ap=new Map(parecidos(CTX.ob||CTX.al,CTX.T).map(x=>[x.k,x]));
  res.querySelectorAll(".pucard .puac, .lpaef .lpap").forEach(el=>{if(el.dataset.fb)return;el.dataset.fb="1";
-  const t=pasoTxt(el);if(t.length<12||/^(⛔|no se puentean)/i.test(t))return;const tg=el.matches(".lpap")&&el.querySelector(":scope>span")||el;tg.insertAdjacentHTML("beforeend",FB);
+  const t=pasoTxt(el);if(t.length<12||/^(⛔|no se puentean)/i.test(t))return;
+  /* v441: «Funcionó / No funcionó» solo en los apartados que indican una PRUEBA (Prueba A/B/C, pruebas finales…) */
+  if(!/\bprueba/i.test(t))return;const tg=el.matches(".lpap")&&el.querySelector(":scope>span")||el;tg.insertAdjacentHTML("beforeend",FB);
   const x=ap.get(clave(t));if(x){el.classList.add("fbap");tg.insertAdjacentHTML("afterbegin",`<span class="apb">⭐ Resolvió ${x.n}×</span> `);
    const par=el.parentNode,first=[...par.children].find(c=>c.matches(".puac,.lpap"));if(first&&first!==el)par.insertBefore(el,first)}})}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".fbok,.fbno");if(!b||!b.closest("#sr_res"))return;e.preventDefault();e.stopPropagation();
