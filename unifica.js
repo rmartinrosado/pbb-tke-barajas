@@ -106,6 +106,15 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
   b1=tiene?cab+blqHTML(tb,false)+`<div class="mu" style="margin:10px 0 4px"><b>🔌 2ª OPCIÓN · desbloqueo en el módulo del PLC</b></div>`+cq+b1:cab+blqHTML(tb,false)+cq+blqHTML(tb,true).replace(/^[\s\S]*?(?=<div class="card pucard"><div class="pucab">🔌)/,"").replace(/<div class="card pucard qkc">[\s\S]*$/,"")+((res.querySelector("#sr_cas")||{}).outerHTML||"<div id=\"sr_cas\"></div>")+((res.querySelector("#sr_leido")||{}).outerHTML||"");
 }
  else if(REM)b1=`<div class="gav" style="margin-top:10px">La posición ${E(pos)} es REMOTA (sin pasarela): no hay actuación de pasarela. Indica el sistema en la descripción (400 Hz, aire acondicionado…).</div>`;
+ /* v448: CAPOTA / DOSEL · actuación rápida para sacar en servicio (memorizada 12/11/2026) */
+ {const tc=nrm(ob||al);if(T=="PAS"&&!REM&&/capota|dosel|toldo|fuelle/.test(tc)){
+  const lado=/izquierd|\bizq|\bizda/.test(tc)&&!/derech|\bdcha?\b/.test(tc)?" IZQUIERDO":/derech|\bdcha?\b/.test(tc)&&!/izquierd|\bizq/.test(tc)?" DERECHO":"";
+  const cap=`<div class="card pucard qkc"><div class="pucab">⚡ CAPOTA / DOSEL${lado?" · LADO"+lado:""} · SACAR EN SERVICIO YA</div>
+   <div class="puac qkp">1. Revisar la cinta del dosel / capota${lado?" del lado"+lado.toLowerCase():""}. <b>Si hay rotura:</b> reparar la cinta.</div>
+   <div class="puac qkp">2. <b>Si no hay rotura:</b> plegar ese lado de la capota actuando manualmente.</div>
+   <div class="puac qkp">3. Prueba: comprobar más tarde con AUTONIVELACIÓN en el selector del pupitre. Los DOS lados tienen que desplegar y plegar conjuntamente.</div>
+   <div class="puac qkp">4. Paso final: selector a REMOTO y dejar la PBB operativa.</div></div>`;
+  b1=cap+b1.replace(/<div class="gav"[^>]*>Con lo descrito no hay puente provisional ni reset[\s\S]*?<\/div>/,"")}}
  /* v427: si hay puente provisional, croquis del módulo afectado al principio del bloque 1 */
  let cro="";if(T=="PAS"&&!REM&&typeof window._croqLista=="function"&&typeof croquisPuente=="function"){try{
   const mk=(d,f)=>({id:"sosc_"+pos,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:f||"",com:"",obs:"",orden:"SOS",fecha:""});
