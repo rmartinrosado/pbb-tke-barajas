@@ -37,6 +37,6 @@ const st=document.createElement("style");st.textContent=`
 .sosr2l{margin:0 0 6px;padding:0;list-style:none;counter-reset:s}
 .sosr2l li{counter-increment:s;display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;text-transform:uppercase;padding:6px 0;border-bottom:1px dashed var(--bd,rgba(127,127,127,.35))}
 .sosr2l li::before{content:counter(s);flex:none;width:26px;height:26px;border:2px solid var(--ac,#ff6a13);color:var(--ac,#ff6a13);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900}
-#sheetc:has(.sosr2)>label,#sheetc:has(.sosr2) label:not(.srfoto){font-size:15px!important}`;
+#sheetc:has(.sosr2)>label,#sheetc:has(.sosr2) label:not(.srfoto){font-size:12.5px!important}`;
 document.head.appendChild(st);
 })();
