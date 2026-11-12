@@ -26,6 +26,9 @@ window.sosRap=function(){const r=o.apply(this,arguments);try{
  if(dt&&fb){const lf=lab(fb);const row=document.createElement("div");row.className="soscr3";dt.parentNode.insertBefore(row,dt);row.append(dt,fb);if(lf)lf.remove();
   const s=dt.querySelector("summary");if(s)s.innerHTML='✍️ Alarma a mano <small>(complementaria)</small>';fb.innerHTML='<span>📷 Foto Magelis</span><small>(complementaria)</small>'}
  const t=document.getElementById("sr_ob");if(t)t.rows=3;
+ /* v442: sin el botón verde «ACEPTAR Claude» (el análisis con Claude está en el bloque 3); la papelera de reiniciar va junto al ACEPTAR naranja */
+ const row=c.querySelector(".srobrow"),bv=[...c.querySelectorAll("button.pri")].find(x=>/sosAnaliza/.test(x.getAttribute("onclick")||""));
+ if(row&&bv){const g=row.querySelector(".srobok");if(g)g.remove();row.insertBefore(bv,row.firstChild);row.classList.add("soscok")}
  /* el «Cerrar» de abajo ya está en la ✕ */
  [...c.querySelectorAll(":scope>button.sec")].forEach(x=>{if(/^\s*cerrar\s*$/i.test(x.textContent))x.remove()});
 }catch(e){}return r};
@@ -54,7 +57,7 @@ const st=document.createElement("style");st.textContent=`
 #sheetc.sosc .soscr3 .srfoto{flex-direction:column;gap:1px;font-family:inherit!important;text-transform:none!important;font-weight:800}#sheetc.sosc .soscr3 .srfoto small{display:block;font-size:11px;font-weight:700;opacity:.8}
 #sheetc.sosc #sr_pv img{max-height:90px!important}
 #sheetc.sosc button.pri{margin-top:10px!important;padding:12px!important}
-#sheetc.sosc .srobrow{margin-top:6px!important}
+#sheetc.sosc .srobrow{margin-top:10px!important}#sheetc.sosc .srobrow.soscok button.pri{flex:1;margin:0!important}
 #sheetc.sosc .srobrow .srobok{padding:8px!important}#sheetc.sosc .srobok img.srobwm{height:26px}
 /* el menú lateral y la flecha atrás flotan abajo: hueco para que no tapen el botón verde */
 #sheet>#sheetc.sosc{padding-bottom:max(84px,calc(70px + env(safe-area-inset-bottom)))!important}`;

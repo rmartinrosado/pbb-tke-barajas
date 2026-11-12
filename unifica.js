@@ -88,9 +88,11 @@ const oA=window.sosAnaliza;
 if(typeof oA=="function")window.sosAnaliza=async function(){
  const pos=((document.getElementById("sr_p")||{}).value||"").trim().toUpperCase();
  const ob=((document.getElementById("sr_ob")||{}).value||"").replace(/\s+/g," ").trim();
- const sa=document.getElementById("sr_a"),al=[(sa&&sa.value?sa.options[sa.selectedIndex].text:""),((document.getElementById("sr_t")||{}).value||"").trim()].filter(Boolean).join(" · ");
- const T=tipoDe(ob+" "+al);
+ const sa=document.getElementById("sr_a");let al=[(sa&&sa.value?sa.options[sa.selectedIndex].text:""),((document.getElementById("sr_t")||{}).value||"").trim()].filter(Boolean).join(" · ");
  await oA.apply(this,arguments);
+ /* v442: lo leído en la FOTO de la Magelis (alarmas activas) también va al análisis (antes se perdía y el bloque 2 se quedaba en «Buscando…») */
+ if(window.__sosFotoAl)al=[al,window.__sosFotoAl].filter(Boolean).join(" · ");
+ const T=tipoDe(ob+" "+al);
  const res=document.getElementById("sr_res");if(!res||!res.innerHTML.trim())return;
  CTX={pos,ob,al,T};const REM=typeof REMOTAS!="undefined"&&REMOTAS.has(pos);
  /* bloque 1 */
@@ -114,7 +116,12 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
   <div class="ubh ub2">🔧 2 · REPARAR · actuación más eficaz</div><div class="ubb ubb2"><div id="lp_res"><div class="mu">Buscando la actuación más eficaz…</div></div></div>
   <div class="ubh ub3">🤖 3 · ANÁLISIS PROFUNDO</div><div class="ubb"><button class="sec srobok ub3b" onclick="sosObClaude()"><span><b>Analizar con Claude</b> · paso a paso con medidas</span><img src="claude-logo.png" alt="Claude"></button></div>`;
  /* bloque 2: la lupa con la descripción (y la alarma como complemento) y la posición */
- window.__lupaEnSOS=1;try{lupaBusca([ob,al].filter(Boolean).join(" · "),pos)}catch(e){const r=document.getElementById("lp_res");if(r)r.innerHTML=`<div class="gav">No se ha podido buscar la actuación más eficaz.</div>`}
+ window.__lupaEnSOS=1;const qL=[ob,al].filter(Boolean).join(" · ");
+ const fallo=m=>{const r=document.getElementById("lp_res");if(r&&/Buscando la actuaci/.test(r.textContent))r.innerHTML=`<div class="gav">${E(m)}</div>`};
+ try{if(qL.trim())lupaBusca(qL,pos);else fallo("No hay texto que analizar: escribe la avería en campo (lo que se detecta) o la alarma.")}catch(e){fallo("No se ha podido buscar la actuación más eficaz ("+(e&&e.message||e)+"). Escribe la avería en campo y vuelve a pulsar ACEPTAR.")}
+ /* v442: vigilancia · nunca se queda en «Buscando…» */
+ setTimeout(()=>{const r=document.getElementById("lp_res");if(!r||!/Buscando la actuaci/.test(r.textContent))return;
+  try{if(ob)lupaBusca(ob,pos)}catch(e){}setTimeout(()=>fallo("No se ha relacionado ninguna actuación con lo leído. Escribe la avería en campo (lo que se detecta) y vuelve a pulsar ACEPTAR."),1500)},4000);
  decora();try{res.scrollIntoView({block:"start",behavior:"smooth"})}catch(e){}};
 /* la lupa se repinta (desplegable del elemento, alternativas): volver a poner los botones */
 const oP=window.lupaPinta;if(typeof oP=="function")window.lupaPinta=function(){const r=oP.apply(this,arguments);try{if(document.getElementById("sr_res"))decora()}catch(e){}return r};

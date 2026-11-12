@@ -109,10 +109,12 @@ window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpp
  if(!pos&&!ob){msg("Indica la posición PBB y la avería en campo");$("#sr_p").focus();return}
  let al=[($("#sr_a").value||""),($("#sr_t").value||"")].map(x=>x.trim()).filter(Boolean).join(" · ");
  if(!foto&&!al&&!ob){msg("Escribe la avería en campo, lo que se detecta (o elige la alarma, escríbela o haz la foto de la Magelis)");const t=document.getElementById("sr_ob");if(t)t.focus();return}
- if(foto){res.innerHTML=`<div class="mu" style="margin-top:10px">Leyendo la foto…</div>`;
-  try{await tess();const w=await Tesseract.createWorker("spa",1,{logger:m=>{if(m.status=="recognizing text")res.innerHTML=`<div class="mu" style="margin-top:10px">Leyendo la foto… ${Math.round(m.progress*100)}%</div>`}});
-   const r=await w.recognize(foto);await w.terminate();al=(al+" "+(r.data.text||"")).trim()}
-  catch(e){if(!ob&&!al){res.innerHTML=`<div class="gav" style="margin-top:10px">No se pudo leer la foto. Escribe la descripción en campo o la alarma a mano y vuelve a pulsar.</div>`;const d=document.querySelector(".srtx");if(d)d.open=true;return}}}
+ /* v442: la foto se lee con IA (magelis-foto.js); solo las alarmas ACTIVAS van al análisis */
+ window.__sosFotoHTML="";window.__sosFotoAl="";
+ if(foto){const set=t=>{res.innerHTML=`<div class="mu" style="margin-top:10px">${t}</div>`};set("Leyendo la foto…");
+  try{if(typeof sosLeeFoto=="function"){const F=await sosLeeFoto(foto,set,!!ob||!!al);window.__sosFotoAl=F.al||"";al=(al+" "+(F.al||"")).trim()}
+   else{await tess();const w=await Tesseract.createWorker("spa",1);const r=await w.recognize(foto);await w.terminate();al=(al+" "+(r.data.text||"")).trim()}}
+  catch(e){if(!ob&&!al){res.innerHTML=`<div class="gav" style="margin-top:10px">No se pudo leer la foto. Escribe la avería en campo o la alarma a mano y vuelve a pulsar.</div>`;const d=document.querySelector(".srtx");if(d)d.open=true;return}}}
  al=al.replace(/\s+/g," ").trim();
  const mk=(d,f)=>({id:"sos_"+pos+"_"+(d+f).length,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:f||"",com:"",obs:"",orden:"SOS",fecha:""});
  const ana=ot=>{let P=[],S=null;try{P=puentesOT(ot)}catch(e){}try{S=segOT(ot)}catch(e){}const RS=typeof resetAplica=="function"&&resetAplica(ot);return{ot,P,S,RS,ok:!!(P.length||S||RS)}};
@@ -125,7 +127,7 @@ window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpp
   if(al){const Aa=ana(mk(al,""));if(Aa.ok&&(!A.ok||firma(Aa)!=firma(A)))B=Aa}}
  else A=ana(mk(al,""));
  const txt=[ob,al].filter(Boolean).join(" · ");
- const leido=`<details class="srtx" style="margin-top:8px"><summary class="mu">Texto analizado</summary><div class="mu" style="white-space:pre-wrap;font-size:12px">${ob?`<b>Avería en campo:</b> ${esc(ob)}`:""}${ob&&al?"\n":""}${al?`<b>Alarma (complementaria):</b> ${esc(al)}`:""}</div></details>`;
+ const leido=(window.__sosFotoHTML||"")+`<details class="srtx" style="margin-top:8px"><summary class="mu">Texto analizado</summary><div class="mu" style="white-space:pre-wrap;font-size:12px">${ob?`<b>Avería en campo:</b> ${esc(ob)}`:""}${ob&&al?"\n":""}${al?`<b>Alarma (complementaria):</b> ${esc(al)}`:""}</div></details>`;
  if(!A.ok&&!B){res.innerHTML=`<div class="gav" style="margin-top:10px">Con lo descrito no hay puente provisional ni reset en la PBB ${esc(pos||"")} (o no se ha reconocido). Mira abajo la actuación más eficaz o detalla el elemento (p. ej. «freno de cabina derecho activado»).</div><div id="sr_cas"></div>${leido}`;const d=document.querySelector(".srtx");if(d)d.open=true;sosCasRap(txt,pos);return}
  res.innerHTML=`<div class="mu" style="margin:10px 0 6px"><b>PBB ${esc(pos||"(sin posición · plano general)")}</b>${A.ok?` · según ${A.src||"la alarma"}`:` · según la alarma`}</div>${A.ok?pinta(A):`<div class="gav">La descripción en campo no nombra un elemento con puente provisional; se muestra lo que indica la alarma.</div>`}
   ${B?(A.ok?`<details class="srtx srcomp"><summary><b>Según la alarma de la Magelis</b> (complementaria · otro elemento)</summary>${pinta(B)}</details>`:pinta(B)):""}<div id="sr_cas"></div>${leido}`;sosCasRap(txt,pos);
