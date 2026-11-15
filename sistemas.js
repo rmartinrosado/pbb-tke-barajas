@@ -126,6 +126,7 @@ PAS:[
   "Señales a CBTH por relés E-K85 a E-K88: PBB activada, en servicio, mantenimiento y avería (E-A1 mód. 3).",
   "Bloqueo máquina A/A → E-A2 mód. 2 LED 4 ○ · carro A/A (FC carrito PCAir E-S100, cable E-WCARRO) → E-A2 mód. 3 LED 1 ○.",
   "Convertidor 400 Hz en servicio → E-A2 mód. 3 LED 2 ○ · 90 % conector → E-A2 mód. 3 LED 3 ○.",
+  "Manguera 400 Hz extendida (contacto -400HZ del recogedor) → P-A5 mód. 1 LED 2 ○ (pupitre, folio 85): con la manguera fuera la PBB queda bloqueada y NO traslada. Actuación: terminar de enrollar desde el AO y actuar en el recogedor.",
   "Bloqueo con el equipo parado y recogido → contacto en el equipo o manguera E-X61. Medida provisional: soltar el hilo de la borna IN (no puentear)."]},
  {s:"Mandos del pupitre",f:[50,81,82,83,84],c:[
   "Joystick CP-S0 con hombre muerto: P-A3 mód. 1 LED 2 al pulsar; adelante, atrás, izquierda, derecha, X1, X2, Y1 e Y2 en P-A3 mód. 1-3.",
@@ -223,7 +224,7 @@ HZ:[
   "No recoge (IN): OFF pulsado y LED rojo apagado, sensor 90 % no «pegado», hombre muerto y desbloqueo de pasarela activos."]},
  {s:"Interfaz con la PBB",f:[],c:[
   "Convertidor en servicio → E-A2 mód. 3 LED 2 · 90 % conector → E-A2 mód. 3 LED 3 (○ con el convertidor parado y el cable recogido).",
-  "Cable 400 Hz extendido → P-A5 mód. 1 LED 2 (○ con el cable recogido).",
+  "Cable 400 Hz extendido → P-A5 mód. 1 LED 2 (○ con el cable recogido). Con la manguera extendida la PBB se BLOQUEA y no traslada: terminar de enrollar desde el armario AO y actuar en el recogedor; si no, revisar la señal en P-A5.",
   "Desbloqueo PBB AO (armario AO) → E-X61:13 → E-A3 DIN02 (borna 2.1, «BYPASS AO») · seta AO → E-X61:16 → E-A3 DIN01 (folios 11 y 60).",
   "Bloqueo con el 400 Hz parado y recogido → contacto en el equipo o manguera CBTH-X61 ↔ E-X61."]}
 ],

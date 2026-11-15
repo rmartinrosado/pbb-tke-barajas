@@ -48,20 +48,23 @@ const QK={
    "Fallo de variador (clemas 28/29): leer el código en el variador Omron y resetear; magnetotérmico FGVI.",
    "Piloto amarillo FILTRO: limpiar o sustituir el filtro; revisar condensados."]}]}};
 /* v430-v431: BLOQUEO de la PBB por un equipo de servicio → 1ª opción en el equipo (cierre del carro…), 2ª desbloqueo en el módulo del PLC (E-A2) */
-const BLQ=t=>{t=nrm(t);return /\bbloque(o|os|ad[ao]s?|an?)\b|interbloque/.test(t)&&/carr(o|ito)|a\/a|\baa\b|aire|\bpca\b|pc ?air|climatiz|maquina|convertidor|\b400\b|\bhz\b|\bgpu\b|conector|90 ?%|equipo/.test(t)};
-const BLQ_EQ=[[/carr(o|ito)|pc ?air|e-?s100/,"E-A2|3|1","Carro A/A","Cerrar la puerta / tapa del carro de aire con la manguera recogida; si sigue: ajuste del FC del carro E-S100 + cierre de puerta. Si se soltó el hilo en E-A2, reponerlo."],
+const MANG=/(manguera|cable)( de)?( (del? )?(400 ?hz|400|hz))?[^.]{0,25}(extendid|fuera|sin recoger|no recog|desenrollad)|recogedor|enroll|enrrol/;/* v490: manguera 400 Hz extendida → PBB bloqueada, no traslada (P-A5 DIN02) */
+const BLQ=t=>{t=nrm(t);if(MANG.test(t))return true;return /\bbloque(o|os|ad[ao]s?|an?)\b|interbloque/.test(t)&&/carr(o|ito)|a\/a|\baa\b|aire|\bpca\b|pc ?air|climatiz|maquina|convertidor|\b400\b|\bhz\b|\bgpu\b|conector|90 ?%|equipo/.test(t)};
+const BLQ_EQ=[[MANG,"P-A5|1|2","Manguera 400 Hz extendida","Terminar de enrollar la manguera desde el armario exterior AO (botón IN) hasta el final del recorrido y actuar en el recogedor: que el contacto «-400HZ» 13-14 quede accionado con la manguera recogida (leva / tope del enrollado). Con la manguera recogida el LED 2 del módulo 1 de P-A5 (pupitre) se apaga y la PBB vuelve a trasladar."],
+ [/carr(o|ito)|pc ?air|e-?s100/,"E-A2|3|1","Carro A/A","Cerrar la puerta / tapa del carro de aire con la manguera recogida; si sigue: ajuste del FC del carro E-S100 + cierre de puerta. Si se soltó el hilo en E-A2, reponerlo."],
  [/90 ?%|conector/,"E-A2|3|3","90 % conector 400 Hz","Desconectar el conector del avión y recogerlo; LED 90 % apagado. Si sigue encendido: interruptor 90 % pegado (hilos 9-13). Si se soltó el hilo en E-A2, reponerlo."],
  [/convertidor|\b400\b|\bhz\b|\bgpu\b/,"E-A2|3|2","Convertidor 400 Hz en servicio","Parar el 400 Hz (OFF, LED ON apagado) y recoger el cable; revisar el contacto de servicio y la manguera CBTH-X61 ↔ E-X61. Si se soltó el hilo en E-A2, reponerlo."],
  [/a\/a|\baa\b|aire|\bpca\b|climatiz|maquina/,"E-A2|2|4","Máquina A/A","Parar la PCA y recoger la manguera; revisar el contacto de la máquina y la manguera CBTH-X61 ↔ E-X61. Si se soltó el hilo en E-A2, reponerlo."]];
-function blqHTML(t,conPlc){t=nrm(t);const L=BLQ_EQ.filter(([re])=>re.test(t));const S=L.length?L:BLQ_EQ;
+const blqSel=t=>{let L=BLQ_EQ.filter(([re])=>re.test(t));if(L.some(x=>x[1]=="P-A5|1|2")&&!/convertidor|en servicio|\bgpu\b/.test(t))L=L.filter(x=>x[1]!="E-A2|3|2");return L};
+function blqHTML(t,conPlc){t=nrm(t);const L=blqSel(t);const S=L.length?L:BLQ_EQ;
  const plc=conPlc?S.map(([,k,n])=>`<div class="card pucard"><div class="pucab">🔌 2ª OPCIÓN · DESBLOQUEO EN EL MÓDULO DEL PLC · ${E(n)}</div><div class="puac">${E(typeof PUENTE!="undefined"&&PUENTE[k]||"En E-A2, con el equipo COMPROBADO parado y recogido, soltar el hilo de la entrada del bloqueo (no puentear).")}</div><div class="puac mu">Anotarlo en la OT y reponer el hilo al reparar.</div></div>`).join(""):"";
  return `<div class="card pucard qkc"><div class="pucab">⚡ 1ª OPCIÓN · EN EL EQUIPO</div>${S.map(([,,n,a],ix)=>`<div class="puac qkp">${ix+1}. <b>${E(n)}:</b> ${E(a)}</div>`).join("")}</div>`+plc}
 /* v431: croquis del módulo del PLC (E-A2) con el hilo a soltar, para la 2ª opción */
-function blqCroq(t){if(typeof croquisPuente!="function")return "";t=nrm(t);const L=BLQ_EQ.filter(([re])=>re.test(t));const S=L.length?L:BLQ_EQ;
- const sig=b=>{try{const C=window.CABLEADO||{};for(const k in C){const e=C[k];if(e.m=="E-A2"&&e.b==b)return (e.k||"")+(e.d?" · "+e.d:"")}}catch(e){}return ""};
- const it=S.map(([,k,n])=>{const tx=(typeof PUENTE!="undefined"&&PUENTE[k])||"",m=/borna IN (\d+\.\d)/i.exec(tx);return m?{mod:"E-A2",b1:m[1],b2:m[1],k1:sig(m[1])||"IN",k2:"",d:"Desbloqueo "+n+" · soltar y aislar el hilo (no puentear)",suelta:1}:null}).filter(Boolean);
+function blqCroq(t){if(typeof croquisPuente!="function")return "";t=nrm(t);const L=blqSel(t);const S=L.length?L:BLQ_EQ;
+ const sig=(b,mo)=>{try{const C=window.CABLEADO||{};for(const k in C){const e=C[k];if(e.m==(mo||"E-A2")&&e.b==b)return (e.k||"")+(e.d?" · "+e.d:"")}}catch(e){}return ""};
+ const it=S.map(([,k,n])=>{const tx=(typeof PUENTE!="undefined"&&PUENTE[k])||"",m=/borna IN (\d+\.\d)/i.exec(tx);const mo=k.split("|")[0];return m?{mod:mo,b1:m[1],b2:m[1],k1:sig(m[1],mo)||"IN",k2:"",d:"Desbloqueo "+n+" · soltar y aislar el hilo (no puentear)",suelta:1}:null}).filter(Boolean);
  if(!it.length)return "";let h="";try{h=it.map(o=>`<div class="gcri">${croquisPuente(o,5)}</div>`).join("")}catch(e){return ""}
- return `<div class="card gcroq ubcro"><div class="gcrh">🔌 Croquis del módulo E-A2 · hilo a soltar${it.length>1?` · ${it.length} posibles (desliza)`:""}</div><div class="gcrs">${h}</div></div>`}
+ return `<div class="card gcroq ubcro"><div class="gcrh">🔌 Croquis del módulo ${[...new Set(it.map(o=>o.mod))].join(" / ")} · hilo a soltar${it.length>1?` · ${it.length} posibles (desliza)`:""}</div><div class="gcrs">${h}</div></div>`}
 function tipoDe(t){t=nrm(t);if(BLQ(t))return "PAS";
  /* la PAS bloqueada por el carro de aire es de la pasarela */
  if(/\b(pas|pbb|pasarela)\b[^.]{0,30}bloquead|bloquead[^.]{0,30}\b(pas|pbb|pasarela)\b/.test(t))return "PAS";

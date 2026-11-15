@@ -83,7 +83,7 @@ const SOS_AL=[
   ["Barrera de seguridad rotonda (R-B4 · E-A10 3.1)","BARRERA SEGURIDAD ROTONDA ACTIVADA"],
   ["Inductivo puerta de servicio (SS-B15 · E-A10 4.1)","INDUCTIVO PUERTA DE SERVICIO ACTIVADO"]]],
  ["Traslación",[["Bordes de ruedas","BORDE SEGURIDAD DELANTERO TRASERO"],["Freno manual izquierdo","FRENO MANUAL MOTOR IZQUIERDO"],["Freno manual derecho","FRENO MANUAL MOTOR DERECHO"]]],
- ["Bloqueos por equipos de servicio",[["Bloqueo PBB carro A/A","BLOQUEO PBB CARRO A/A"],["Bloqueo PBB máquina A/A","BLOQUEO PBB MAQUINA A/A"],["Bloqueo convertidor 400 Hz en servicio","BLOQUEO PBB CONVERTIDOR EN SERVICIO"],["Bloqueo 90 % conector 400 Hz","BLOQUEO PBB 90% CONECTOR"]]]];
+ ["Bloqueos por equipos de servicio",[["Bloqueo PBB carro A/A","BLOQUEO PBB CARRO A/A"],["Bloqueo PBB máquina A/A","BLOQUEO PBB MAQUINA A/A"],["Bloqueo convertidor 400 Hz en servicio","BLOQUEO PBB CONVERTIDOR EN SERVICIO"],["Bloqueo 90 % conector 400 Hz","BLOQUEO PBB 90% CONECTOR"],["Bloqueo manguera 400 Hz extendida (no traslada)","BLOQUEO PBB MANGUERA 400HZ EXTENDIDA"]]]];
 const tess=()=>window.Tesseract?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";s.onload=ok;s.onerror=ko;document.head.appendChild(s)});
 const lista=()=>{const P=(typeof POS!="undefined"&&Array.isArray(POS))?POS:[];return P.map(p=>`<option value="${esc(String(p))}">`).join("")};
 window.sosRap=function(){foto=null;fotoURL="";

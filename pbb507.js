@@ -85,7 +85,7 @@ const AT507={
 const at507Txt=b=>{const a=AT507[b];return `PBB 507 · Antiatrapamiento ${a.lado}: sensor óptico NPN ${a.el} (plano 507 folio 64). Liberar y limpiar primero; con el túnel COMPROBADO libre, puente solo de ese lado en el armario E: ${a.cl} (equivale al sensor libre) o +24 V E-X68:1 (hilo 218) con la borna IN ${b} de E-A9. En la 507 esta entrada no usa la salida de test UT: el puente ${b}–${b.replace(".1",".2")} no sirve.`};
 const PU507={"E-A9|3|1":at507Txt("5.1"),"E-A9|3|2":at507Txt("6.1"),"E-A9|1|2":at507Txt("2.1"),"E-A9|4|2":at507Txt("8.1"),
  "E-A9|4|1":"PBB 507 · Bumper de ala A380 C-B25 (plano 507 folio 63): con el borde COMPROBADO libre y sin daños, puente 7.1–7.2 (IN–UT) en E-A9 o en la clema E-X59:3 (576) – E-X59:4 (217).",
- "E-A2|2|4":null,"E-A2|3|1":null,"E-A2|3|2":null,"E-A2|3|3":null};
+ "E-A2|2|4":null,"E-A2|3|1":null,"E-A2|3|2":null,"E-A2|3|3":null,"P-A5|1|2":null};
 const PU_ORIG={},REQ_ORIG={};
 function pu507(on){Object.keys(PU507).forEach(k=>{if(!(k in PU_ORIG))PU_ORIG[k]=PUENTE[k];if(on){if(PU507[k])PUENTE[k]=PU507[k];else delete PUENTE[k]}else{if(PU_ORIG[k]===undefined)delete PUENTE[k];else PUENTE[k]=PU_ORIG[k]}});
  const k="E-A9|4|1";if(!(k in REQ_ORIG))REQ_ORIG[k]=PU_REQ[k];if(on)PU_REQ[k]=/bumper|borde|banda|\bala\b|a-?380|c-?b25/;else if(REQ_ORIG[k]===undefined)delete PU_REQ[k];else PU_REQ[k]=REQ_ORIG[k]}

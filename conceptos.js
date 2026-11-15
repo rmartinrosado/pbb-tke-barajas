@@ -8,6 +8,8 @@
       Límite de giro de cabina → C-B1 / C-B2 en P-A6 (no el FC de freno). «Freno de cabina» = FC de freno de giro de cabina.
     · Bloqueo por equipo (carro A/A, máquina A/A, 400 Hz, 90 % conector): 1º en el equipo, 2º desbloqueo en el PLC. Si el aviso NO
       habla de bloqueo, carro, puerta o tapa (p. ej. «PCA no enfría») no salen las cajas de bloqueo del carro.
+    · Manguera 400 Hz extendida → PBB bloqueada, no traslada (P-A5 mód. 1 LED 2, folio 85): 1º terminar de enrollar desde el AO
+      y actuar en el recogedor; 2º señal de bloqueo en P-A5. No es límite de traslación ni FC (v491).
     · Seta de emergencia → «Pupitre encendido pero no rearma» (setas), no el joystick.
     · Puerta de servicio abierta → inductivo SS-B15 (E-A10 4.1), no la iluminación de la escalera.
     · Antiatrapamiento, portón, zapata, bumpers, bordes: su caja solo si el aviso los nombra (EL_FAM, v437).
@@ -49,6 +51,15 @@ nueva({t:"Puerta de servicio abierta · inductivo SS-B15 (E-A10 4.1)",ef:1,g:[70
  "3º · Para recuperar la pasarela: PUENTE PROVISIONAL en E-A10 borna IN 4.1 con 4.2 (salida de test UT del canal; croquis arriba), con la puerta comprobada cerrada a la vista y un compañero vigilando. Anotarlo en la OT.",
  "4º · PRUEBAS FINALES: QUITAR EL PUENTE; abrir la puerta → la PBB no debe moverse y el LED se apaga; cerrar → LED encendido y rearma."],
  r:"Esquema general rev. J folio 70 (E-A10)"});
+nueva({t:"Manguera 400 Hz extendida · PBB bloqueada, no traslada (P-A5)",ef:1,g:[85,85,85,85],
+ a:"Con la manguera de 400 Hz fuera del recogedor la PBB queda BLOQUEADA y no traslada (seguridad para no arrastrar manguera ni conector). No es avería de traslación ni un FC pisado.",
+ p:[
+ "1º · ACTUACIÓN MÁS RÁPIDA · Terminar de enrollar la manguera desde el armario exterior AO (botón IN, mantenido) hasta el final del recorrido.",
+ "2º · Actuar en el RECOGEDOR: manguera enrollada a tope accionando el contacto «-400HZ» (13-14); revisar leva / tope, palanca o rodillo del contacto y su soporte.",
+ "3º · Si no funciona en campo · SEÑAL DE BLOQUEO EN EL PUPITRE: P-A5 módulo 1 LED 2 «Cable 400 Hz extendido» (DIN02, borna IN 2.1, folio 85), APAGADO con la manguera recogida. Encendido con la manguera recogida → contacto -400HZ pegado o su hilo (P-X92:8 hilo 336 → 14-13 → P-X92:18 hilo 3383 → P-A5 2.1).",
+ "4º · Último recurso para trasladar, con la manguera COMPROBADA recogida: soltar y aislar el hilo 3383 de la borna IN 2.1 de P-A5 (no puentear; croquis arriba). Anotarlo en la OT y reponerlo al reparar.",
+ "5º · PRUEBAS FINALES: sacar unos metros de manguera → LED encendido y la PBB no traslada; recoger desde el AO → LED apagado y la PBB traslada."],
+ r:"Esquema general folio 85 (P-A5 DIN02 «400Hz CABLE EXTENSION») · guía HZ"});
 const T=t=>PAS.s.findIndex(x=>x.t==t);
 
 /* ---------- opciones (lupaSub) para segregar el elemento de cada caja nueva ---------- */
@@ -68,6 +79,7 @@ const FC=/final(es)? de carrera|fin de carrera|\bf\.?c\.?\b|\bfc\b|pisad|linea d
 const LIM=/\blimite|\btope\b/;
 const ELEM=/antiatrap|atrapamiento|borde|banda|bumper|zapata|porton|persiana|barrera|freno|puerta de servicio|seta/;
 const REG=[
+ {q:t=>/(manguera|cable)( de)?( (del? )?(400 ?hz|400|hz))?[^.]{0,25}(extendid|fuera|sin recoger|no recog|desenrollad)|recogedor|enroll|enrrol/.test(t),box:/^manguera 400 hz extendida/,fuera:/^limite de traslacion|^final de carrera de seguridad|carro de aire|^bloqueo carro|^interbloqueo con la pasarela/},
  {q:t=>FC.test(t)&&!ELEM.test(t),box:/^final de carrera de seguridad pisado/,fuera:/^limite de extension \/ retraccion|^limite de inclinacion superior/},
  {q:t=>LIM.test(t)&&/inclinac/.test(t)&&!FC.test(t),box:/^limite de inclinacion superior/,fuera:/^limite de traslacion|^rotonda · detectores|^final de carrera de seguridad/},
  {q:t=>LIM.test(t)&&/rotonda/.test(t)&&!FC.test(t)&&!/barrera/.test(t),box:/^rotonda · detectores de giro/,fuera:/^limite de traslacion|^final de carrera de seguridad/},
