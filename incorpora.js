@@ -27,9 +27,9 @@ function collage(cs){const W=1600,h=Math.max(...cs.map(c=>c.height*(W/cs.length)
  const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);const w=W/cs.length;cs.forEach((c,i)=>{const k=Math.min(w/c.width,cv.height/c.height);x.drawImage(c,i*w+(w-c.width*k)/2,(cv.height-c.height*k)/2,c.width*k,c.height*k)});return cv.toDataURL("image/jpeg",.85)}
 /* ---------- catálogo ---------- */
 window.compCatalogo=function(q){q=q||"";const t=nrm(q);const L=C().filter(c=>!t||nrm([c.id,c.t,c.fab,c.claves].join(" ")).includes(t));
- $("#sheetc").innerHTML=`<div class="icph"><h3 style="margin:0">🔩 Componentes de campo</h3><button class="sec" onclick="closeSheet()" style="width:auto;margin:0">✕</button></div>
+ $("#sheetc").innerHTML=`<div class="icpfix"><div class="icph"><h3 style="margin:0">🔩 Componentes de campo</h3><button class="sec" onclick="closeSheet()" style="width:auto;margin:0">✕</button></div>
+ ${(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin)?`<button class="pri" style="margin:8px 0 2px" onclick="compIncorpora()">➕ Incorporar componente (foto)</button>`:""}</div>
  <div class="icpb"><input id="icp_q" type="search" placeholder="Buscar código, nombre o modelo" value="${E(q)}" onkeyup="if(event.key=='Enter')compCatalogo(this.value)"><button class="sec" onclick="compCatalogo(document.getElementById('icp_q').value)" style="width:auto;margin:0">🔍</button></div>
- ${(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin)?`<button class="pri" style="margin:8px 0" onclick="compIncorpora()">➕ Incorporar componente (foto)</button>`:""}
  <div class="mu" style="font-size:12px;margin-bottom:6px">${L.length} ficha${L.length==1?"":"s"}</div>
  ${L.map((c,i)=>`<details class="icpi"><summary><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</summary>${typeof compFicha=="function"?compFicha(c):""}</details>`).join("")}`;
  $("#sheet").style.display="flex"};
@@ -86,8 +86,10 @@ window.compGuarda=async function(){const g=id=>(document.getElementById(id)||{})
  try{const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");compCatalogo(row.codigo)}
  catch(e){msg("No se pudo guardar: "+String((e&&e.message)||e))}};
 /* ---------- accesos ---------- */
+/* v495: cabecera del catálogo (título + «Incorporar componente») fija arriba; la búsqueda debajo del botón */
 /* v474: el catálogo se abre solo desde la caja «Componente de campo» de la guía */
 const st=document.createElement("style");st.textContent=`
+.icpfix{position:sticky;top:-14px;z-index:5;margin:-14px -14px 0;padding:14px 14px 6px;background:var(--card);border-bottom:1px solid var(--bd,#3a4450)}
 .icph{display:flex;align-items:center;justify-content:space-between;gap:8px}.icpb{display:flex;gap:6px;margin-top:8px}.icpb input{flex:1;margin:0}
 .icpi{border:1px solid var(--bd,#ddd);border-radius:10px;padding:6px 8px;margin:6px 0}.icpi>summary{font-weight:700;font-size:14px}
 .icf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}.icf figure{margin:0;background:#fff;border:1px solid #cfd8dc;border-radius:9px;padding:4px;display:flex;flex-direction:column;gap:4px}
