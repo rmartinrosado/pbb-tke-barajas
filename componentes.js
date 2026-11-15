@@ -20,13 +20,26 @@ const COMP=[
   pin:[["1","Marrón (BN)","L+","+24 VDC"],["3","Azul (BU)","M","0 V"],["4","Negro (BK)","Q","Salida conmutada"],["2","Blanco (WH)","QA","Salida 4-20 mA"],["5","Gris (GY)","MF","Entrada / salida multifunción"]],
   med:["24 VDC entre pin 1 (BN) y pin 3 (BU) en el conector.","4-20 mA en serie en la salida analógica, variando al extender y retraer el túnel.","Con 24 V y sin señal → óptica sucia, haz tapado o desalineado, blanco / reflector movido o sensor averiado."],
   av:"OJO AL SUSTITUIR: en el esquema rev. J la señal llega por el hilo NEGRO (BK) de E-W13 a E-X62:4. En este DL50 el negro (pin 4) es la salida CONMUTADA Q; la 4-20 mA es el BLANCO (pin 2, QA). Comprobar en el montaje qué hilo lleva la medida antes de conectar."}
+,
+ {id:"C-R10",t:"Potenciómetro de giro de cabina",fab:"VISHAY Spectrol · MOD 132-2-0-103",
+  /* fallo de la medida analógica de giro de cabina (medidor de cabina, AIN03) */
+  re:t=>/c-?r10|e-?r10|potenciometro (de )?(giro )?(de )?(la )?cabina/.test(t)||/(medida|medidor|analog|potenciom)/.test(t)&&/cabina/.test(t)&&!/extensi|retracc|altura|ultrason|rotonda/.test(t),
+  fotos:[["componentes/cr10-frontal.jpg","Vista frontal · placa (modelo y resistencia) y cables 1-2-3"],["componentes/cr10-lateral.jpg","Vista lateral · eje, rosca de fijación y terminales"]],
+  esp:[["Función","Mide el giro de la cabina: el eje va acoplado al giro y el cursor da una tensión proporcional al ángulo"],
+   ["Resistencia","10 kΩ ± 3 % (entre extremos 1 y 3)"],["Linealidad","± 0,5 %"],
+   ["Montaje","Casquillo roscado con tuerca, tetón antigiro y eje con ranura"],["Placa","MOD 132-2-0-103 · código 0331 · México"],
+   ["En el PLC","C-R10 (1-2-3) → manguera E-W9 (3×0,75 apantallada) → E-X65:1/2/3 (pantalla :4) → convertidor E-R10 (WAS5 PRO RTD) → 4-20 mA → E-A4 AIN03 (borna 1.3 / 2.3) · folio 62"]],
+  pint:"Conexionado (terminales soldados)",
+  pin:[["1","Rojo · marca 1","Extremo","Alimentación del convertidor"],["2","Rojo · marca 2","Cursor","Señal (varía al girar)"],["3","Rojo · marca 3","Extremo","Retorno del convertidor"]],
+  med:["SIN TENSIÓN (desconectado de E-X65): entre 1 y 3 ≈ 10 kΩ (9,7 … 10,3 kΩ), fijo al girar.","Entre 1-2 y entre 2-3 el valor sube y baja SUAVE al girar la cabina, sin saltos ni abiertos; 1-2 + 2-3 = 1-3.","Abierto, saltos o valor fijo al girar → potenciómetro gastado o acoplamiento al eje suelto / patinando.","Potenciómetro bien y sin medida → manguera E-W9, bornas E-X65 o convertidor E-R10 (4-20 mA en su salida)."],
+  av:"AL SUSTITUIR: mismo modelo (10 kΩ, lineal). Antes de desmontar, marcar la posición del eje y del acoplamiento; montar el nuevo en la misma posición para no descalibrar la medida de giro de cabina."}
 ];
 const casa=t=>{t=nrm(t);return COMP.filter(c=>{try{return c.re(t)}catch(e){return false}})};
 window.compCampo=casa;
 const ficha=c=>`<div class="cmpf"><div class="cmpt"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</div><div class="cmpm">${E(c.fab)}</div>
- <div class="cmpfs">${c.fotos.map(([src,v])=>`<figure class="cmpfo" onclick="compVer('${src}')"><img src="${src}" alt="${E(c.id+" · "+v)}" loading="lazy"><figcaption><b>${E(c.id)}</b> · ${E(v)}</figcaption></figure>`).join("")}</div>
+ <div class="cmpfs" style="grid-template-columns:repeat(${c.fotos.length},minmax(0,1fr))">${c.fotos.map(([src,v])=>`<figure class="cmpfo" onclick="compVer('${src}')"><img src="${src}" alt="${E(c.id+" · "+v)}" loading="lazy"><figcaption><b>${E(c.id)}</b> · ${E(v)}</figcaption></figure>`).join("")}</div>
  <table class="cmpe">${c.esp.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table>
- <div class="cmpst">Conexionado (conector M12)</div><table class="cmpp"><tr><th>Pin</th><th>Color</th><th>Señal</th><th>Función</th></tr>${c.pin.map(r=>`<tr>${r.map(x=>`<td>${E(x)}</td>`).join("")}</tr>`).join("")}</table>
+ <div class="cmpst">${E(c.pint||"Conexionado (conector M12)")}</div><table class="cmpp"><tr><th>Pin</th><th>Color</th><th>Señal</th><th>Función</th></tr>${c.pin.map(r=>`<tr>${r.map(x=>`<td>${E(x)}</td>`).join("")}</tr>`).join("")}</table>
  <div class="cmpst">Medir en campo</div><ol class="cmpo">${c.med.map(x=>`<li>${E(x)}</li>`).join("")}</ol>${c.av?`<div class="gav">⚠️ ${E(c.av)}</div>`:""}</div>`;
 window.compCampoHTML=function(t){const L=casa(t);if(!L.length)return"";return L.map(ficha).join("")};
 /* foto a pantalla completa (✕ para volver) */
