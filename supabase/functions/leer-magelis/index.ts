@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // v442 (12/11/2026): lee con IA (visión) la FOTO de la pantalla Magelis de la PBB (alarmas y eventos) para el SOS.
 // El OCR del móvil (Tesseract) no lee una pantalla fotografiada en ángulo, con reflejos y poca luz.
-// Claves: GEMINI_API_KEY (gratuita) o ANTHROPIC_API_KEY, en secretos o Vault (como «leer-hoja»).
+// Claves: ANTHROPIC_API_KEY (Claude, preferente desde v455) o GEMINI_API_KEY (reserva), en secretos o Vault (como «leer-hoja»).
 // Devuelve {filas:[{tabla,cod,texto,hora,fecha,estado}], otros, lector}. Se lanzan a la vez varios Flash; gana el primero.
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Max-Age": "86400", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-api-version, x-region, prefer" };
 const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
@@ -97,10 +97,11 @@ async function conGemini(key: string, img: string, tipo: string, ini: number): P
 }
 
 async function conClaude(key: string, img: string, tipo: string): Promise<string> {
-  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+  const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 35_000); // v455: si Claude tarda, pasa a Gemini a tiempo
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: ac.signal, headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5-5", max_tokens: 3000, messages: [{ role: "user", content: [
       { type: "image", source: { type: "base64", media_type: tipo || "image/jpeg", data: img } }, { type: "text", text: PROMPT }] }] }) });
-  const d = await r.json(); if (!r.ok) throw new Error(d?.error?.message || r.statusText);
+  clearTimeout(tm); const d = await r.json(); if (!r.ok) throw new Error(d?.error?.message || r.statusText);
   return (d.content || []).map((c: { text?: string }) => c.text || "").join("");
 }
 
@@ -120,7 +121,10 @@ Deno.serve(async (req) => {
   try {
     const { img, tipo } = await req.json(); if (!img) return json({ error: "sin_imagen" }, 400);
     let t = "", lector = "";
-    try { if (kg) { const g = await conGemini(kg, img, tipo, ini); t = g.t; lector = "Gemini " + g.m; } else { t = await conClaude(ka!, img, tipo); lector = "Claude"; } }
+    // v455: Claude (ANTHROPIC_API_KEY) preferente; Gemini de reserva si Claude falla o no hay clave
+    let errC = "";
+    if (ka) { try { t = await conClaude(ka, img, tipo); lector = "Claude"; } catch (e) { errC = String((e as Error).message || e); console.log("leer-magelis: Claude falló", errC); } }
+    try { if (!t) { if (!kg) throw new Error(errC || "sin clave de Gemini"); const g = await conGemini(kg, img, tipo, ini); t = g.t; lector = "Gemini " + g.m; } }
     catch (e) { console.log("leer-magelis: error", String((e as Error).message || e)); return json({ error: "api", mensaje: String((e as Error).message || e) }, 502); }
     const m = t.match(/\{[\s\S]*\}/); if (!m) return json({ error: "formato" }, 502);
     let o; try { o = JSON.parse(m[0]); } catch { return json({ error: "formato" }, 502); }
