@@ -43,7 +43,20 @@ const COMP=[
    ["Si el tornillo está flojo","El buje PATINA y la medida no sigue al giro: salta, se queda fija o se descalibra"],["Si el fuelle está roto","Giro con holgura o sin transmisión al potenciómetro"]],
   pint:"",pin:[],
   med:["Con la PBB parada: sujetar el eje del giro y mover el acoplamiento con la mano. No debe haber holgura ni patinar ningún buje.","Comprobar el apriete de los dos tornillos allen y que el fuelle no tiene grietas ni ondas aplastadas.","Girar la cabina despacio mirando el eje del potenciómetro: debe girar a la vez, sin saltos. Si el eje no sigue, el fallo está en el acoplamiento.","Al apretar o cambiar el acoplamiento, dejar el potenciómetro en la MISMA posición que tenía (marcar antes) y comprobar en la Magelis que la medida de giro de cabina es correcta."],
-  av:"Si la medida de giro de cabina falla con el potenciómetro bien medido (1-3 ≈ 10 kΩ y 1-2 / 2-3 variando suave), revisar SIEMPRE el acoplamiento antes de cambiar el convertidor E-R10."}
+  av:"Si la medida de giro de cabina falla con el potenciómetro bien medido (1-3 ≈ 10 kΩ y 1-2 / 2-3 variando suave), revisar SIEMPRE el acoplamiento antes de cambiar el convertidor E-R10."},
+ /* v464: barrera de seguridad de rotonda · emisor SICK L29S (R-B1 / R-B3); receptores R-B2 / R-B4 */
+ {id:"R-B1 / R-B3",t:"Emisor de la barrera de seguridad de rotonda",fab:"SICK L29S-3D3430 · P/N 2075831 · lote AB 2420",
+  re:t=>/barrera (de )?(seguridad )?(de )?(la )?rotonda|r-?b[1-4]\b|\b294\b|\bl29s?\b|fotocelula.{0,20}rotonda/.test(t),
+  fotos:[["componentes/rb-l29s-frontal.jpg","Vista frontal · placa (modelo, 24 V, pines) y cable con conector"],["componentes/rb-l29s-trasera.jpg","Vista trasera · normas de seguridad (Type 2, Cat. 2)"],["componentes/rb-l29s-conector.jpg","Vista conector · M12 macho, 4 pines"]],
+  esp:[["Función","Emisor de la barrera fotoeléctrica de seguridad que vigila la rotonda; su receptor (R-B2 / R-B4) avisa al PLC de seguridad si se corta el haz (evento 294)"],
+   ["Seguridad","Type 2 (IEC 61496) · Cat. 2, PL c (EN ISO 13849) · SILCL 1 (EN 62061) · IEC 61508"],
+   ["Alimentación","24 VDC · I < 30 mA"],["Tiempo de respuesta","≤ 540 µs"],["Protección","IP69K"],
+   ["Conector","Cable corto con M12 macho de 4 pines (manguera ITR-W1, SAC-4P-20,0-PUR/M12FS apantallada)"],
+   ["Test (PLC → emisor)","E-A1 OUT16, borna 4.4, hilo 645 → E-X70:3 → IT-X50:3 (EIT-W10) → ITR-W1 → R-B1 pin 4 (T1) · folio 55 y 89"],["Señal (receptor → PLC)","R-B4 pin 4 → ITR-W4 → IT-X50:6 → E-X70:6, hilo 646 → E-A10 IN03S, borna 3.1 · folio 70 y 89"]],
+  pint:"Conexionado (M12, según placa)",
+  pin:[["1","Marrón (BN)","+ (L+)","+24 VDC"],["2","Blanco (WH)","T2","Entrada de test 2"],["3","Azul (BU)","− (M)","0 V"],["4","Negro (BK)","T1","Entrada de test 1 (test del PLC, hilo 645)"]],
+  med:["24 VDC entre pin 1 (BN) y pin 3 (BU) en el conector del emisor.","Con la rotonda libre, la entrada E-A10 IN03S (barrera) debe estar ENCENDIDA FIJA. Al cortar el haz con la mano se apaga y salta el evento 294.","Si el evento 294 se activa y desactiva varias veces en pocos segundos: ópticas sucias o desalineadas, soporte flojo, cable dañado o algo que corta el haz.","Limpiar las ópticas de emisor y receptor, realinear y comprobar que el LED queda fijo."],
+  av:"No se puentea la barrera de rotonda: es una entrada de seguridad. AL SUSTITUIR: emisor con la misma referencia L29S-3D3430; el receptor es su pieza pareja (comprobar la referencia en su placa). Alinear y probar el corte del haz antes de dejar la PBB en servicio."}
 ];
 const casa=t=>{t=nrm(t);return COMP.filter(c=>{try{return c.re(t)}catch(e){return false}})};
 window.compCampo=casa;
