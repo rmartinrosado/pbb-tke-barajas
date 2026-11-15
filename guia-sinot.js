@@ -10,10 +10,16 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
  if(/^\s*go\(\s*['"]tec['"]\s*\)\s*;?\s*$/.test(b.getAttribute("onclick")||"")&&typeof view!="undefined"&&view!="tec"){sinOT=true;try{gOT="";gSyncOT=""}catch(x){}}},true);
 const st=document.createElement("style");st.textContent=`#app.gsinot>*:not(.gkeep){display:none!important}
 #app.gsinot .gkeep.gcab>*{display:none!important}#app.gsinot .gkeep.gcab>:is(h3,.gsel){display:block!important}#app.gsinot .gkeep.gcab>select.gsel{display:block!important;width:100%}
+.gotdesc{margin-top:6px;padding:8px 10px;border-radius:8px;border-left:4px solid #ef6c00;background:color-mix(in srgb,#ef6c00 10%,transparent);font-size:14px;line-height:1.35}.gotdesc b{color:#ef6c00}
 #app.gsinot .gaviso{margin-top:10px;font-size:13px;color:var(--mu);text-align:center}`;document.head.appendChild(st);
 const o=vTec;vTec=function(){
  let vacio=false;try{if(sinOT&&!gOT&&gOTs().length)vacio=true;else sinOT=false}catch(e){}
  const r=o.apply(this,arguments);const app=document.getElementById("app");if(!app)return r;
+ /* v488: la descripción de la avería en el desplegable «OT asociada» y debajo de él */
+ try{const sl=[...app.querySelectorAll("select")].find(s=>/^\s*gOT\s*=/.test(s.getAttribute("onchange")||""));
+  if(sl){[...sl.options].forEach(op=>{const i=op.value&&inc.find(x=>x.id==op.value);if(i&&i.desc&&!op.dataset.d){op.dataset.d=1;op.textContent+=" · "+i.desc}});
+   const i=!vacio&&gOT&&inc.find(x=>x.id==gOT);let d=sl.nextElementSibling;if(!(d&&d.classList.contains("gotdesc"))){d=document.createElement("div");d.className="gotdesc";sl.after(d)}
+   d.innerHTML=i&&i.desc?`<b>AVERÍA:</b> ${esc(i.desc)}${i.def&&i.def!=i.desc?`<br><span class="mu">${esc(i.def)}</span>`:""}`:"";d.style.display=i&&i.desc?"":"none"}}catch(e){}
  if(!vacio){app.classList.remove("gsinot");return r}
  try{gOT="";gSyncOT=""}catch(e){}
  const sel=[...app.querySelectorAll("select")].find(s=>/^\s*gOT\s*=/.test(s.getAttribute("onchange")||""));
