@@ -1,4 +1,4 @@
-/* ===== v460: COMPONENTE DE CAMPO · guía de especificaciones técnicas (15/11/2026) =====
+/* ===== v460-v461: COMPONENTE DE CAMPO · guía de especificaciones técnicas (15/11/2026) =====
    Ficha técnica de los elementos de campo (electromecánicos, eléctricos o electrónicos) que pueden intervenir en la avería,
    con fotos recortadas del componente (cada vista en su caja blanca con su rótulo) y el código / título del elemento.
    · SOS: va entre «1 · SACAR EN SERVICIO YA» y «2 · REPARAR».  · Guía de campo de la OT: debajo de «Seguridad antes de intervenir».
@@ -11,7 +11,7 @@ const COMP=[
  {id:"ET-B9",t:"Láser de medida de extensión / retracción",fab:"SICK DL50-P1123 · ref. 1 047 361",
   /* límites de extensión / retracción o fallo de la medida analógica de extensión */
   re:t=>/et-?b9|dl50|laser de (medida de )?extension/.test(t)||/(limite|medida|analog|laser|longitud)/.test(t)&&/extensi|retracc|longitud/.test(t),
-  fotos:[["componentes/dl50-frontal.jpg","Vista frontal · placa de características y conexionado"],["componentes/dl50-superior.jpg","Vista superior · display y teclas de ajuste (▼ ▲ Set Esc)"],["componentes/dl50-trasera.jpg","Vista trasera · etiqueta del modelo y conector M12"]],
+  fotos:[["componentes/dl50-frontal.jpg","Vista frontal · placa y conexionado"],["componentes/dl50-superior.jpg","Vista superior · display y teclas"],["componentes/dl50-trasera.jpg","Vista trasera · modelo y conector M12"]],
   esp:[["Función","Medida de distancia por láser del túnel (extensión / retracción) → salida analógica 4-20 mA al PLC"],
    ["Alimentación","10 … 30 VDC (Class 2) · consumo máx. 1,8 W"],
    ["Salida analógica QA","4 … 20 mA"],["Salida conmutada Q","≤ 100 mA · carga < 30 VDC"],
@@ -37,7 +37,7 @@ window.compVer=function(src){let o=document.getElementById("cmpv");if(o)o.remove
 /* ---- SOS: entre el bloque 1 y el 2 ---- */
 const pon=()=>{const r=document.getElementById("sr_res");if(!r)return;const h2=r.querySelector(".ub2");if(!h2||r.querySelector(".ubcmp"))return;
  const t=[(document.getElementById("sr_ob")||{}).value,(document.getElementById("sr_a")||{}).value,(document.getElementById("sr_t")||{}).value].filter(Boolean).join(" ")||window.__sosFotoAl||"";
- const h=compCampoHTML(t);if(!h)return;const d=document.createElement("div");d.innerHTML=`<div class="ubh ubcmp">🔩 COMPONENTE DE CAMPO · especificaciones técnicas</div><div class="ubb ubbcmp">${h}</div>`;
+ const h=compCampoHTML(t);if(!h)return;const d=document.createElement("div");d.innerHTML=`<div class="ubh ubcmp">🔩 COMPONENTE DE CAMPO<small>Especificaciones técnicas</small></div><div class="ubb ubbcmp">${h}</div>`;
  r.insertBefore(d.firstChild,h2);r.insertBefore(d.firstChild,h2)};
 if(typeof window.sosAnaliza=="function"){const o=window.sosAnaliza;window.sosAnaliza=async function(){const x=await o.apply(this,arguments);try{pon()}catch(e){}return x}}
 new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});
@@ -46,16 +46,16 @@ if(typeof vTec=="function"){const o=vTec;vTec=function(){const r=o.apply(this,ar
  if(document.querySelector('details.gd[data-k="CMP"]'))return r;const ab=typeof gOTs=="function"?gOTs():[];const i=ab.find(x=>x.id==gOT)||ab[0];if(!i||(i.tipo&&i.tipo!="PAS"))return r;
  const h=compCampoHTML([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));if(!h)return r;
  const seg=document.querySelector('details.gd[data-k="SEG"]');if(!seg)return r;const d=document.createElement("details");d.className="card gd";d.dataset.k="CMP";
- d.innerHTML=`<summary><b>🔩 Componente de campo · especificaciones técnicas</b></summary>${h}`;seg.after(d)}catch(e){console.warn("componentes",e)}return r}}
+ d.innerHTML=`<summary><b>🔩 Componente de campo</b><br><small style="margin-left:1.6em">Especificaciones técnicas</small></summary>${h}`;seg.after(d)}catch(e){console.warn("componentes",e)}return r}}
 const st=document.createElement("style");st.textContent=`
-.ubcmp{background:#455a64}
+.ubcmp{background:#455a64}.ubcmp small{display:block;font-size:.78em;font-weight:700;opacity:.9;margin-top:2px;padding-left:1.6em}
 .cmpf{margin:8px 0;padding:8px;border:1px solid var(--bd,#cfd8dc);border-radius:10px}
 .cmpt{font-weight:800;font-size:15px}.cmpid{display:inline-block;background:#455a64;color:#fff;border-radius:6px;padding:1px 7px;margin-right:4px;font-family:ui-monospace,monospace}
 .cmpm{font-size:12.5px;opacity:.8;margin:2px 0 8px}
-.cmpfs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
-.cmpfo{flex:0 0 46%;margin:0;background:#fff;border:1px solid #cfd8dc;border-radius:10px;padding:8px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;cursor:zoom-in}
-.cmpfo img{width:100%;height:150px;object-fit:contain;background:#fff}
-.cmpfo figcaption{font-size:11.5px;line-height:1.25;color:#263238;text-align:center;margin-top:6px}
+.cmpfs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.cmpfo{min-width:0;margin:0;background:#fff;border:1px solid #cfd8dc;border-radius:10px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;cursor:zoom-in}
+.cmpfo img{width:100%;height:110px;object-fit:contain;background:#fff}
+.cmpfo figcaption{font-size:10.5px;line-height:1.2;color:#263238;text-align:center;margin-top:5px;overflow-wrap:anywhere}
 .cmpe,.cmpp{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
 .cmpe th,.cmpe td,.cmpp th,.cmpp td{border-bottom:1px solid var(--bd,#e0e0e0);padding:4px 5px;text-align:left;vertical-align:top}
 .cmpe th{width:34%;font-weight:700;opacity:.85}.cmpp th{font-size:12px;opacity:.8}
