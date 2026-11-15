@@ -85,7 +85,7 @@ if(typeof vTec=="function"){const o=vTec;vTec=function(){const r=o.apply(this,ar
  /* v474: entre «Mapa de alimentaciones» y «Cierre de la actuación» */
  const h=i?compCampoHTML([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" ")):"";
  const cie=document.querySelector('details.gd[data-k="CIE"]');if(!cie)return r;const d=document.createElement("details");d.className="card gd";d.dataset.k="CMP";
- d.innerHTML=`<summary><span class="cmpst" style="display:block;min-width:0"><b style="display:block">🔩 Componente de campo</b><small style="display:block;font-weight:600;opacity:.8">Especificaciones técnicas</small></span></summary>${h||'<div class="mu" style="margin:6px 0">Sin componentes asociados a la avería de esta OT.</div>'}<button class="sec" type="button" style="width:100%;margin-top:6px" onclick="compCatalogo()">CATÁLOGO + INCORPORAR</button>`;cie.before(d)}catch(e){console.warn("componentes",e)}return r}}
+ d.innerHTML=`<summary><span class="cmpst" style="display:block;min-width:0"><b style="display:block">🔩 Componente de campo</b><small style="display:block;font-weight:600;opacity:.8">Especificaciones técnicas</small></span></summary>${h||""}<button class="sec" type="button" style="width:100%;margin-top:6px" onclick="compCatalogo()">CATÁLOGO + INCORPORAR</button>`;cie.before(d)}catch(e){console.warn("componentes",e)}return r}}
 const st=document.createElement("style");st.textContent=`
 .ubcmp{background:#455a64}.ubcmp small{display:block;font-size:.78em;font-weight:700;opacity:.9;margin-top:2px;padding-left:1.6em}
 .cmpf{margin:8px 0;padding:8px;border:1px solid var(--bd,#cfd8dc);border-radius:10px}
