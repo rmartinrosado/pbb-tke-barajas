@@ -78,14 +78,14 @@ const pon=()=>{const r=document.getElementById("sr_res");if(!r)return;const h2=r
  const t=[(document.getElementById("sr_ob")||{}).value,(document.getElementById("sr_a")||{}).value,(document.getElementById("sr_t")||{}).value].filter(Boolean).join(" ")||window.__sosFotoAl||"";
  const h=compCampoHTML(t);if(!h)return;const d=document.createElement("div");d.innerHTML=`<div class="ubh ubcmp">🔩 COMPONENTE DE CAMPO<small>Especificaciones técnicas</small></div><div class="ubb ubbcmp">${h}</div>`;
  r.insertBefore(d.firstChild,h2);r.insertBefore(d.firstChild,h2)};
-if(typeof window.sosAnaliza=="function"){const o=window.sosAnaliza;window.sosAnaliza=async function(){const x=await o.apply(this,arguments);try{pon()}catch(e){}return x}}
-new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});
+/* v474: el Componente de campo ya NO sale en el SOS: solo en la guía de campo de la OT */
 /* ---- Guía de campo de la OT: debajo de «Seguridad antes de intervenir» ---- */
 if(typeof vTec=="function"){const o=vTec;vTec=function(){const r=o.apply(this,arguments);try{
- if(document.querySelector('details.gd[data-k="CMP"]'))return r;const ab=typeof gOTs=="function"?gOTs():[];const i=ab.find(x=>x.id==gOT)||ab[0];if(!i||(i.tipo&&i.tipo!="PAS"))return r;
- const h=compCampoHTML([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));if(!h)return r;
- const seg=document.querySelector('details.gd[data-k="SEG"]');if(!seg)return r;const d=document.createElement("details");d.className="card gd";d.dataset.k="CMP";
- d.innerHTML=`<summary><b>🔩 Componente de campo</b><br><small style="margin-left:1.6em">Especificaciones técnicas</small></summary>${h}`;seg.after(d)}catch(e){console.warn("componentes",e)}return r}}
+ if(document.querySelector('details.gd[data-k="CMP"]'))return r;const ab=typeof gOTs=="function"?gOTs():[];const i=ab.find(x=>x.id==gOT)||ab[0];if(typeof gTipo!="undefined"&&gTipo!="PAS")return r;
+ /* v474: entre «Mapa de alimentaciones» y «Cierre de la actuación» */
+ const h=i?compCampoHTML([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" ")):"";
+ const cie=document.querySelector('details.gd[data-k="CIE"]');if(!cie)return r;const d=document.createElement("details");d.className="card gd";d.dataset.k="CMP";
+ d.innerHTML=`<summary><b>🔩 Componente de campo</b><br><small style="margin-left:1.6em">Especificaciones técnicas</small></summary>${h||'<div class="mu" style="margin:6px 0">Sin componentes asociados a la avería de esta OT.</div>'}<button class="sec" type="button" style="width:100%;margin-top:6px" onclick="compCatalogo()">🔩 Catálogo de componentes · ➕ Incorporar</button>`;cie.before(d)}catch(e){console.warn("componentes",e)}return r}}
 const st=document.createElement("style");st.textContent=`
 .ubcmp{background:#455a64}.ubcmp small{display:block;font-size:.78em;font-weight:700;opacity:.9;margin-top:2px;padding-left:1.6em}
 .cmpf{margin:8px 0;padding:8px;border:1px solid var(--bd,#cfd8dc);border-radius:10px}

@@ -86,10 +86,7 @@ window.compGuarda=async function(){const g=id=>(document.getElementById(id)||{})
  try{const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");compCatalogo(row.codigo)}
  catch(e){msg("No se pudo guardar: "+String((e&&e.message)||e))}};
 /* ---------- accesos ---------- */
-const ponBtn=()=>{try{if(typeof view!="undefined"&&view=="track"){const c=[...document.querySelectorAll("#app>.card")].find(x=>/Seguimiento OT/i.test((x.querySelector("h3")||{}).textContent||""));
-  if(c&&!c.querySelector("#icpBtn")){const b=document.createElement("button");b.id="icpBtn";b.type="button";b.className="sec";b.textContent="🔩 Componentes de campo";b.style.cssText="width:100%;margin-top:8px;font-weight:700";b.onclick=()=>compCatalogo();c.appendChild(b)}}
- document.querySelectorAll(".ubcmp:not([data-icp])").forEach(h=>{h.dataset.icp=1;const b=document.createElement("button");b.type="button";b.className="icpbh";b.textContent="Catálogo";b.onclick=e=>{e.stopPropagation();compCatalogo()};h.appendChild(b)})}catch(e){}};
-let tm=null;new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(ponBtn,250)}).observe(document.documentElement,{childList:true,subtree:true});
+/* v474: el catálogo se abre solo desde la caja «Componente de campo» de la guía */
 const st=document.createElement("style");st.textContent=`
 .icph{display:flex;align-items:center;justify-content:space-between;gap:8px}.icpb{display:flex;gap:6px;margin-top:8px}.icpb input{flex:1;margin:0}
 .icpi{border:1px solid var(--bd,#ddd);border-radius:10px;padding:6px 8px;margin:6px 0}.icpi>summary{font-weight:700;font-size:14px}

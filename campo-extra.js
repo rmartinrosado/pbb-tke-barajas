@@ -10,7 +10,8 @@
 const E=s=>typeof esc=="function"?esc(s):String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fh=f=>{const m=String(f||"").match(/^(\d{4})-(\d\d)-(\d\d)/);return m?`${m[3]}/${m[2]}/${m[1]}`:String(f||"")};
 /* =================== INFORME PDF =================== */
-window.otInforme=async function(id){const o=(typeof inc!="undefined"?inc:[]).find(x=>x.id==id);if(!o)return;
+window.otInforme=function(id){const o=(typeof inc!="undefined"?inc:[]).find(x=>x.id==id);if(o)return otInformeDe(o)};
+window.otInformeDe=async function(o){if(!o)return;
  try{await cargaJsPDF()}catch(e){msg("No se pudo cargar el generador de PDF (sin conexión)");return}
  const {jsPDF}=window.jspdf;const d=new jsPDF({unit:"mm",format:"a4"});const W=210,M=14;let y=16;
  const nl=h=>{if(y+h>285){d.addPage();y=16}};
@@ -74,12 +75,17 @@ window.manosLibres=function(){if(!("speechSynthesis" in window)){msg("Este móvi
  habla()};
 /* =================== botones =================== */
 const pon=()=>{try{
- if(typeof view!="undefined"&&view=="track"){document.querySelectorAll("#app .card.ot[data-oid]:not([data-inf])").forEach(c=>{c.dataset.inf=1;const b=document.createElement("button");b.type="button";b.className="sec infb";b.textContent="📄 Informe";b.onclick=e=>{e.stopPropagation();otInforme(c.dataset.oid)};c.appendChild(b)});
-  const c=[...document.querySelectorAll("#app>.card")].find(x=>/Seguimiento OT/i.test((x.querySelector("h3")||{}).textContent||""));
-  if(c&&typeof admin!="undefined"&&admin&&!c.querySelector("#qrBtn")){const b=document.createElement("button");b.id="qrBtn";b.type="button";b.className="sec";b.textContent="🔳 Imprimir QR de las PBB";b.style.cssText="width:100%;margin-top:8px;font-weight:700";b.onclick=()=>qrPBB();c.appendChild(b)}}
+ /* v474: «Imprimir QR» solo en modo Administrador */
+ const qb=document.getElementById("qrBtn");if(qb&&!(typeof admin!="undefined"&&admin))qb.remove();
+ if(typeof view!="undefined"&&view=="track"&&typeof admin!="undefined"&&admin){const c=[...document.querySelectorAll("#app>.card")].find(x=>/Seguimiento OT/i.test((x.querySelector("h3")||{}).textContent||""));
+  if(c&&!c.querySelector("#qrBtn")){const b=document.createElement("button");b.id="qrBtn";b.type="button";b.className="sec";b.textContent="🔳 Imprimir QR de las PBB";b.style.cssText="width:100%;margin-top:8px;font-weight:700";b.onclick=()=>qrPBB();c.appendChild(b)}}
+ /* v474: «📄 Informe de la OT» solo en el Cierre CGA, entre Observaciones y «Cerrar OT» */
+ const sc=document.getElementById("sheetc");if(sc&&!sc.querySelector(".infcie")){const bc=sc.querySelector('button[onclick^="cerrar("],button[onclick^="acGuarda("]');
+  if(bc){const id=((bc.getAttribute("onclick")||"").match(/\(\s*'([^']+)'/)||[])[1];if(id){const b=document.createElement("button");b.type="button";b.className="sec infcie";b.textContent="📄 Informe de la OT (PDF)";
+   b.onclick=e=>{e.stopPropagation();const g=x=>(document.getElementById(x)||{}).value;const o=inc.find(z=>z.id==id);if(o){const t={...o};if(g("r_a")!=null)t.act=g("r_a");if(g("r_o")!=null)t.obs=g("r_o");if(g("r_i"))t.hIni=g("r_i");if(g("r_l"))t.hLle=g("r_l");if(g("r_c"))t.hCie=g("r_c");otInformeDe(t)}};bc.before(b)}}}
  const h2=document.querySelector("#sr_res .ub2");if(h2&&!h2.querySelector(".mlbt")){const b=document.createElement("button");b.type="button";b.className="mlbt";b.textContent="🔊 Manos libres";b.onclick=e=>{e.stopPropagation();manosLibres()};h2.appendChild(b)}
 }catch(e){}};
-let tm=null;new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(pon,250)}).observe(document.documentElement,{childList:true,subtree:true});
+let tm=null;new MutationObserver(()=>{if(!tm)tm=setTimeout(()=>{tm=null;pon()},250)}).observe(document.documentElement,{childList:true,subtree:true});
 const st=document.createElement("style");st.textContent=`
 /* velocidad: respuesta inmediata al toque (sin espera de doble toque del navegador) */
 html{touch-action:manipulation}
@@ -89,7 +95,7 @@ html{touch-action:manipulation}
 .qrg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.qrc{border:1px dashed #999;padding:6px;text-align:center;break-inside:avoid}
 .qrc svg{width:100%;height:auto;max-width:38mm}.qrc b{display:block;font-size:14px;margin-top:3px}.qrc small{font-size:8px;color:#555}
 @media print{body>*:not(#qrv){display:none!important}#qrv{position:static;overflow:visible;padding:0}.qrtool{display:none}.qrg{gap:6mm}.qrc svg{width:38mm;height:38mm}}
-.infb{width:auto!important;margin:6px 0 0!important;padding:5px 10px!important;font-size:12.5px!important}
+.infcie{width:100%!important;margin-top:12px!important;font-weight:800}
 .pbq{font-size:13px;padding:5px 0;border-bottom:1px dashed rgba(127,127,127,.35)}
 .ub2{position:relative}.mlbt{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:auto!important;margin:0!important;padding:4px 9px!important;font-size:12px!important;background:rgba(255,255,255,.22)!important;color:#fff!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:8px}
 #mlib{position:fixed;left:8px;right:8px;bottom:max(12px,env(safe-area-inset-bottom));z-index:99990;background:#111827;color:#fff;border-radius:14px;padding:10px;box-shadow:0 6px 24px rgba(0,0,0,.4)}

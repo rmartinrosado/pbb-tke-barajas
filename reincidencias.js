@@ -17,19 +17,10 @@ const caja=(L,pos)=>!L.length?"":`<div class="rnc"><div class="rnch">⚠️ REIN
  ${L.slice(0,4).map(x=>`<div class="rnci"><b>${fh(x.fecha)}</b> · ${E(x.tipo||"")} · ${E(x.desc||"")}${x.act?`<div class="rnca">✔ Se hizo: ${E(String(x.act).slice(0,220))}</div>`:`<div class="rnca mu">${x.estado=="abierta"?"Sigue abierta":"Sin actuación anotada"}</div>`}</div>`).join("")}
  <div class="rncp">Si se repite, la causa de fondo no está resuelta: revisar lo que se hizo y atacar el origen (ajuste, desgaste, cableado).</div>
  <button class="sec rncb" type="button" onclick="reincPanel()">📊 Averías repetidas</button></div>`;
-/* --- Registrar OT --- */
-function enNueva(){const d=document.getElementById("f_desc"),p=document.getElementById("f_pos");if(!d||!p)return;let b=document.getElementById("rnc_new");
- if(!b){b=document.createElement("div");b.id="rnc_new";d.insertAdjacentElement("afterend",b)}
- const pos=String(p.value||"").replace(/\s*·.*$/,"");b.innerHTML=caja(reincidencias(pos,d.value.trim()||null,null,30).slice(0,4),pos)}
-document.addEventListener("input",e=>{if(e.target&&/^f_(desc|pos|posn)$/.test(e.target.id))setTimeout(enNueva,50)},true);
-document.addEventListener("change",e=>{if(e.target&&/^f_(pos|posn|posm)$/.test(e.target.id))setTimeout(enNueva,50)},true);
-/* --- SOS: arriba de los resultados --- */
-if(typeof window.sosAnaliza=="function"){const o=window.sosAnaliza;window.sosAnaliza=async function(){const x=await o.apply(this,arguments);try{
- const r=document.getElementById("sr_res"),pos=((document.getElementById("sr_p")||{}).value||"").trim().toUpperCase(),ob=((document.getElementById("sr_ob")||{}).value||"").trim();
- if(r&&pos&&!r.querySelector(".rnc")){const L=reincidencias(pos,ob||null,null,30);if(L.length)r.insertAdjacentHTML("afterbegin",caja(L,pos))}}catch(e){}return x}}
+/* v474: ya no salen en Registrar OT ni en el SOS: solo en Seguimiento OT, en la caja de la OT con reincidencias */
 /* --- panel de averías repetidas --- */
 const min=h=>{const m=String(h||"").match(/(\d{1,2}):(\d{2})/);return m?+m[1]*60+ +m[2]:null};
-window.reincPanel=function(dv){const D=dv||30;if(typeof inc=="undefined")return;const L=inc.filter(x=>dias(x.fecha)<=D);
+window.reincPanel=function(dv,pp){const D=dv||30;if(typeof inc=="undefined")return;const L=inc.filter(x=>dias(x.fecha)<=D&&(!pp||String(x.pos).toUpperCase()==pp));
  const porPos=new Map();L.forEach(x=>{const k=String(x.pos);porPos.set(k,(porPos.get(k)||[]).concat(x))});
  const top=[...porPos.entries()].sort((a,b)=>b[1].length-a[1].length).slice(0,10);
  /* avisos repetidos: grupos de la misma PBB con descripción parecida */
@@ -38,17 +29,19 @@ window.reincPanel=function(dv){const D=dv||30;if(typeof inc=="undefined")return;
  const tr=L.map(x=>{const a=min(x.hIni),c=min(x.hCie);return a!=null&&c!=null?(c-a+1440)%1440:null}).filter(v=>v!=null&&v<720);
  const med=tr.length?Math.round(tr.reduce((a,b)=>a+b,0)/tr.length):null;
  const tipos={};L.forEach(x=>{tipos[x.tipo||"-"]=(tipos[x.tipo||"-"]||0)+1});
- $("#sheetc").innerHTML=`<div class="rnpt"><h3 style="margin:0">📊 Averías repetidas</h3><button class="sec" onclick="closeSheet()" style="width:auto;margin:0">✕</button></div>
- <div class="gchips" style="margin:8px 0">${[30,90,365].map(d=>`<button class="${d==D?"pri":"sec"}" onclick="reincPanel(${d})">${d==365?"1 año":d+" días"}</button>`).join("")}</div>
+ $("#sheetc").innerHTML=`<div class="rnpt"><h3 style="margin:0">📊 Averías repetidas${pp?" · PBB "+E(pp):""}</h3><button class="sec" onclick="closeSheet()" style="width:auto;margin:0">✕</button></div>
+ <div class="gchips" style="margin:8px 0">${[30,90,365].map(d=>`<button class="${d==D?"pri":"sec"}" onclick="reincPanel(${d}${pp?`,'${pp}'`:""})">${d==365?"1 año":d+" días"}</button>`).join("")}</div>
  <div class="rnpk"><div><b>${L.length}</b><span>OT</span></div><div><b>${med!=null?med+" min":"–"}</b><span>tiempo medio inicio → cierre</span></div><div><b>${rep.length}</b><span>averías que se repiten</span></div></div>
  <div class="mu" style="font-size:12px;margin:4px 0 8px">Por tipo: ${Object.entries(tipos).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${E(k)} ${v}`).join(" · ")}</div>
  <h4 style="margin:10px 0 4px">Posiciones con más OT</h4>${top.map(([p,xs])=>`<div class="rnpb"><span>PBB ${E(p)}</span><i style="width:${Math.round(100*xs.length/top[0][1].length)}%"></i><b>${xs.length}</b></div>`).join("")||'<div class="mu">Sin OT en este periodo.</div>'}
  <h4 style="margin:12px 0 4px">Avisos que se repiten en la misma PBB</h4>${rep.slice(0,12).map(r=>`<details class="rnpr"><summary><b>PBB ${E(r.pos)}</b> · ${r.g.length}× · ${E(r.g[0].desc||"")}</summary>${r.g.map(x=>`<div class="rnci"><b>${fh(x.fecha)}</b> · ${E(x.desc||"")}${x.act?`<div class="rnca">✔ ${E(String(x.act).slice(0,200))}</div>`:""}</div>`).join("")}</details>`).join("")||'<div class="mu">Ninguno en este periodo.</div>'}`;
  const sh=$("#sheet");sh.style.display="flex"};
-/* botón en Seguimiento OT */
-const ponBtn=()=>{try{if(typeof view=="undefined"||view!="track")return;const c=[...document.querySelectorAll("#app>.card")].find(x=>/Seguimiento OT/i.test((x.querySelector("h3")||{}).textContent||""));if(!c||c.querySelector("#rncBtn"))return;
- const b=document.createElement("button");b.id="rncBtn";b.type="button";b.className="sec";b.textContent="📊 Averías repetidas y reincidencias";b.style.cssText="width:100%;margin-top:8px;font-weight:700";b.onclick=()=>reincPanel(30);c.appendChild(b)}catch(e){}};
-let tm=null;new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(ponBtn,200)}).observe(document.documentElement,{childList:true,subtree:true});
+/* v474: en Seguimiento OT, en la caja de cada OT que tenga avisos parecidos de esa posición en 30 días */
+const ponBtn=()=>{try{if(typeof view=="undefined"||view!="track")return;
+ document.querySelectorAll("#app .card.ot[data-oid]:not([data-rnc])").forEach(c=>{c.dataset.rnc=1;const o=inc.find(x=>x.id==c.dataset.oid);if(!o)return;
+  const L=reincidencias(o.pos,o.desc||null,o.id,30);if(!L.length)return;const b=document.createElement("button");b.type="button";b.className="sec rncot";
+  b.textContent=`⚠️ Reincidencia · ${L.length} aviso${L.length>1?"s":""} parecido${L.length>1?"s":""} en 30 días`;b.onclick=e=>{e.stopPropagation();reincPanel(30,String(o.pos).toUpperCase())};c.appendChild(b)})}catch(e){}};
+let tm=null;new MutationObserver(()=>{if(!tm)tm=setTimeout(()=>{tm=null;ponBtn()},200)}).observe(document.documentElement,{childList:true,subtree:true});
 const st=document.createElement("style");st.textContent=`
 .rnc{margin:8px 0;padding:8px 10px;border:2px solid #ca8a04;border-radius:10px;background:rgba(202,138,4,.1)}
 .rnch{font-weight:900;color:#a16207;font-size:13.5px;margin-bottom:4px}
@@ -59,6 +52,7 @@ const st=document.createElement("style");st.textContent=`
 .rnpk b{display:block;font-size:20px}.rnpk span{font-size:11px;opacity:.8}
 .rnpb{display:grid;grid-template-columns:82px 1fr 30px;align-items:center;gap:6px;font-size:13px;margin:3px 0}
 .rnpb i{display:block;height:12px;border-radius:6px;background:linear-gradient(90deg,#f97316,#c2410c)}.rnpb b{text-align:right}
+.rncot{width:100%!important;margin:6px 0 0!important;padding:6px!important;font-size:12.5px!important;font-weight:800;color:#a16207!important;border:1.5px solid #ca8a04!important;background:rgba(202,138,4,.1)!important}
 .rnpr{border:1px solid var(--bd,#ddd);border-radius:9px;padding:5px 8px;margin:5px 0;font-size:13px}`;
 document.head.appendChild(st);
 })();

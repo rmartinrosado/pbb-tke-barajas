@@ -47,7 +47,7 @@ function pon(el,sib){if(el.dataset.med)return;el.dataset.med=1;const t=(el.inner
  if(prev)setTimeout(()=>medComprueba(id),0)}
 function barre(){document.querySelectorAll(".lpap:not([data-med]),.cmpo li:not([data-med])").forEach(e=>pon(e,false));
  document.querySelectorAll("label.gpaso:not([data-med])").forEach(e=>pon(e,true))}
-let tm=null;new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(()=>{try{barre()}catch(e){}},250)}).observe(document.documentElement,{childList:true,subtree:true});
+let tm=null;new MutationObserver(()=>{if(!tm)tm=setTimeout(()=>{tm=null;try{barre()}catch(e){}},250)}).observe(document.documentElement,{childList:true,subtree:true});
 const st=document.createElement("style");st.textContent=`
 .medw{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:4px 0 8px;padding:5px 7px;border:1px dashed var(--bd,#bbb);border-radius:9px;font-size:13px}
 .medsib{margin-left:26px}

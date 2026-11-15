@@ -79,7 +79,9 @@ function svg(F){const n=F.cols.length;if(n<2||!F.rows.length)return "";
    const lab=l.cab.replace(/^hilo /,"h.").replace(/ · /,"·");s+=`<text x="${(x1+x2)/2}" y="${Math.min(y1,y2)-2}" text-anchor="middle" class="cxl">${E(lab.length>16?lab.slice(0,15)+"…":lab)}</text>`});
   pos.forEach((q,k)=>{const p=k.split(":").pop();s+=`<rect x="${q.x-bw/2}" y="${q.y}" width="${bw}" height="${bh}" rx="3" class="cxb"/><text x="${q.x}" y="${q.y+12.5}" text-anchor="middle" class="cxp">${E(p)}</text>`});
   y+=k*(bh+4)+14;return s}).join("");
- const lines=F.cols.map((c,i)=>`<line x1="${X(i)}" y1="${top-3}" x2="${X(i)}" y2="${y-8}" class="cxr"/>`).join("");
+ const lines=F.cols.map((c,i)=>`<line x1="${X(i)}" y1="${top-3}" x2="${X(i)}" y2="${y-8}" class="cxr"/>`).join("")+
+  /* v474: línea discontinua entre columnas de zonas distintas (armario E | pupitre | cabina | túneles…) */
+  F.cols.slice(1).map((c,i)=>zona(c)&&zona(F.cols[i])&&zona(c)!=zona(F.cols[i])?`<line x1="${(X(i)+X(i+1))/2}" y1="2" x2="${(X(i)+X(i+1))/2}" y2="${y-4}" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 4" opacity=".85"/>`:"").join("");
  return `<svg class="cxsvg" viewBox="0 0 ${W} ${y}" role="img" aria-label="Croquis de conexiones entre ${E(F.cols.join(", "))}">${heads}${lines}${rowsH}</svg>`}
 function medir(F){const g=build();const NEG={E:"+E-X68:2",P:"+P-X92:2",CP:"+P-X92:2",IT:"+IT-X51:2",ET:"+ET-X51:2",C:"+C-X51:2",H:"+H-X51:30",MT:"+MT-X51:2"};
  return F.rows.map((r,ix)=>{const it=[];const vista=new Set();
