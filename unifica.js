@@ -48,7 +48,7 @@ const QK={
    "Fallo de variador (clemas 28/29): leer el código en el variador Omron y resetear; magnetotérmico FGVI.",
    "Piloto amarillo FILTRO: limpiar o sustituir el filtro; revisar condensados."]}]}};
 /* v430-v431: BLOQUEO de la PBB por un equipo de servicio → 1ª opción en el equipo (cierre del carro…), 2ª desbloqueo en el módulo del PLC (E-A2) */
-const MANG=/(manguera|cable)( de)?( (del? )?(400 ?hz|400|hz))?[^.]{0,25}(extendid|fuera|sin recoger|no recog|desenrollad)|recogedor|enroll|enrrol/;/* v490: manguera 400 Hz extendida → PBB bloqueada, no traslada (P-A5 DIN02) */
+const MANG=/(manguera|cable)( de)?( (del? )?(400 ?hz|400|hz))?[^.]{0,25}(extendid|fuera|sin recoger|no recog|desenrollad)|recogedor|enroll|enrrol|bloque\w*[^.]{0,30}(manguera|cable (de )?400)|(manguera|cable (de )?400)[^.]{0,30}bloque/;/* v490: manguera 400 Hz extendida → PBB bloqueada, no traslada (P-A5 DIN02) */
 const BLQ=t=>{t=nrm(t);if(MANG.test(t))return true;return /\bbloque(o|os|ad[ao]s?|an?)\b|interbloque/.test(t)&&/carr(o|ito)|a\/a|\baa\b|aire|\bpca\b|pc ?air|climatiz|maquina|convertidor|\b400\b|\bhz\b|\bgpu\b|conector|90 ?%|equipo/.test(t)};
 const BLQ_EQ=[[MANG,"P-A5|1|2","Manguera 400 Hz extendida","Terminar de enrollar la manguera desde el armario exterior AO (botón IN) hasta el final del recorrido y actuar en el recogedor: que el contacto «-400HZ» 13-14 quede accionado con la manguera recogida (leva / tope del enrollado). Con la manguera recogida el LED 2 del módulo 1 de P-A5 (pupitre) se apaga y la PBB vuelve a trasladar."],
  [/carr(o|ito)|pc ?air|e-?s100/,"E-A2|3|1","Carro A/A","Cerrar la puerta / tapa del carro de aire con la manguera recogida; si sigue: ajuste del FC del carro E-S100 + cierre de puerta. Si se soltó el hilo en E-A2, reponerlo."],
