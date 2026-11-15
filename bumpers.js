@@ -41,7 +41,9 @@ function pasos(G,D){const [a,m,c]=G.t;return [
 let prueba={brazo:"A",cabina:"A"};
 function croquis(D,grupos){
  const W=360,H=grupos.length*210+40;let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Croquis de bumpers y bornero del pupitre" style="max-width:520px;display:block;margin:4px auto">`;
- s+=`<text x="8" y="16" class="bk-t">ARMARIO E · ${e_(D.arm)} · E-A10</text><text x="146" y="16" class="bk-t">PUPITRE · bornero P-X92.1</text><text x="268" y="16" class="bk-t">CAMPO</text>`;
+ s+=`<text x="8" y="16" class="bk-t">ARMARIO E · E-A10</text><text x="144" y="16" class="bk-t">PUPITRE · P-X92.1</text><text x="268" y="16" class="bk-t">CAMPO</text>`;
+ /* v473: zonas separadas con línea discontinua: armario eléctrico | armario del pupitre | campo */
+ s+=`<line x1="140" y1="6" x2="140" y2="${H-4}" class="bk-zona"/><line x1="262" y1="6" x2="262" y2="${H-4}" class="bk-zona"/>`;
  grupos.forEach((k,gi)=>{const G=D.g[k],y0=34+gi*210,P=prueba[k];
   const yT=[y0+30,y0+95,y0+160],xB=178,xF=290,xA=40;
   s+=`<text x="8" y="${y0+6}" class="bk-g">${e_(G.nom)}</text>`;
@@ -50,7 +52,7 @@ function croquis(D,grupos){
   s+=`<text x="${xA}" y="${yT[0]+4}" text-anchor="middle" class="bk-b">IN ${G.in}</text><text x="${xA}" y="${yT[2]+4}" text-anchor="middle" class="bk-b">UT ${G.ut}</text>`;
   /* manguera EP-W4 */
   s+=`<line x1="${xA+28}" y1="${yT[0]}" x2="${xB-14}" y2="${yT[0]}" class="bk-w"/><line x1="${xA+28}" y1="${yT[2]}" x2="${xB-14}" y2="${yT[2]}" class="bk-w"/>`;
-  s+=`<text x="${(xA+xB)/2}" y="${yT[0]-4}" text-anchor="middle" class="bk-s">hilo ${G.hIn} · ${e_(D.man.split(" ")[0])} c${G.x[0]}</text><text x="${(xA+xB)/2}" y="${yT[2]-4}" text-anchor="middle" class="bk-s">hilo ${G.hUt} · ${e_(D.man.split(" ")[0])} c${G.x[1]}</text>`;
+  s+=`<text x="105" y="${yT[0]-4}" text-anchor="middle" class="bk-s">${G.hIn} · ${e_(D.man.split(" ")[0])} c${G.x[0]}</text><text x="105" y="${yT[2]-4}" text-anchor="middle" class="bk-s">${G.hUt} · ${e_(D.man.split(" ")[0])} c${G.x[1]}</text>`;
   /* bornero */
   s+=`<rect x="${xB-14}" y="${yT[0]-14}" width="28" height="${yT[2]-yT[0]+28}" rx="3" class="bk-reg"/>`;
   G.t.forEach((t,i)=>{s+=`<circle cx="${xB}" cy="${yT[i]}" r="7" class="bk-bn"/><text x="${xB}" y="${yT[i]+3.5}" text-anchor="middle" class="bk-bt">${e_(t.split(":")[1])}</text>`;
@@ -63,8 +65,8 @@ function croquis(D,grupos){
    s+=`<text x="${xB+12}" y="${ya-4}" class="bk-s">${b.cab} · ${b.ha}</text><text x="${xB+12}" y="${yb+12}" class="bk-s">${b.cab} · ${b.hb}</text>`});
   /* puente de la prueba */
   const [i1,i2]=P==="A"?[0,1]:P==="B"?[1,2]:[0,2];const ya=yT[i1],yb=yT[i2];
-  s+=`<path d="M${xB-8} ${ya} C ${xB-58} ${ya+8}, ${xB-58} ${yb-8}, ${xB-8} ${yb}" class="bk-pte"/><circle cx="${xB-8}" cy="${ya}" r="3.5" class="bk-pc"/><circle cx="${xB-8}" cy="${yb}" r="3.5" class="bk-pc"/>`;
-  s+=`<text x="${xB-62}" y="${(ya+yb)/2+4}" text-anchor="end" class="bk-pt">PUENTE ${P}</text>`;
+  s+=`<path d="M${xB-8} ${ya} C ${xB-40} ${ya+8}, ${xB-40} ${yb-8}, ${xB-8} ${yb}" class="bk-pte"/><circle cx="${xB-8}" cy="${ya}" r="3.5" class="bk-pc"/><circle cx="${xB-8}" cy="${yb}" r="3.5" class="bk-pc"/>`;
+  s+=`<text x="${xB+14}" y="${(ya+yb)/2+4}" class="bk-pt">PUENTE ${P}</text>`;
  });
  return s+`</svg>`}
 function botones(D,grupos){return grupos.map(k=>{const G=D.g[k];return `<div class="bk-btn"><b>${k==="brazo"?"Brazo":"Cabina"}:</b> ${["A","B","C"].map(p=>`<button type="button" class="${prueba[k]===p?"on":""}" data-bkg="${k}" data-bkp="${p}">${p} · ${p==="A"?G.b[0].id:p==="B"?G.b[1].id:"los dos"}</button>`).join("")}</div>`}).join("")}
@@ -117,7 +119,7 @@ const st=document.createElement("style");st.textContent=`
 .bk-btn button.on{background:#f0a020;border-color:#f0a020;color:#111;font-weight:800}
 .bk-gr{margin-top:6px}.bk-gt{font-weight:800;font-size:12.5px}.bk-gr ol{margin:3px 0 0;padding-left:18px;font-size:12.5px;line-height:1.35;display:flex;flex-direction:column;gap:3px}
 .bk-gr li::marker{color:#f0a020;font-weight:800}
-.bk-t{font:700 8.5px sans-serif;fill:var(--mu,#666);letter-spacing:.04em}.bk-g{font:800 10px sans-serif;fill:var(--tx,#111)}.bk-g2{font:800 9.5px sans-serif;fill:var(--tx,#111)}
+.bk-t{font:700 8.5px sans-serif;fill:var(--mu,#666);letter-spacing:.04em}.bk-zona{stroke:#94a3b8;stroke-width:1.2;stroke-dasharray:5 4;opacity:.85}.bk-g{font:800 10px sans-serif;fill:var(--tx,#111)}.bk-g2{font:800 9.5px sans-serif;fill:var(--tx,#111)}
 .bk-s{font:600 7.5px sans-serif;fill:var(--mu,#555)}.bk-b{font:800 8.5px sans-serif;fill:#fff}.bk-bt{font:800 8px sans-serif;fill:var(--tx,#111)}.bk-bb{font:800 11px sans-serif;fill:#111}
 .bk-plc{fill:#2e7d32;stroke:#1b5e20}.bk-reg{fill:color-mix(in srgb,#1565c0 15%,transparent);stroke:#1565c0}.bk-bn{fill:var(--card,#fff);stroke:#1565c0;stroke-width:1.5}
 .bk-w{fill:none;stroke:var(--tx,#222);stroke-width:1.3}.bk-bum{fill:#f0c040;stroke:#a07000}
