@@ -79,6 +79,14 @@ const pon=()=>{try{
  const qb=document.getElementById("qrBtn");if(qb&&!(typeof admin!="undefined"&&admin))qb.remove();
  if(typeof view!="undefined"&&view=="track"&&typeof admin!="undefined"&&admin){const c=[...document.querySelectorAll("#app>.card")].find(x=>/Seguimiento OT/i.test((x.querySelector("h3")||{}).textContent||""));
   if(c&&!c.querySelector("#qrBtn")){const b=document.createElement("button");b.id="qrBtn";b.type="button";b.className="sec";b.textContent="🔳 Imprimir QR de las PBB";b.style.cssText="width:100%;margin-top:8px;font-weight:700";b.onclick=()=>qrPBB();c.appendChild(b)}}
+ /* v475: el Cierre CGA cabe ENTERO en la pantalla: las tres horas en una fila, botones más bajos y el de Claude compacto */
+ {const sc0=document.getElementById("sheetc");const bc0=sc0&&sc0.querySelector('button[onclick^="cerrar("]');
+  if(bc0&&!sc0.dataset.cie){sc0.dataset.cie=1;sc0.classList.add("ciec");
+   const labs=[...sc0.querySelectorAll(":scope>label")].filter(l=>/^hora/i.test(l.textContent.trim()));
+   if(labs.length>=2){const g=document.createElement("div");g.className="cieh";labs[0].before(g);
+    labs.forEach(l=>{const box=l.nextElementSibling;const c=document.createElement("div");c.className="ciehc";
+     l.textContent=l.textContent.replace(/^hora\s*(de\s*|final de\s*)?/i,"").replace(/\*.*$/,"*").replace(/^./,x=>x.toUpperCase());c.appendChild(l);if(box&&!/^LABEL$/.test(box.tagName))c.appendChild(box);g.appendChild(c)})}
+   const ca=[...sc0.querySelectorAll(":scope>button")].find(b=>/Cancelar/i.test(b.textContent));const inf0=sc0.querySelector(".infcie");}}
  /* v474: «📄 Informe de la OT» solo en el Cierre CGA, entre Observaciones y «Cerrar OT» */
  const sc=document.getElementById("sheetc");if(sc&&!sc.querySelector(".infcie")){const bc=sc.querySelector('button[onclick^="cerrar("],button[onclick^="acGuarda("]');
   if(bc){const id=((bc.getAttribute("onclick")||"").match(/\(\s*'([^']+)'/)||[])[1];if(id){const b=document.createElement("button");b.type="button";b.className="sec infcie";b.textContent="📄 Informe de la OT (PDF)";
@@ -96,6 +104,13 @@ html{touch-action:manipulation}
 .qrc svg{width:100%;height:auto;max-width:38mm}.qrc b{display:block;font-size:14px;margin-top:3px}.qrc small{font-size:8px;color:#555}
 @media print{body>*:not(#qrv){display:none!important}#qrv{position:static;overflow:visible;padding:0}.qrtool{display:none}.qrg{gap:6mm}.qrc svg{width:38mm;height:38mm}}
 .infcie{width:100%!important;margin-top:12px!important;font-weight:800}
+#sheet>#sheetc.ciec{max-height:96dvh!important;padding-top:10px!important}
+.ciec h3{font-size:16px}.ciec>label{margin-top:6px!important}
+.cieh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.ciehc{min-width:0}.ciehc>label{margin:6px 0 2px!important;font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ciehc input{font-size:15px!important;padding:8px 6px!important;min-height:0!important}.ciehc .hrow{flex-direction:column!important;gap:4px!important}.ciehc .hrow>input{width:100%!important;flex:none!important;margin:0!important}.ciehc .hrow>.hq{font-size:16px!important}
+.ciec textarea#r_a{min-height:64px!important;height:64px}.ciec textarea#r_o{min-height:46px!important;height:46px}
+.ciec .infcie{margin-top:8px!important;padding:8px!important}.ciec button.pri{margin-top:8px!important;padding:10px!important}.ciec>button.sec{margin-top:6px!important;padding:8px!important}
+.ciec>button:last-child{padding:6px!important;min-height:0!important}.ciec>button:last-child img{max-height:30px!important;height:30px!important;width:auto!important}
 .pbq{font-size:13px;padding:5px 0;border-bottom:1px dashed rgba(127,127,127,.35)}
 .ub2{position:relative}.mlbt{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:auto!important;margin:0!important;padding:4px 9px!important;font-size:12px!important;background:rgba(255,255,255,.22)!important;color:#fff!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:8px}
 #mlib{position:fixed;left:8px;right:8px;bottom:max(12px,env(safe-area-inset-bottom));z-index:99990;background:#111827;color:#fff;border-radius:14px;padding:10px;box-shadow:0 6px 24px rgba(0,0,0,.4)}
