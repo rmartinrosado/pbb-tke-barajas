@@ -50,9 +50,11 @@ const cargaQR=()=>new Promise((ok,ko)=>{if(window.qrcode)return ok();const s=doc
 window.qrPBB=async function(){try{await cargaQR()}catch(e){msg("No se pudo cargar el generador de QR (sin conexión)");return}
  const L=(typeof POS!="undefined"?POS:[]).map(String);const base=location.origin+location.pathname;
  const svg=p=>{const q=qrcode(0,"M");q.addData(base+"#pbb="+p);q.make();return q.createSvgTag({cellSize:4,margin:2,scalable:true})};
- const w=window.open("","_blank");if(!w){msg("Permite las ventanas emergentes para imprimir los QR");return}
- w.document.write(`<!doctype html><meta charset="utf-8"><title>QR PBB</title><style>body{font-family:Arial,sans-serif;margin:10mm}.g{display:grid;grid-template-columns:repeat(4,1fr);gap:6mm}.c{border:1px dashed #999;padding:3mm;text-align:center;break-inside:avoid}.c svg{width:38mm;height:38mm}.c b{display:block;font-size:16pt;margin-top:2mm}.c small{font-size:8pt;color:#555}@media print{button{display:none}}</style>
- <button onclick="print()" style="font-size:16px;padding:8px 16px;margin-bottom:8mm">🖨 Imprimir</button><div class="g">${L.map(p=>`<div class="c">${svg(p)}<b>PBB ${p}</b><small>TKE · escanear para abrir la app</small></div>`).join("")}</div>`);w.document.close()};
+ /* v472: dentro de la propia app (en el iPhone la ventana nueva no se podía cerrar) con ✕ Cerrar e 🖨 Imprimir */
+ let o=document.getElementById("qrv");if(o)o.remove();o=document.createElement("div");o.id="qrv";
+ o.innerHTML=`<div class="qrtool"><button type="button" onclick="print()">🖨 Imprimir</button><button type="button" onclick="document.getElementById('qrv').remove()">✕ Cerrar</button></div>
+ <div class="qrg">${L.map(p=>`<div class="qrc">${svg(p)}<b>PBB ${p}</b><small>TKE · escanear para abrir la app</small></div>`).join("")}</div>`;
+ ["click","dblclick","touchend"].forEach(t=>o.addEventListener(t,e=>e.stopPropagation()));document.body.appendChild(o)};
 /* =================== MANOS LIBRES =================== */
 let V=null;
 const pasosSOS=()=>{const out=[];const b1=document.querySelector("#sr_res .ubb1");if(b1){const t=(b1.querySelector(".pucab")||{}).textContent;if(t)out.push("Primera actuación. "+t);b1.querySelectorAll(".qkp,.puac").forEach(x=>{const s=x.textContent.trim();if(s&&!out.includes(s))out.push(s)})}
@@ -81,6 +83,12 @@ let tm=null;new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(pon,250)}).
 const st=document.createElement("style");st.textContent=`
 /* velocidad: respuesta inmediata al toque (sin espera de doble toque del navegador) */
 html{touch-action:manipulation}
+#qrv{position:fixed;inset:0;z-index:100000;background:#fff;color:#111;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 10px 30px}
+.qrtool{position:sticky;top:0;display:flex;gap:8px;padding:max(10px,env(safe-area-inset-top)) 0 10px;background:#fff;z-index:1}
+.qrtool button{flex:1;margin:0!important;padding:12px!important;font-size:16px!important;font-weight:800;border-radius:10px;border:2px solid #111!important;background:#fff!important;color:#111!important}
+.qrg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.qrc{border:1px dashed #999;padding:6px;text-align:center;break-inside:avoid}
+.qrc svg{width:100%;height:auto;max-width:38mm}.qrc b{display:block;font-size:14px;margin-top:3px}.qrc small{font-size:8px;color:#555}
+@media print{body>*:not(#qrv){display:none!important}#qrv{position:static;overflow:visible;padding:0}.qrtool{display:none}.qrg{gap:6mm}.qrc svg{width:38mm;height:38mm}}
 .infb{width:auto!important;margin:6px 0 0!important;padding:5px 10px!important;font-size:12.5px!important}
 .pbq{font-size:13px;padding:5px 0;border-bottom:1px dashed rgba(127,127,127,.35)}
 .ub2{position:relative}.mlbt{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:auto!important;margin:0!important;padding:4px 9px!important;font-size:12px!important;background:rgba(255,255,255,.22)!important;color:#fff!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:8px}
