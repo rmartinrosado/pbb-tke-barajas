@@ -56,6 +56,7 @@ const st=document.createElement("style");st.textContent=`
 #sheetc.sosc .soscr3 .srfoto{flex:1 1 45%;margin:0!important;padding:6px 8px!important;font-size:12.5px!important;letter-spacing:0!important;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;min-height:40px}
 #sheetc.sosc .soscr3 .srfoto{flex-direction:column;gap:1px;font-family:inherit!important;text-transform:none!important;font-weight:800}#sheetc.sosc .soscr3 .srfoto small{display:block;font-size:11px;font-weight:700;opacity:.8}
 #sheetc.sosc #sr_pv img{max-height:90px!important}
+#sheetc.sosc .soscr3 .srfoto.srfok{border-color:#2e7d32!important;color:#2e7d32!important;background:rgba(46,125,50,.08)!important}
 #sheetc.sosc button.pri{margin-top:10px!important;padding:12px!important}
 #sheetc.sosc .srobrow{margin-top:10px!important}#sheetc.sosc .srobrow.soscok button.pri{flex:1;margin:0!important}
 #sheetc.sosc .srobrow .srobok{padding:8px!important}#sheetc.sosc .srobok img.srobwm{height:26px}

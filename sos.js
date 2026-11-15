@@ -91,7 +91,7 @@ window.sosRap=function(){foto=null;fotoURL="";
  <label>Posición PBB</label><input id="sr_p" list="sr_pl" inputmode="numeric" placeholder="Ej. 544" autocomplete="off"><datalist id="sr_pl">${lista()}</datalist>
  <label>Alarma activada</label><select id="sr_a"><option value="">— Elige la alarma de la Magelis —</option>${SOS_AL.map(([g,l])=>`<optgroup label="${g}">${l.map(([n,v])=>`<option value="${esc(v)}">${esc(n)}</option>`).join("")}</optgroup>`).join("")}</select>
  <details class="srtx"><summary class="mu">Escribir la alarma a mano (opcional)</summary><textarea id="sr_t" rows="2" placeholder="Ej. ZAPATA ACTIVADA · LÍMITE EXTENSIÓN"></textarea></details>
- <label>Foto de la Magelis / alarmas (apoyo)</label><label class="sec srfoto" for="sr_f">📷 Hacer o elegir foto</label><input id="sr_f" type="file" accept="image/*" style="display:none" onchange="sosFoto(this)">
+ <label>Foto de la Magelis / alarmas (apoyo)</label><label class="sec srfoto" for="sr_f">📷 Hacer o elegir foto</label><input id="sr_f" type="file" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" onchange="sosFoto(this)" oninput="sosFoto(this)">
  <div id="sr_pv"></div>
  <button class="pri" style="margin-top:12px;width:100%" onclick="sosAnaliza()">Ver primera actuación</button>
  <div id="sr_res"></div>
@@ -99,8 +99,23 @@ window.sosRap=function(){foto=null;fotoURL="";
  $("#sheet").style.display="flex"};
 async function sosCasRap(txt,pos){const c=document.getElementById("sr_cas");if(!c||typeof casosParecidos!="function")return;c.innerHTML=`<div class="mu" style="margin-top:8px;font-size:12px">Buscando casos parecidos…</div>`;
  let l=[];try{l=await casosParecidos(txt)}catch(e){}const c2=document.getElementById("sr_cas");if(!c2)return;c2.innerHTML=l.length?`<div style="margin-top:10px">${casosHTML(l,pos)}</div>`:""}
-window.sosFoto=function(inp){foto=inp.files&&inp.files[0]||null;if(fotoURL)URL.revokeObjectURL(fotoURL);fotoURL=foto?URL.createObjectURL(foto):"";
- $("#sr_pv").innerHTML=foto?`<img src="${fotoURL}" alt="Foto Magelis" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:8px;background:#000">`:""};
+/* v456: la foto de la FOTOTECA (iPhone) no cargaba: el input oculto con display:none, fotos HEIC o de iCloud y elegir la misma foto
+   dos veces. Ahora el input no va con display:none, la foto se pasa a JPEG nada más elegirla (vale para HEIC), se ve «✓ Foto cargada»
+   en el botón y el input se vacía para poder volver a elegir la misma foto. */
+const aJPG=f=>new Promise(ok=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;ok(v)}};setTimeout(()=>fin(null),20000);
+ const pinta=(src,w,h)=>{const k=Math.min(1,2000/Math.max(w,h));const c=document.createElement("canvas");c.width=Math.round(w*k);c.height=Math.round(h*k);
+  c.getContext("2d").drawImage(src,0,0,c.width,c.height);c.toBlob(b=>fin(b?new File([b],"magelis.jpg",{type:"image/jpeg"}):null),"image/jpeg",.9)};
+ const porImg=()=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{pinta(im,im.naturalWidth,im.naturalHeight);URL.revokeObjectURL(u)};im.onerror=()=>{URL.revokeObjectURL(u);fin(null)};im.src=u};
+ if(typeof createImageBitmap=="function")createImageBitmap(f).then(bm=>pinta(bm,bm.width,bm.height),porImg);else porImg()});
+const fotoBtn=t=>{const b=document.querySelector("#sheetc label.srfoto");if(!b)return;if(!b.dataset.ori)b.dataset.ori=b.innerHTML;b.innerHTML=t||b.dataset.ori;b.classList.toggle("srfok",!!t&&/✓/.test(t))};
+let fotoTk=0;
+window.sosFoto=async function(inp){const f=inp.files&&inp.files[0]||null;if(!f)return;const tk=++fotoTk;
+ const pv=$("#sr_pv");fotoBtn("<span>⏳ Cargando foto…</span>");if(pv)pv.innerHTML="";
+ let j=await aJPG(f);if(tk!=fotoTk)return;try{inp.value=""}catch(e){}
+ if(!j&&!/heic|heif/i.test(f.type+f.name))j=f;
+ if(!j){foto=null;fotoBtn("");if(pv)pv.innerHTML=`<div class="gav" style="margin-top:6px">No se pudo abrir la foto (${esc(f.name||"sin nombre")}). Si está en iCloud, ábrela antes en Fotos para que se descargue, o haz una captura de pantalla de la foto y elige la captura.</div>`;return}
+ foto=j;if(fotoURL)URL.revokeObjectURL(fotoURL);fotoURL=URL.createObjectURL(foto);fotoBtn("<span>✓ Foto cargada</span><small>(toca para cambiarla)</small>");
+ if(pv)pv.innerHTML=`<img src="${fotoURL}" alt="Foto Magelis" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:8px;background:#000">`};
 /* v425: la DESCRIPCIÓN EN CAMPO (Observaciones) es el aviso de la OT y manda: se analiza primero; la alarma de la Magelis
    (lista, a mano o foto) es complementaria: se suma a la descripción para afinar y, si apunta a otro elemento, se muestra aparte. */
 window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpperCase(),res=$("#sr_res");
