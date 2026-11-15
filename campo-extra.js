@@ -26,7 +26,7 @@ window.otInformeDe=async function(o){if(!o)return;
  tit("AVISO / DESCRIPCIÓN");txt(o.desc||"-");y+=2;
  if(o.act||o.actuacion){tit("ACTUACIÓN REALIZADA");txt(o.act||o.actuacion);y+=2}
  if(o.obs){tit("OBSERVACIONES");txt(o.obs);y+=2}
- if(o.verif){const V=[["led","LED del PLC en reposo"],["alarma","Alarma borrada (Magelis)"],["maniobra","Maniobra completa en Remoto"],["puentes","Puentes retirados"]].filter(([k])=>k in o.verif);
+ if(o.verif){const V=[["led","LED del PLC en reposo"],["alarma","Alarma reseteada (Magelis)"],["maniobra","Maniobra completa en Remoto"],["puentes","Puentes retirados"]].filter(([k])=>k in o.verif);
   if(V.length){tit("COMPROBACIONES ANTES DEL CIERRE");V.forEach(([k,t])=>txt(`${o.verif[k]?"[SÍ]":"[NO]"} ${t}`,9));y+=2}}
  if(o.medidas&&o.medidas.length){tit("MEDIDAS TOMADAS EN CAMPO");o.medidas.forEach(m=>{txt(`${m.ok?"[OK]":"[FUERA]"} ${m.v} (esperado ${m.esp}) · ${m.paso}`,9)});y+=2}
  if(o.resClaude&&o.resClaude.txt){tit("ANÁLISIS TÉCNICO (Claude)");txt(String(o.resClaude.txt).slice(0,6000),8.5);y+=2}
@@ -112,7 +112,7 @@ html{touch-action:manipulation}
 .ciehc input{font-size:15px!important;padding:8px 6px!important;min-height:0!important}.ciehc .hrow{flex-direction:column!important;gap:4px!important}.ciehc .hrow>input{width:100%!important;flex:none!important;margin:0!important}.ciehc .hrow>.hq{font-size:16px!important}
 .ciec textarea#r_a{min-height:64px!important;height:64px}.ciec textarea#r_o{min-height:46px!important;height:46px}
 .ciec .infcie{margin-top:8px!important;padding:8px!important}.ciec button.pri{margin-top:8px!important;padding:10px!important}.ciec>button.sec{margin-top:6px!important;padding:8px!important}
-.ciec>button:last-child{padding:6px!important;min-height:0!important}.ciec>button:last-child img{max-height:30px!important;height:30px!important;width:auto!important}
+.ciec>button#r_cl{padding:6px!important;min-height:0!important;margin-top:8px!important}.ciec>button#r_cl img{max-height:30px!important;height:30px!important;width:auto!important}
 .pbq{font-size:13px;padding:5px 0;border-bottom:1px dashed rgba(127,127,127,.35)}
 .ub2{position:relative}.mlbt{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:auto!important;margin:0!important;padding:4px 9px!important;font-size:12px!important;background:rgba(255,255,255,.22)!important;color:#fff!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:8px}
 #mlib{position:fixed;left:8px;right:8px;bottom:max(12px,env(safe-area-inset-bottom));z-index:99990;background:#111827;color:#fff;border-radius:14px;padding:10px;box-shadow:0 6px 24px rgba(0,0,0,.4)}
