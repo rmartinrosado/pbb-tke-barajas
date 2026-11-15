@@ -11,6 +11,7 @@
     · Seta de emergencia → «Pupitre encendido pero no rearma» (setas), no el joystick.
     · Puerta de servicio abierta → inductivo SS-B15 (E-A10 4.1), no la iluminación de la escalera.
     · Antiatrapamiento, portón, zapata, bumpers, bordes: su caja solo si el aviso los nombra (EL_FAM, v437).
+    · «Fallo sensor sirena» (alarma 138) → sirena de seguridad de CABINA C-H41, no la sirena de movimiento ET-H1 (v457).
    Para añadir un concepto: una entrada más en REG (q: palabras del aviso, no: palabras que lo anulan, box: caja que manda,
    fuera: cajas que no corresponden). ===== */
 (function(){
@@ -74,6 +75,8 @@ const REG=[
  {q:t=>LIM.test(t)&&/traslac|giro de ruedas|ruedas/.test(t)&&!FC.test(t),box:/^limite de traslacion/,fuera:/^final de carrera de seguridad/},
  {q:t=>/\bsetas?\b|emergencia/.test(t),box:/^pupitre encendido pero no rearma/,fuera:/^pupitre · joystick/},
  {q:t=>/puerta de servicio|ss-?b15/.test(t),box:/^puerta de servicio abierta/,fuera:t=>/luz|luces|ilumin|luce|alumbr/.test(t)?null:/^iluminacion/},
+ /* v457: «Fallo sensor sirena» (alarma 138) = SIRENA DE SEGURIDAD DE CABINA C-H41, no la sirena de movimiento ET-H1 del tren de ruedas */
+ {q:t=>/sensor (de )?(la )?sirena|\b138\b|sirena (de )?(seguridad|(de )?cabina)|c-?h41/.test(t)&&!/sirena (de )?movimiento/.test(t),box:/^sirena de cabina/,fuera:/sirena de movimiento/},
  /* bumpers: 2 grupos × 2 (brazo C-B27/C-B28 · cabina C-B29/C-B30), puente en el bornero del pupitre */
  {q:t=>/bumper|parachoq/.test(t)&&!/\bala\b|a380/.test(t),box:/^bumpers brazo y cabina/,fuera:/^zapata \/ bordes \/ bumpers/},
  /* PCA que no enfría / poco caudal → ventilador interior, variador o filtro del equipo */

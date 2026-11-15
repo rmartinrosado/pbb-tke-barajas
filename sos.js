@@ -115,7 +115,14 @@ window.sosFoto=async function(inp){const f=inp.files&&inp.files[0]||null;if(!f)r
  if(!j&&!/heic|heif/i.test(f.type+f.name))j=f;
  if(!j){foto=null;fotoBtn("");if(pv)pv.innerHTML=`<div class="gav" style="margin-top:6px">No se pudo abrir la foto (${esc(f.name||"sin nombre")}). Si está en iCloud, ábrela antes en Fotos para que se descargue, o haz una captura de pantalla de la foto y elige la captura.</div>`;return}
  foto=j;if(fotoURL)URL.revokeObjectURL(fotoURL);fotoURL=URL.createObjectURL(foto);fotoBtn("<span>✓ Foto cargada</span><small>(toca para cambiarla)</small>");
- if(pv)pv.innerHTML=`<img src="${fotoURL}" alt="Foto Magelis" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:8px;background:#000">`};
+ if(pv)pv.innerHTML=`<img src="${fotoURL}" alt="Foto Magelis" onclick="sosFotoVer()" title="Toca para verla en pantalla completa" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:8px;background:#000;cursor:zoom-in">`};
+/* v457: tocar la foto la abre a pantalla completa (con zoom de dos dedos); la ✕ vuelve al SOS */
+window.sosFotoVer=function(){if(!fotoURL)return;let o=document.getElementById("sosfv");if(o)o.remove();o=document.createElement("div");o.id="sosfv";
+ o.style.cssText="position:fixed;inset:0;z-index:100000;background:#000;display:flex;align-items:center;justify-content:center;overflow:auto;touch-action:pinch-zoom pan-x pan-y";
+ o.innerHTML=`<img src="${fotoURL}" alt="Foto Magelis" style="max-width:100%;max-height:100%;object-fit:contain">
+  <button type="button" aria-label="Cerrar" onclick="event.stopPropagation();document.getElementById('sosfv').remove()" style="position:fixed;top:max(12px,env(safe-area-inset-top));right:12px;width:48px;height:48px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.6);color:#fff;font-size:24px;font-weight:800;line-height:1;z-index:100001">✕</button>`;
+ o.addEventListener("click",e=>e.stopPropagation());o.addEventListener("dblclick",e=>e.stopPropagation());o.addEventListener("touchend",e=>e.stopPropagation());
+ document.body.appendChild(o)};
 /* v425: la DESCRIPCIÓN EN CAMPO (Observaciones) es el aviso de la OT y manda: se analiza primero; la alarma de la Magelis
    (lista, a mano o foto) es complementaria: se suma a la descripción para afinar y, si apunta a otro elemento, se muestra aparte. */
 window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpperCase(),res=$("#sr_res");

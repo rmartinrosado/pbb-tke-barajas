@@ -56,6 +56,14 @@ const C=[
    "Luz azul: fija por el relé P-K68 (P-A2 mód. 2 LED 3) e intermitente por P-K69 (P-A2 mód. 2 LED 4) → cable CP-W200 → C-H5.",
    "LED del PLC encendido y no luce → medir 24 VDC en el conector de la luz: con tensión → luz averiada; sin tensión → relé P-K68 / P-K69 o la manguera."],
   r:"folio 96 (señal luminosa en rotonda y luz azul bajo cabina) · 78-79 (P-A2 salidas)"},
+ /* v457: «Fallo sensor sirena» (alarma 138) es la SIRENA DE SEGURIDAD DE CABINA C-H41, no la sirena de movimiento ET-H1 del tren de ruedas */
+ {k:"sircab",re:/sensor (de )?(la )?sirena|fallo (del? )?sensor sirena|sirena (de )?(seguridad|(de )?cabina)|c-?h41|\b138\b|ec-?w20/,aux:1,
+  sig:/sirena seguridad cabina|sensor sirena/i,el:["C-H41","EC-W20","E-X70","E-A6","E-A9","SS-B15"],
+  t:"Sirena de cabina · fallo sensor sirena (alarma 138) y barrera de rotonda",g:[91,70,54,70],
+  a:"Sirena de seguridad de CABINA C-H41 (no es la sirena de movimiento ET-H1 del tren de ruedas). No se puentea el sensor de la sirena: es una entrada de seguridad.",
+  p:["Puerta de servicio CERRADA y SS-B15 detectándola (E-A10 mód. 2 LED 2). Rearmar desde el pupitre y comprobar que la 138 pasa a «Desactivado».",
+   "Cotejar E-A6 mód. 4 LED 1 (orden de sirena) y E-A9 mód. 2 LED 2 (sensor de sirena)."],
+  r:"RCS folio 91 (C-H41, EC-W20, E-X70) · 70 (E-A9) · 54 (E-A6)"},
  {k:"sirmov",re:/sirena (de )?movimiento|(sirena|pitido|bocina|avisador|aviso acustico).{0,40}(movimiento|mover|trasla|marcha)|no pita/,aux:1,
   sig:/sirena movimiento/i,el:["ET-H1","ET-X51","E-A0"],
   t:"Señalización · sirena de movimiento ET-H1",g:[53,53,53,53],
@@ -159,6 +167,7 @@ const o=anaOT;anaOT=function(i){const r=o(i);if(!r||!i||r._sis)return r;r._sis=1
  /* un elemento concreto nombrado (gálibo, foco, Cotelo, semáforo) manda sobre las cajas genéricas por zona */
  if(hit.some(c=>/^(galibo|focos|cotelo|semaforo)$/.test(c.k)))hit=hit.filter(c=>!/^(tunint|cabext)$/.test(c.k));
  if(hit.some(c=>c.k=="cotelo"))hit=hit.filter(c=>c.k!="focos");
+ if(hit.some(c=>c.k=="sircab"))hit=hit.filter(c=>c.k!="sirmov"); /* v457: sensor sirena = sirena de cabina, no la de movimiento */
  if(!hit.length)return r;
  const mov=MOV.test(t),aux=hit.every(c=>c.aux);
  hit.forEach(c=>c.si=six(c));const ya=new Set(hit.map(c=>c.si));

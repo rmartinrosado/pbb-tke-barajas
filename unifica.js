@@ -115,6 +115,16 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
    <div class="puac qkp">3. Prueba: comprobar más tarde con AUTONIVELACIÓN en el selector del pupitre. Los DOS lados tienen que desplegar y plegar conjuntamente.</div>
    <div class="puac qkp">4. Paso final: selector a REMOTO y dejar la PBB operativa.</div></div>`;
   b1=cap+b1.replace(/<div class="gav"[^>]*>Con lo descrito no hay puente provisional ni reset[\s\S]*?<\/div>/,"")}}
+ /* v457: FALLO SENSOR SIRENA (alarma 138) = sirena de seguridad de CABINA C-H41 (no la sirena de movimiento ET-H1) */
+ {const ts=nrm([ob,al,window.__sosFotoAl||""].join(" "));if(T=="PAS"&&!REM&&/sensor (de )?(la )?sirena|\b138\b|sirena (de )?(seguridad|(de )?cabina)|c-?h41/.test(ts)&&!/sirena (de )?movimiento/.test(nrm(ob))){
+  const sir=`<div class="card pucard qkc"><div class="pucab">⚡ SIRENA DE CABINA C-H41 · FALLO SENSOR SIRENA (138) · SACAR EN SERVICIO YA</div>
+   <div class="puac qkp">No se puentea el sensor de la sirena (E-A9 4.1–4.2): es una entrada de seguridad. No es la sirena de movimiento ET-H1 del tren de ruedas.</div>
+   <div class="puac qkp">1. Puerta de servicio CERRADA y su inductivo SS-B15 detectándola (E-A10 mód. 2 LED 2 encendido). La 140 «Acceso por puerta de servicio» dispara la sirena.</div>
+   <div class="puac qkp">2. Si está la 141 «Esperando autorización remota»: selector CP-S16 de REMOTO a LOCAL y otra vez a REMOTO; pedir autorización a CGA.</div>
+   <div class="puac qkp">3. Rearmar la PBB desde el pupitre.</div>
+   <div class="puac qkp">4. Prueba: en la Magelis la 138 pasa a «Desactivado» y la sirena deja de sonar. Sigue activa → cotejar E-A6 mód. 4 LED 1 (orden) con E-A9 mód. 2 LED 2 (sensor) y medir el bucle en REPARAR.</div>
+   <div class="puac qkp">5. Paso final: selector a REMOTO y dejar la PBB operativa.</div></div>`;
+  b1=sir+b1.replace(/<div class="gav"[^>]*>Con lo descrito no hay puente provisional ni reset[\s\S]*?<\/div>/,"")}}
  /* v427: si hay puente provisional, croquis del módulo afectado al principio del bloque 1 */
  let cro="";if(T=="PAS"&&!REM&&typeof window._croqLista=="function"&&typeof croquisPuente=="function"){try{
   const mk=(d,f)=>({id:"sosc_"+pos,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:f||"",com:"",obs:"",orden:"SOS",fecha:""});
