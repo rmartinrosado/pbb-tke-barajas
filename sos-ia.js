@@ -95,6 +95,10 @@ const css=document.createElement("style");css.textContent=`#sr_ia{margin-top:10p
 .siab>i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,var(--pr,#5b2a86),var(--ac,#ff6f00));transition:width .4s ease}
 .sia.err .siab>i{background:#c62828}.siam{display:flex;justify-content:space-between;font-size:12px}.siat{font-size:12px;margin-top:4px;white-space:pre-wrap;max-height:3.6em;overflow:hidden;opacity:.75}
 .siaot{margin:10px 0 2px;padding:9px 10px;border:2px solid #2e7d32;border-radius:10px;background:rgba(46,125,50,.08);font-size:13px}.siaot b{color:#2e7d32}.siaot button{margin:8px 0 0!important;width:100%}
+.siach{margin-top:10px;border-top:1px solid var(--bd,#ddd);padding-top:8px}.siachh{font-weight:800;font-size:14px;margin-bottom:6px}
+.siamu{background:rgba(249,115,22,.12);border-radius:10px;padding:6px 9px;margin:6px 0 6px 18%;font-size:14px}
+.siamc{background:var(--card,#fff);border:1px solid var(--bd,#ddd);border-radius:10px;padding:7px 9px;margin:6px 18% 6px 0;font-size:14px;line-height:1.4}
+.siachf{display:flex;gap:6px;align-items:flex-end;margin-top:6px}.siachf textarea{flex:1;font-size:15px;margin:0}.siachf button{flex:none;width:auto!important;padding:10px 14px!important;margin:0!important}
 .siabt{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.siabt>*{flex:1 1 30%;margin:0!important;padding:9px 6px!important;font-size:13px!important;text-align:center;text-decoration:none;box-sizing:border-box}
 .siav{margin-top:8px;background:#6b6b6b;border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:6px;max-height:70vh;overflow:auto;-webkit-overflow-scrolling:touch}
 .siav img{width:100%;display:block;background:#fff;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.35)}`;document.head.appendChild(css);
@@ -105,11 +109,26 @@ function pinta(){const c=document.getElementById("sr_ia");if(!c||!ST)return;
   ${s.otProp?`<div class="siaot"><b>Orden de trabajo solicitada</b><div>PBB ${E(s.otProp.pos||"-")} · ${E(s.otProp.tipo)} · ${E(s.otProp.desc)}</div><button class="pri" onclick="sosRegOT()">📝 Registrar la OT</button></div>`:""}
   ${s.memo?`<div class="mu" style="font-size:12px;margin-top:4px">📁 ${E(s.memo)}</div>`:""}
   <div class="siabt"><a class="pri" href="${s.res.url}" download="${E(s.res.nom)}">⬇ Descargar PDF</a><button class="sec" onclick="sosIaAbre()">Abrir</button>${navigator.canShare?`<button class="sec" onclick="sosIaComparte()">Compartir</button>`:""}</div>
-  <div class="siav" id="sia_v">${s.res.imgs?s.res.imgs.map(u=>`<img src="${u}" alt="Página del PDF">`).join(""):`<div class="mu" style="color:#fff;padding:10px">Preparando la vista…</div>`}</div></div>`;return}
+  <div class="siav" id="sia_v">${s.res.imgs?s.res.imgs.map(u=>`<img src="${u}" alt="Página del PDF">`).join(""):`<div class="mu" style="color:#fff;padding:10px">Preparando la vista…</div>`}</div>${chatHTML(s)}</div>`;return}
  c.innerHTML=`<div class="sia${s.err?" err":""}"><div class="siah"><img src="claude-logo.png" alt=""><span>${s.err?"No se ha podido completar la consulta":/Gemini/.test(s.motor||"")?"Consultando a Gemini (reserva: falta la clave de Claude)":"Consultando a Claude en segundo plano"}</span></div>
  <div class="siab"><i style="width:${pc}%"></i></div><div class="siam"><span>${E(s.fase||"")}</span><b>${pc}% · ${seg} s</b></div>
  ${s.err?`<div class="gav" style="margin-top:6px;font-size:13px">${E(s.err)}</div><div class="siabt"><button class="sec" onclick="sosObClaude()">Reintentar</button><button class="sec" onclick="sosIaGemini()">Gemini AI Studio</button></div>`
  :`<div class="siat">${E(s.vista||"")}</div><div class="siabt"><button class="sec" onclick="sosIaCancela()">Cancelar</button></div>`}</div>`}
+/* ---------- v466: preguntas de seguimiento a Claude sobre la misma avería (respuesta en la pantalla) ---------- */
+const mdl=t=>E(t).replace(/^#{1,4}\s*(.+)$/gm,"<b>$1</b>").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
+function chatHTML(s){const C=s.chat||[];return `<div class="siach"><div class="siachh">💬 Pregunta a Claude sobre esta avería</div>
+ ${C.map(m=>`<div class="siam${m.r=="u"?"u":"c"}">${m.r=="u"?E(m.t):mdl(m.t)}${m.vivo?' <span class="mu">…</span>':""}</div>`).join("")}
+ <div class="siachf"><textarea id="sia_q" rows="2" oninput="sosIaQ(this.value)" placeholder="Ej. ¿qué mido si en E-X62:4 no llegan 4 mA? · ¿cómo alineo el láser?">${E(s.qtmp||"")}</textarea><button class="pri" onclick="sosIaPregunta()"${C.some(m=>m.vivo)?" disabled":""}>Enviar</button></div></div>`}
+window.sosIaQ=v=>{if(ST)ST.qtmp=v};
+window.sosIaPregunta=async function(){const S=ST;const q=(document.getElementById("sia_q")||{}).value;if(!S||!S.res||!q||!q.trim())return;
+ S.chat=S.chat||[];S.qtmp="";S.chat.push({r:"u",t:q.trim()});const m={r:"c",t:"",vivo:1};S.chat.push(m);pinta();
+ try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("Inicia sesión para consultar a Claude.");
+  const prev=S.chat.slice(0,-2).map(x=>(x.r=="u"?"TÉCNICO: ":"CLAUDE: ")+x.t).join("\n\n");
+  const pregunta=`${S.pregunta}\n\n--- TU RESPUESTA ANTERIOR (resumen de la actuación) ---\n${String(S.md||"").slice(0,9000)}\n${prev?`\n--- CONVERSACIÓN ---\n${prev}\n`:""}\n--- NUEVA PREGUNTA DEL TÉCNICO (responde SOLO a esto, breve, directo y con medidas y referencias de plano si aplica; sin repetir la actuación completa) ---\n${q.trim()}`;
+  const r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({pregunta,contexto:S.ctx||""})});
+  if(!r.ok){let t="";try{const j=await r.json();t=j.mensaje||j.error||""}catch(e){}throw new Error("La consulta ha fallado ("+r.status+") "+t)}
+  const rd=r.body.getReader(),dec=new TextDecoder();for(;;){const {done,value}=await rd.read();if(done)break;m.t+=dec.decode(value,{stream:true});if(ST===S)pinta()}
+ }catch(e){m.t="⚠️ "+String((e&&e.message)||e)}m.vivo=0;if(ST===S){pinta();const c=document.querySelector(".siach .siamc:last-of-type");if(c)c.scrollIntoView({block:"nearest"})}};
 let tic=null;const avanza=(fase,pct)=>{if(!ST)return;if(fase)ST.fase=fase;if(pct!=null)ST.pct=Math.max(ST.pct||0,Math.min(99,pct));pinta()};
 window.sosIaCancela=()=>{if(ST&&ST.ac)ST.ac.abort()};
 window.sosIaAbre=()=>{if(!ST||!ST.res)return;const w=window.open(ST.res.url,"_blank");if(!w){const a=document.createElement("a");a.href=ST.res.url;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}};
@@ -182,7 +201,10 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
   avanza("Cotejando planos…",9);
   const pl=await planosCtx(pos,tipo,busca,(f,x)=>avanza(f,9+9*(x||0)));
   S.docs=pl.usados;if(S.ac.signal.aborted)throw new DOMException("x","AbortError");
-  const contexto=[g,pa,ca,pl.txt].filter(Boolean).join("\n\n");
+  /* v466: historial de averías de esa PBB (últimas OT) para que Claude vea reincidencias y lo que ya se hizo */
+  const hi=(()=>{try{if(!pos||typeof inc=="undefined")return"";const L=inc.filter(x=>String(x.pos).toUpperCase()==pos&&x.id!==(ot&&ot.id)).sort((a,b)=>String(b.fecha||b.ts||"").localeCompare(String(a.fecha||a.ts||""))).slice(0,12);
+   if(!L.length)return"";return "HISTORIAL DE AVERÍAS DE LA PBB "+pos+" (últimas OT):\n"+L.map(x=>`- ${x.fecha||""} · ${x.tipo||""} · ${x.estado||""} · ${x.desc||""}${x.act||x.actuacion?` → actuación: ${String(x.act||x.actuacion).slice(0,200)}`:""}`).join("\n")}catch(e){return""}})();
+  const contexto=[g,pa,ca,hi,pl.txt].filter(Boolean).join("\n\n");S.ctx=contexto;
   avanza("Enviando a Claude ("+Math.round(contexto.length/1024)+" KB de documentación)…",19);
   const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;
   if(!tok)throw new Error("Inicia sesión en la app para consultar a Claude.");
