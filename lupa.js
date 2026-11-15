@@ -142,7 +142,7 @@ window.lupaPinta=function(k,an){if(an)LA=an;const res=document.getElementById("l
   const h=(S?segHTML(c.ot,S):"")+(Pu&&Pu.length?puenteHTML(c.ot,Pu):"");if(h)prim=`<details class="lpapr"><summary>⚠️ Primera actuación en campo (seguridad)</summary><div class="card pucard">${h}</div></details>`}catch(e){}}
  const alt=LC.map((x,ix)=>ix==k?"":`<button class="anag" onclick="lupaPinta(${ix},null)">📋 ${E(GUIA.tipos[x.T].n||x.T)} · ${E(x.s.t)}</button>`).join("");
  const vg=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
- res.innerHTML=`<div class="lpaef"><span class="gefb">⭐ Actuación más eficaz</span><div class="lpasy">${E(G.n||c.T)}</div><h3>${E(c.s.t)}</h3>${SB?SB.sel:""}
+ res.innerHTML=`<div class="lpaef"><span class="gefb">⭐ Actuación más eficaz</span><div class="lpasy">${E(G.n||c.T)}</div>${SB&&SB.tit?`<h3>${E(SB.tit)}</h3><div class="mu" style="font-size:12px;margin:-4px 0 4px">Caja de la guía: ${E(c.s.t)}</div>`:`<h3>${E(c.s.t)}</h3>`}${SB?SB.sel:""}
   ${P.acc.map((p,ix)=>{let cx="";try{const C=window.croquisPaso&&!(SB&&SB.gen.has(p))&&croquisPaso(p,"");if(C)cx=`<details class="elusd cxd"${C.n?" open":""}><summary>🔌 Croquis entre borneros${C.n?` · ${C.n} conexión${C.n>1?"es":""} borna a borna`:" · recorrido"}</summary><div class="cxin">${C.html}</div></details>`}catch(e){}
    return `<div class="lpap"><b>${ix+1}.</b><span>${E(p)}${cx}</span></div>`}).join("")}
   ${P.inf.length?`<details class="gelem"><summary>Elementos y referencias (${P.inf.length})</summary>${P.inf.map(p=>`<div class="gelit"><span>${E(typeof gInfoTxt=="function"?gInfoTxt(p):p)}</span></div>`).join("")}</details>`:""}

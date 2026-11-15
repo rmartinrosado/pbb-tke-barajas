@@ -166,7 +166,9 @@ window.lupaSub=function(s,q){if(!s)return null;if(q!==ULT){ELEG.clear();ULT=q}
   if(F.p.join("|")!=p.join("|"))p=F.p;else lado=""}}
  if(!d&&!lado)return null;
  if(lado)sel+=`<div class="sblado">Solo lado <b>${lado}</b> (según la descripción)</div>`;
- return {s:Object.assign({},s,{p}),gen,sel,ks,rel}};
+ /* v465: con un solo elemento elegido, el título de la actuación pasa a ser ese elemento (la caja general va debajo, en pequeño) */
+ const tit=d&&ks.length==1?((d.op.find(o=>o.k==ks[0])||{}).n||""):"";
+ return {s:Object.assign({},s,{p}),gen,sel,ks,rel,tit}};
 window.lupaSubElige=function(t,v){ELEG.set(t,v?[v]:[]);try{lupaPinta(window.__lupaK||0,null)}catch(e){}};
 window.lupaSubDefs=SUB;
 const st=document.createElement("style");st.textContent=`.sbx{margin:8px 0 10px;padding:9px 10px;border:1.5px solid var(--pr,#f97316);border-radius:10px;background:rgba(249,115,22,.08)}
