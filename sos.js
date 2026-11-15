@@ -118,10 +118,29 @@ window.sosFoto=async function(inp){const f=inp.files&&inp.files[0]||null;if(!f)r
  if(pv)pv.innerHTML=`<img src="${fotoURL}" alt="Foto Magelis" onclick="sosFotoVer()" title="Toca para verla en pantalla completa" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:8px;background:#000;cursor:zoom-in">`};
 /* v457: tocar la foto la abre a pantalla completa (con zoom de dos dedos); la ✕ vuelve al SOS */
 window.sosFotoVer=function(){if(!fotoURL)return;let o=document.getElementById("sosfv");if(o)o.remove();o=document.createElement("div");o.id="sosfv";
- o.style.cssText="position:fixed;inset:0;z-index:100000;background:#000;display:flex;align-items:center;justify-content:center;overflow:auto;touch-action:pinch-zoom pan-x pan-y";
- o.innerHTML=`<img src="${fotoURL}" alt="Foto Magelis" style="max-width:100%;max-height:100%;object-fit:contain">
-  <button type="button" aria-label="Cerrar" onclick="event.stopPropagation();document.getElementById('sosfv').remove()" style="position:fixed;top:max(12px,env(safe-area-inset-top));right:12px;width:48px;height:48px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.6);color:#fff;font-size:24px;font-weight:800;line-height:1;z-index:100001">✕</button>`;
- o.addEventListener("click",e=>e.stopPropagation());o.addEventListener("dblclick",e=>e.stopPropagation());o.addEventListener("touchend",e=>e.stopPropagation());
+ /* v458: zoom propio con pellizco de dos dedos (la PWA bloquea el zoom del navegador), arrastrar con un dedo y doble toque para ampliar / volver */
+ o.style.cssText="position:fixed;inset:0;z-index:100000;background:#000;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none";
+ o.innerHTML=`<img src="${fotoURL}" alt="Foto Magelis" draggable="false" style="position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;transform-origin:0 0;will-change:transform">
+  <button type="button" aria-label="Cerrar" style="position:fixed;top:max(12px,env(safe-area-inset-top));right:12px;width:48px;height:48px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.6);color:#fff;font-size:24px;font-weight:800;line-height:1;z-index:100001">✕</button>`;
+ const im=o.querySelector("img"),bt=o.querySelector("button");let k=1,x=0,y=0,P=null,ult=0;
+ const lim=()=>{const W=o.clientWidth,H=o.clientHeight;k=Math.min(8,Math.max(1,k));x=Math.min(0,Math.max(W-W*k,x));y=Math.min(0,Math.max(H-H*k,y))};
+ const pon=()=>{lim();im.style.transform=`translate(${x}px,${y}px) scale(${k})`};
+ const cierra=e=>{if(e){e.preventDefault();e.stopPropagation()}o.remove()};
+ bt.addEventListener("click",cierra);bt.addEventListener("touchend",cierra);
+ const pts=e=>[...e.touches].map(t=>({x:t.clientX,y:t.clientY}));
+ o.addEventListener("touchstart",e=>{if(e.target===bt)return;e.preventDefault();e.stopPropagation();const p=pts(e);
+  if(p.length>=2){const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),cx=(p[0].x+p[1].x)/2,cy=(p[0].y+p[1].y)/2;P={d,cx,cy,k,x,y}}
+  else{const t=Date.now();if(t-ult<300){const r=o.getBoundingClientRect(),cx=p[0].x-r.left,cy=p[0].y-r.top;if(k>1.1){k=1;x=0;y=0}else{const n=2.5;x=cx-(cx-x)*n/k;y=cy-(cy-y)*n/k;k=n}pon();ult=0;P=null;return}
+   ult=t;P={px:p[0].x,py:p[0].y,x,y}}},{passive:false});
+ o.addEventListener("touchmove",e=>{if(!P)return;e.preventDefault();e.stopPropagation();const p=pts(e);const r=o.getBoundingClientRect();
+  if(p.length>=2&&P.d){const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),cx=(p[0].x+p[1].x)/2-r.left,cy=(p[0].y+p[1].y)/2-r.top;
+   const nk=Math.min(8,Math.max(1,P.k*d/P.d));const ox=(P.cx-r.left-P.x)/P.k,oy=(P.cy-r.top-P.y)/P.k;k=nk;x=cx-ox*k;y=cy-oy*k;pon()}
+  else if(p.length==1&&P.px!==undefined){x=P.x+p[0].x-P.px;y=P.y+p[0].y-P.py;pon()}},{passive:false});
+ o.addEventListener("touchend",e=>{e.stopPropagation();if(e.target!==bt)e.preventDefault();const p=pts(e);if(p.length==1){P={px:p[0].x,py:p[0].y,x,y}}else if(!p.length)P=null},{passive:false});
+ /* ordenador: rueda para ampliar, arrastrar con el ratón */
+ o.addEventListener("wheel",e=>{e.preventDefault();const r=o.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top,n=Math.min(8,Math.max(1,k*(e.deltaY<0?1.2:1/1.2)));x=cx-(cx-x)*n/k;y=cy-(cy-y)*n/k;k=n;pon()},{passive:false});
+ let M=null;o.addEventListener("mousedown",e=>{if(e.target===bt)return;M={px:e.clientX,py:e.clientY,x,y}});o.addEventListener("mousemove",e=>{if(M){x=M.x+e.clientX-M.px;y=M.y+e.clientY-M.py;pon()}});o.addEventListener("mouseup",()=>M=null);
+ ["click","dblclick","pointerdown","pointerup"].forEach(t=>o.addEventListener(t,e=>{if(e.target!==bt)e.stopPropagation()}));
  document.body.appendChild(o)};
 /* v425: la DESCRIPCIÓN EN CAMPO (Observaciones) es el aviso de la OT y manda: se analiza primero; la alarma de la Magelis
    (lista, a mano o foto) es complementaria: se suma a la descripción para afinar y, si apunta a otro elemento, se muestra aparte. */
