@@ -147,7 +147,7 @@ window.sosFotoVer=function(){if(!fotoURL)return;let o=document.getElementById("s
 window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpperCase(),res=$("#sr_res");
  const ob=((document.getElementById("sr_ob")||{}).value||"").replace(/\s+/g," ").trim();
  /* v426: la posición solo es obligatoria si no hay descripción (con descripción se busca igual, con el plano general) */
- if(!pos&&!ob){msg("Indica la posición PBB y la avería en campo");$("#sr_p").focus();return}
+ /* v459: se puede operar SIN posición PBB (actuación según el plano general); sin nada escrito ni foto lo avisa más abajo */
  /* v447: PRIORIDAD · 1º la avería en campo y 2º la alarma (lista o a mano); la FOTO de la Magelis es complementaria:
     solo entra en el análisis si lo anterior no da actuación, y lo que diga de otro elemento se muestra aparte y plegado. */
  let al=[($("#sr_a").value||""),($("#sr_t").value||"")].map(x=>x.trim()).filter(Boolean).join(" · ");
