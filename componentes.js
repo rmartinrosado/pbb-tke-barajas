@@ -58,6 +58,7 @@ const COMP=[
   med:["24 VDC entre pin 1 (BN) y pin 3 (BU) en el conector del emisor.","Con la rotonda libre, la entrada E-A10 IN03S (barrera) debe estar ENCENDIDA FIJA. Al cortar el haz con la mano se apaga y salta el evento 294.","Si el evento 294 se activa y desactiva varias veces en pocos segundos: ópticas sucias o desalineadas, soporte flojo, cable dañado o algo que corta el haz.","Limpiar las ópticas de emisor y receptor, realinear y comprobar que el LED queda fijo."],
   av:"No se puentea la barrera de rotonda: es una entrada de seguridad. AL SUSTITUIR: emisor con la misma referencia L29S-3D3430; el receptor es su pieza pareja (comprobar la referencia en su placa). Alinear y probar el corte del haz antes de dejar la PBB en servicio."}
 ];
+window.COMP_CAMPO=COMP; /* v470: «Incorporar» añade aquí los componentes guardados en Supabase */
 const casa=t=>{t=nrm(t);return COMP.filter(c=>{try{return c.re(t)}catch(e){return false}})};
 window.compCampo=casa;
 const ficha=c=>`<div class="cmpf"><div class="cmpt"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</div><div class="cmpm">${E(c.fab)}</div>
@@ -65,6 +66,7 @@ const ficha=c=>`<div class="cmpf"><div class="cmpt"><span class="cmpid">${E(c.id
  <table class="cmpe">${c.esp.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table>
  ${c.pin&&c.pin.length?`<div class="cmpst">${E(c.pint||"Conexionado (conector M12)")}</div><table class="cmpp"><tr><th>Pin</th><th>Color</th><th>Señal</th><th>Función</th></tr>${c.pin.map(r=>`<tr>${r.map(x=>`<td>${E(x)}</td>`).join("")}</tr>`).join("")}</table>`:""}
  <div class="cmpst">Medir en campo</div><ol class="cmpo">${c.med.map(x=>`<li>${E(x)}</li>`).join("")}</ol>${c.av?`<div class="gav">⚠️ ${E(c.av)}</div>`:""}</div>`;
+window.compFicha=ficha;
 window.compCampoHTML=function(t){const L=casa(t);if(!L.length)return"";return L.map(ficha).join("")};
 /* foto a pantalla completa (✕ para volver) */
 window.compVer=function(src){let o=document.getElementById("cmpv");if(o)o.remove();o=document.createElement("div");o.id="cmpv";

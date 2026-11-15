@@ -116,7 +116,7 @@ function nombre(tag,sig){
  if(N[tag])return N[tag];
  if(cl=="W")return genW(pre);
  const f=CLASE[cl];return f?f(pre):""}
-window.nombreElemento=nombre;
+window.nombreElemento=nombre;window.NOMBRES_EL=N; /* v470: lista de códigos para «Incorporar componente» */
 /* Palabras que, justo delante del código, indican que el texto ya dice qué es */
 const YA={X:/(bornero|borna|bornas|regleta|regletero|caja|clema)s?\W*$/,W:/(manguera|mangueras|cable|cables|latiguillo|latiguillos)\W*$/,A:/(modulo|plc|cabecera)\W*$/,
  K:/(rele|reles|contactor|contactores|inversor|inversores)\W*$/,Q:/(disyuntor|guardamotor|magnetotermico|diferencial|proteccion|automatico)\W*$/,Y:/(valvula|electrovalvula|electrovalvulas)\W*$/,M:/(motor|motores|bomba)\W*$/};
