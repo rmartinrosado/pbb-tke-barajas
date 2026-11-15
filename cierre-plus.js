@@ -57,15 +57,20 @@ window.dicAbre=function(id){let d=$q("#dicv");if(d)d.remove();d=document.createE
  <div class="dst" id="dic_s"></div>
  <div class="dbt">${SR?`<button class="sec" id="dic_m" onclick="dicMic()">🎙 Hablar</button>`:`<button class="sec" onclick="document.getElementById('dic_t').focus()">⌨️ Teclado</button>`}<button class="pri" onclick="dicIA()">🤖 Rellenar cierre</button><button class="sec" onclick="dicCierra()">✕</button></div>`;
  document.body.appendChild(d);if(SR)dicMic();else $q("#dic_t").focus()};
-window.dicCierra=()=>{try{REC&&REC.stop()}catch(e){}REC=null;const d=$q("#dicv");if(d)d.remove()};
+/* v481: en iOS stop() a veces no termina la escucha continua: se fuerza con abort() y el botón cambia al momento */
+function paraRec(){const r=REC;REC=null;if(r){r.__parado=true;try{r.stop()}catch(e){}setTimeout(()=>{try{r.abort()}catch(e){}},350)}
+ const b=$q("#dic_m"),s=$q("#dic_s");if(b){b.textContent="🎙 Hablar";b.classList.remove("rec")}if(s&&/Escuchando/.test(s.textContent))s.textContent="Detenido. Pulsa 🤖 Rellenar cierre o 🎙 para seguir."}
+window.dicCierra=()=>{paraRec();const d=$q("#dicv");if(d)d.remove()};
+/* la flecha «Atrás» flotante cierra primero el cuadro de dictado */
+document.addEventListener("click",e=>{const f=e.target.closest&&e.target.closest("#fabb");if(f&&$q("#dicv")){e.preventDefault();e.stopImmediatePropagation();dicCierra()}},true);
 window.dicMic=function(){const b=$q("#dic_m"),t=$q("#dic_t"),s=$q("#dic_s");if(!SR||!t)return;
- if(REC){try{REC.stop()}catch(e){}return}
+ if(REC){paraRec();return}
  const r=new SR();r.lang="es-ES";r.continuous=true;r.interimResults=true;base=t.value?t.value.trim()+" ":"";
- r.onresult=ev=>{let fin="",tmp="";for(let k=0;k<ev.results.length;k++){const x=ev.results[k];(x.isFinal?(fin+=x[0].transcript+" "):(tmp+=x[0].transcript))}t.value=(base+fin+tmp).replace(/\s+/g," ").trimStart()};
+ r.onresult=ev=>{if(r.__parado&&REC!==r&&REC)return;let fin="",tmp="";for(let k=0;k<ev.results.length;k++){const x=ev.results[k];(x.isFinal?(fin+=x[0].transcript+" "):(tmp+=x[0].transcript))}t.value=(base+fin+tmp).replace(/\s+/g," ").trimStart()};
  r.onerror=ev=>{if(s)s.textContent=ev.error=="not-allowed"?"Micrófono sin permiso: actívalo en Ajustes o usa el del teclado.":"Voz: "+ev.error};
- r.onend=()=>{REC=null;if(b){b.textContent="🎙 Hablar";b.classList.remove("rec")}};
+ r.onend=()=>{if(REC===r)paraRec()};
  try{r.start();REC=r;if(b){b.textContent="⏹ Parar";b.classList.add("rec")}if(s)s.textContent="Escuchando…"}catch(e){if(s)s.textContent="No se ha podido iniciar la voz: usa el micrófono del teclado."}};
-window.dicIA=async function(){const d=$q("#dicv");if(!d)return;try{REC&&REC.stop()}catch(e){}
+window.dicIA=async function(){const d=$q("#dicv");if(!d)return;paraRec();
  const dic=$q("#dic_t").value.trim(),s=$q("#dic_s");if(dic.length<8){s.textContent="Dicta o escribe algo primero.";return}
  const i=inc.find(x=>x.id==d.dataset.id);if(!i)return;const al=window.aliasCampo||(x=>x);
  const prompt=`Eres técnico de mantenimiento de pasarelas de embarque (PBB) TKE en el aeropuerto de Madrid-Barajas.
