@@ -5,8 +5,8 @@
    OT, la primera actuación y los croquis acoten bien. Para añadir otro alias: una fila más en AL. ===== */
 (function(){
 "use strict";
-const AL=[[/\b(bumpers?|parachoques?)\s+(?:del?\s+)?(?:la\s+|las\s+|los\s+)?(traslaci\S*|ruedas?|bogie|carro(?:\s+de\s+ruedas)?|tren\s+de\s+ruedas)/gi,"borde de seguridad de ruedas ($2)"],
- [/\b(traslaci\S*|ruedas?|bogie)\s+(?:con\s+)?(bumpers?|parachoques?)/gi,"borde de seguridad de ruedas ($1)"]];
+const AL=[[/\b(bumpers?|parachoques?)\s+(?:del?\s+)?(?:la\s+|las\s+|los\s+)?(tra(?:n)?sla(?:ci|c)\S*|ruedas?|bogie|carro(?:\s+de\s+ruedas)?|tren\s+de\s+ruedas)/gi,"borde de seguridad de ruedas ($2)"],
+ [/\b(tra(?:n)?sla(?:ci|c)\S*|ruedas?|bogie)\s+(?:con\s+)?(bumpers?|parachoques?)/gi,"borde de seguridad de ruedas ($1)"]];
 const fix=t=>{let s=String(t==null?"":t);AL.forEach(([re,r])=>{s=s.replace(re,r)});return s};
 window.aliasCampo=fix;
 const fixOT=o=>{if(!o||typeof o!="object")return o;const c=Object.assign({},o);["desc","def","com","obs"].forEach(k=>{if(c[k])c[k]=fix(c[k])});return c};
@@ -17,4 +17,20 @@ const envuelve=(n,modo)=>{const f=window[n];if(typeof f!="function"||f.__al)retu
 /* conceptos de campo (lupa / SOS) y desplegables de elemento */
 if(typeof window.conceptoAjusta=="function"){const o=window.conceptoAjusta;window.conceptoAjusta=function(s,t,r){return o(s,fix(t),r)}}
 if(typeof window.lupaSub=="function"){const o=window.lupaSub;window.lupaSub=function(s,q){return o(s,fix(q))}}
+
+/* v479: también «translación» (con n, como viene en los avisos de CGA) y la Resolución IA (Claude / Gemini):
+   la consulta y la documentación que se reúne (guía, primera actuación, casos, planos) usan el texto ya segregado,
+   y se añade una nota de campo para que la IA no proponga bumpers de brazo ni de cabina. */
+const NOTA="NOTA DE CAMPO OBLIGATORIA (TKE Barajas): en los avisos, «bumper(s) de traslación / translación / ruedas» son los BORDES DE SEGURIDAD DE RUEDAS T-B5 (delantero) / T-B6 (trasero), relé GELBAU E-U5 → entrada safety E-A8 2.1 / 2.2 (folios 41 y 68). NO son los bumpers del brazo autonivelador (C-B27 / C-B28) ni los bumpers laterales de cabina (C-B29 / C-B30) ni el bumper de ala (C-B25): no los menciones, no los pongas en tablas ni como hipótesis. Trata solo los bordes de ruedas.";
+const esTras=t=>AL.some(([re])=>{re.lastIndex=0;const r=re.test(String(t||""));re.lastIndex=0;return r});
+window.aliasNota=t=>esTras(t)?NOTA:"";
+const envCtx=()=>{const X=window.iaCtx;if(!X||X.__al)return;const w=(k,ix)=>{const f=X[k];if(typeof f!="function")return;X[k]=function(){const a=[...arguments];a[ix]=fix(a[ix]);return f.apply(this,a)}};
+ w("guiaCtx",1);w("primeraCtx",1);w("casosCtx",0);w("planosCtx",2);X.__al=1};
+envCtx();addEventListener("load",envCtx);setTimeout(envCtx,1500);setTimeout(envCtx,5000);
+const of=window.fetch;window.fetch=function(u,o){try{if(o&&typeof o.body=="string"&&/\/functions\/v1\/(consulta-sos|leer-ia)/.test(String(u&&u.url||u))){
+  envCtx();const b=JSON.parse(o.body);let tocado=false;
+  ["pregunta","prompt"].forEach(k=>{if(typeof b[k]=="string"&&esTras(b[k])){b[k]=fix(b[k])+"\n\n"+NOTA;tocado=true}});
+  if(Array.isArray(b.mensajes||b.messages)){(b.mensajes||b.messages).forEach(m=>{if(m&&typeof m.content=="string"&&esTras(m.content)){m.content=fix(m.content)+"\n\n"+NOTA;tocado=true}})}
+  if(tocado){if(typeof b.contexto=="string")b.contexto=NOTA+"\n\n"+b.contexto;o=Object.assign({},o,{body:JSON.stringify(b)})}}}catch(e){}
+ return of.call(this,u,o)};
 })();
