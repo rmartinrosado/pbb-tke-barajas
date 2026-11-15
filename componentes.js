@@ -32,14 +32,25 @@ const COMP=[
   pint:"Conexionado (terminales soldados)",
   pin:[["1","Rojo · marca 1","Extremo","Alimentación del convertidor"],["2","Rojo · marca 2","Cursor","Señal (varía al girar)"],["3","Rojo · marca 3","Extremo","Retorno del convertidor"]],
   med:["SIN TENSIÓN (desconectado de E-X65): entre 1 y 3 ≈ 10 kΩ (9,7 … 10,3 kΩ), fijo al girar.","Entre 1-2 y entre 2-3 el valor sube y baja SUAVE al girar la cabina, sin saltos ni abiertos; 1-2 + 2-3 = 1-3.","Abierto, saltos o valor fijo al girar → potenciómetro gastado o acoplamiento al eje suelto / patinando.","Potenciómetro bien y sin medida → manguera E-W9, bornas E-X65 o convertidor E-R10 (4-20 mA en su salida)."],
-  av:"AL SUSTITUIR: mismo modelo (10 kΩ, lineal). Antes de desmontar, marcar la posición del eje y del acoplamiento; montar el nuevo en la misma posición para no descalibrar la medida de giro de cabina."}
+  av:"AL SUSTITUIR: mismo modelo (10 kΩ, lineal). Antes de desmontar, marcar la posición del eje y del acoplamiento; montar el nuevo en la misma posición para no descalibrar la medida de giro de cabina."},
+ /* v463: acoplamiento entre el giro de cabina y el eje del potenciómetro C-R10 (sale con el C-R10) */
+ {id:"ACOPL. C-R10",t:"Acoplamiento elástico del potenciómetro de giro de cabina",fab:"Acoplamiento de fuelle metálico con bujes de apriete (tornillo allen)",
+  re:t=>/acoplamiento/.test(t)&&/cabina|potenciom|c-?r10/.test(t)||COMP[1].re(t),
+  fotos:[["componentes/acop-cr10-lateral.jpg","Vista lateral · fuelle y bujes con tornillo de apriete"],["componentes/acop-cr10-axial.jpg","Vista axial · alojamiento del eje y ranura de apriete"]],
+  esp:[["Función","Une el eje del giro de cabina con el eje del potenciómetro C-R10: transmite el giro sin holgura y absorbe desalineaciones"],
+   ["Tipo","Fuelle metálico (acero inoxidable) entre dos bujes de aluminio"],
+   ["Fijación","Cada buje abraza su eje con una ranura y un tornillo allen de apriete"],
+   ["Si el tornillo está flojo","El buje PATINA y la medida no sigue al giro: salta, se queda fija o se descalibra"],["Si el fuelle está roto","Giro con holgura o sin transmisión al potenciómetro"]],
+  pint:"",pin:[],
+  med:["Con la PBB parada: sujetar el eje del giro y mover el acoplamiento con la mano. No debe haber holgura ni patinar ningún buje.","Comprobar el apriete de los dos tornillos allen y que el fuelle no tiene grietas ni ondas aplastadas.","Girar la cabina despacio mirando el eje del potenciómetro: debe girar a la vez, sin saltos. Si el eje no sigue, el fallo está en el acoplamiento.","Al apretar o cambiar el acoplamiento, dejar el potenciómetro en la MISMA posición que tenía (marcar antes) y comprobar en la Magelis que la medida de giro de cabina es correcta."],
+  av:"Si la medida de giro de cabina falla con el potenciómetro bien medido (1-3 ≈ 10 kΩ y 1-2 / 2-3 variando suave), revisar SIEMPRE el acoplamiento antes de cambiar el convertidor E-R10."}
 ];
 const casa=t=>{t=nrm(t);return COMP.filter(c=>{try{return c.re(t)}catch(e){return false}})};
 window.compCampo=casa;
 const ficha=c=>`<div class="cmpf"><div class="cmpt"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</div><div class="cmpm">${E(c.fab)}</div>
  <div class="cmpfs" style="grid-template-columns:repeat(${c.fotos.length},minmax(0,1fr))">${c.fotos.map(([src,v])=>`<figure class="cmpfo" onclick="compVer('${src}')"><img src="${src}" alt="${E(c.id+" · "+v)}" loading="lazy"><figcaption><b>${E(c.id)}</b> · ${E(v)}</figcaption></figure>`).join("")}</div>
  <table class="cmpe">${c.esp.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table>
- <div class="cmpst">${E(c.pint||"Conexionado (conector M12)")}</div><table class="cmpp"><tr><th>Pin</th><th>Color</th><th>Señal</th><th>Función</th></tr>${c.pin.map(r=>`<tr>${r.map(x=>`<td>${E(x)}</td>`).join("")}</tr>`).join("")}</table>
+ ${c.pin&&c.pin.length?`<div class="cmpst">${E(c.pint||"Conexionado (conector M12)")}</div><table class="cmpp"><tr><th>Pin</th><th>Color</th><th>Señal</th><th>Función</th></tr>${c.pin.map(r=>`<tr>${r.map(x=>`<td>${E(x)}</td>`).join("")}</tr>`).join("")}</table>`:""}
  <div class="cmpst">Medir en campo</div><ol class="cmpo">${c.med.map(x=>`<li>${E(x)}</li>`).join("")}</ol>${c.av?`<div class="gav">⚠️ ${E(c.av)}</div>`:""}</div>`;
 window.compCampoHTML=function(t){const L=casa(t);if(!L.length)return"";return L.map(ficha).join("")};
 /* foto a pantalla completa (✕ para volver) */
