@@ -28,9 +28,9 @@ function collage(cs){const W=1600,h=Math.max(...cs.map(c=>c.height*(W/cs.length)
 /* ---------- catálogo ---------- */
 window.compCatalogo=function(q){q=q||"";const t=nrm(q);const L=C().filter(c=>!t||nrm([c.id,c.t,c.fab,c.claves].join(" ")).includes(t));
  $("#sheetc").innerHTML=`<div class="icpfix"><div class="icph"><h3 style="margin:0">🔩 Componentes de campo</h3><button class="sec" onclick="closeSheet()" style="width:auto;margin:0">✕</button></div>
- ${(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin)?`<button class="pri" style="margin:8px 0 2px" onclick="compIncorpora()">➕ Incorporar componente (foto)</button>`:""}</div>
- <div class="icpb"><input id="icp_q" type="search" placeholder="Buscar código, nombre o modelo" value="${E(q)}" onkeyup="if(event.key=='Enter')compCatalogo(this.value)"><button class="sec" onclick="compCatalogo(document.getElementById('icp_q').value)" style="width:auto;margin:0">🔍</button></div>
- <div class="mu" style="font-size:12px;margin-bottom:6px">${L.length} ficha${L.length==1?"":"s"}</div>
+ ${(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin)?`<button class="pri" style="margin:8px 0 2px" onclick="compIncorpora()">➕ Incorporar componente (foto)</button>`:""}
+ <div class="icpb"><input id="icp_q" type="search" placeholder="Buscar código, nombre o modelo" value="${E(q)}" onkeyup="if(event.key=='Enter')compCatalogo(this.value)"><button class="sec" onclick="compCatalogo(document.getElementById('icp_q').value)" style="width:auto;margin:0">🔍</button></div></div>
+ <div class="mu" style="font-size:12px;margin:6px 0">${L.length} ficha${L.length==1?"":"s"}</div>
  ${L.map((c,i)=>`<details class="icpi"><summary><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</summary>${typeof compFicha=="function"?compFicha(c):""}</details>`).join("")}`;
  $("#sheet").style.display="flex"};
 /* ---------- incorporar ---------- */
@@ -86,7 +86,7 @@ window.compGuarda=async function(){const g=id=>(document.getElementById(id)||{})
  try{const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");compCatalogo(row.codigo)}
  catch(e){msg("No se pudo guardar: "+String((e&&e.message)||e))}};
 /* ---------- accesos ---------- */
-/* v495: cabecera del catálogo (título + «Incorporar componente») fija arriba; la búsqueda debajo del botón */
+/* v495: cabecera del catálogo (título + «Incorporar componente») fija arriba; la búsqueda (con la lupa) debajo del botón, también fija (v496) */
 /* v474: el catálogo se abre solo desde la caja «Componente de campo» de la guía */
 const st=document.createElement("style");st.textContent=`
 .icpfix{position:sticky;top:-14px;z-index:5;margin:-14px -14px 0;padding:14px 14px 6px;background:var(--card);border-bottom:1px solid var(--bd,#3a4450)}
