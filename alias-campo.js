@@ -7,7 +7,8 @@
 "use strict";
 const AL=[[/\b(bumpers?|parachoques?)\s+(?:del?\s+)?(?:la\s+|las\s+|los\s+)?(tra(?:n)?sla(?:ci|c)\S*|ruedas?|bogie|carro(?:\s+de\s+ruedas)?|tren\s+de\s+ruedas)/gi,"borde de seguridad de ruedas ($2)"],
  [/\b(tra(?:n)?sla(?:ci|c)\S*|ruedas?|bogie)\s+(?:con\s+)?(bumpers?|parachoques?)/gi,"borde de seguridad de ruedas ($1)"]];
-const fix=t=>{let s=String(t==null?"":t);AL.forEach(([re,r])=>{s=s.replace(re,r)});return s};
+/* v480: + alias aprendidos (tabla alias_avisos, los asigna el admin en «Avisos sin reconocer»: avisos-aprende.js) */
+const fix=t=>{let s=String(t==null?"":t);AL.forEach(([re,r])=>{s=s.replace(re,r)});(window.__alAp||[]).forEach(a=>{try{a.re.lastIndex=0;s=s.replace(a.re,a.sus)}catch(e){}});return s};
 window.aliasCampo=fix;
 const fixOT=o=>{if(!o||typeof o!="object")return o;const c=Object.assign({},o);["desc","def","com","obs"].forEach(k=>{if(c[k])c[k]=fix(c[k])});return c};
 const envuelve=(n,modo)=>{const f=window[n];if(typeof f!="function"||f.__al)return;const g=function(){const a=[...arguments];if(modo=="ot")a[0]=fixOT(a[0]);else a[0]=fix(a[0]);return f.apply(this,a)};g.__al=1;
@@ -29,8 +30,8 @@ const envCtx=()=>{const X=window.iaCtx;if(!X||X.__al)return;const w=(k,ix)=>{con
 envCtx();addEventListener("load",envCtx);setTimeout(envCtx,1500);setTimeout(envCtx,5000);
 const of=window.fetch;window.fetch=function(u,o){try{if(o&&typeof o.body=="string"&&/\/functions\/v1\/(consulta-sos|leer-ia)/.test(String(u&&u.url||u))){
   envCtx();const b=JSON.parse(o.body);let tocado=false;
-  ["pregunta","prompt"].forEach(k=>{if(typeof b[k]=="string"&&esTras(b[k])){b[k]=fix(b[k])+"\n\n"+NOTA;tocado=true}});
-  if(Array.isArray(b.mensajes||b.messages)){(b.mensajes||b.messages).forEach(m=>{if(m&&typeof m.content=="string"&&esTras(m.content)){m.content=fix(m.content)+"\n\n"+NOTA;tocado=true}})}
-  if(tocado){if(typeof b.contexto=="string")b.contexto=NOTA+"\n\n"+b.contexto;o=Object.assign({},o,{body:JSON.stringify(b)})}}}catch(e){}
+  let nota=false;["pregunta","prompt"].forEach(k=>{if(typeof b[k]=="string"){const f=fix(b[k]);if(f!==b[k]){if(esTras(b[k]))nota=true;b[k]=f+(esTras(b[k])?"\n\n"+NOTA:"");tocado=true}}});
+  if(Array.isArray(b.mensajes||b.messages)){(b.mensajes||b.messages).forEach(m=>{if(m&&typeof m.content=="string"&&esTras(m.content)){m.content=fix(m.content)+"\n\n"+NOTA;nota=true;tocado=true}})}
+  if(tocado){if(nota&&typeof b.contexto=="string")b.contexto=NOTA+"\n\n"+b.contexto;o=Object.assign({},o,{body:JSON.stringify(b)})}}}catch(e){}
  return of.call(this,u,o)};
 })();

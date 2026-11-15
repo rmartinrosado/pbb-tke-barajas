@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // v469 (15/11/2026): lector IA GENÉRICO de fotos para la PWA (LED del PLC, placas de componentes…).
-// Recibe {img, tipo, prompt}. Claude (ANTHROPIC_API_KEY) preferente; Gemini (GEMINI_API_KEY) de reserva. Devuelve {txt, lector}.
+// Recibe {img, tipo, prompt}. v480: img opcional (solo texto, p. ej. el cierre dictado). Claude (ANTHROPIC_API_KEY) preferente; Gemini (GEMINI_API_KEY) de reserva. Devuelve {txt, lector}.
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Max-Age": "86400", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-api-version, x-region, prefer" };
 const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 
@@ -17,7 +17,7 @@ async function conClaude(key: string, img: string, tipo: string, prompt: string)
   const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 45_000);
   const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: ac.signal, headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: Deno.env.get("ANTHROPIC_MODEL") || "claude-sonnet-5-5", max_tokens: 4000, messages: [{ role: "user", content: [
-      { type: "image", source: { type: "base64", media_type: tipo || "image/jpeg", data: img } }, { type: "text", text: prompt }] }] }) });
+      ...(img ? [{ type: "image", source: { type: "base64", media_type: tipo || "image/jpeg", data: img } }] : []), { type: "text", text: prompt }] }] }) });
   clearTimeout(tm); const d = await r.json(); if (!r.ok) throw new Error(d?.error?.message || r.statusText);
   return (d.content || []).map((c: { text?: string }) => c.text || "").join("");
 }
@@ -29,7 +29,7 @@ async function conGemini(key: string, img: string, tipo: string, prompt: string)
     try {
       const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 40_000);
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: "POST", signal: ac.signal, headers: { "x-goog-api-key": key, "content-type": "application/json" },
-        body: JSON.stringify({ contents: [{ role: "user", parts: [{ inline_data: { mime_type: tipo || "image/jpeg", data: img } }, { text: prompt }] }], generationConfig: { temperature: 0, responseMimeType: "application/json", maxOutputTokens: 6000 } }) });
+        body: JSON.stringify({ contents: [{ role: "user", parts: [...(img ? [{ inline_data: { mime_type: tipo || "image/jpeg", data: img } }] : []), { text: prompt }] }], generationConfig: { temperature: 0, responseMimeType: "application/json", maxOutputTokens: 6000 } }) });
       clearTimeout(tm); const d = await r.json().catch(() => ({}));
       const t = (d.candidates?.[0]?.content?.parts || []).filter((p: { thought?: boolean }) => !p.thought).map((p: { text?: string }) => p.text || "").join("");
       if (r.ok && t) return { t, m };
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
   const ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
   if (!ka && !kg) return json({ error: "sin_clave" }, 503);
   try {
-    const { img, tipo, prompt } = await req.json(); if (!img || !prompt) return json({ error: "faltan_datos" }, 400);
+    const { img, tipo, prompt } = await req.json(); if (!prompt) return json({ error: "faltan_datos" }, 400);
     let t = "", lector = "", errC = "";
     if (ka) { try { t = await conClaude(ka, img, tipo, String(prompt).slice(0, 30000)); lector = "Claude"; } catch (e) { errC = String((e as Error).message || e); console.log("leer-ia: Claude falló", errC); } }
     if (!t) { if (!kg) return json({ error: "api", mensaje: errC || "sin clave de Gemini" }, 502);

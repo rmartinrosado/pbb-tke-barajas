@@ -26,6 +26,8 @@ window.otInformeDe=async function(o){if(!o)return;
  tit("AVISO / DESCRIPCIÓN");txt(o.desc||"-");y+=2;
  if(o.act||o.actuacion){tit("ACTUACIÓN REALIZADA");txt(o.act||o.actuacion);y+=2}
  if(o.obs){tit("OBSERVACIONES");txt(o.obs);y+=2}
+ if(o.verif){const V=[["led","LED del PLC en reposo"],["alarma","Alarma borrada (Magelis)"],["maniobra","Maniobra completa en Remoto"],["puentes","Puentes retirados"]].filter(([k])=>k in o.verif);
+  if(V.length){tit("COMPROBACIONES ANTES DEL CIERRE");V.forEach(([k,t])=>txt(`${o.verif[k]?"[SÍ]":"[NO]"} ${t}`,9));y+=2}}
  if(o.medidas&&o.medidas.length){tit("MEDIDAS TOMADAS EN CAMPO");o.medidas.forEach(m=>{txt(`${m.ok?"[OK]":"[FUERA]"} ${m.v} (esperado ${m.esp}) · ${m.paso}`,9)});y+=2}
  if(o.resClaude&&o.resClaude.txt){tit("ANÁLISIS TÉCNICO (Claude)");txt(String(o.resClaude.txt).slice(0,6000),8.5);y+=2}
  if(o.plc){try{nl(95);tit("FOTO DEL PLC");const im=new Image();im.src=o.plc;await im.decode();const w=W-2*M,h=Math.min(120,w*im.height/im.width);nl(h+4);d.addImage(o.plc,"JPEG",M,y,w*(h/(w*im.height/im.width)),h);y+=h+4}catch(e){}}
@@ -90,7 +92,7 @@ const pon=()=>{try{
  /* v474: «📄 Informe de la OT» solo en el Cierre CGA, entre Observaciones y «Cerrar OT» */
  const sc=document.getElementById("sheetc");if(sc&&!sc.querySelector(".infcie")){const bc=sc.querySelector('button[onclick^="cerrar("],button[onclick^="acGuarda("]');
   if(bc){const id=((bc.getAttribute("onclick")||"").match(/\(\s*'([^']+)'/)||[])[1];if(id){const b=document.createElement("button");b.type="button";b.className="sec infcie";b.textContent="📄 Informe de la OT (PDF)";
-   b.onclick=e=>{e.stopPropagation();const g=x=>(document.getElementById(x)||{}).value;const o=inc.find(z=>z.id==id);if(o){const t={...o};if(g("r_a")!=null)t.act=g("r_a");if(g("r_o")!=null)t.obs=g("r_o");if(g("r_i"))t.hIni=g("r_i");if(g("r_l"))t.hLle=g("r_l");if(g("r_c"))t.hCie=g("r_c");otInformeDe(t)}};bc.before(b)}}}
+   b.onclick=e=>{e.stopPropagation();const g=x=>(document.getElementById(x)||{}).value;const o=inc.find(z=>z.id==id);if(o){const t={...o};if(g("r_a")!=null)t.act=g("r_a");if(g("r_o")!=null)t.obs=g("r_o");if(g("r_i"))t.hIni=g("r_i");if(g("r_l"))t.hLle=g("r_l");if(g("r_c"))t.hCie=g("r_c");try{const vc=document.querySelector("#sheetc .vchk");if(vc){const v={};vc.querySelectorAll("input").forEach(x=>v[x.dataset.k]=x.checked);t.verif=v}}catch(e){}otInformeDe(t)}};bc.before(b)}}}
  const h2=document.querySelector("#sr_res .ub2");if(h2&&!h2.querySelector(".mlbt")){const b=document.createElement("button");b.type="button";b.className="mlbt";b.textContent="🔊 Manos libres";b.onclick=e=>{e.stopPropagation();manosLibres()};h2.appendChild(b)}
 }catch(e){}};
 let tm=null;new MutationObserver(()=>{if(!tm)tm=setTimeout(()=>{tm=null;pon()},250)}).observe(document.documentElement,{childList:true,subtree:true});
