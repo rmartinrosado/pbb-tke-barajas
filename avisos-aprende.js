@@ -88,4 +88,6 @@ const pon=()=>{try{if(view!="dash"||!admin)return;const a=document.getElementByI
  if(!t){t=document.createElement("div");t.id="adtools";t.className="adtools";const p=document.getElementById("pctl");p?p.after(t):a.prepend(t)}
  if(t.innerHTML!==h)t.innerHTML=h}catch(e){}};
 let tm=null;new MutationObserver(()=>{if(!tm)tm=setTimeout(()=>{tm=null;pon()},300)}).observe(document.documentElement,{childList:true,subtree:true});
+/* v499: también en el mismo instante del repintado de Inicio (antes aparecía 0,3 s después y las fichas de OT bajaban de golpe) */
+try{const ro=render;render=function(){const r=ro.apply(this,arguments);pon();return r}}catch(e){}
 })();
