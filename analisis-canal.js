@@ -32,10 +32,19 @@ window.anaElemSig=elemSig;
   r.rel=rel.slice(0,10);r.mods=[...new Set(r.rel.map(x=>x.mod))];
   const el=[];nom.forEach(c=>CH[c].forEach(t=>{if(!el.includes(t))el.push(t)}));r.elem=el;r.anaCan=nom}catch(e){console.warn("analisis-canal",e)}
  return r}})();
+/* v512: filtro de recorridos por la señal elegida (activo solo mientras se pinta el panel) */
+let SIGSEL=null;
+(function(){if(typeof elRutas!="function")return;const o=elRutas;elRutas=function(tag){const a=o(tag);if(!SIGSEL||!SIGSEL.b)return a;
+ const M=/^([EP]-A\d+)\b.*?\(borna ([\d.]+)\)/;const f=a.filter(r=>{const m=M.exec(r.txt||"");return !m||(m[1]==SIGSEL.mod&&m[2]==SIGSEL.b)});return f.length?f:a}})();
 /* 2. panel: elementos de la señal elegida */
 (function(){const o=anaHTML;anaHTML=function(i,R,dentro){
  if(R&&Array.isArray(R.rel)&&R.rel.length&&typeof gIMod!="undefined"){let sel=dentro?R.rel.find(x=>x.mod==gIMod&&x.S&&x.S.id==gISig):null;const porDef=!sel;if(!sel)sel=R.rel[0];/* v418: por defecto, la señal más relacionada con la avería */
-  if(sel){const el=elemSig(sel);if(el.length){const R2=Object.assign({},R,{elem:el});let h=o(i,R2,dentro);
+  if(sel){let el=elemSig(sel);if(el.length){
+   /* v512: solo los recorridos de la señal elegida (un bornero común como E-X62 lleva también altura y rotonda) y
+      solo el elemento de campo nombrado: los borneros y mangueras que ya están dentro de su recorrido no salen aparte */
+   SIGSEL={mod:sel.mod,b:String(sel.S.led||sel.S.b||"")};
+   try{const en=t=>elRutas(t).map(r=>r.txt).join(" ");const X=t=>/-[XW]\d/.test(t);const k=el.filter(t=>!X(t)||!el.some(u=>!X(u)&&new RegExp("(^|[^A-Z0-9-])\\+?"+t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(?![0-9.])").test(en(u))));if(k.length)el=k}catch(e){}
+   const R2=Object.assign({},R,{elem:el});let h;try{h=o(i,R2,dentro)}finally{SIGSEL=null}
    const nm=`${sel.mod} ${sel.S.led?"IN "+sel.S.led:""} · ${sel.S.t}`;
    h=h.replace(/(<div class="anal">)(③ )?Elementos de campo a revisar(<\/div>)(<div class="anah">)[^<]*(<\/div>)/,(m,a,n,c,d,e)=>`${a}${n||""}Elementos de campo de la señal elegida${c}${d}Señal elegida: <b>${esc(nm)}</b>. Al cambiar de señal cambian los elementos y sus recorridos.${e}`);
    if(porDef){const v=sel.mod+"¦"+sel.S.id;h=h.replace(`<option value="${esc(v)}">`,`<option value="${esc(v)}" selected>`);
