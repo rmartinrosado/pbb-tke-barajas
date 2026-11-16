@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=513;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=514;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -2305,7 +2305,11 @@ function guiHechos(i){const out=[];let sec="";
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v72"}})();
 /* ===== v73: OT HZ → aviso de ACTUACIÓN INICIAL «COMPROBAR INSERCIÓN 90%» antes de la guía de campo ===== */
 const esHZ=i=>!!i&&[i.tipo,...(i.equipos||[])].includes("HZ");
-(function(){const o=insOT;insOT=function(id){const i=inc.find(x=>x.id==id);if(!esHZ(i)||esVideo(i)){o(id);return}
+/* v514: si la OT HZ habla del bloqueo o la traslación de la PBB (p. ej. «No bloquea la pasarela», manguera extendida que bloquea),
+   no es de conexión / desconexión del convertidor: sin el aviso del 90 %, directo a la guía */
+const hzTrasl=i=>{const t=String([i.desc,i.def,i.obs,i.com].filter(Boolean).join(" ")).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+ return /bloque|traslad|traslac|no se mueve|se mueve|movimiento|\bgira\b|giro de (la )?(pbb|pasarela)|pasarela|\bpbb\b|\bpas\b/.test(t)&&!/90 ?%|noventa|no (da|hay) (potencia|tension|salida)|ext ?pwr/.test(t)};
+(function(){const o=insOT;insOT=function(id){const i=inc.find(x=>x.id==id);if(!esHZ(i)||esVideo(i)||hzTrasl(i)){o(id);return}
  $("#sheetc").innerHTML=`<div style="text-align:center"><div style="font-size:40px;line-height:1">⚠️</div>
  <div class="mu" style="margin-top:6px;font-weight:700;letter-spacing:.8px">ACTUACIÓN INICIAL</div>
  <h2 style="margin:8px 0 6px;color:var(--ac);font-size:24px">COMPROBAR INSERCIÓN 90%</h2>
@@ -4583,7 +4587,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||513;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||514;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
