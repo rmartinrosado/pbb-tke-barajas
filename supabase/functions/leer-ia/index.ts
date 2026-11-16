@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // v469 (15/11/2026): lector IA GENÉRICO de fotos para la PWA (LED del PLC, placas de componentes…).
+// v521: {motor:"gemini"} → solo Gemini (gratis) · {motor:"claude"} → solo Claude (con coste, aceptado en la PWA) · sin motor: como antes.
 // Recibe {img, tipo, prompt}. v480: img opcional (solo texto, p. ej. el cierre dictado). Claude (ANTHROPIC_API_KEY) preferente; Gemini (GEMINI_API_KEY) de reserva. Devuelve {txt, lector}.
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Max-Age": "86400", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-api-version, x-region, prefer" };
 const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
@@ -44,8 +45,12 @@ Deno.serve(async (req) => {
   const ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
   if (!ka && !kg) return json({ error: "sin_clave" }, 503);
   try {
-    const { img, tipo, prompt } = await req.json(); if (!prompt) return json({ error: "faltan_datos" }, 400);
+    const { img, tipo, prompt, motor } = await req.json(); if (!prompt) return json({ error: "faltan_datos" }, 400);
     let t = "", lector = "", errC = "";
+    if (motor === "gemini") { if (!kg) return json({ error: "api", mensaje: "sin clave de Gemini" }, 502);
+      try { const g = await conGemini(kg, img, tipo, String(prompt).slice(0, 30000)); return json({ txt: g.t, lector: "Gemini " + g.m }); } catch (e) { return json({ error: "api", mensaje: String((e as Error).message || e) }, 502); } }
+    if (motor === "claude") { if (!ka) return json({ error: "api", mensaje: "sin clave de Claude" }, 502);
+      try { t = await conClaude(ka, img, tipo, String(prompt).slice(0, 30000)); return json({ txt: t, lector: "Claude" }); } catch (e) { return json({ error: "api", mensaje: "Claude: " + String((e as Error).message || e) }, 502); } }
     if (ka) { try { t = await conClaude(ka, img, tipo, String(prompt).slice(0, 30000)); lector = "Claude"; } catch (e) { errC = String((e as Error).message || e); console.log("leer-ia: Claude falló", errC); } }
     if (!t) { if (!kg) return json({ error: "api", mensaje: errC || "sin clave de Gemini" }, 502);
       try { const g = await conGemini(kg, img, tipo, String(prompt).slice(0, 30000)); t = g.t; lector = "Gemini " + g.m; } catch (e) { return json({ error: "api", mensaje: String((e as Error).message || e) }, 502); } }

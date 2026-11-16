@@ -1,4 +1,4 @@
-/* ===== v517 (v520: caja tras «Planos a cotejar» · respuesta IA cortada leída igual y pedida más corta · v519: barra de progreso en la lectura de planos y en la consulta IA · v518: caja antes de Seguridad · botón RECALCULAR IA siempre visible, también tras error): COTEJO ENTRE VARIOS PLANOS en la guía de campo de la OT (16/11/2026) =====
+/* ===== v517 (v521: no arranca solo · primero Gemini gratis y Claude solo aceptando el coste · v520: caja tras «Planos a cotejar» · respuesta IA cortada leída igual y pedida más corta · v519: barra de progreso en la lectura de planos y en la consulta IA · v518: caja antes de Seguridad · botón RECALCULAR IA siempre visible, también tras error): COTEJO ENTRE VARIOS PLANOS en la guía de campo de la OT (16/11/2026) =====
    · Debajo de «Plano de esta guía» → «📐 Planos a cotejar»: casillas con todos los planos cargados. Se guarda por OT.
      Por defecto: el plano de la guía + los de los otros sistemas que cita la OT (PBB / RCS o plano propio, AAA, HZ, AAP, CBTH).
    · El plano principal (el del desplegable) se elige ahora POR OT y vale también en 504 / 507 / 508 (antes se ignoraba ahí):
@@ -63,21 +63,25 @@ function datosOT(i){let R=null;try{R=anaOT(i)}catch(e){}
 
 /* ---------- estado ---------- */
 let ST={k:"",docs:[],res:null,prog:"",ia:null,iaEst:"",iaK:""};let tIA=null;
-async function calcula(forzar){const i=otAct();if(!i||typeof view=="undefined"||view!="tec")return;
+/* v521: el cotejo NO arranca solo. Al pintar solo se prepara (planos elegidos, códigos, resultado guardado).
+   La lectura de los planos y la consulta empiezan con «RECALCULAR IA»: primero Gemini (gratis); si no da resultado,
+   el botón pasa a Claude, que tiene coste y hay que aceptarlo antes. */
+async function calcula(){const i=otAct();if(!i||typeof view=="undefined"||view!="tec")return;
  const l=await gLista();let sel=selDe(i.id);if(!sel){sel=sugeridos(i,l);guardaSel(i.id,sel)}
  const docs=sel.map(id=>l.find(x=>x.id==id)).filter(Boolean);const D=datosOT(i);
  const k=hash(i.id+"|"+docs.map(d=>d.id).join(",")+"|"+[i.desc,i.def,i.obs,i.com].join("|")+"|"+D.cod.join(","));
- if(!forzar&&ST.k==k&&(ST.res||ST.prog))return;
- ST={k,docs,res:null,prog:docs.length?"Leyendo planos…":"",ia:null,iaEst:"",iaK:"pc_ia_"+i.id+"_"+k,D};pintaCaja();
- if(!docs.length)return;
- const res={pl:[],cod:{}};
- for(let n=0;n<docs.length;n++){const d=docs[n];ST.prog=`Leyendo ${n+1}/${docs.length} · ${corto(d.name)}…`;pintaCaja();
-  try{const P=await texto(d,(np,tot)=>{ST.pct=Math.round(((n+np/tot)/docs.length)*100);ST.prog=`Leyendo ${n+1}/${docs.length} · ${corto(d.name)} · pág. ${np}/${tot}`;barra()});res.pl.push({d,P})}catch(e){res.pl.push({d,P:null,err:String(e&&e.message||e)})}
-  if(ST.k!==k)return}
- D.cod.forEach(c=>{res.cod[c]=res.pl.map(p=>p.P?p.P.filter(g=>g.tags.has(c)).map(g=>g.np):null)});
- ST.res=res;ST.prog="";
+ if(ST.k==k)return;
+ ST={k,docs,res:null,prog:"",ia:null,iaEst:"",iaK:"pc_ia_"+i.id+"_"+k,D,sigC:false};
  const g=ls.g(ST.iaK);if(g){try{ST.ia=JSON.parse(g)}catch(e){}}
- pintaCaja();if(!ST.ia){clearTimeout(tIA);tIA=setTimeout(()=>{if(ST.k==k)ia()},1200)}}
+ if(docs.length&&docs.every(d=>TXT[d.id]))cruza();/* ya leídos en esta sesión: el índice de códigos sale sin coste */
+ pintaCaja()}
+function cruza(){const res={pl:ST.docs.map(d=>({d,P:TXT[d.id]||null})),cod:{}};
+ ST.D.cod.forEach(c=>{res.cod[c]=res.pl.map(p=>p.P?p.P.filter(g=>g.tags.has(c)).map(g=>g.np):null)});ST.res=res}
+async function leer(){const k=ST.k,docs=ST.docs;
+ for(let n=0;n<docs.length;n++){const d=docs[n];ST.prog=`Leyendo ${n+1}/${docs.length} · ${corto(d.name)}…`;ST.pct=Math.round(n/docs.length*100);pintaCaja();
+  try{await texto(d,(np,tot)=>{ST.pct=Math.round(((n+np/tot)/docs.length)*100);ST.prog=`Leyendo ${n+1}/${docs.length} · ${corto(d.name)} · pág. ${np}/${tot}`;barra()})}catch(e){}
+  if(ST.k!==k)return false}
+ ST.prog="";cruza();return true}
 
 /* ---------- v520: lectura del JSON de la IA aunque llegue cortado ----------
    Causa del fallo «JSON Parse error: Expected ']'»: la respuesta superó el máximo de texto de la función (4000 tokens)
@@ -99,8 +103,8 @@ function paginas(p,D,cupo){if(!p.P)return "";
  const sc=p.P.map(g=>({g,s:D.cod.filter(c=>g.tags.has(c)).length*3+D.pal.filter(w=>g.n.includes(w)).length})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
  let out="";for(const {g} of sc){const t=`\n### ${corto(p.d.name)} · página ${g.np}${g.fo?" (folio "+g.fo+")":""}\n`+g.tx.slice(0,2000);if(out.length+t.length>cupo)break;out+=t}
  return out||`\n### ${corto(p.d.name)}: sin páginas con los códigos o palabras del aviso.`}
-async function ia(){const i=otAct();if(!i||!ST.res)return;const D=ST.D,R=ST.res,k=ST.k;
- if(ST.iaRun)return;ST.iaRun=true;ST.iaT0=Date.now();ST.iaEst="🤖 Cruzando los planos con Claude…";pintaCaja();
+async function ia(motor){const i=otAct();if(!i||!ST.res)return;const D=ST.D,R=ST.res,k=ST.k;
+ if(ST.iaRun)return;ST.iaRun=true;ST.motor=motor;ST.iaT0=Date.now();ST.iaEst="";pintaCaja();
  const cupo=Math.floor(14000/Math.max(1,R.pl.length));const al=window.aliasCampo||(x=>x);
  const prompt=`Eres técnico experto en mantenimiento de pasarelas de embarque (PBB) TKE del aeropuerto Madrid-Barajas (puesto remoto RCS, PLC con módulos E-A… en el armario eléctrico y P-A… en el armario del pupitre, equipos AAA aire acondicionado, HZ convertidor 400 Hz, armario CBTH de interfaz con los equipos).
 Tienes que COTEJAR VARIOS PLANOS entre sí para una OT y dar con la actuación más eficaz en campo y los puntos a medir.
@@ -122,12 +126,12 @@ Responde SOLO con JSON, sin nada más:
 {"resumen":"causa más probable en 1-2 frases","eficaz":["paso 1","paso 2"],"medir":[{"punto":"","roja":"","negra":"","esperado":"","si_no":""}],"discrepancias":["…"],"planos":[{"plano":"","folios":"","aporta":""}]}`;
  try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("inicia sesión para usar la IA");
   const ac=new AbortController(),to=setTimeout(()=>ac.abort(),70000);
-  const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({prompt})});clearTimeout(to);
+  const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({prompt,motor})});clearTimeout(to);
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
   const o=leeJSON(j.txt);if(!o.resumen&&!(o.eficaz||[]).length&&!(o.medir||[]).length)throw new Error("respuesta incompleta");o.lector=j.lector||"IA";o.t=Date.now();
   {const b=$q("#gpcot .pcbar>i");if(b){b.style.width="100%";await new Promise(r=>setTimeout(r,350))}}
-  ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ls.s(ST.iaK,JSON.stringify(o))}
- catch(e){ST.iaRun=false;if(ST.k!==k)return;ST.iaEst="No se ha podido cruzar con la IA: "+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+". Pulsa «RECALCULAR IA» para volver a lanzarla; el cotejo de códigos sí vale."}
+  ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ST.sigC=false;ls.s(ST.iaK,JSON.stringify(o))}
+ catch(e){ST.iaRun=false;if(ST.k!==k)return;if(motor=="gemini")ST.sigC=true;ST.iaEst=(motor=="gemini"?"Gemini (gratis) no ha dado resultado: ":"Claude no ha dado resultado: ")+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+(motor=="gemini"?". Puedes lanzarlo con Claude (tiene coste) con el botón de abajo, o reintentar con Gemini.":". Puedes volver a lanzarlo.")}
  pintaCaja()}
 
 /* ---------- pintado ---------- */
@@ -138,7 +142,11 @@ function selHTML(i,l){const sel=selDe(i.id)||[];
 window.pcMarca=function(cb){const i=otAct();if(!i)return;let s=selDe(i.id)||[];s=s.filter(x=>x!==cb.value);if(cb.checked)s.push(cb.value);guardaSel(i.id,s);
  const sm=cb.closest(".pcsel").querySelector("summary b");if(sm)sm.textContent=s.length;try{ANA_C={k:"",r:null}}catch(e){}calcula()};
 window.pcAbre=async function(id,np){try{gPagIni=np;await ver(id)}catch(e){}};
-window.pcRehace=function(){if(ST.iaRun)return;try{localStorage.removeItem(ST.iaK)}catch(e){}ST.ia=null;ST.iaEst="";if(ST.res)ia();else calcula(true)};
+window.pcRehace=async function(motor){if(ST.iaRun||ST.prog||!ST.docs.length)return;motor=motor||"gemini";
+ if(motor=="claude"&&!confirm("⚠️ CONSUMO DE CLAUDE\n\nEsta consulta se hace con Claude (API de Anthropic) y tiene coste por uso.\n\n¿Aceptas lanzar el cotejo con Claude?"))return;
+ ST.iaEst="";
+ if(!ST.res){const ok=await leer();if(!ok)return}
+ ia(motor)};
 window.pcCopia=function(){const i=otAct(),o=ST.ia;if(!i||!o){msg("Todavía no hay resultado del cotejo");return}
  const t=`[Cotejo entre planos · ${ST.docs.map(d=>corto(d.name)).join(" + ")}]\n`+(o.resumen?"Causa probable: "+o.resumen+"\n":"")+
   (o.eficaz||[]).map((p,n)=>`${n+1}. ${p}`).join("\n")+((o.medir||[]).length?"\nMEDIR:\n"+(o.medir||[]).map(m=>`· ${m.punto}: roja en ${m.roja}, negra en ${m.negra} → debe marcar ${m.esperado}${m.si_no?". Si no → "+m.si_no:""}`).join("\n"):"");
@@ -162,11 +170,15 @@ function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre 
   ((o.planos||[]).length?`<details class="pccod"><summary>📄 Qué aporta cada plano</summary><ul class="pcul">${o.planos.map(p=>`<li><b>${esc(p.plano)}</b>${p.folios?" · "+esc(p.folios):""}: ${esc(p.aporta)}</li>`).join("")}</ul></details>`:"")+
   `<div class="mu" style="font-size:11px;margin-top:6px">${o.cortado?"Respuesta de la IA recortada por longitud (se muestra lo recibido) · ":""}Cotejo con ${esc(o.lector||"IA")} · ${new Date(o.t||Date.now()).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}. Comprueba en campo cada dato con el plano antes de actuar.</div>
   <button class="sec" style="width:100%;margin-top:8px" onclick="pcCopia()">Pasar a «Actuación guiada» de la OT</button>`}
- if(R&&!ST.iaRun)h+=`<button class="pri pcre" onclick="event.stopPropagation();pcRehace()">🔄 RECALCULAR IA</button>`;
+ if(!ST.iaRun&&!ST.prog){
+  if(!R&&!o&&!ST.iaEst)h+=`<div class="mu" style="font-size:12px;margin:6px 0">El cotejo no empieza hasta que pulses el botón: lee los planos y consulta primero a Gemini (gratis).</div>`;
+  if(ST.sigC)h+=`<button class="pri pcre pccl" onclick="event.stopPropagation();pcRehace('claude')">🔄 RECALCULAR IA con Claude <small>(tiene coste)</small></button><button class="sec pcre2" onclick="event.stopPropagation();pcRehace('gemini')">Reintentar con Gemini (gratis)</button>`;
+  else h+=`<button class="pri pcre" onclick="event.stopPropagation();pcRehace('gemini')">🔄 RECALCULAR IA <small>(Gemini · gratis)</small></button>`+(o?`<button class="sec pcre2" onclick="event.stopPropagation();pcRehace('claude')">Consultar con Claude (tiene coste)</button>`:"")}
  return h}
 /* v519: barra de progreso. Lectura: real (páginas leídas). IA: estimada por tiempo (no hay avance real), se acerca a 95 % y llega a 100 % al responder */
+const motorN=()=>ST.motor=="claude"?"Claude":"Gemini (gratis)";
 const pctIA=()=>{const t=(Date.now()-(ST.iaT0||Date.now()))/1000;return Math.min(95,Math.round(95*(1-Math.exp(-t/22))))};
-const txIA=()=>{const t=Math.round((Date.now()-(ST.iaT0||Date.now()))/1000);return `🤖 Cruzando ${ST.docs.length} plano${ST.docs.length==1?"":"s"} con Claude… ${pctIA()} % · ${t} s${t>50?" · Claude tarda: si falla se prueba Gemini":""}`};
+const txIA=()=>{const t=Math.round((Date.now()-(ST.iaT0||Date.now()))/1000);return `🤖 Cruzando ${ST.docs.length} plano${ST.docs.length==1?"":"s"} con ${motorN()}… ${pctIA()} % · ${t} s${t>50?" · tarda más de lo normal":""}`};
 function barra(){const b=$q("#gpcot .pcbar>i"),t=$q("#gpcot .pcbt");if(!b){pintaCaja();return}
  if(ST.iaRun){b.style.width=pctIA()+"%";if(t)t.textContent=txIA()}else if(ST.prog){b.style.width=(ST.pct||2)+"%";if(t)t.textContent="⏳ "+ST.prog}}
 setInterval(()=>{if(ST.iaRun&&$q("#gpcot"))barra()},500);
@@ -182,7 +194,7 @@ function pintaCaja(){if(typeof view=="undefined"||view!="tec")return;const i=otA
 async function pinta(forzar){try{if(typeof view=="undefined"||view!="tec")return;const i=otAct();const s=$q("#g_doc");if(!s)return;
  if(i&&!$q("#gpcsel")){const l=await gLista();if(!$q("#gpcsel")&&$q("#g_doc")){if(!selDe(i.id))guardaSel(i.id,sugeridos(i,l));
   const w=document.createElement("div");w.id="gpcsel";w.innerHTML=selHTML(i,l);$q("#g_doc").insertAdjacentElement("afterend",w)}}
- pintaCaja();calcula(forzar)}catch(e){}}
+ pintaCaja();calcula()}catch(e){}}
 if(typeof vTec=="function"){const o=vTec;window.vTec=vTec=function(){const r=o.apply(this,arguments);setTimeout(()=>pinta(),0);return r}}
 
 const st=document.createElement("style");st.textContent=`
@@ -201,6 +213,7 @@ html:not(.lt) .pcch{color:#64b5f6!important;border-color:#64b5f6!important}
 .pcno{color:#c62828;font-size:11px;font-weight:700}
 .pcm{margin:6px 0;padding:8px 10px;border-left:4px solid #f0a020;border-radius:6px;background:color-mix(in srgb,#f0a020 10%,transparent);font-size:13px;line-height:1.45}
 .pcbar{height:10px;border-radius:6px;background:color-mix(in srgb,#1565c0 15%,transparent);overflow:hidden;margin:10px 0 4px}.pcbar>i{display:block;height:100%;background:linear-gradient(90deg,#1565c0,#42a5f5);border-radius:6px;transition:width .5s linear}.pcbia>i{background:linear-gradient(90deg,#7b2ff7,#ff6a13)}.pcbt{margin-top:2px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.pcre small,.pcre2{font-weight:600}.pcre2{width:100%;margin-top:6px;font-size:13px}.pccl{background:#c62828!important;border-color:#c62828!important;color:#fff!important}
 .pcre{width:100%;margin-top:8px;font-weight:800;letter-spacing:.5px}.pcro{color:#e53935}.pcul{margin:4px 0;padding-left:18px;font-size:13px}.pcul li{margin:3px 0}.pcres{margin-top:8px}`;document.head.appendChild(st);
 setTimeout(()=>pinta(),800);
 })();
