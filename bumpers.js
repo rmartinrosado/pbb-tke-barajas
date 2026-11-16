@@ -120,8 +120,8 @@ const st=document.createElement("style");st.textContent=`
 .bk-gr{margin-top:6px}.bk-gt{font-weight:800;font-size:12.5px}.bk-gr ol{margin:3px 0 0;padding-left:18px;font-size:12.5px;line-height:1.35;display:flex;flex-direction:column;gap:3px}
 .bk-gr li::marker{color:#f0a020;font-weight:800}
 .bk-t{font:700 8.5px sans-serif;fill:var(--mu,#666);letter-spacing:.04em}.bk-zona{stroke:#94a3b8;stroke-width:1.2;stroke-dasharray:5 4;opacity:.85}.bk-g{font:800 10px sans-serif;fill:var(--tx,#111)}.bk-g2{font:800 9.5px sans-serif;fill:var(--tx,#111)}
-.bk-s{font:600 7.5px sans-serif;fill:var(--mu,#555)}.bk-b{font:800 8.5px sans-serif;fill:#fff}.bk-bt{font:800 8px sans-serif;fill:var(--tx,#111)}.bk-bb{font:800 11px sans-serif;fill:#111}
-.bk-plc{fill:#2e7d32;stroke:#1b5e20}.bk-reg{fill:color-mix(in srgb,#1565c0 15%,transparent);stroke:#1565c0}.bk-bn{fill:var(--card,#fff);stroke:#1565c0;stroke-width:1.5}
+.bk-s{font:600 7.5px sans-serif;fill:var(--mu,#555)}.bk-b{font:800 8.5px sans-serif;fill:#111}.bk-bt{font:800 8px sans-serif;fill:var(--tx,#111)}.bk-bb{font:800 11px sans-serif;fill:#111}
+.bk-plc{fill:#f2c200;stroke:#a68400}/* v528: E-A10 es módulo de entradas de SEGURIDAD (SDI, amarillo), no verde */.bk-reg{fill:color-mix(in srgb,#1565c0 15%,transparent);stroke:#1565c0}.bk-bn{fill:var(--card,#fff);stroke:#1565c0;stroke-width:1.5}
 .bk-w{fill:none;stroke:var(--tx,#222);stroke-width:1.3}.bk-bum{fill:#f0c040;stroke:#a07000}
 .bk-pte{fill:none;stroke:#e53935;stroke-width:3;stroke-dasharray:5 3;animation:bkp 1s linear infinite}.bk-pc{fill:#e53935}.bk-pt{font:900 9px sans-serif;fill:#e53935}
 @keyframes bkp{to{stroke-dashoffset:-16}}@media (prefers-reduced-motion:reduce){.bk-pte{animation:none}}`;document.head.appendChild(st);

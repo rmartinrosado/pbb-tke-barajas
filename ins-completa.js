@@ -50,31 +50,34 @@ function busca(C,mod,b){const p=mod+"|"+b+"|";const k=Object.keys(C).find(x=>x.i
 
 /* interbloqueos PBB ↔ equipos de servicio (por el CBTH) */
 const BLQ=[
- {g:"AAA",m:"E-A2",b:"4.4",re:{test:t=>/maquina|adx|climatiz/.test(t)||(/\bpca\b|a\/a|aire|\baaa\b/.test(t)&&!/carr(o|ito)|puerta|tapa/.test(t))},eq:"Máquina A/A (ADX · AAA)",
+ {g:"AAA",al:["265","274","282","109","060"],m:"E-A2",b:"4.4",re:{test:t=>/maquina|adx|climatiz/.test(t)||(/\bpca\b|a\/a|aire|\baaa\b/.test(t)&&!/carr(o|ito)|puerta|tapa/.test(t))},eq:"Máquina A/A (ADX · AAA)",
   o:"Contacto «bloqueo pasarela» de la máquina: clemas 136/137 (plano AAA pág. 7 y 16) → contacto libre de potencial en el CBTH (CBTH:BLOQUEO-A/A, CBTH-X61:10-11).",
   on:"Máquina A/A conectada / en marcha → 24 V y LED encendido (bloqueo). Parada y manguera recogida → 0 V, LED apagado."},
- {g:"AAA",m:"E-A2",b:"5.1",re:/carr(o|ito)|puerta|tapa|pc ?air|e-?s100/,eq:"Carro A/A (PCAir)",
+ {g:"AAA",al:["274","282"],m:"E-A2",b:"5.1",re:/carr(o|ito)|puerta|tapa|pc ?air|e-?s100/,eq:"Carro A/A (PCAir)",
   o:"Final de carrera de la puerta del carro E-S100 (contacto NC 11-12, manguera E-WCARRO 5×1,5) alimentado con la tensión de test UT2 de E-A8.",
   on:"Carro abierto o FC sin pisar → ≈ 24 V pulsada y LED encendido (bloqueo). Carro cerrado y FC pisado → 0 V, LED apagado."},
  {g:"AAA",m:"AUX",b:"CBTH-X61:18",re:/carr(o|ito)|puerta|tapa|pc ?air|e-?s100/,eq:"Carro A/A → sistema A/A (por el CBTH)",
   o:"Contacto 13-14 del mismo FC E-S100: devuelve al sistema A/A su 24 V común (CBTH-X61:17 → CBTH-X61:18).",
   on:"Carro cerrado y FC pisado → 24 V del sistema A/A en CBTH-X61:18. Carro abierto → 0 V.",ref0:"0 V del sistema A/A (ver plano del CBTH / AAA)"},
- {g:"HZ",m:"E-A2",b:"6.1",re:/convertidor|\b400\b|\bhz\b|en servicio|\bgpu\b/,eq:"Convertidor 400 Hz en servicio",
+ {g:"HZ",al:["266","267","107"],m:"E-A2",b:"6.1",re:/convertidor|\b400\b|\bhz\b|en servicio|\bgpu\b/,eq:"Convertidor 400 Hz en servicio",
   o:"Contacto «en servicio» del convertidor → contacto libre de potencial en el CBTH (CBTH:BLOQUEO-CONVERTIDOR, CBTH-X61:10-14).",
   on:"Convertidor en ON → 24 V y LED encendido (bloqueo). En OFF → 0 V, LED apagado."},
- {g:"HZ",m:"E-A2",b:"5.4",re:/90 ?%|conector|pds/,eq:"Conector PDS 400 al 90 %",
+ {g:"HZ",al:["263","283"],m:"E-A2",b:"5.4",re:/90 ?%|conector|pds/,eq:"Conector PDS 400 al 90 %",
   o:"Contacto del 90 % del conector (sistema 400 Hz) → contacto libre de potencial en el CBTH (CBTH:BLOQUEO-90%, CBTH-X61:10-15).",
   on:"Conector al 90 % (LED amarillo encendido) → 24 V y LED encendido (bloqueo). Conector recogido → 0 V."},
- {g:"HZ",m:"P-A5",b:"2.1",re:/manguera|recog|enroll|enrrol|extendid|cable (de )?400/,eq:"Manguera 400 Hz extendida (recogedor)",
+ {g:"HZ",al:["272","281"],m:"P-A5",b:"2.1",re:/manguera|recog|enroll|enrrol|extendid|cable (de )?400/,eq:"Manguera 400 Hz extendida (recogedor)",
   o:"Contacto «-400HZ» 13-14 de la leva del recogedor → P-X92:18 (hilo 3383) en el armario del pupitre.",
   on:"Manguera fuera del recogedor → 24 V y LED encendido (bloqueo, no traslada). Recogida → 0 V, LED apagado.",el:"Contacto «-400HZ» del recogedor"},
- {g:"AO",m:"E-A3",b:"1.1",re:/seta|emergencia|\bao\b|armario exterior/,eq:"Seta del armario AO",
+ {g:"POR",al:["242","108","049"],m:"E-A8",b:"1.1",re:/porton|cierre|trasla|atras|sacar|retir|desatrac/,eq:"Portón abajo · Sensor portón enrollable C-S9",
+  o:"Inductivo de cierre del portón C-S9 (cable P-W21, bornero P-X92.1:1-2-3). BAJAR PORTÓN (o anular este inductivo con puente P-X92.1:1 ↔ :2) permite la traslación hacia atrás con AAA y HZ conectados al avión.",
+  on:"Portón abajo → 24 V y LED 1 de E-A8 encendido (permite la traslación hacia atrás). Portón arriba → 0 V y advertencia 242 «Portón abierto»."},
+ {g:"AO",al:["014"],m:"E-A3",b:"1.1",re:/seta|emergencia|\bao\b|armario exterior/,eq:"Seta del armario AO",
   o:"Contacto de la seta del AO → contacto en el CBTH (CBTH:SETA-AO, CBTH-X61:10-16).",
   on:"Seta pulsada → 24 V y LED encendido (bloqueo). Seta rearmada → 0 V."},
  {g:"AO",m:"E-A3",b:"2.1",re:/bypass|desbloque|selector|\bao\b|no bloquea/,eq:"Desbloqueo de PAS en el AO (bypass)",
   o:"Selector de desbloqueo del AO → contacto en el CBTH (CBTH:DESBLOQUEO-AO, CBTH-X61:10-13). Activo = la PBB NO se bloquea.",
   on:"Selector del AO en desbloqueo → 24 V y LED encendido (la PBB no se bloquea). Selector en normal → 0 V."}];
-const GRP={AAA:"AAA · aire acondicionado (máquina y carro)",HZ:"HZ · convertidor 400 Hz",AO:"AO · armario exterior en el CBTH",EST:"Señales de la PBB al CBTH (estado)"};
+const GRP={POR:"Portón · para sacar la PBB con AAA y HZ conectados",AAA:"AAA · aire acondicionado (máquina y carro)",HZ:"HZ · convertidor 400 Hz",AO:"AO · armario exterior en el CBTH",EST:"Señales de la PBB al CBTH (estado)"};
 const EST=["2","3","4","5"].map(n=>({g:"EST",m:"AUX",b:"CBTH-X61:"+n,re:/$^/,eq:"",o:"",on:"Contacto 11-14 del relé cerrado → 24 V del CBTH en la borna. Abierto → 0 V."}));
 
 /* ---------- señales implicadas ---------- */
@@ -144,9 +147,13 @@ function senalHTML(d,ix,i){const e=d.e,{pasos,notas}=cadena(d);let ult="";
    <div class="icl icm"><span class="ick">Medir</span><span>${medir(p,d)}</span></div></div>`}).join("");
  return `<details class="ics${d.rel?" icrel":""}"${d.rel&&ix<3?" open":""}><summary><b>${d.rel?"🎯 ":""}${esc(tit)}</b><br><small class="mu">${esc(sub)}</small></summary>
   ${d.o?`<div class="icor"><b>Origen en el equipo:</b> ${esc(d.o)}</div>`:""}
+  ${alTxt(d)}
   ${filas}
   ${notas.length?`<div class="mu icn">${notas.map(esc).join("<br>")}</div>`:""}
   ${d.on&&e.m!="AUX"?`<div class="icor"><b>Lectura en el PLC:</b> ${esc(d.on)}</div>`:""}</details>`}
+function alTxt(d){if(!d.al||!d.al.length)return "";const C=window.RCS_AL||[];
+ const L=d.al.map(c=>{const x=C.find(y=>y.c==c);return x?`<b>${esc(c)}</b> ${esc(x.t)}`:""}).filter(Boolean);
+ return L.length?`<div class="icor"><b>Magelis / RCS:</b> ${L.join(" · ")}</div>`:""}
 function tramosIA(o){const T=(o&&o.tramos)||[];if(!T.length)return "";
  return `<div class="anal">🤖 Tramos del lado de los equipos según los planos (${esc(o.lector||"IA")})</div>${T.map((t,n)=>`<div class="icp icia"><div class="icpt"><b class="icar">→</b> ${esc(t.senal||t.equipo||"Tramo")}${t.equipo&&t.senal?` <span class="mu">· ${esc(t.equipo)}</span>`:""}</div>
   ${t.recorrido?`<div class="icl"><span class="ick">Recorrido</span><span>${esc(t.recorrido).replace(/→/g,"<b>→</b>")}</span></div>`:""}
