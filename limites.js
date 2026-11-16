@@ -44,7 +44,7 @@ window.segHTML=segHTML=function(i,S){let h=oh.apply(this,arguments);if(!S||!S.li
   let fin=h.indexOf('<div class="anal">Contactor de seguridades bloqueado',ini);if(fin<0)fin=h.indexOf('<div class="gnp"',ini);if(fin<0)fin=h.length;
   const otro=k=>{const its=k=="seg"?S.itSeg:S.itNor;if(!its.length)return "";
    let cq="";try{if(typeof croquisPuente=="function"&&window._croqLista){const ids=new Set(its.map(x=>x[0]+x[1]));cq=window._croqLista(i).filter(o=>ids.has(o.mod+o.b1)).map(o=>`<div class="lmcq">${croquisPuente(o,5)}</div>`).join("")}}catch(e){}
-   return `<details class="lmotro"><summary>2ª opción · ${k=="seg"?"Si se para todo y caen los contactores de seguridad: <b>final de carrera de seguridad</b> (módulo amarillo E-A8)":"Si solo falla un sentido: <b>límite de trabajo</b> (módulo verde)"}</summary>${cq}${grupo(k,its)}</details>`};
+   return `<details class="lmotro"><summary>2ª opción · ${k=="seg"?"Si se para todo y caen los contactores de seguridad: <b>final de carrera de seguridad</b> (módulo amarillo E-A8)":"Si solo falla un sentido: <b>límite de trabajo</b> (módulo verde)"}</summary>${grupo(k,its)}</details>`};
   const cuerpo=S.limMix?DIST+grupo("seg",S.itSeg)+grupo("nor",S.itNor):S.limT=="seg"?grupo("seg",S.itSeg)+otro("nor"):grupo("nor",S.itNor)+otro("seg");
   h=h.slice(0,ini)+cuerpo+h.slice(fin);
   const tit=S.limMix?"límite activado (seguridad o trabajo)":S.limT=="seg"?"final de carrera de seguridad pisado":"límite de trabajo activado";
