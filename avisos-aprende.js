@@ -35,11 +35,13 @@ const conGuia=i=>{try{const G=GUIA.tipos[i.tipo||"PAS"];return !!(G&&G.s&&G.s.le
 window.avisoReconocido=reconoce;
 const ign=()=>{try{return new Set(JSON.parse(localStorage.getItem("pbb_alias_ign")||"[]"))}catch(e){return new Set()}};
 function pendientes(){const lim=Date.now()-120*864e5,I=ign(),G=new Map();
- (typeof inc!="undefined"?inc:[]).forEach(i=>{if(!i||!i.desc)return;const f=Date.parse(i.fecha||"");if(f&&f<lim)return;
-  if(!conGuia(i))return;const k=N(i.desc);if(!k||I.has(k))return;if(!G.has(k)){const o=Object.assign({},i,{estado:"abierta"});if(reconoce(o))return;G.set(k,{desc:i.desc,tipo:i.tipo||"PAS",n:0,pos:new Set(),ots:[]})}
-  const g=G.get(k);g.n++;g.pos.add(i.pos);g.ots.push(i.orden)});
+ (typeof inc!="undefined"?inc:[]).forEach(i=>{if(!i||!i.desc)return;const man=!!i.noRec;const f=Date.parse(i.fecha||"");if(f&&f<lim&&!man)return;
+  /* v506: «Avería no reconocida» marcada en Editar registro → entra siempre en la lista, aunque la app crea reconocerla */
+  if(!conGuia(i)&&!man)return;const k=N(i.desc);if(!k||(I.has(k)&&!man))return;if(!G.has(k)){const o=Object.assign({},i,{estado:"abierta"});if(!man&&reconoce(o))return;G.set(k,{desc:i.desc,tipo:i.tipo||"PAS",n:0,pos:new Set(),ots:[],man:false})}
+  const g=G.get(k);g.n++;g.pos.add(i.pos);g.ots.push(i.orden);if(man)g.man=true});
  return [...G.values()].sort((a,b)=>b.n-a.n)}
 window.avisosPendientes=pendientes;
+const quitaNoRec=desc=>{try{const k=N(desc);let c=0;inc.forEach(i=>{if(i.noRec&&N(i.desc)==k){delete i.noRec;c++}});if(c)sv("pbb_inc",inc)}catch(e){}};
 
 const st=document.createElement("style");st.textContent=`
 #avv{position:fixed;inset:0;z-index:99995;background:var(--bg);color:var(--tx);overflow:auto;-webkit-overflow-scrolling:touch;padding:0 12px 40px}
@@ -61,7 +63,7 @@ window.avPanel=function(){let d=document.getElementById("avv");if(!d){d=document
  const P=pendientes(),A=window.__alAp||[];
  d.innerHTML=`<div class="avtool"><h3>🧠 Avisos sin reconocer (${P.length})</h3><button class="sec" onclick="document.getElementById('avv').remove()">✕ Cerrar</button></div>
  <div class="mu" style="margin:8px 0">Avisos de los últimos 120 días que no llevan a ninguna caja de la guía. Indica a qué corresponden y la app lo aprende para todos los móviles.</div>
- ${P.length?P.map((g,k)=>`<div class="avit" data-k="${k}"><b class="avd">«${E(g.desc)}»</b><div class="mu">${g.n} OT · PBB ${E([...g.pos].join(", "))} · ${E(g.tipo)}${g.ots.filter(Boolean).length?" · OT "+E(g.ots.filter(Boolean).slice(0,3).join(", ")):""}</div>
+ ${P.length?P.map((g,k)=>`<div class="avit" data-k="${k}"><b class="avd">«${E(g.desc)}»</b>${g.man?` <span class="avman">🧠 marcada en Editar registro</span>`:""}<div class="mu">${g.n} OT · PBB ${E([...g.pos].join(", "))} · ${E(g.tipo)}${g.ots.filter(Boolean).length?" · OT "+E(g.ots.filter(Boolean).slice(0,3).join(", ")):""}</div>
   <label>Texto a reconocer (acórtalo a la frase clave)</label><input class="avp" value="${E(g.desc)}">
   <label>Corresponde a (caja de la guía)</label><select class="avs"><option value="">— Elige —</option>${cajas(g.tipo).map(t=>`<option>${E(t)}</option>`).join("")}<option value="*">✏️ Otro (escribir)…</option></select>
   <input class="avo" placeholder="Elemento o avería, p. ej. «Bordes de seguridad de ruedas T-B5 / T-B6»" style="display:none;margin-top:6px">
@@ -76,8 +78,8 @@ window.avGuarda=async function(k){const d=document.getElementById("avv");if(!d)r
  if(N(pat).length<4){msg("Escribe el texto a reconocer");return}if(!sus){msg("Elige a qué corresponde");return}
  const {error}=await sb.from("alias_avisos").insert({patron:pat,sustituto:sus,tipo:g.tipo});
  if(error){msg("No se ha podido guardar: "+(error.message||error));return}
- msg("Aprendido: «"+pat+"»");await carga(true);avPanel()};
-window.avIgnora=function(k){const d=document.getElementById("avv");if(!d)return;const I=ign();I.add(N(d._P[k].desc));try{localStorage.setItem("pbb_alias_ign",JSON.stringify([...I]))}catch(e){}avPanel()};
+ msg("Aprendido: «"+pat+"»");quitaNoRec(g.desc);await carga(true);avPanel()};
+window.avIgnora=function(k){const d=document.getElementById("avv");if(!d)return;const I=ign();I.add(N(d._P[k].desc));quitaNoRec(d._P[k].desc);try{localStorage.setItem("pbb_alias_ign",JSON.stringify([...I]))}catch(e){}avPanel()};
 window.avBorra=async function(id){if(!confirm("¿Olvidar este alias?"))return;const {error}=await sb.from("alias_avisos").delete().eq("id",id);
  if(error){msg("No se ha podido borrar: "+(error.message||error));return}await carga(true);avPanel()};
 
@@ -122,4 +124,22 @@ function picker(sel,G){let pk=document.getElementById("rcspk");if(pk)pk.remove()
  pk.onclick=e=>{if(e.target===pk)cierra()};fams()}
 const st=document.createElement("style");st.textContent=`.avsb{display:block;width:100%!important;margin:0!important;text-align:left;padding:10px 12px!important;font-size:15px!important;line-height:1.25}#rcspk .rcspf>span:first-child:not(.rcspfi){flex:1;display:flex;flex-direction:column;gap:2px}.avsb small{color:var(--mu);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}`;document.head.appendChild(st);
 const o=window.avPanel;if(typeof o=="function")window.avPanel=function(){const r=o.apply(this,arguments);try{document.querySelectorAll("#avv select.avs").forEach(agrupaSel)}catch(e){}return r};
+})();
+
+/* ===== v506: Editar registro · botón «🧠 Avería no reconocida» (se activa y desactiva). Activado, la OT se guarda marcada
+   (i.noRec) y su descripción sale en «Avisos sin reconocer» para enseñar a la app a qué caja corresponde. Se desmarca sola
+   al aprenderla o ignorarla en ese panel. ===== */
+(function(){
+const pinta=b=>{const on=b.dataset.on=="1";b.classList.toggle("on",on);b.innerHTML=on?"🧠 Avería no reconocida · <b>ACTIVADO</b>":"🧠 Marcar como avería no reconocida"};
+function pon(){const sc=document.getElementById("sheetc");if(!sc)return;const d=sc.querySelector("#e_d");if(!d||sc.querySelector(".enrb"))return;
+ const bt=sc.querySelector('button[onclick^="guardaEdit("]');const id=bt&&((bt.getAttribute("onclick")||"").match(/\(\s*'([^']+)'/)||[])[1];
+ const i=id&&typeof inc!="undefined"&&inc.find(x=>x.id==id);if(!i)return;
+ const b=document.createElement("button");b.type="button";b.className="sec enrb";b.dataset.on=i.noRec?"1":"";pinta(b);
+ b.onclick=()=>{b.dataset.on=b.dataset.on=="1"?"":"1";pinta(b)};d.after(b)}
+let tm=0;new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=0;try{pon()}catch(e){}},60)}).observe(document.body,{childList:true,subtree:true});
+if(typeof guardaEdit=="function"){const o=guardaEdit;guardaEdit=function(id){try{const b=document.querySelector("#sheetc .enrb");const i=inc.find(x=>x.id==id);
+ if(b&&i){if(b.dataset.on=="1")i.noRec=true;else delete i.noRec}}catch(e){}return o.apply(this,arguments)}}
+const st=document.createElement("style");st.textContent=`.enrb{width:100%!important;margin:6px 0 0!important;padding:9px!important;font-size:14px!important;border-style:dashed!important}
+#sheetc button.sec.enrb.on,.enrb.on{border:2px solid #7b1fa2!important;border-style:solid!important;color:#8e24aa!important;font-weight:700;background:color-mix(in srgb,#7b1fa2 14%,transparent)!important}
+.avman{display:inline-block;font-size:11px;font-weight:800;color:#ce93d8;border:1px solid #7b1fa2;border-radius:10px;padding:0 6px;vertical-align:middle}`;document.head.appendChild(st);
 })();
