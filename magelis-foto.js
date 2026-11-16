@@ -28,7 +28,7 @@ const lin=f=>`${f.cod?f.cod+" ":""}${f.texto}`.trim();
 const pbb=t=>String(t).replace(/\bm[aá]quina\b(?!\s+(de\s+)?(aire|adx|a\/a|pca))/gi,"PBB pasarela");
 async function conIA(c,set){if(typeof sb=="undefined"||!sb.functions)throw new Error("sin conexión");
  set("Leyendo la foto de la Magelis con IA…");const img=c.toDataURL("image/jpeg",.86).split(",")[1];
- const r=await Promise.race([sb.functions.invoke("leer-magelis",{body:{img,tipo:"image/jpeg"}}),new Promise((_,no)=>setTimeout(()=>no(new Error("tiempo")),60000))]);
+ const r=await Promise.race([sb.functions.invoke("leer-magelis",{body:{img,tipo:"image/jpeg"}}),new Promise((_,no)=>setTimeout(()=>no(new Error("tiempo")),180000))]);
  if(r.error||!r.data||!Array.isArray(r.data.filas))throw new Error((r.error&&r.error.message)||"sin lectura");return r.data}
 async function conOCR(c,set){if(!window.Tesseract)await new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";s.onload=ok;s.onerror=ko;document.head.appendChild(s)});
  const w=await Tesseract.createWorker("spa",1,{logger:m=>{if(m.status=="recognizing text")set(`Leyendo la foto en el móvil… ${Math.round(m.progress*100)}%`)}});

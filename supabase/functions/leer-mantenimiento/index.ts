@@ -124,10 +124,11 @@ async function deVault(n: string): Promise<string> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") { const h = req.headers.get("access-control-request-headers"); return new Response("ok", { headers: h ? { ...cors, "Access-Control-Allow-Headers": h } : cors }); }
   const ini = Date.now();
-  const ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
+  let ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
   if (!ka && !kg) return json({ error: "sin_clave" }, 503);
   try {
-    const { img, tipo } = await req.json(); if (!img) return json({ error: "sin_imagen" }, 400);
+    const { img, tipo, motor } = await req.json(); if (!img) return json({ error: "sin_imagen" }, 400);
+    if (motor === "gemini") ka = ""; else if (motor === "claude") kg = ""; /* v522: motor elegido en la PWA (Gemini gratis primero; Claude solo aceptando el coste) */
     let t = "", lector = "";
     // v455: Claude (ANTHROPIC_API_KEY) preferente; Gemini de reserva si Claude falla o no hay clave
     let errC = "";

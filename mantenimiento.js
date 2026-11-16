@@ -292,7 +292,7 @@ function imgIA(file){return new Promise((ok,ko)=>{const u=URL.createObjectURL(fi
 async function conIA(file,set){if(typeof sb=="undefined"||!sb.functions)throw new Error("sin conexión");
  const pdf=/\.pdf$/i.test(file.name)||file.type=="application/pdf";set("Leyendo con IA solo el calendario semanal… (unos segundos)");
  const img=pdf?await b64(file):await imgIA(file);
- const r=await Promise.race([sb.functions.invoke("leer-mantenimiento",{body:{img,tipo:pdf?"application/pdf":"image/jpeg"}}),new Promise((_,no)=>setTimeout(()=>no(new Error("tiempo")),65000))]);
+ const r=await Promise.race([sb.functions.invoke("leer-mantenimiento",{body:{img,tipo:pdf?"application/pdf":"image/jpeg"}}),new Promise((_,no)=>setTimeout(()=>no(new Error("tiempo")),180000))]);
  if(r.error||!r.data||!Array.isArray(r.data.dias))throw new Error((r.error&&r.error.message)||"sin lectura");
  const por=new Map();r.data.dias.forEach(d=>{const f=/^\d{4}-\d{2}-\d{2}$/.test(d.fecha||"")?d.fecha:(fechaIzq(d.fecha||"",mImpMes[0],mImpMes[1])||"");if(!f)return;
   (d.items||[]).forEach(x=>{const pos=String(x.pos||"").toUpperCase().replace(/\s+/g,"");if(!pos)return;const an=x.tipo=="A";

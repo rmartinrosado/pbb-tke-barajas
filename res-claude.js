@@ -183,7 +183,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
    av("Cotejando planos…",9);const pl=X.planosCtx?await X.planosCtx(String(i.pos),tipo,busca,(f,x)=>av(f,9+9*(x||0))):{txt:""};
    if(J.ac.signal.aborted)throw new DOMException("x","AbortError");
    const contexto=[g,pa,ca,pl.txt].filter(Boolean).join("\n\n");
-   av("Enviando a Claude ("+Math.round(contexto.length/1024)+" KB de documentación)…",19);
+   av("Enviando a la IA · Gemini primero ("+Math.round(contexto.length/1024)+" KB de documentación)…",19);
    const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;
    if(!tok)throw new Error("Inicia sesión en la app para consultar a Claude.");
    J.esperando=true;

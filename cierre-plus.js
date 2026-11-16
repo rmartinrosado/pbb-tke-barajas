@@ -87,7 +87,7 @@ Responde SOLO con JSON, sin nada más:
 En alarma/maniobra/puentes pon true SOLO si el dictado dice expresamente que se comprobó (alarma reseteada o borrada, maniobra completa, puentes retirados).`;
  s.textContent="🤖 Redactando el cierre…";
  try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("Inicia sesión para usar la IA");
-  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),60000);
+  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),180000);
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({prompt})});clearTimeout(to);
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
   const m=String(j.txt).match(/\{[\s\S]*\}/);if(!m)throw new Error("respuesta sin formato");const o=JSON.parse(m[0]);

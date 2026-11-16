@@ -200,10 +200,11 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: h ? { ...cors, "Access-Control-Allow-Headers": h } : cors });
   }
   const ini = T0();
-  const ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
+  let ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
   if (!ka && !kg) return json({ error: "sin_clave", mensaje: "Falta una clave de lectura (GEMINI_API_KEY gratuita o ANTHROPIC_API_KEY) en Supabase" }, 503);
   try {
-    const { img, tipo, pos = [], tec = [] } = await req.json();
+    const { img, tipo, motor, pos = [], tec = [] } = await req.json();
+    if (motor === "gemini") ka = ""; else if (motor === "claude") kg = ""; /* v522: motor elegido en la PWA (Gemini gratis primero; Claude solo aceptando el coste) */
     if (!img) return json({ error: "sin_imagen" }, 400);
     console.log(`leer-hoja: imagen ${Math.round(img.length / 1024)} KB · lector ${ka ? "Claude" : "Gemini"}`);
     const prompt = PROMPT(pos, tec);

@@ -83,7 +83,7 @@ async function fotoIA(file){const c=await giro(file,R.giro||0);const k=Math.min(
  const z=document.createElement("canvas");z.width=Math.round(c.width*k);z.height=Math.round(c.height*k);z.getContext("2d").drawImage(c,0,0,z.width,z.height);realza(z);return z}
 async function claudeLee(file,set){set("Analizando la hoja manuscrita línea a línea (puede tardar hasta 2 min)…");const z=await fotoIA(file);
  const img=z.toDataURL("image/jpeg",.88).split(",")[1];
- const r=await Promise.race([sb.functions.invoke("leer-hoja",{body:{img,tipo:"image/jpeg",pos:(typeof POS!="undefined"?POS:[]).map(String),tec:TEC}}),new Promise((_,no)=>setTimeout(()=>no(new Error("el lector IA tarda demasiado; prueba de nuevo")),150000))]);
+ const r=await Promise.race([sb.functions.invoke("leer-hoja",{body:{img,tipo:"image/jpeg",pos:(typeof POS!="undefined"?POS:[]).map(String),tec:TEC}}),new Promise((_,no)=>setTimeout(()=>no(new Error("el lector IA tarda demasiado; prueba de nuevo")),240000))]);
  if(r.error||!r.data||!Array.isArray(r.data.ots)){let m="";const cx=r.error&&r.error.context;const st=cx&&cx.status;try{const j=cx&&await cx.clone().json();m=j&&(j.error=="sin_clave"?"sin_clave":j.mensaje)||""}catch(e){}
   if(!m&&cx){try{m=(await cx.text()).slice(0,160)}catch(e){}}
   if(st==546||/WORKER_LIMIT|wall ?clock/i.test(m))m="el servidor cortó la lectura por tiempo";else if(st==401||st==403)m="sesión caducada: cierra y vuelve a entrar en la PWA";

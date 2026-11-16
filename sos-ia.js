@@ -305,7 +305,7 @@ async function haceePdf(S){await cargaJsPDF();const {jsPDF}=window.jspdf;const d
 window.sosIaPdf=haceePdf;
 /* v364: croquis de conexión (JSON) a partir de la resolución, con la función consulta-sos en modo «croquis» */
 window.iaCroquis=async(md,pos,tipo)=>{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("sin sesión");
- const ac=new AbortController();const t=setTimeout(()=>ac.abort(),120000);
+ const ac=new AbortController();const t=setTimeout(()=>ac.abort(),200000);
  try{const r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},
    body:JSON.stringify({modo:"croquis",pregunta:String(md||"").slice(0,30000),contexto:`PBB ${pos||"-"} · ${tipo||"PAS"}`})});
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.croquis)throw new Error(j.mensaje||("croquis "+r.status));return j.croquis}finally{clearTimeout(t)}};

@@ -161,14 +161,15 @@ Deno.serve(async (req) => {
     const h = req.headers.get("access-control-request-headers");
     return new Response("ok", { headers: h ? { ...cors, "Access-Control-Allow-Headers": h } : cors });
   }
-  let pregunta = "", contexto = "", modo = "";
-  try { const b = await req.json(); pregunta = String(b.pregunta || ""); contexto = String(b.contexto || ""); modo = String(b.modo || ""); } catch { /* */ }
+  let pregunta = "", contexto = "", modo = "", motor = "";
+  try { const b = await req.json(); pregunta = String(b.pregunta || ""); contexto = String(b.contexto || ""); modo = String(b.modo || ""); motor = String(b.motor || ""); } catch { /* */ }
   if (!pregunta.trim()) return json({ error: "sin_pregunta" }, 400);
   if (contexto.length > 400_000) contexto = contexto.slice(0, 400_000);
   const usuario = `DOCUMENTACIÓN DEL PROYECTO PBB TKE (seleccionada para esta consulta):\n\n${contexto}\n\n==============================\nCONSULTA DEL TÉCNICO:\n\n${pregunta}`;
 
-  const ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY");
-  const kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
+  let ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY");
+  let kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
+  if (motor === "gemini") ka = ""; else if (motor === "claude") kg = ""; /* v522: motor elegido en la PWA (Gemini gratis primero; Claude solo aceptando el coste) */
   if (!ka && !kg) return json({ error: "sin_clave", mensaje: "Falta ANTHROPIC_API_KEY (o GEMINI_API_KEY de reserva) en los secretos de Supabase" }, 503);
 
   if (modo === "croquis") {
