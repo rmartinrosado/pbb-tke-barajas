@@ -50,8 +50,10 @@ const SUB=[
  {box:/^capota no despliega/,et:"¿Qué lado de la capota?",op:[
   O("izq","Capota IZQUIERDA · E-Q4, E-K41/42, C-S15, C-M4",/izquierd|\bizq|izda|e-?q4\b(?!\.)|e-?k4[12]|c-?s15/,/\(izq\)|e-q4 \(|e-k41|c-s15/),
   O("dch","Capota DERECHA · E-Q4.1, E-K43/44, C-S16, C-M4.1",/derech|\bdch|e-?q4\.1|e-?k4[34]|c-?s16/,/\(dcha\)|e-q4\.1|e-k43|c-s16/)]},
- {box:/^sirena de cabina/,et:"¿Sirena o barrera de rotonda?",op:[
-  O("sir","Sirena de seguridad de cabina C-H41 (alarmas 138 / 140 / 141)",/sirena|c-?h41|\b13[89]\b|\b14[01]\b|puerta de servicio|ss-?b15/,/sirena|c-h41|\b138\b|\b140\b|\b141\b|ss-b15|ec-w20|puerta de servicio/),
+ {box:/^sirena de cabina/,et:"¿Sirena, acceso o barrera de rotonda?",op:[
+  /* v501 (manual RCS pág. 110): 137 Fallo sirena · 138 Fallo sensor sirena = sirena C-H41; 139 / 140 / 141 son ACCESOS y AUTORIZACIÓN, no la sirena */
+  O("sir","Sirena de seguridad de cabina C-H41 (alarmas 137 / 138)",/sirena|c-?h41|\b13[78]\b/,/sirena|c-h41|\b13[78]\b|ec-w20/),
+  O("acc","Acceso no autorizado / autorización remota (139 rotonda · 140 puerta de servicio SS-B15 · 141 esperando autorización)",/\b139\b|\b14[01]\b|puerta de servicio|ss-?b15|autorizaci|acceso/,/\b139\b|\b140\b|\b141\b|ss-b15|puerta de servicio|autorizaci/),
   O("bar","Barrera de rotonda R-B1…R-B4 (evento 294)",/barrera|r-?b[1-4]|\b294\b/,/barrera|r-b[1-4]|\b294\b/)]},
  {box:/^zapata \/ bordes \/ bumpers/,et:"¿Qué elemento está activado?",op:[
   O("zap","Zapata C-B4 (Gelbau P-U5)",/zapata|c-?b4\b|p-?u5/,/zapata|c-b4\b|p-u5|cp-w14/),
