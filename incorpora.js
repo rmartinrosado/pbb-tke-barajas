@@ -54,7 +54,7 @@ function pinta(P){const p=P||{};$("#sheetc").innerHTML=`<div class="icph"><h3 st
  <div class="mu" style="font-size:12.5px;margin:4px 0 8px">Haz fotos nítidas de la placa (texto impreso) y del componente; si puedes, también del cable o su marcado. La IA lee la placa y propone el código cruzándolo con los planos. Revisa antes de guardar.</div>
  <label class="btn" style="margin:0;justify-content:center;gap:6px;padding:12px">📷 Añadir foto<input type="file" accept="image/*" multiple hidden onchange="compFotos(this)"></label>
  <div class="icf" data-fg="inc">${F.map((f,i)=>`<figure data-fi="${i}"><img src="${f.src}" alt=""><select onchange="compVista(${i},this.value)">${VISTAS.map(v=>`<option${v==f.vista?" selected":""}>${v}</option>`).join("")}</select><div class="icfb"><button class="sec" title="Recortar" onclick="compRecInc(${i})">✂️</button><button class="sec" onclick="compQuita(${i})">🗑</button></div>${f.cut?'<span class="icfc">✂️ recortado</span>':""}${f.ubi?'<span class="icfc">📍 ubicación</span>':""}</figure>`).join("")}</div>
- <div class="mu" style="font-size:11.5px;margin:-2px 0 6px">Toca una foto para verla a pantalla completa (zoom con dos dedos). Mantenla pulsada y arrástrala sobre otra para cambiarlas de sitio.</div>
+ <div class="mu" style="font-size:11.5px;margin:-2px 0 6px">Toca una foto para verla a pantalla completa (zoom con dos dedos). Mantenla pulsada y arrástrala sobre otra para cambiarlas de sitio. Si el recorte de la IA no es bueno, corrígelo a mano antes de guardar con ✂️ (el componente) o con ✂️ en la ubicación: los dos se ajustan juntos.</div>
  <label>Código si lo sabes (p. ej. E-X62, ET-B9)</label><input id="ic_cod" placeholder="Opcional: la IA recorta ESE elemento" value="${E(p.cod||"")}" autocapitalize="characters">
  <label>¿Dónde está montado?</label><input id="ic_donde" placeholder="Ej. rotonda, túnel exterior, cabina bajo el pupitre…" value="${E(p.donde||"")}">
  <label>¿En qué averías interviene? (palabras del aviso, separadas por comas)</label><input id="ic_cla" placeholder="Ej. barrera rotonda, evento 294" value="${E(p.claves||"")}">
@@ -66,8 +66,12 @@ window.compVista=(i,v)=>{if(F[i])F[i].vista=v};
 (window.FOTO_ORDEN=window.FOTO_ORDEN||{}).inc={mueve:(i,j)=>{if(!F[i]||!F[j])return;[F[i],F[j]]=[F[j],F[i]];repinta()},toca:i=>{if(F[i]&&typeof compVer=="function")compVer(F[i].src,F.map(f=>f.src),i)}};
 /* v535: recorte a mano (o ajuste del recorte de la IA) */
 window.compRecInc=async function(i){const f=F[i];if(!f||typeof compRecorta!="function")return;
- if(f.ubi){if(!f.o)return;const r=await compRecorta(f.o,f.caja,{titulo:"📍 Marcar la ubicación",sub:"Ajusta el recuadro naranja sobre el elemento dentro de la foto de conjunto",ok:"📍 Marcar"});if(!r)return;f.caja=r.caja;f.src=await compMarcaCaja(f.o,r.caja,1000);repinta();return}const r=await compRecorta(f.o||f.src,f.caja);if(!r)return;
- f.src=r.src;f.caja=r.caja;f.cut=true;repinta()};
+ if(f.ubi){if(!f.o)return;const r=await compRecorta(f.o,f.caja,{titulo:"📍 Marcar la ubicación",sub:"Ajusta el recuadro naranja sobre el elemento (bornero: de su etiqueta a la siguiente)",ok:"📍 Marcar"});if(!r)return;f.caja=r.caja;f.src=await compMarcaCaja(f.o,r.caja,1000);
+  /* v550: el recorte del componente sigue al recuadro de la ubicación */
+  const q=f.par&&F.includes(f.par)?f.par:null;if(q&&(q.o||q.src)){q.src=await compCortaCaja(q.o||q.src,r.caja,1400);q.caja=r.caja;q.cut=true}repinta();return}const r=await compRecorta(f.o||f.src,f.caja);if(!r)return;
+ f.src=r.src;f.caja=r.caja;f.cut=true;
+ /* v550: la foto de ubicación sigue al recorte hecho a mano */
+ const u=F.find(x=>x.ubi&&x.par===f&&x.o);if(u){u.caja=r.caja;u.src=await compMarcaCaja(u.o,r.caja,1000)}repinta()};
 /* repinta las fotos sin perder la propuesta de la IA ni lo ya corregido */
 function repinta(){const v=vals();const pr=document.getElementById("ic_prop"),st=document.getElementById("ic_st");const keep=pr?pr.innerHTML:"",ks=st?st.innerHTML:"";const vv=keepVals();pinta(v);
  const d=document.getElementById("ic_prop");if(d&&keep){d.innerHTML=keep;putVals(vv)}const s2=document.getElementById("ic_st");if(s2)s2.innerHTML=ks}
@@ -89,9 +93,9 @@ TAREA
 2. Coteja el tipo de componente, lo impreso y dónde está montado con la lista de códigos y propone el CÓDIGO de plano más probable (si hay varios iguales, p. ej. izquierdo/derecho o emisor/receptor, ponlos juntos «R-B1 / R-B3» y explícalo). Si no encaja con ninguno, codigo = "SIN CÓDIGO".
 3. Propón: titulo (nombre del elemento en español), fab (fabricante · modelo · referencia), esp = filas [dato, valor] de la placa y su función en la PBB, pin = filas [pin, color, señal, función] si se ven, med = 3-5 pasos «Medir en campo» con valores esperados (por ejemplo «24 VDC entre pin 1 y pin 3»), av = aviso al sustituir, claves = palabras de los avisos de OT en que interviene (separadas por comas), justificacion = por qué ese código.
 4. RECORTE (obligatorio): el elemento se guarda RECORTADO, solo él, sin componentes vecinos a medias ni cables alrededor. Da la caja ajustada al cuerpo del componente principal en la foto donde mejor se ve su placa, en MILÉSIMAS (0-1000) de la imagen COMPLETA que recibes: x0,y0 = esquina superior izquierda, x1,y1 = inferior derecha. Ciñe la caja al borde del componente (no incluyas los elementos de al lado ni los mazos de cables).
-4b. BORNEROS / REGLETAS DE BORNES (códigos «X», p. ej. E-X62, P-X51, IT-X51): su código es el que se lee en su PORTAETIQUETAS (no pongas «SIN CÓDIGO»). En estas fotos el portaetiquetas con el código está a la IZQUIERDA de sus bornas: el bornero abarca desde su etiqueta hacia la DERECHA hasta justo antes de la etiqueta del bornero siguiente (las bornas que hay a la derecha de otra etiqueta son de ese otro bornero). El recorte empieza en el borde izquierdo de SU etiqueta (la etiqueta debe quedar dentro, a la izquierda) y termina antes de la etiqueta siguiente. Las bornas que quedan a la izquierda de su etiqueta NO son suyas.
+4b. BORNEROS / REGLETAS DE BORNES (códigos «X», p. ej. E-X62, P-X51, IT-X51): su código es el que se lee en su PORTAETIQUETAS (no pongas «SIN CÓDIGO»). Las bornas van en GRUPOS DE ETIQUETA A ETIQUETA: el portaetiquetas con el código está a la IZQUIERDA del grupo y el bornero son TODAS las bornas que hay a su DERECHA hasta justo antes del portaetiquetas siguiente (o hasta el final del carril). Un bornero puede tener 2 o más bornas (normalmente varias, numeradas 1, 2, 3…). El RECORTE NO es solo la etiqueta: abarca la etiqueta (dentro, a la izquierda) Y todas las bornas de su grupo, en todo su alto (de la fila de tornillos/bornas de arriba a la de abajo, sin los mazos de cables). Las bornas a la izquierda de su etiqueta o a la derecha de la etiqueta siguiente NO son suyas. Devuelve además "etiqueta" = caja de SU portaetiquetas y "fin_x" = coordenada x (milésimas de la imagen completa) donde empieza el portaetiquetas siguiente o acaba el carril, y "bornas" = nº de bornas del grupo.
 5. Si el componente está montado dentro de un BLOQUE de varios elementos (carril DIN, fila de magnetotérmicos, regleta, grupo de relés…): en_bloque = true, bloque = qué bloque es y dónde (p. ej. «carril DIN de magnetotérmicos del armario eléctrico AE»), posicion = su posición contando los elementos del bloque (p. ej. «3 de 10, de izquierda a derecha»), total = nº de elementos del bloque. Si va solo, en_bloque = false.
-Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":[["","","",""]],"med":[""],"av":"","claves":"","justificacion":"","recorte":{"x0":0,"y0":0,"x1":0,"y1":0},"en_bloque":false,"bloque":"","posicion":"","total":0}`;
+Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":[["","","",""]],"med":[""],"av":"","claves":"","justificacion":"","recorte":{"x0":0,"y0":0,"x1":0,"y1":0},"en_bloque":false,"bloque":"","posicion":"","total":0,"etiqueta":{"x0":0,"y0":0,"x1":0,"y1":0},"fin_x":0,"bornas":0}`;
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt})});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.mensaje||j.error||("error "+r.status));
   const m=String(j.txt||"").match(/\{[\s\S]*\}/);if(!m)throw new Error("La IA no devolvió datos");PROP=JSON.parse(m[0]);PROP.lector=j.lector;
@@ -103,11 +107,17 @@ const desf=(t,n)=>String(t||"").split("\n").map(l=>l.trim()).filter(Boolean).map
 /* v535: recorte automático del elemento + foto de UBICACIÓN si está dentro de un bloque de varios */
 async function recorteIA(p,v){let t="";try{
  if(!p.recorte&&Array.isArray(p.box_2d)&&p.box_2d.length==4){const z=p.box_2d;p.recorte={y0:z[0],x0:z[1],y1:z[2],x1:z[3]}}
+ /* v550: borneros de etiqueta a etiqueta: si la IA recorta solo la etiqueta, se amplía hasta el portaetiquetas siguiente */
+ const esX=/^[A-Z0-9]*-?X\d/i.test(String(p.codigo||v.cod||"").replace(/^\+/,""));
+ if(esX&&p.recorte){const n=x=>{x=+x;return isFinite(x)?(x>1.5?x:x*1000):NaN};const r=p.recorte,e=p.etiqueta||{},fx=n(p.fin_x);
+  const ex0=n(e.x0),rx0=n(r.x0),rx1=n(r.x1);
+  if(isFinite(ex0)&&ex0>0&&(!isFinite(rx0)||Math.abs(rx0-ex0)>15))r.x0=Math.max(0,ex0-4);
+  if(isFinite(fx)&&fx>n(r.x0)+20&&(!isFinite(rx1)||rx1<fx-20||rx1>fx+20))r.x1=Math.min(1000,fx-2);}
  const b=cajaFoto(p.recorte);
  if(b&&typeof compCortaCaja=="function"){const f=F[b.i];const src0=f.o||f.src;f.src=await compCortaCaja(src0,b.c,1400);f.caja=b.c;f.cut=true;
   const vi=String(f.vista||"");if(!/vista/i.test(vi))f.vista=VISTAS[0];
   if(p.en_bloque&&typeof compMarcaCaja=="function"){const bl=String(p.bloque||"bloque de varios elementos").trim();const ps=String(p.posicion||"").trim();
-   F.push({src:await compMarcaCaja(src0,b.c,1000),o:await compCortaCaja(src0,{x0:0,y0:0,x1:1,y1:1},1000),caja:b.c,vista:"Ubicación · "+bl+(p.total?" ("+p.total+" elementos juntos)":""),c:null,ubi:true});
+   f.ubiDe=true;F.push({src:await compMarcaCaja(src0,b.c,1000),o:await compCortaCaja(src0,{x0:0,y0:0,x1:1,y1:1},1000),caja:b.c,par:f,vista:"Ubicación · "+bl+(p.total?" ("+p.total+" elementos juntos)":""),c:null,ubi:true});
    const txt=bl+(ps?" · posición "+ps.replace(/^posici[oó]n\s*/i,""):"");p.esp=(p.esp||[]).filter(r=>!/^ubicaci[oó]n$/i.test(Array.isArray(r)?r[0]:""));p.esp.push(["Ubicación",txt]);
    t=`✂️ Recortado y 📍 ubicado en el bloque (${E(txt)}). `}
   else t="✂️ Recortado automáticamente. ";
