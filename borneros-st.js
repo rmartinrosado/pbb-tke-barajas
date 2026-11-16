@@ -35,6 +35,8 @@ window.BOR_ST=[
  ["+E-X59","2","hilo 205 WH 1","EP-W1 · 2","0 V al pupitre → +P-X51:2","0 V",29],
  ["+P-X51","1","hilo 204 RD","EP-W1 · 1","Entrada +24 V de la cabecera P-Q30.0 (PS) del pupitre","24 V",38],
  ["+P-X51","2","hilo 205 WH","EP-W1 · 2","0 V de la cabecera P-Q30.0","0 V",38],
+ ["+E-X62","1","hilo 189 RD (+24 V común, como +E-X68:1)","P-W20 · BN → +C-B14 · E-W13 · BN → +ET-B9","+24 V alimentación de los sensores analógicos: medidor de altura C-B14 y láser de extensión ET-B9","24 V",62],
+ ["+E-X62","2","hilo 205 WH (0 V, como +E-X68:2)","P-W20 · BU → +C-B14 · E-W13 · BU → +ET-B9","0 V de los sensores analógicos C-B14 (altura) y ET-B9 (extensión)","0 V",62],
  ["+E-X68","1","hilo 189 RD","—","+24 V E/S armario E (E-Q30.3, 10 A): común de entradas y regleteros de campo","24 V",40],
  ["+E-X68","2","hilo 205 WH","—","0 V armario E (cargas de salidas, sensores)","0 V",40],
  ["+E-X68","4","hilo 215 RD","—","+24 V módulos de E/S (E-Q30.2, 10 A)","24 V",36],
