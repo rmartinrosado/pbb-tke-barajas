@@ -1,4 +1,4 @@
-/* ===== v517 (v518: caja antes de Seguridad · botón RECALCULAR IA siempre visible, también tras error): COTEJO ENTRE VARIOS PLANOS en la guía de campo de la OT (16/11/2026) =====
+/* ===== v517 (v519: barra de progreso en la lectura de planos y en la consulta IA · v518: caja antes de Seguridad · botón RECALCULAR IA siempre visible, también tras error): COTEJO ENTRE VARIOS PLANOS en la guía de campo de la OT (16/11/2026) =====
    · Debajo de «Plano de esta guía» → «📐 Planos a cotejar»: casillas con todos los planos cargados. Se guarda por OT.
      Por defecto: el plano de la guía + los de los otros sistemas que cita la OT (PBB / RCS o plano propio, AAA, HZ, AAP, CBTH).
    · El plano principal (el del desplegable) se elige ahora POR OT y vale también en 504 / 507 / 508 (antes se ignoraba ahí):
@@ -41,10 +41,10 @@ function sugeridos(i,l){const out=[];const add=id=>{if(id&&!out.includes(id))out
 
 /* ---------- texto de cada plano (por página) ---------- */
 const TXT={};
-async function texto(doc){if(TXT[doc.id])return TXT[doc.id];
+async function texto(doc,av){if(TXT[doc.id])return TXT[doc.id];
  let blob=gCache[doc.id];if(!blob){const dl=await sb.storage.from("planos").download(doc.id);if(dl.error)throw dl.error;blob=dl.data;gCache[doc.id]=blob}
  await cargaLib();const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;const P=[];
- for(let np=1;np<=pdf.numPages;np++){const pg=await pdf.getPage(np);const tc=await pg.getTextContent();const it=tc.items.map(t=>String(t.str||"").trim()).filter(Boolean);
+ for(let np=1;np<=pdf.numPages;np++){if(av)av(np,pdf.numPages);const pg=await pdf.getPage(np);const tc=await pg.getTextContent();const it=tc.items.map(t=>String(t.str||"").trim()).filter(Boolean);
   const k=it.indexOf("LOCALIZACIÓN");const fo=(k>=0&&/^\d{1,3}$/.test(it[k+1]||""))?+it[k+1]:null;
   const tx=it.join(" ");const tags=new Set();for(const m of tx.toUpperCase().matchAll(TAG))tags.add(m[1]);P.push({np,fo,tx,n:nrm(tx),tags})}
  TXT[doc.id]=P;return P}
@@ -70,7 +70,7 @@ async function calcula(forzar){const i=otAct();if(!i||typeof view=="undefined"||
  if(!docs.length)return;
  const res={pl:[],cod:{}};
  for(let n=0;n<docs.length;n++){const d=docs[n];ST.prog=`Leyendo ${n+1}/${docs.length} · ${corto(d.name)}…`;pintaCaja();
-  try{const P=await texto(d);res.pl.push({d,P})}catch(e){res.pl.push({d,P:null,err:String(e&&e.message||e)})}
+  try{const P=await texto(d,(np,tot)=>{ST.pct=Math.round(((n+np/tot)/docs.length)*100);ST.prog=`Leyendo ${n+1}/${docs.length} · ${corto(d.name)} · pág. ${np}/${tot}`;barra()});res.pl.push({d,P})}catch(e){res.pl.push({d,P:null,err:String(e&&e.message||e)})}
   if(ST.k!==k)return}
  D.cod.forEach(c=>{res.cod[c]=res.pl.map(p=>p.P?p.P.filter(g=>g.tags.has(c)).map(g=>g.np):null)});
  ST.res=res;ST.prog="";
@@ -83,7 +83,7 @@ function paginas(p,D,cupo){if(!p.P)return "";
  let out="";for(const {g} of sc){const t=`\n### ${corto(p.d.name)} · página ${g.np}${g.fo?" (folio "+g.fo+")":""}\n`+g.tx.slice(0,2000);if(out.length+t.length>cupo)break;out+=t}
  return out||`\n### ${corto(p.d.name)}: sin páginas con los códigos o palabras del aviso.`}
 async function ia(){const i=otAct();if(!i||!ST.res)return;const D=ST.D,R=ST.res,k=ST.k;
- if(ST.iaRun)return;ST.iaRun=true;ST.iaEst="🤖 Cruzando los planos con Claude…";pintaCaja();
+ if(ST.iaRun)return;ST.iaRun=true;ST.iaT0=Date.now();ST.iaEst="🤖 Cruzando los planos con Claude…";pintaCaja();
  const cupo=Math.floor(14000/Math.max(1,R.pl.length));const al=window.aliasCampo||(x=>x);
  const prompt=`Eres técnico experto en mantenimiento de pasarelas de embarque (PBB) TKE del aeropuerto Madrid-Barajas (puesto remoto RCS, PLC con módulos E-A… en el armario eléctrico y P-A… en el armario del pupitre, equipos AAA aire acondicionado, HZ convertidor 400 Hz, armario CBTH de interfaz con los equipos).
 Tienes que COTEJAR VARIOS PLANOS entre sí para una OT y dar con la actuación más eficaz en campo y los puntos a medir.
@@ -107,6 +107,7 @@ Responde SOLO con JSON, sin nada más:
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({prompt})});clearTimeout(to);
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
   const m=String(j.txt).match(/\{[\s\S]*\}/);if(!m)throw new Error("respuesta sin formato");const o=JSON.parse(m[0]);o.lector=j.lector||"IA";o.t=Date.now();
+  {const b=$q("#gpcot .pcbar>i");if(b){b.style.width="100%";await new Promise(r=>setTimeout(r,350))}}
   ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ls.s(ST.iaK,JSON.stringify(o))}
  catch(e){ST.iaRun=false;if(ST.k!==k)return;ST.iaEst="No se ha podido cruzar con la IA: "+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+". Pulsa «RECALCULAR IA» para volver a lanzarla; el cotejo de códigos sí vale."}
  pintaCaja()}
@@ -127,14 +128,15 @@ window.pcCopia=function(){const i=otAct(),o=ST.ia;if(!i||!o){msg("Todavía no ha
 function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre planos · diagnóstico de la OT</b> <span class="mu" style="font-weight:400">(${ST.docs.length} plano${ST.docs.length==1?"":"s"})</span></summary>`;
  if(!ST.docs.length)return h+`<div class="mu" style="margin:8px 0">Marca en «📐 Planos a cotejar» (arriba) los planos que intervienen en la avería.</div>`;
  h+=`<div class="pcpl">${ST.docs.map((d,n)=>`<span class="pcpn">${String.fromCharCode(65+n)}</span> ${esc(corto(d.name))}`).join("<br>")}</div>`;
- if(ST.prog)return h+`<div class="pcst">⏳ ${esc(ST.prog)}</div>`;
+ if(ST.prog)return h+`<div class="pcbar"><i style="width:${ST.pct||2}%"></i></div><div class="pcst pcbt">⏳ ${esc(ST.prog)}</div>`;
  if(R){const cs=Object.keys(R.cod);const en=cs.filter(c=>R.cod[c].some(a=>a&&a.length)),no=cs.filter(c=>!en.includes(c));
   const err=R.pl.filter(p=>!p.P);
   h+=`<details class="pccod"><summary>🔎 Dónde sale cada código · ${en.length} de ${cs.length} en los planos</summary>`+
    en.map(c=>`<div class="pcr"><b>${esc(c)}</b><span>${R.cod[c].map((a,n)=>a&&a.length?a.slice(0,3).map(np=>`<button class="pcch" onclick="event.stopPropagation();pcAbre('${esc(R.pl[n].d.id)}',${np})">${String.fromCharCode(65+n)} · p.${np}</button>`).join(""):`<span class="pcno">${String.fromCharCode(65+n)} ✖</span>`).join("")}</span></div>`).join("")+
    (no.length?`<div class="mu" style="font-size:11.5px;margin-top:6px">No aparecen en ningún plano elegido: ${no.map(esc).join(", ")}</div>`:"")+
    (err.length?`<div class="pcno" style="margin-top:6px">No se pudo leer: ${err.map(p=>esc(corto(p.d.name))).join(", ")}</div>`:"")+`</details>`}
- if(ST.iaEst)h+=`<div class="pcst">${esc(ST.iaEst)}</div>`;
+ if(ST.iaRun)h+=`<div class="pcbar pcbia"><i style="width:${pctIA()}%"></i></div><div class="pcst pcbt">${esc(txIA())}</div>`;
+ else if(ST.iaEst)h+=`<div class="pcst">${esc(ST.iaEst)}</div>`;
  if(o){h+=(o.resumen?`<div class="gav pcres">🎯 <b>Causa más probable:</b> ${esc(o.resumen)}</div>`:"")+
   ((o.eficaz||[]).length?`<div class="anal">⭐ Actuación más eficaz según los planos</div><div class="gst">${o.eficaz.map((p,n)=>`<label class="gpaso"><input type="checkbox"><span><b>${n+1}.</b> ${esc(p)}</span></label>`).join("")}</div>`:"")+
   ((o.medir||[]).length?`<div class="anal">📏 Pasos de campo a medir</div>${o.medir.map((m,n)=>`<div class="pcm"><b>${n+1}. ${esc(m.punto)}</b><div>Polímetro: punta <b class="pcro">ROJA</b> en <b>${esc(m.roja)}</b> · punta <b>NEGRA</b> en <b>${esc(m.negra)}</b></div><div>Debe marcar <b>${esc(m.esperado)}</b></div>${m.si_no?`<div class="mu">Si no: ${esc(m.si_no)}</div>`:""}</div>`).join("")}`:"")+
@@ -144,6 +146,12 @@ function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre 
   <button class="sec" style="width:100%;margin-top:8px" onclick="pcCopia()">Pasar a «Actuación guiada» de la OT</button>`}
  if(R&&!ST.iaRun)h+=`<button class="pri pcre" onclick="event.stopPropagation();pcRehace()">🔄 RECALCULAR IA</button>`;
  return h}
+/* v519: barra de progreso. Lectura: real (páginas leídas). IA: estimada por tiempo (no hay avance real), se acerca a 95 % y llega a 100 % al responder */
+const pctIA=()=>{const t=(Date.now()-(ST.iaT0||Date.now()))/1000;return Math.min(95,Math.round(95*(1-Math.exp(-t/22))))};
+const txIA=()=>{const t=Math.round((Date.now()-(ST.iaT0||Date.now()))/1000);return `🤖 Cruzando ${ST.docs.length} plano${ST.docs.length==1?"":"s"} con Claude… ${pctIA()} % · ${t} s${t>50?" · Claude tarda: si falla se prueba Gemini":""}`};
+function barra(){const b=$q("#gpcot .pcbar>i"),t=$q("#gpcot .pcbt");if(!b){pintaCaja();return}
+ if(ST.iaRun){b.style.width=pctIA()+"%";if(t)t.textContent=txIA()}else if(ST.prog){b.style.width=(ST.pct||2)+"%";if(t)t.textContent="⏳ "+ST.prog}}
+setInterval(()=>{if(ST.iaRun&&$q("#gpcot"))barra()},500);
 function pintaCaja(){if(typeof view=="undefined"||view!="tec")return;const i=otAct();let b=$q("#gpcot");
  if(!i){if(b)b.remove();return}
  if(!b){b=document.createElement("details");b.id="gpcot";b.className="card gd pccaja";b.open=ls.g("pc_open")!=="0";
@@ -173,6 +181,7 @@ const st=document.createElement("style");st.textContent=`
 html:not(.lt) .pcch{color:#64b5f6!important;border-color:#64b5f6!important}
 .pcno{color:#c62828;font-size:11px;font-weight:700}
 .pcm{margin:6px 0;padding:8px 10px;border-left:4px solid #f0a020;border-radius:6px;background:color-mix(in srgb,#f0a020 10%,transparent);font-size:13px;line-height:1.45}
+.pcbar{height:10px;border-radius:6px;background:color-mix(in srgb,#1565c0 15%,transparent);overflow:hidden;margin:10px 0 4px}.pcbar>i{display:block;height:100%;background:linear-gradient(90deg,#1565c0,#42a5f5);border-radius:6px;transition:width .5s linear}.pcbia>i{background:linear-gradient(90deg,#7b2ff7,#ff6a13)}.pcbt{margin-top:2px;font-size:12.5px;font-variant-numeric:tabular-nums}
 .pcre{width:100%;margin-top:8px;font-weight:800;letter-spacing:.5px}.pcro{color:#e53935}.pcul{margin:4px 0;padding-left:18px;font-size:13px}.pcul li{margin:3px 0}.pcres{margin-top:8px}`;document.head.appendChild(st);
 setTimeout(()=>pinta(),800);
 })();
