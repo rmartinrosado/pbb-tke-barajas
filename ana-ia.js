@@ -150,11 +150,11 @@ if(app0)new MutationObserver(()=>{if(tg)return;tg=setTimeout(()=>{tg=0;try{filtr
 if(typeof vTec=="function"){const ov=vTec;window.vTec=vTec=function(){const r=ov.apply(this,arguments);try{filtraGuia()}catch(e){}return r}}
 window.addEventListener("pc-ia",()=>setTimeout(filtraGuia,50));
 /* «Señales relacionadas con la OT» de la inspección: solo las que deja la IA */
-if(typeof window.otRelSig=="function"){const os=window.otRelSig;window.otRelSig=function(i){const A=os.apply(this,arguments);try{if(todo||!i||!iaDe(i.id))return A;
+if(typeof window.otRelSig=="function"){const os=window.otRelSig;window.otRelSig=function(i){const A=os.apply(this,arguments);try{if(todo||!i||!iaDe(i.id)||(window.insCons&&window.insCons(i.id)))return A;/* v525: consultada → todas las señales */
  const R=anaOT(i);if(!R||!R._ia||!R.rel.length)return A;return {gr:["Según la IA"],rel:R.rel.map(x=>({mod:x.mod,S:x.S})),txt:(A&&A.txt)||i.desc||""}}catch(e){return A}}}
 /* inspección cable a cable: solo los módulos implicados */
 if(typeof gInsHTML=="function"){const oi=gInsHTML;window.gInsHTML=gInsHTML=function(){let h=oi.apply(this,arguments);try{if(todo)return h;
- const i=inc.find(x=>x.id==gOT);const R=i&&anaOT(i);if(!R||!R._ia||!R.mods.length)return h;
+ const i=inc.find(x=>x.id==gOT);if(i&&window.insCons&&window.insCons(i.id))return h;/* v525: consultada → todos los módulos */const R=i&&anaOT(i);if(!R||!R._ia||!R.mods.length)return h;
  h=h.replace(/<button class="([^"]*)"( onclick="gISel\('([^']+)'\)")/g,(m,c,on,k)=>R.mods.includes(k)||k==gIMod?m:`<button class="${c} aiox"${on}`)}catch(e){}return h}}
 const st2=document.createElement("style");st2.textContent=`.aiox{display:none!important}.aigv{margin:0 0 10px;padding:7px 10px;border:1.5px solid #1565c0;border-radius:8px;background:color-mix(in srgb,#1565c0 7%,transparent);opacity:1;font-size:12.5px}`;document.head.appendChild(st2);
 

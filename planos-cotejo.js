@@ -71,9 +71,10 @@ window.pcIAOT=id=>ST&&ST.ia&&ST.iaK&&ST.iaK.indexOf("pc_ia_"+id+"_")===0?ST.ia:n
 async function calcula(){const i=otAct();if(!i||typeof view=="undefined"||view!="tec")return;
  const l=await gLista();let sel=selDe(i.id);if(!sel){sel=sugeridos(i,l);guardaSel(i.id,sel)}
  const docs=sel.map(id=>l.find(x=>x.id==id)).filter(Boolean);const D=datosOT(i);
- const k=hash(i.id+"|"+docs.map(d=>d.id).join(",")+"|"+[i.desc,i.def,i.obs,i.com].join("|")+"|"+D.cod.join(","));
+ const cons=!!(window.insCons&&window.insCons(i.id));/* v525: actuación más eficaz consultada → cotejo completo (otra clave) */
+ const k=hash(i.id+"|"+docs.map(d=>d.id).join(",")+"|"+[i.desc,i.def,i.obs,i.com].join("|")+"|"+D.cod.join(",")+(cons?"|C":""));
  if(ST.k==k)return;
- ST={k,docs,res:null,prog:"",ia:null,iaEst:"",iaK:"pc_ia_"+i.id+"_"+k,D,sigC:false};
+ ST={k,docs,res:null,prog:"",ia:null,iaEst:"",iaK:"pc_ia_"+i.id+"_"+k,D,sigC:false,cons};
  const g=ls.g(ST.iaK);if(g){try{ST.ia=JSON.parse(g)}catch(e){}}
  if(docs.length&&docs.every(d=>TXT[d.id]))cruza();/* ya leídos en esta sesión: el índice de códigos sale sin coste */
  pintaCaja()}
@@ -108,6 +109,18 @@ function paginas(p,D,cupo){if(!p.P)return "";
 async function ia(motor){const i=otAct();if(!i||!ST.res)return;const D=ST.D,R=ST.res,k=ST.k;
  if(ST.iaRun)return;ST.iaRun=true;ST.motor=motor;ST.iaT0=Date.now();ST.iaEst="";pintaCaja();
  const cupo=Math.floor(14000/Math.max(1,R.pl.length));const al=window.aliasCampo||(x=>x);
+ const cons=!!ST.cons,blq=cons&&window.insEsBloqueo&&window.insEsBloqueo(i);
+ const cad=cons&&window.insCadenaTexto?window.insCadenaTexto(i):"";
+ const COMP=cons?`
+MODO INSPECCIÓN COMPLETA: la actuación más eficaz YA SE HA CONSULTADO / HECHO. Recalcula todo desde cero y NO te limites a ella.
+Da la INSPECCIÓN CABLE A CABLE COMPLETA de cada señal implicada en la avería, desde su ORIGEN (equipo, contacto o elemento de campo que la genera, o fuente de 24 V) hasta su DESTINO (entrada del PLC), tramo a tramo: borna, hilo, manguera y conductor, con el punto a medir en cada tramo.${blq?`
+ES UN BLOQUEO: despliega el interbloqueo entero desde el armario CBTH hasta los equipos de la PBB y las máquinas de servicios auxiliares AAA (máquina A/A y carro A/A) y HZ (convertidor 400 Hz en servicio, conector al 90 %, manguera extendida), y el AO (seta y desbloqueo). Prioriza el tramo DENTRO DEL CBTH y DENTRO DE CADA EQUIPO (clemas, relés y contactos de la máquina AAA y del convertidor), que es lo que no tiene la app.`:""}
+Recorridos del lado de la PBB que ya tiene la app (esquema rev. J; complétalos con el lado de los equipos según los planos):
+${cad||"(ninguno)"}`:"";
+ const LIM=cons?`LÍMITES (obligatorios, la respuesta no puede pasar de 2500 palabras): "eficaz" máx. 4 pasos · "medir" máx. 4 puntos · "tramos" máx. 10 · "discrepancias" máx. 4 · "planos" máx. 4 · cada texto máx. 200 caracteres.`:
+  `LÍMITES (obligatorios, la respuesta no puede pasar de 2500 palabras): "eficaz" máx. 8 pasos · "medir" máx. 6 puntos · "discrepancias" máx. 5 · "planos" máx. 5 · cada texto máx. 220 caracteres. Céntrate en la señal de la avería, no en todos los códigos.`;
+ const JS=cons?`{"resumen":"causa más probable en 1-2 frases","eficaz":["paso 1"],"medir":[{"punto":"","roja":"","negra":"","esperado":"","si_no":""}],"tramos":[{"senal":"","equipo":"","origen":"","destino":"","recorrido":"A → B → C","roja":"","negra":"","esperado":"","si_no":"","plano":"plano y página"}],"discrepancias":["…"],"planos":[{"plano":"","folios":"","aporta":""}]}`:
+  `{"resumen":"causa más probable en 1-2 frases","eficaz":["paso 1","paso 2"],"medir":[{"punto":"","roja":"","negra":"","esperado":"","si_no":""}],"discrepancias":["…"],"planos":[{"plano":"","folios":"","aporta":""}]}`;
  const prompt=`Eres técnico experto en mantenimiento de pasarelas de embarque (PBB) TKE del aeropuerto Madrid-Barajas (puesto remoto RCS, PLC con módulos E-A… en el armario eléctrico y P-A… en el armario del pupitre, equipos AAA aire acondicionado, HZ convertidor 400 Hz, armario CBTH de interfaz con los equipos).
 Tienes que COTEJAR VARIOS PLANOS entre sí para una OT y dar con la actuación más eficaz en campo y los puntos a medir.
 OT ${i.orden||"-"} · PBB ${i.pos} · tipo ${i.tipo||"PAS"}${(i.equipos||[]).length?" · equipos "+i.equipos.join(", "):""}
@@ -116,6 +129,7 @@ Diagnóstico actual de la app (actuación más eficaz): ${D.efT||"(ninguno)"}
 Códigos implicados: ${D.cod.join(", ")||"(ninguno)"}
 Planos elegidos: ${R.pl.map(p=>corto(p.d.name)).join(" | ")}
 TEXTO EXTRAÍDO DE LOS PLANOS (páginas donde salen los códigos o las palabras del aviso):${R.pl.map(p=>paginas(p,D,cupo)).join("\n")}
+${COMP}
 
 Tareas:
 1) Sigue la señal de la avería de un plano a otro (bornas, hilos, mangueras, contactos libres de potencial, entradas/salidas del PLC) y cruza los datos entre planos.
@@ -123,14 +137,14 @@ Tareas:
 3) Pasos de MEDIDA en campo con polímetro: punto, dónde va la punta roja y la negra, valor esperado y qué indica si no lo da.
 4) Lo que NO cuadra entre los planos (bornas, hilos o nombres distintos) o datos que faltan.
 No inventes: si un dato no está en el texto de los planos, dilo. Cita plano y página o folio de cada dato. Castellano técnico, MUY conciso.
-LÍMITES (obligatorios, la respuesta no puede pasar de 2500 palabras): "eficaz" máx. 8 pasos · "medir" máx. 6 puntos · "discrepancias" máx. 5 · "planos" máx. 5 · cada texto máx. 220 caracteres. Céntrate en la señal de la avería, no en todos los códigos.
+${LIM}
 Responde SOLO con JSON, sin nada más:
-{"resumen":"causa más probable en 1-2 frases","eficaz":["paso 1","paso 2"],"medir":[{"punto":"","roja":"","negra":"","esperado":"","si_no":""}],"discrepancias":["…"],"planos":[{"plano":"","folios":"","aporta":""}]}`;
+${JS}`;
  try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("inicia sesión para usar la IA");
   const ac=new AbortController(),to=setTimeout(()=>ac.abort(),70000);
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({prompt,motor})});clearTimeout(to);
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
-  const o=leeJSON(j.txt);if(!o.resumen&&!(o.eficaz||[]).length&&!(o.medir||[]).length)throw new Error("respuesta incompleta");o.lector=j.lector||"IA";o.t=Date.now();
+  const o=leeJSON(j.txt);if(!o.resumen&&!(o.eficaz||[]).length&&!(o.medir||[]).length)throw new Error("respuesta incompleta");o.lector=j.lector||"IA";o.t=Date.now();if(ST.cons)o.modo="completa";
   {const b=$q("#gpcot .pcbar>i");if(b){b.style.width="100%";await new Promise(r=>setTimeout(r,350))}}
   ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ST.sigC=false;ls.s(ST.iaK,JSON.stringify(o));try{window.dispatchEvent(new CustomEvent("pc-ia",{detail:{id:i.id}}))}catch(e){}}
  catch(e){ST.iaRun=false;if(ST.k!==k)return;if(motor=="gemini")ST.sigC=true;ST.iaEst=(motor=="gemini"?"Gemini (gratis) no ha dado resultado: ":"Claude no ha dado resultado: ")+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+(motor=="gemini"?". Puedes lanzarlo con Claude (tiene coste) con el botón de abajo, o reintentar con Gemini.":". Puedes volver a lanzarlo.")}
@@ -149,6 +163,16 @@ window.pcRehace=async function(motor){if(ST.iaRun||ST.prog||!ST.docs.length)retu
  ST.iaEst="";
  if(!ST.res){const ok=await leer();if(!ok)return}
  ia(motor)};
+/* v525: actuación más eficaz consultada → recalcular TODO con la inspección completa (o volver con quitar=true) */
+window.pcCompleta=async function(quitar){const i=otAct();if(!i||typeof view=="undefined"||view!="tec")return;
+ if(!quitar&&window.insEsBloqueo&&window.insEsBloqueo(i)){try{const l=await gLista();const s=selDe(i.id)||sugeridos(i,l);const add=id=>{if(id&&!s.includes(id))s.push(id)};
+  ["PAS","AAA","HZ"].forEach(k=>{try{add(gDocId(k,l))}catch(e){}});
+  const pos=String(i.pos||"");const c=l.filter(x=>/CBTH/i.test(x.name));add((c.find(x=>new RegExp("(^|\\D)"+pos+"(\\D|$)").test(x.name))||c[0]||{}).id);
+  guardaSel(i.id,s);const w=$q("#gpcsel");if(w)w.remove()}catch(e){}}
+ try{ANA_C={k:"",r:null}}catch(e){}ST.k="";await calcula();await pinta();
+ if(!quitar&&!ST.ia&&!ST.iaRun&&!ST.prog&&ST.docs.length)pcRehace("gemini");
+ try{window.dispatchEvent(new CustomEvent("pc-ia",{detail:{id:i.id}}))}catch(e){}};
+window.pcEstado=()=>{try{if(!ST||!ST.cons)return "";if(ST.prog)return "⏳ "+ST.prog;if(ST.iaRun)return txIA();if(ST.iaEst)return ST.iaEst;return ""}catch(e){return ""}};
 window.pcCopia=function(){const i=otAct(),o=ST.ia;if(!i||!o){msg("Todavía no hay resultado del cotejo");return}
  const t=`[Cotejo entre planos · ${ST.docs.map(d=>corto(d.name)).join(" + ")}]\n`+(o.resumen?"Causa probable: "+o.resumen+"\n":"")+
   (o.eficaz||[]).map((p,n)=>`${n+1}. ${p}`).join("\n")+((o.medir||[]).length?"\nMEDIR:\n"+(o.medir||[]).map(m=>`· ${m.punto}: roja en ${m.roja}, negra en ${m.negra} → debe marcar ${m.esperado}${m.si_no?". Si no → "+m.si_no:""}`).join("\n"):"");
@@ -170,6 +194,7 @@ function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre 
   ((o.medir||[]).length?`<div class="anal">📏 Pasos de campo a medir</div>${o.medir.map((m,n)=>`<div class="pcm"><b>${n+1}. ${esc(m.punto)}</b><div>Polímetro: punta <b class="pcro">ROJA</b> en <b>${esc(m.roja)}</b> · punta <b>NEGRA</b> en <b>${esc(m.negra)}</b></div><div>Debe marcar <b>${esc(m.esperado)}</b></div>${m.si_no?`<div class="mu">Si no: ${esc(m.si_no)}</div>`:""}</div>`).join("")}`:"")+
   ((o.discrepancias||[]).length?`<div class="anal">⚠️ No cuadra entre planos</div><ul class="pcul">${o.discrepancias.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"")+
   ((o.planos||[]).length?`<details class="pccod"><summary>📄 Qué aporta cada plano</summary><ul class="pcul">${o.planos.map(p=>`<li><b>${esc(p.plano)}</b>${p.folios?" · "+esc(p.folios):""}: ${esc(p.aporta)}</li>`).join("")}</ul></details>`:"")+
+  ((o.tramos||[]).length?`<div class="icav" style="margin-top:8px">🔌 Inspección completa: ${o.tramos.length} tramo${o.tramos.length==1?"":"s"} del lado de los equipos → <a href="#" onclick="event.preventDefault();event.stopPropagation();const x=document.getElementById('ginsc');if(x){x.open=true;x.scrollIntoView({block:'start',behavior:'smooth'})}">ver «Inspección cable a cable completa»</a></div>`:"")+
   `<div class="mu" style="font-size:11px;margin-top:6px">${o.cortado?"Respuesta de la IA recortada por longitud (se muestra lo recibido) · ":""}Cotejo con ${esc(o.lector||"IA")} · ${new Date(o.t||Date.now()).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}. Comprueba en campo cada dato con el plano antes de actuar.</div>
   <button class="sec" style="width:100%;margin-top:8px" onclick="pcCopia()">Pasar a «Actuación guiada» de la OT</button>`}
  if(!ST.iaRun&&!ST.prog){
