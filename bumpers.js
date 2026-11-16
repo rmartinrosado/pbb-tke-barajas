@@ -72,8 +72,8 @@ function croquis(D,grupos){
 function botones(D,grupos){return grupos.map(k=>{const G=D.g[k];return `<div class="bk-btn"><b>${k==="brazo"?"Brazo":"Cabina"}:</b> ${["A","B","C"].map(p=>`<button type="button" class="${prueba[k]===p?"on":""}" data-bkg="${k}" data-bkp="${p}">${p} · ${p==="A"?G.b[0].id:p==="B"?G.b[1].id:"los dos"}</button>`).join("")}</div>`}).join("")}
 function caja(pos,grupos,titulo){const D=varPos(pos);const id="bk"+Math.random().toString(36).slice(2,8);
  return `<div class="bk-box" id="${id}" data-bkpos="${e_(pos||"")}" data-bkgr="${grupos.join(",")}">
-  <div class="bk-h">${titulo||"Bumpers · puente en el bornero del pupitre (no en el PLC)"}</div>
-  <div class="bk-n">El puente en el PLC (IN–UT de E-A10) anula toda la cadena y no dice qué bumper falla. Puenteando en el bornero <b>P-X92.1</b> del pupitre se prueba bumper a bumper. Plano ${D.f===116?"507 folio 116":"folio 92"}.</div>
+  <div class="bk-h">${titulo||"Bumpers · 2ª opción · puente en el bornero del pupitre P-X92.1"}</div>
+  <div class="bk-n">1ª opción: puente en el PLC (IN–UT de E-A10), que saca la PBB pero anula el grupo entero y no dice qué bumper falla. 2ª opción: puenteando en el bornero <b>P-X92.1</b> del pupitre se prueba bumper a bumper para saber cuál falla. Plano ${D.f===116?"507 folio 116":"folio 92"}.</div>
   <div class="bk-svg">${croquis(D,grupos)}</div>${botones(D,grupos)}
   ${grupos.map(k=>{const G=D.g[k];return `<div class="bk-gr"><div class="bk-gt">${e_(G.nom)} · ${e_(G.led)}</div><ol>${pasos(G,D).map(x=>`<li>${x}</li>`).join("")}</ol></div>`}).join("")}
   <div class="bk-n">⚠️ El puente es solo para localizar el fallo con la PAS parada o en maniobra controlada y vigilada. Nunca dejar un bumper puenteado.</div></div>`}
@@ -85,20 +85,21 @@ document.addEventListener("click",ev=>{const b=ev.target.closest("[data-bkp]");i
 /* ---------- 1. Análisis de OT: «bumper» sin precisar = los dos grupos ---------- */
 try{const d=SEN_DEF.find(x=>String(x.re).includes("bumper"));if(d){d.sub[0][0]=/brazo|autonivel/;d.sub[0][2]=1;d.sub[1][0]=/cabina|lateral|izq/;d.sub[1][2]=1}}catch(e){}
 const grupoDe=it=>it&&it[0]==="E-A10"?(it[1]==="1.1"?"brazo":it[1]==="2.1"?"cabina":null):null;
-/* ---------- 2. Primera actuación: puente en el bornero del pupitre con croquis ---------- */
+/* ---------- 2. Primera actuación (v529: 1ª opción el puente en el PLC E-A10, 2ª el bornero del pupitre con croquis) ---------- */
 if(typeof segPuente=="function"){const o=segPuente;window.segPuente=segPuente=function(it){const g=grupoDe(it);if(!g)return o.apply(this,arguments);
-  const i=ot();return caja(i&&i.pos,[g],`${g==="brazo"?"Bumper del brazo":"Bumper de cabina"} · puente en el bornero del pupitre P-X92.1`)}}
+  const i=ot();return caja(i&&i.pos,[g],`${g==="brazo"?"Bumper del brazo":"Bumper de cabina"} · 2ª opción · puente en el bornero del pupitre P-X92.1`)}}
 if(typeof segHTML=="function"){const o=segHTML;window.segHTML=segHTML=function(i,S){let h=o.apply(this,arguments);try{if(S&&S.sen&&S.sen.some(grupoDe)){
-  h=h.replace(/Elemento de seguridad · puente provisional en el PLC/,"Bumpers · puente en el bornero del pupitre P-X92.1 (no en el PLC)")
-   .replace(/2\. Si con el bypass no deja maniobrar: <b>puentes provisionales con hilo<\/b> en el módulo del PLC del elemento afectado \(abajo\)\./,"2. Si con el bypass no deja maniobrar: <b>puente con hilo en el bornero del pupitre P-X92.1</b>, bumper a bumper (abajo), para saber cuál de los cuatro falla.")}}catch(e){}return h}}
+  h=h.replace(/Elemento de seguridad · puente provisional en el PLC/,"Bumpers · 1ª opción puente en el PLC E-A10 · 2ª opción bornero del pupitre P-X92.1")
+   .replace(/2\. Si con el bypass no deja maniobrar: <b>puentes provisionales con hilo<\/b> en el módulo del PLC del elemento afectado \(abajo\)\./,"2. Si con el bypass no deja maniobrar: <b>1ª opción · puente provisional con hilo en el PLC</b>, módulo E-A10 (IN ↔ UT del grupo, croquis abajo). <b>2ª opción · puente en el bornero del pupitre P-X92.1</b>, bumper a bumper, para saber cuál de los cuatro falla.")}}catch(e){}return h}}
 if(typeof anaHTML=="function"){const o=anaHTML;window.anaHTML=anaHTML=function(i,R,d){let h=o.apply(this,arguments);try{const S=segOT(i);
-  if(S&&S.sen&&S.sen.some(grupoDe))h=h.replace(/puente provisional en el PLC/,"puente en el bornero del pupitre P-X92.1, bumper a bumper")}catch(e){}return h}}
+  if(S&&S.sen&&S.sen.some(grupoDe))h=h.replace(/puente provisional en el PLC/,"puente provisional en el PLC E-A10 (2ª opción: bornero del pupitre P-X92.1, bumper a bumper)")}catch(e){}return h}}
 /* ---------- 3. Guía de campo: caso propio con el croquis ---------- */
 /* v334: se AÑADE al final (antes se insertaba en medio y desplazaba los índices que otros módulos ya habían guardado:
    hidráulica, PBB 507, SAI, radar de ala, carro de aire). En pantalla sigue agrupada con «Zapata / bordes / bumpers». */
 try{const L=GUIA.tipos.PAS.s;if(!L.some(x=>x.t=="Bumpers brazo y cabina · 4 bumpers"))
- L.push({t:"Bumpers brazo y cabina · 4 bumpers",g:[92,92,92,92,92,92,70],p:[
+ L.push({t:"Bumpers brazo y cabina · 4 bumpers",g:[92,70,92,92,92,92,92,70],p:[
   "Son 2 grupos de 2 bumpers en serie: BRAZO AUTONIVELADOR C-B27 + C-B28 → E-A10 LED 1 (1.1 / 1.2) · LATERAL IZQUIERDO DE CABINA C-B29 + C-B30 → E-A10 LED 2 (2.1 / 2.2). LED encendido = bumpers libres.",
+  "1ª opción · puente provisional en el PLC, módulo E-A10: IN 1.1 ↔ UT 1.2 (brazo) o IN 2.1 ↔ UT 2.2 (cabina). Saca la PBB en maniobra controlada pero anula el grupo entero. 2ª opción · puente en el bornero del pupitre P-X92.1 (pruebas A, B y C) para saber cuál de los cuatro falla.",
   "Brazo en el bornero del pupitre P-X92.1: 13 (UT, hilo 669) → CP-W61 → C-B28 → CP-W61 → 28 (hilo 672) → CP-W60 → C-B27 → CP-W60 → 12 (IN, hilo 668). 507: borna intermedia P-X51:25, hilos 620 / 623 / 619.",
   "Cabina en el bornero del pupitre P-X92.1: 15 (UT, hilo 671) → CP-W63 → C-B29 → CP-W63 → 29 (hilo 673) → CP-W62 → C-B30 → CP-W62 → 14 (IN, hilo 670). 507: borna intermedia P-X51:26, hilos 622 / 624 / 621.",
   "Prueba A: puente 12–28 (brazo) o 14–29 (cabina) → si el LED se enciende falla C-B27 (brazo) / C-B30 (cabina).",
@@ -107,7 +108,8 @@ try{const L=GUIA.tipos.PAS.s;if(!L.some(x=>x.t=="Bumpers brazo y cabina · 4 bum
   "Quitar siempre el puente, reparar el bumper y comprobar que al pisarlo la PAS se para (E-A10 LED se apaga)."],r:"pág. 70, 92 (507: 93, 116)"});
 }catch(e){}
 function inyecta(){document.querySelectorAll("details").forEach(d=>{const s=d.querySelector(":scope>summary");if(!s||d.dataset.bkok||!/Bumpers brazo y cabina/.test(s.textContent))return;
- d.dataset.bkok="1";const i=ot();const w=document.createElement("div");w.innerHTML=caja(i&&i.pos,["brazo","cabina"],"Croquis · bumpers de brazo y cabina en el bornero del pupitre");s.insertAdjacentElement("afterend",w.firstElementChild)})}
+ d.dataset.bkok="1";const i=ot();const w=document.createElement("div");w.innerHTML=caja(i&&i.pos,["brazo","cabina"],"2ª opción · croquis de los bumpers de brazo y cabina en el bornero del pupitre");const bx=w.firstElementChild;s.insertAdjacentElement("afterend",bx);
+ try{if(typeof window.puentePLCHTML=="function")bx.insertAdjacentHTML("beforebegin",window.puentePLCHTML(["E-A10","1.1"],"1ª opción · brazo")+window.puentePLCHTML(["E-A10","2.1"],"1ª opción · cabina"))}catch(e){}})}
 new MutationObserver(()=>inyecta()).observe(document.documentElement,{childList:true,subtree:true});
 /* ---------- estilos ---------- */
 const st=document.createElement("style");st.textContent=`

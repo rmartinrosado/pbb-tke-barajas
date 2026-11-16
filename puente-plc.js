@@ -4,8 +4,9 @@
    · Línea de seguridades pulsada por un FC (módulo amarillo safety, p. ej. E-A8, E-A9, E-A10): puente IN ↔ UT del canal.
    · Límite de trabajo (módulo verde, p. ej. E-A2, E-A3, P-A6): puente IN ↔ +24 V que libera el límite, o «soltar y aislar el hilo»
      si la entrada se activa al pisar el límite.
-   · Bumpers (E-A10 1.1 brazo / 2.1 cabina): se mantiene primero el puente en el bornero del pupitre P-X92.1, bumper a bumper;
-     debajo, como 2ª opción, el croquis del puente en el PLC (anula el grupo entero: solo para mover la PBB con compañero vigilando). ===== */
+   · v529 (en toda la PWA): el croquis del puente en el PLC es la 1ª OPCIÓN y el de los borneros la 2ª OPCIÓN.
+     Bumpers (E-A10 1.1 brazo / 2.1 cabina): 1ª el puente IN ↔ UT en E-A10; 2ª, plegado debajo, el puente en el bornero del
+     pupitre P-X92.1 bumper a bumper para saber cuál de los cuatro falla. ===== */
 (function(){
 "use strict";
 if(typeof segPuente!="function"||typeof croquisPuente!="function")return;
@@ -21,16 +22,17 @@ function datos(it){const[id,a,,el,nom]=it;const M=(typeof PLC!="undefined"?PLC:[
  if(L&&L[1]==0)return {o:{mod:id,b1:a,b2:a,k1:sig(id,a)||("IN · "+el),k2:"",d,suelta:true},tipo:"nor"};
  return {o:{mod:id,b1:a,b2:n+"."+(c+1),k1:sig(id,a)||("IN · "+el),k2:"+24 V",d},tipo:"nor"}}
 const bumper=it=>it&&it[0]=="E-A10"&&(it[1]=="1.1"||it[1]=="2.1");
-function croq(it){const D=datos(it);if(!D)return "";let svg="";try{svg=croquisPuente(D.o,5)}catch(e){return ""}
+function croq(it,et){const D=datos(it);if(!D)return "";let svg="";try{svg=croquisPuente(D.o,5)}catch(e){return ""}
  const t=D.tipo=="seg"?`Línea de seguridades pulsada por FC · módulo amarillo ${esc(D.o.mod)} · puente IN ${esc(D.o.b1)} ↔ UT ${esc(D.o.b2)}`
   :D.o.suelta?`Límite de trabajo · módulo verde ${esc(D.o.mod)} · soltar y aislar el hilo de IN ${esc(D.o.b1)}`
   :`Límite de trabajo · módulo verde ${esc(D.o.mod)} · puente IN ${esc(D.o.b1)} ↔ +24 V ${esc(D.o.b2)}`;
- if(bumper(it))return `<details class="ppl ppl2"><summary>🔌 2ª opción · croquis del puente en el PLC (${esc(D.o.mod)} ${esc(D.o.b1)} ↔ ${esc(D.o.b2)})</summary>
-  <div class="ppn">Anula los dos bumpers del grupo y toda la cadena: no dice cuál falla. Solo para mover la PBB en maniobra controlada, con un compañero vigilando, si el puente en el bornero no basta.</div>
-  <div class="ppt">${t}</div><div class="ppsvg">${svg}</div></details>`;
- return `<div class="ppl"><div class="ppt">🔌 Croquis del puente en el PLC · ${t}</div><div class="ppsvg">${svg}</div></div>`}
+ return `<div class="ppl"><div class="ppt">🔌 ${(et||bumper(it))?esc(et||"1ª opción")+" · ":""}Croquis del puente en el PLC · ${t}</div>${bumper(it)?`<div class="ppn">Saca la PBB en maniobra controlada, con un compañero vigilando, pero anula los dos bumpers del grupo: no dice cuál falla (para eso, la 2ª opción).</div>`:""}<div class="ppsvg">${svg}</div></div>`}
+window.puentePLCHTML=(it,et)=>{try{const x=(typeof PLC!="undefined"?PLC:[]).find(m=>m.id==it[0]);return croq(it,et)}catch(e){return ""}};
 const o=segPuente;
-window.segPuente=segPuente=function(it){const h=o.apply(this,arguments);if(!h)return h;try{return h+croq(it)}catch(e){return h}};
+/* 1ª opción: el croquis del puente en el PLC; 2ª opción: el puente en el bornero (bumpers) o el texto del puente */
+window.segPuente=segPuente=function(it){const h=o.apply(this,arguments);if(!h)return h;try{const c=croq(it);if(!c)return h;
+ if(bumper(it))return c+`<details class="ppl ppl2"><summary>🔧 2ª opción · puente en el bornero del pupitre P-X92.1, bumper a bumper (para saber cuál falla)</summary>${h}</details>`;
+ return h+c}catch(e){return h}};
 const st=document.createElement("style");st.textContent=`
 .ppl{margin:6px 0 10px;padding:8px;border:1.5px dashed var(--pk-w,#ff3b30);border-radius:10px}
 .ppl2{border-color:var(--bd,#999)}.ppl2>summary{cursor:pointer;font-weight:800;font-size:13px}
