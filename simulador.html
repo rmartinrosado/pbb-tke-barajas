@@ -56,6 +56,7 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 .ctrls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .btn{font:600 13.5px var(--f-body);padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.ana{display:flex;flex-direction:column;gap:4px;width:100%;font:500 13.5px var(--f-body)}.ana input{width:100%;accent-color:var(--accent)}
 .btn.act{background:var(--warnBg);border-color:var(--warn);color:var(--warn)}
 .ref{font-size:12.5px;color:var(--muted);margin-top:8px}
 .chain{display:flex;flex-direction:column;margin-top:12px}
@@ -167,6 +168,16 @@ ol.pasos li{padding-left:2px}ol.pasos li::marker{color:var(--warn);font-weight:7
 <script src="cableado.js?v=58"></script>
 <script src="cableado-revj.js?v=324"></script>
 <script>window.ES507=/[?&]pbb=507/.test(location.search);if(window.ES507)document.write('<script src="cableado507.js?v=325"><\/script>')</script>
+<script>/* v539: E-A5 completo en la rev. J (folio 63): módulo de potencia IB IL 24 PWR IN que alimenta el grupo de seguridades.
+ US 1.1 y UM 1.2 / US 2.1 con +24 V hilo 613 (E-Q30.4 8 A → E-X68:6) y GND 1.3 con hilo 205 (E-X68:2). */
+(function(){const C=window.CABLEADO;if(!C)return;
+ const nota="Módulo de potencia IB IL 24 PWR IN del grupo de seguridades: US/UM con +24 V hilo 613 (+E-Q30.4 8 A → E-X68:6) y GND 1.3 con hilo 205 (E-X68:2). Entre US y GND = 24 V. Si falta, caen todas las entradas y salidas de seguridad (E-A6, E-A7, E-A8).";
+ const cad=b=>[{k:"?",f:63,x:nota,v:[]},{k:"B",f:63,t:"+E-X68",p:"6",v:[{h:"613",c:"RD",s:"1"}]},{k:"E",f:37,t:"+E-Q30.4",ps:["2","1"],d:"magnetotérmico 8 A",v:[{h:"613",c:"RD",s:"1"}]},{k:"P",f:36,t:"+E-Q30.0 fuente 24 V (Weidmüller)",v:[]}];
+ C["E-A5|1.1|63"]={m:"E-A5",b:"1.1",f:63,c:"US",k:"US",d:"ALIMENTACIÓN US LÓGICA MÓDULO SEGURIDADES",n:cad("1.1")};
+ C["E-A5|1.2|63"]={m:"E-A5",b:"1.2",f:63,c:"UM",k:"UM",d:"ALIMENTACIÓN UM PERIFERIA MÓDULO SEGURIDADES",n:cad("1.2")};
+ C["E-A5|2.1|63"]={m:"E-A5",b:"2.1",f:63,c:"US",k:"US2",d:"ALIMENTACIÓN US (PUENTE) MÓDULO SEGURIDADES",n:cad("2.1")};
+ C["E-A5|1.3|63"]={m:"E-A5",b:"1.3",f:63,c:"GND",k:"MASA",d:"GND 0 V MÓDULO SEGURIDADES",n:[{k:"?",f:63,x:nota,v:[]},{k:"B",f:63,t:"+E-X68",p:"2",v:[{h:"205",c:"WH",s:"1"}]}]};
+})();</script>
 <script>if(window.ES507&&window.CABLEADO507){window.CABLEADO_J=window.CABLEADO;window.CABLEADO=window.CABLEADO507}else window.ES507=false;</script>
 <script>
 const C=window.CABLEADO, KEYS=Object.keys(C);
@@ -179,7 +190,8 @@ const isCoil=el=>el.ps&&(el.ps.includes("A1")||el.ps.includes("A2")||el.ps.lengt
 const wires=el=>(el.v||[]).map(v=>v.h?("hilo "+v.h+(v.c?" "+v.c:"")):(v.m?(v.m+" · "+v.t+" · cond. "+v.d):"")).filter(Boolean).join(" / ");
 const ttl=el=>el.k==="B"?(el.t+":"+el.p):el.k==="J"?("Rama paralela: "+el.br.map(b=>b.filter(x=>x.t).map(x=>x.t).join("+")).join(" | ")):el.k==="M"?("Enlace "+el.l):el.k==="P"?el.t:el.k==="F"?(el.t+":"+el.p):(el.t||"");
 
-function mods(){const m=[...new Set(KEYS.map(k=>C[k].m))];$("#mods").innerHTML=['<button class="'+(mod?"":"sel")+'" data-m="">Todos</button>'].concat(m.map(x=>'<button class="'+(mod===x?"sel":"")+'" data-m="'+x+'">'+x+'</button>')).join("");}
+const MODORD=x=>{const r=/^([EP])-A(\d+)/.exec(x);return r?(r[1]==="E"?0:1000)+ +r[2]:9999};
+function mods(){const m=[...new Set(KEYS.map(k=>C[k].m))].sort((a,b)=>MODORD(a)-MODORD(b)||a.localeCompare(b));$("#mods").innerHTML=['<button class="'+(mod?"":"sel")+'" data-m="">Todos</button>'].concat(m.map(x=>'<button class="'+(mod===x?"sel":"")+'" data-m="'+x+'">'+x+'</button>')).join("");}
 function list(){const q=$("#q").value.trim().toLowerCase();
   const r=KEYS.filter(k=>principal(C[k])&&(!mod||C[k].m===mod)&&(!q||JSON.stringify(C[k]).toLowerCase().includes(q)));
   $("#list").innerHTML=r.slice(0,120).map(k=>{const e=C[k];return '<button class="pt'+(k===sel?" sel":"")+'" data-k="'+k+'"><span class="id">'+e.m+" "+e.b+'</span><span class="d">'+e.d+'</span><span class="m">'+e.k+" · "+e.c+" · folio "+e.f+'</span></button>'}).join("")||'<p class="foot">Sin resultados.</p>';}
@@ -412,9 +424,35 @@ function pot(){
    '<div class="what" style="--d:'+dp+'">'+desde+'<b>'+(ram?'<i class="rm">└</i>':'')+n.t+'</b><div class="w">'+[n.d,n.m,FOL(n.f)].filter(Boolean).join(" · ")+'</div></div>'+
    (pfault?'<div class="mk"><button data-pmk="'+n.id+'" data-a="y" class="'+(pmarks[n.id]==="y"?"y":"")+'">Sí</button><button data-pmk="'+n.id+'" data-a="n" class="'+(pmarks[n.id]==="n"?"n":"")+'">No</button></div>':btn)+'</div>'}).join("")+'</div>';
 }
+/* ===== v539: E-A4 (entradas analógicas 4-20 mA) y E-A5 (alimentación del grupo de seguridades) ===== */
+const isPwr=e=>/^(US|UM)$/.test(e.c||"");
+const isGnd=e=>e.c==="GND";
+let anaPct=50, anaOpen=false;
+const fmA=x=>x.toFixed(1).replace(".",",")+" mA";
+function simAna(e){
+  const n=e.n.filter(x=>x.k!=="?"), notes=e.n.filter(x=>x.k==="?").map(x=>x.x);
+  const ma=anaOpen?0:4+16*anaPct/100, txt=fmA(ma), ret=e.b.replace(/^1\./,"2.");
+  const gnd=window.ES507?"hilo 129":"hilo 205";
+  const rows=[{k:"Alimentación",t:"Sensor: +24 V (BN) y 0 V (BU)",w:"medir entre + y − del sensor: 24 V. Sin 24 V no hay señal",v:24}];
+  [...n].reverse().forEach(el=>{
+    const pot=el.k==="F"&&/^\d-\d-\d$/.test(el.p||"");
+    rows.push({k:el.k==="B"?"Borna":el.k==="F"?(pot?"Potenciómetro":"Sensor"):"Punto",t:ttl(el)+(el.k==="F"&&el.p?" : "+el.p:""),f:el.f,
+      w:(wires(el)?wires(el)+" · ":"")+(pot?"resistencia variable 0-10 kΩ leída por el convertidor (medir sin tensión, entre 1-3 fija y 1-2 variable)":"medir con pinza de mA o polímetro en serie (lazo abierto)"),
+      v:ma>0?1:0,txt:pot?"Ω":txt});});
+  rows.push({k:"PLC",t:e.m+" "+e.b+" (+I · "+e.c+")",w:"entrada de corriente del módulo",v:ma>0?1:0,txt});
+  rows.push({k:"Retorno",t:e.m+" "+ret+" (−I)",w:"retorno del lazo a 0 V ("+gnd+")",v:ma>0?1:0,txt});
+  notes.push("Lazo 4-20 mA: 4 mA = principio del recorrido, 20 mA = final. 0 mA = lazo abierto (cable, borna o sensor). Por debajo de 3,6 mA o por encima de 20,5 mA el PLC lo da como fallo de medida.");
+  return {rows,notes,led:ma>=4,ledTxt:anaOpen?"0 mA · LAZO ABIERTO":txt+" · "+anaPct+" %"};
+}
+function simGnd(e){
+  const notes=e.n.filter(x=>x.k==="?").map(x=>x.x);
+  const rows=e.n.filter(x=>x.k!=="?").map(el=>({k:"Borna",t:ttl(el),f:el.f,w:wires(el)+" · referencia 0 V",v:0}));
+  rows.push({k:"PLC",t:e.m+" "+e.b+" (GND)",w:"medir entre US (1.1) y GND (1.3): 24 V",v:0});
+  return {rows,notes,led:true,ledTxt:"0 V (MASA)"};
+}
 /* enlace fase 1 ↔ fase 2: si la protección que alimenta el común de una entrada está abierta, toda la cadena queda a 0 V */
 const _simulate=simulate;
-simulate=function(e){const r=_simulate(e);if(isAna(e)){r.rows.forEach(x=>{x.txt="señal"});r.led=true;r.ledTxt="ENTRADA ANALÓGICA";return r}if(isOut(e))return r;
+simulate=function(e){if(isAna(e))return simAna(e);if(isGnd(e))return simGnd(e);const r=_simulate(e);if(isPwr(e)){r.ledTxt=r.led?"24 V PRESENTE":"SIN 24 V";}if(isOut(e))return r;
  const last=e.n.filter(x=>x.k!=="?").slice(-1)[0];let w="";
  if(last&&last.k==="C")w=(last.w||"").split(" ")[0];else if(last&&last.v&&last.v[0]&&last.v[0].h)w=last.v[0].h;
  const pid=WIRE_POT[w];
@@ -431,6 +469,11 @@ document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b
  else if(b.dataset.ave){pst=Object.assign({},AVE[b.dataset.ave][1]);pot()}
  else if(b.dataset.pmk){pmarks[b.dataset.pmk]=pmarks[b.dataset.pmk]===b.dataset.a?undefined:b.dataset.a;pot()}
  else if(b.id==="pflt"){pfault=!pfault;pmarks={};pot()}});
+const _det=det;
+det=function(){_det();if(!sel||!isAna(C[sel]))return;const c=document.querySelector("#det .ctrls");if(!c)return;
+ c.insertAdjacentHTML("afterbegin",'<label class="ana"><span>Posición del recorrido <b>'+anaPct+' %</b> → <b>'+(anaOpen?"0 mA":fmA(4+16*anaPct/100))+'</b></span><input type="range" id="anaR" min="0" max="100" step="5" value="'+anaPct+'"></label><button class="btn'+(anaOpen?" act":"")+'" id="anaL">'+(anaOpen?"Cerrar lazo":"Abrir lazo (cable cortado)")+'</button>');};
+document.addEventListener("input",ev=>{if(ev.target.id==="anaR"){anaPct=+ev.target.value;det()}});
+document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;if(b.id==="anaL"){anaOpen=!anaOpen;det()}else if(b.dataset.k){anaPct=50;anaOpen=false}},true);
 pshow();
 
 sel=KEYS.find(k=>C[k].d==="BYPASS SEGURIDADES")||KEYS[0];

@@ -14,7 +14,7 @@
   if(capa&&!capa.isConnected)document.body.appendChild(capa);
   if(!capa){capa=document.createElement("div");capa.id="simCapa";
    capa.style.cssText="position:fixed;inset:0;z-index:60;background:var(--bg,#11161b);display:none";
-   const f=document.createElement("iframe");f.src="simulador.html?v=536&en=pwa"+(typeof window.es507Act=="function"&&window.es507Act()?"&pbb=507":"");f.title="Análisis";
+   const f=document.createElement("iframe");f.src="simulador.html?v=539&en=pwa"+(typeof window.es507Act=="function"&&window.es507Act()?"&pbb=507":"");f.title="Análisis";
    f.style.cssText="border:0;width:100%;height:100%;display:block;background:transparent";capa.appendChild(f);
    const x=document.createElement("button");x.type="button";x.setAttribute("aria-label","Cerrar Check");x.style.display="none";x.onclick=()=>cierra(false);capa.appendChild(x);
    document.body.appendChild(capa)}
