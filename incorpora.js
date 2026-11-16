@@ -53,13 +53,17 @@ window.compIncorpora=function(){F=[];pinta()};
 function pinta(P){const p=P||{};$("#sheetc").innerHTML=`<div class="icph"><h3 style="margin:0">➕ Incorporar componente</h3><button class="sec" onclick="compCatalogo()" style="width:auto;margin:0">✕</button></div>
  <div class="mu" style="font-size:12.5px;margin:4px 0 8px">Haz fotos nítidas de la placa (texto impreso) y del componente; si puedes, también del cable o su marcado. La IA lee la placa y propone el código cruzándolo con los planos. Revisa antes de guardar.</div>
  <label class="btn" style="margin:0;justify-content:center;gap:6px;padding:12px">📷 Añadir foto<input type="file" accept="image/*" multiple hidden onchange="compFotos(this)"></label>
- <div class="icf">${F.map((f,i)=>`<figure><img src="${f.src}" alt=""><select onchange="compVista(${i},this.value)">${VISTAS.map(v=>`<option${v==f.vista?" selected":""}>${v}</option>`).join("")}</select><div class="icfb"><button class="sec" title="Recortar" onclick="compRecInc(${i})">✂️</button><button class="sec" onclick="compQuita(${i})">🗑</button></div>${f.cut?'<span class="icfc">✂️ recortado</span>':""}${f.ubi?'<span class="icfc">📍 ubicación</span>':""}</figure>`).join("")}</div>
+ <div class="icf" data-fg="inc">${F.map((f,i)=>`<figure data-fi="${i}"><img src="${f.src}" alt=""><select onchange="compVista(${i},this.value)">${VISTAS.map(v=>`<option${v==f.vista?" selected":""}>${v}</option>`).join("")}</select><div class="icfb"><button class="sec" title="Recortar" onclick="compRecInc(${i})">✂️</button><button class="sec" onclick="compQuita(${i})">🗑</button></div>${f.cut?'<span class="icfc">✂️ recortado</span>':""}${f.ubi?'<span class="icfc">📍 ubicación</span>':""}</figure>`).join("")}</div>
+ <div class="mu" style="font-size:11.5px;margin:-2px 0 6px">Toca una foto para verla a pantalla completa (zoom con dos dedos). Mantenla pulsada y arrástrala sobre otra para cambiarlas de sitio.</div>
+ <label>Código si lo sabes (p. ej. E-X62, ET-B9)</label><input id="ic_cod" placeholder="Opcional: la IA recorta ESE elemento" value="${E(p.cod||"")}" autocapitalize="characters">
  <label>¿Dónde está montado?</label><input id="ic_donde" placeholder="Ej. rotonda, túnel exterior, cabina bajo el pupitre…" value="${E(p.donde||"")}">
  <label>¿En qué averías interviene? (palabras del aviso, separadas por comas)</label><input id="ic_cla" placeholder="Ej. barrera rotonda, evento 294" value="${E(p.claves||"")}">
  <button class="pri" style="margin-top:10px" onclick="compIA()" ${F.length?"":"disabled"}>🤖 Identificar con IA</button><div id="ic_st" class="mu" style="font-size:12.5px;margin-top:6px"></div><div id="ic_prop"></div>`;$("#sheet").style.display="flex"}
-const vals=()=>({donde:(document.getElementById("ic_donde")||{}).value||"",claves:(document.getElementById("ic_cla")||{}).value||""});
+const vals=()=>({cod:((document.getElementById("ic_cod")||{}).value||"").trim().toUpperCase().replace(/^\+/,""),donde:(document.getElementById("ic_donde")||{}).value||"",claves:(document.getElementById("ic_cla")||{}).value||""});
 window.compFotos=async function(inp){const v=vals();for(const f of [...(inp.files||[])]){try{const im=await lee(f);const c=aJpg(im,900);const g=aJpg(im,1400);F.push({src:c.toDataURL("image/jpeg",.82),vista:VISTAS[Math.min(F.length,VISTAS.length-1)],c:g,o:g.toDataURL("image/jpeg",.88)})}catch(e){msg(String(e.message||e))}}pinta(v)};
 window.compVista=(i,v)=>{if(F[i])F[i].vista=v};
+/* v545: permutar fotos arrastrándolas y verlas a pantalla completa con zoom */
+(window.FOTO_ORDEN=window.FOTO_ORDEN||{}).inc={mueve:(i,j)=>{if(!F[i]||!F[j])return;[F[i],F[j]]=[F[j],F[i]];repinta()},toca:i=>{if(F[i]&&typeof compVer=="function")compVer(F[i].src,F.map(f=>f.src),i)}};
 /* v535: recorte a mano (o ajuste del recorte de la IA) */
 window.compRecInc=async function(i){const f=F[i];if(!f||typeof compRecorta!="function")return;const r=await compRecorta(f.o||f.src,f.caja);if(!r)return;
  f.src=r.src;f.caja=r.caja;f.cut=true;repinta()};
@@ -76,6 +80,7 @@ window.compIA=async function(){const v=vals();const st=document.getElementById("
   const prompt=`Fotos (en una sola imagen, de izquierda a derecha) de un componente de campo de una pasarela de embarque (PBB) TKE del aeropuerto de Madrid Barajas, para la guía de componentes de la app de mantenimiento.
 Dónde está montado (según el técnico): ${v.donde||"(no indicado)"}.
 Averías en que interviene (según el técnico): ${v.claves||"(no indicado)"}.
+${v.cod?`CÓDIGO INDICADO POR EL TÉCNICO: ${v.cod}. Es OBLIGATORIO: el componente es ${v.cod}; búscalo por su rótulo/etiqueta en la foto, recorta ESE (no otro aunque se vea mejor) y pon codigo="${v.cod}".`:""}
 CÓDIGOS DE ELEMENTOS DE LOS PLANOS (código=nombre): ${codigos()}
 
 TAREA
@@ -83,12 +88,13 @@ TAREA
 2. Coteja el tipo de componente, lo impreso y dónde está montado con la lista de códigos y propone el CÓDIGO de plano más probable (si hay varios iguales, p. ej. izquierdo/derecho o emisor/receptor, ponlos juntos «R-B1 / R-B3» y explícalo). Si no encaja con ninguno, codigo = "SIN CÓDIGO".
 3. Propón: titulo (nombre del elemento en español), fab (fabricante · modelo · referencia), esp = filas [dato, valor] de la placa y su función en la PBB, pin = filas [pin, color, señal, función] si se ven, med = 3-5 pasos «Medir en campo» con valores esperados (por ejemplo «24 VDC entre pin 1 y pin 3»), av = aviso al sustituir, claves = palabras de los avisos de OT en que interviene (separadas por comas), justificacion = por qué ese código.
 4. RECORTE (obligatorio): el elemento se guarda RECORTADO, solo él, sin componentes vecinos a medias ni cables alrededor. Da la caja ajustada al cuerpo del componente principal en la foto donde mejor se ve su placa, en MILÉSIMAS (0-1000) de la imagen COMPLETA que recibes: x0,y0 = esquina superior izquierda, x1,y1 = inferior derecha. Ciñe la caja al borde del componente (no incluyas los elementos de al lado ni los mazos de cables).
+4b. BORNEROS / REGLETAS DE BORNES (códigos «X», p. ej. E-X62, P-X51, IT-X51): su código es el que se lee en su PORTAETIQUETAS (no pongas «SIN CÓDIGO»). En estas fotos el portaetiquetas con el código está a la IZQUIERDA de sus bornas: el bornero abarca desde su etiqueta hacia la DERECHA hasta justo antes de la etiqueta del bornero siguiente (las bornas que hay a la derecha de otra etiqueta son de ese otro bornero). El recorte empieza en el borde izquierdo de SU etiqueta (la etiqueta debe quedar dentro, a la izquierda) y termina antes de la etiqueta siguiente. Las bornas que quedan a la izquierda de su etiqueta NO son suyas.
 5. Si el componente está montado dentro de un BLOQUE de varios elementos (carril DIN, fila de magnetotérmicos, regleta, grupo de relés…): en_bloque = true, bloque = qué bloque es y dónde (p. ej. «carril DIN de magnetotérmicos del armario eléctrico AE»), posicion = su posición contando los elementos del bloque (p. ej. «3 de 10, de izquierda a derecha»), total = nº de elementos del bloque. Si va solo, en_bloque = false.
 Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":[["","","",""]],"med":[""],"av":"","claves":"","justificacion":"","recorte":{"x0":0,"y0":0,"x1":0,"y1":0},"en_bloque":false,"bloque":"","posicion":"","total":0}`;
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt})});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.mensaje||j.error||("error "+r.status));
   const m=String(j.txt||"").match(/\{[\s\S]*\}/);if(!m)throw new Error("La IA no devolvió datos");PROP=JSON.parse(m[0]);PROP.lector=j.lector;
-  if(!PROP.claves&&v.claves)PROP.claves=v.claves;const rc=await recorteIA(PROP,v);pinta(v);
+  if(!PROP.claves&&v.claves)PROP.claves=v.claves;if(v.cod&&String(PROP.codigo||"").toUpperCase().replace(/^\+/,"")!==v.cod){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"(Código indicado por el técnico: "+v.cod+"; la IA proponía «"+(PROP.codigo||"—")+"». Revisa que el recorte sea el de "+v.cod+".)";PROP.codigo=v.cod}const rc=await recorteIA(PROP,v);pinta(v);
   const st2=document.getElementById("ic_st");if(st2)st2.innerHTML=`Leído con <b>${E(j.lector||"IA")}</b>. ${rc}Revisa y corrige antes de guardar.`;propHTML()}
  catch(e){set(`<span style="color:#c62828">${E(String((e&&e.message)||e))}</span>`)}};
 const filas=a=>(a||[]).map(r=>Array.isArray(r)?r.join(" | "):String(r)).join("\n");

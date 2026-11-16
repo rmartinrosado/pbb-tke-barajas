@@ -145,7 +145,7 @@ function fotoBor(b){const F=fotosDe(b);if(fBor!==b){fBor=b;fIdx=0}if(fIdx>=F.len
  const f=F[fIdx];
  return '<div class="bfoto" id="bfoto"><div class="bz" id="bz"><img src="'+esc(f.src)+'" alt="'+esc(b)+'" draggable="false"></div>'+
   '<span class="bfv">'+esc(f.v)+'</span>'+(F.length>1?'<span class="bfn">'+F.map((x,i)=>'<button type="button" data-bf="'+i+'" class="'+(i===fIdx?"sel":"")+'">'+(i+1)+'</button>').join("")+'</span>':'')+
-  '<button type="button" class="bfr" id="bfr" title="Ver entera">⤢</button></div>'}
+  '<button type="button" class="bfr" id="bfr" title="Pantalla completa">⤢</button></div>'}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-bf]");if(!b)return;fIdx=+b.dataset.bf;const x=document.getElementById("bfoto");
  if(x){x.outerHTML=fotoBor(fBor);zoomIni();cabAlto()}});
 function zoomIni(){const box=document.getElementById("bz");if(!box)return;const img=box.querySelector("img");let s=1,tx=0,ty=0;const P=new Map();let g0=null;
@@ -159,9 +159,15 @@ function zoomIni(){const box=document.getElementById("bz");if(!box)return;const 
    tx=ox-(ox-g0.tx)*ns/g0.s+(cx-g0.cx);ty=oy-(oy-g0.ty)*ns/g0.s+(cy-g0.cy);s=ns}
   else if(s>1){tx=g0.tx+(v[0].x-g0.x);ty=g0.ty+(v[0].y-g0.y)}pon()});
  const fin=e=>{P.delete(e.pointerId);est()};box.addEventListener("pointerup",fin);box.addEventListener("pointercancel",fin);
- let t0=0;box.addEventListener("pointerup",e=>{const t=Date.now();if(t-t0<300&&P.size===0){if(s>1){s=1;tx=ty=0}else{const r=box.getBoundingClientRect();s=2.5;tx=-(e.clientX-r.left-r.width/2)*1.5;ty=-(e.clientY-r.top-r.height/2)*1.5}pon()}t0=t});
+ /* v545: un toque → pantalla completa con zoom; doble toque → amplía aquí / restablece */
+ let t0=0,tt=null,mv=false,d0=null;box.addEventListener("pointerdown",e=>{if(P.size<=1){mv=false;d0={x:e.clientX,y:e.clientY}}});
+ box.addEventListener("pointermove",e=>{if(d0&&Math.abs(e.clientX-d0.x)+Math.abs(e.clientY-d0.y)>8)mv=true});
+ box.addEventListener("pointerup",e=>{if(P.size||mv)return;const t=Date.now();
+  if(t-t0<300){clearTimeout(tt);if(s>1){s=1;tx=ty=0}else{const r=box.getBoundingClientRect();s=2.5;tx=-(e.clientX-r.left-r.width/2)*1.5;ty=-(e.clientY-r.top-r.height/2)*1.5}pon();t0=0;return}
+  t0=t;tt=setTimeout(verGrande,320)});
  box.addEventListener("wheel",e=>{e.preventDefault();s=Math.max(1,Math.min(6,s*(e.deltaY<0?1.15:1/1.15)));pon()},{passive:false});
- const rs=document.getElementById("bfr");if(rs)rs.onclick=()=>{s=1;tx=ty=0;pon()}}
+ const rs=document.getElementById("bfr");if(rs)rs.onclick=verGrande}
+function verGrande(){const F=fotosDe(fBor);if(F.length&&typeof window.compVer=="function")window.compVer(F[fIdx].src,F.map(f=>f.src),fIdx)}
 /* alto de las cabeceras fijas → para que las bornas enlazadas no queden tapadas */
 function cabAlto(){const c=document.getElementById("cab"),b=document.getElementById("bcab");const R=document.documentElement.style;
  if(c)R.setProperty("--cabH",c.offsetHeight+"px");R.setProperty("--bcabH",(b?b.offsetHeight:0)+"px")}

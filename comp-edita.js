@@ -62,7 +62,7 @@ function pinta(){if(!capa||!ED)return;const p=ED;const sc=(capa.querySelector(".
  capa.innerHTML=`<div class="cedfix"><button type="button" class="sec cedb0" aria-label="Volver" onclick="compEditaCierra()">←</button><div class="cedti"><b>✏️ Editar ficha</b><small>${E(cur.id)}${cur.raw?"":" · ficha de fábrica"}</small></div><button type="button" class="pri cedg" onclick="compEdGuarda()">💾 Guardar</button></div>
  <div class="cedl">${dl}
  <div class="cedst">Fotos</div>
- <div class="cedfs">${p.fotos.map((f,i)=>`<figure><img src="${E(f.src)}" alt="" onclick="typeof compVer=='function'&&compVer(this.src)">${i==0?'<span class="cedp">Principal</span>':""}
+ <div class="cedst" style="margin-top:-4px;font-weight:500;text-transform:none;letter-spacing:0;font-size:11.5px;opacity:.75">Toca para ampliar · mantén y arrastra para cambiar de sitio (la 1.ª es la principal)</div><div class="cedfs" data-fg="ced">${p.fotos.map((f,i)=>`<figure data-fi="${i}"><img src="${E(f.src)}" alt="">${i==0?'<span class="cedp">Principal</span>':""}
    <input list="ced_vis" data-f="vista" data-i="${i}" value="${E(f.vista)}" placeholder="Vista">
    <div class="cedfb"><button type="button" class="sec" title="Recortar" onclick="compEdRec(${i})">✂️</button><label class="sec" title="Sustituir">🔄<input type="file" accept="image/*" hidden onchange="compEdFoto(this,${i})"></label>${i?`<button type="button" class="sec" title="Poner la primera" onclick="compEdOp('foto^',${i})">⭐</button>`:""}<button type="button" class="sec" title="Quitar" onclick="compEdOp('foto-',${i})">🗑</button></div></figure>`).join("")}
   <label class="cedadd">📷<span>Añadir foto</span><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-1)"></label></div>
@@ -80,6 +80,8 @@ function pinta(){if(!capa||!ED)return;const p=ED;const sc=(capa.querySelector(".
  </div>`;
  const l=capa.querySelector(".cedl");if(l)l.scrollTop=sc}
 
+(window.FOTO_ORDEN=window.FOTO_ORDEN||{}).ced={mueve:(i,j)=>{if(!ED||!ED.fotos[i]||!ED.fotos[j])return;[ED.fotos[i],ED.fotos[j]]=[ED.fotos[j],ED.fotos[i]];sucio=true;pinta()},
+ toca:i=>{if(ED&&ED.fotos[i]&&typeof compVer=="function")compVer(ED.fotos[i].src,ED.fotos.map(f=>f.src),i)}};
 window.compEdOp=function(op,i){if(!ED)return;sucio=true;
  if(op=="esp+")ED.esp.push(["",""]);else if(op=="esp-")ED.esp.splice(i,1);
  else if(op=="pin+")ED.pin.push(["","","",""]);else if(op=="pin-")ED.pin.splice(i,1);
