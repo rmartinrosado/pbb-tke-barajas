@@ -42,6 +42,9 @@
   const c=capaArriba();
   if(c&&(!sheetAbierta()||(parseInt(getComputedStyle(c).zIndex)||0)>9)){
    if(AVISO.has(c.id)){if(typeof msg=="function")msg("Contesta primero al aviso");return}
+   /* v553: si la capa de encima tiene pantallas propias (p. ej. el Check en su iframe), primero vuelve a la anterior de dentro */
+   try{const fr=c.querySelector("iframe");const w=fr&&fr.contentWindow;if(w&&typeof w.pbbAtras=="function"&&w.pbbAtras())return}catch(e){}
+   try{if(typeof c.pbbAtras=="function"&&c.pbbAtras())return}catch(e){}
    const x=botonCerrar(c);if(x)x.click();else c.remove();return}
   if(sheetAbierta()){if(typeof closeSheet=="function")closeSheet();return}
   const p=H.pop()||(view!="dash"?{v:"dash",f:null,y:0}:null);if(!p)return;

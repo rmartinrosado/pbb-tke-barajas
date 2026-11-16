@@ -156,6 +156,7 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
   i.setAttribute("enterkeyhint","search")}
 }
 window.borRender=render;
+window.borEstado=()=>({bq,bsel,bmode});window.borPon=o=>{bq=o.bq||"";bsel=o.bsel||"";bmode=o.bmode||"reg";const i=document.getElementById("bq");if(i)i.value=bq;render()};
 /* ===== v544: foto del bornero / regletero desde el catálogo de Componentes de campo, con zoom de dos dedos y arrastre.
    Va entre el título del bornero y la numeración, y todo ese bloque queda fijo (no hace scroll) bajo la cabecera del CHECK. ===== */
 const nrmB=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[\s+]/g,"");
@@ -196,7 +197,7 @@ function zoomIni(){const box=document.getElementById("bz");if(!box)return;const 
 function verGrande(){const F=fotosDe(fBor);if(F.length&&typeof window.compVer=="function")window.compVer(F[fIdx].src,F.map(f=>f.src),fIdx)}
 /* alto de las cabeceras fijas → para que las bornas enlazadas no queden tapadas */
 function cabAlto(){const c=document.getElementById("cab"),b=document.getElementById("bcab");const R=document.documentElement.style;
- if(c)R.setProperty("--cabH",c.offsetHeight+"px");R.setProperty("--bcabH",(b?b.offsetHeight:0)+"px")}
+ R.setProperty("--cabH","0px"); /* v553: cabecera fuera de la zona con scroll */R.setProperty("--bcabH",(b?b.offsetHeight:0)+"px")}
 window.addEventListener("resize",cabAlto);
 (function(){const st=document.createElement("style");st.textContent=`
 .bmap{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px}
@@ -219,5 +220,5 @@ window.addEventListener("resize",cabAlto);
 document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;
  if(b.dataset.bm){bmode=b.dataset.bm;render()}
  else if(b.dataset.bs){bsel=bsel===b.dataset.bs?"":b.dataset.bs;render();const t=document.querySelector("#bor .tbl");if(t)t.scrollIntoView({block:"start",behavior:"smooth"})}
- else if(b.dataset.go){sel=b.dataset.go;st={};marks={};fault=false;outOn=true;pview="es";mod="";$("#q").value="";pshow();mods();list();window.scrollTo({top:0})}});
+ else if(b.dataset.go){sel=b.dataset.go;st={};marks={};fault=false;outOn=true;pview="es";mod="";$("#q").value="";pshow();mods();list();const sc=document.getElementById("scr");if(sc)sc.scrollTop=0}});
 })();
