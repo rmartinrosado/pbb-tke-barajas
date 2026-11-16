@@ -2,6 +2,7 @@
    v409: también listas «CLAVE: …» y bornas numeradas sin «=» («1 +24 V · 2 0 V · 3 señal»), claves largas y los PDF de jsPDF.
    v410: corregido · en la guía de campo no se aplicaba porque el desplegable «Elementos» del paso tapaba la detección.
    v411: las flechas → son pasos a seguir · «CLAVE → acción · …» en dos columnas (clave | → acción) y «A → B → C» como pasos numerados 1, 2, 3… (también en PDF).
+   v526: en esos recorridos los pasos llevan flecha → en vez de número, para no confundirlos con la numeración de bornas y regleteros.
    v415: elementos separados por comas («R-R1, IT-W16, IT-X62…») → uno por línea con punto naranja, también en el rótulo «📍 Elementos».
    En la guía de campo, la actuación más eficaz, la actuación guiada, el análisis, la lupa, el SOS y la Resolución IA,
    los textos del tipo «BORNERO E-X62 (…): 1 = +24 V común (…) · 2 = 0 V común (…) · 3 = señal ALTURA …»
@@ -24,6 +25,7 @@ summary.bcsum::after{content:none!important}.bcsum .bcl{display:inline}
 .bcdot{color:var(--ac,#ff6a13);font-weight:900;padding:0 4px}
 .bcar{color:var(--ac,#ff6a13);font-weight:800}
 .bcpa .bckc{border-radius:50%;min-width:1.5em;padding:0 4px}
+.bcfl{display:inline-block;font-size:1.15em;line-height:1.2;font-weight:900;min-width:1.2em;text-align:center}
 .bct{margin-top:4px}
 /* v516: sangría de apartados dependientes */
 .bcol>.bcsub,.bcol>.bcsub+.bcdep{border-top:0}
@@ -192,7 +194,7 @@ function procesa(el){if(el.dataset.bcol)return;
   else if(f.hd){const v=document.createElement("span");v.className="bcv bcw bchd";const fv=trozo(tx,f.a,f.b);if(fv)v.append(limpia(fv));g.append(v)}
   else if(f.lv!=null&&(f.lv>0||typeof f.n!="number")){const k=document.createElement("span");k.className="bck bcsub";
    const v=document.createElement("span");v.className="bcv bcdep";v.dataset.lv=f.lv;v.dataset.mk=f.n;const fv=trozo(tx,f.a,f.b);if(fv)v.append(limpia(fv));g.append(k,v)}
-  else if(f.n){const k=document.createElement("span");k.className="bck";const c=document.createElement("span");c.className=f.n=="•"?"bcdot":"bckc";c.textContent=f.n;k.append(c);
+  else if(f.n){const k=document.createElement("span");k.className="bck";const c=document.createElement("span");const fl=typeof f.n=="number"&&r.tipo=="paso";/* v526: los pasos de un recorrido van con flecha, no con número (no se confunden con bornas) */c.className=f.n=="•"?"bcdot":fl?"bcar bcfl":"bckc";c.textContent=fl?"→":f.n;k.append(c);
    const v=document.createElement("span");v.className="bcv";const fv=trozo(tx,f.a,f.b);if(fv)v.append(limpia(fv));g.append(k,v)}
   else{const v=document.createElement("span");v.className="bcv bcw";const fv=trozo(tx,f.a,f.b);if(fv)v.append(limpia(fv));g.append(v)}});
  const frag=document.createDocumentFragment();
@@ -239,7 +241,7 @@ function envuelvePdf(d){if(!d||d.__bcol)return d;d.__bcol=1;
    const r=analiza(t);if(!r)return split(t,w,o);
    const out=[],sl=(a,b)=>t.slice(a,b).replace(/^[\s·]+|[\s·]+$/g,"");
    const lead=sl(r.lead[0],r.lead[1]);if(lead)out.push(...split(lead,w,o));
-   const kt=f=>f.k?sl(f.k[0],f.k[1]):f.pn!=null?f.pn:f.n=="•"?"-":f.n?String(f.n)+".":"";
+   const kt=f=>f.k?sl(f.k[0],f.k[1]):(r.tipo=="paso"&&typeof f.n=="number")?"->":f.pn!=null?f.pn:f.n=="•"?"-":f.n?String(f.n)+".":"";
    const ks=r.filas.filter(f=>f.k||f.n).map(kt);
    const kw=Math.min(Math.max(...ks.map(k=>oW.call(d,k)))+2.5,w*0.42);
    r.filas.forEach(f=>{

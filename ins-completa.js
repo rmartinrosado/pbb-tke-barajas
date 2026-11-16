@@ -138,7 +138,7 @@ function senalHTML(d,ix,i){const e=d.e,{pasos,notas}=cadena(d);let ult="";
  const tit=d.eq||e.d;const sub=e.m=="AUX"?`${d.eq?e.d+" · ":""}folio ${e.f}`:`${e.m} · ${e.c||""} IN ${e.b} · «${e.d}» · folio ${e.f}`;
  const pl=f=>f?`<button class="gpl icpl" aria-label="Ver plano folio ${f}" onclick="event.preventDefault();event.stopPropagation();gPlano('PAS',${f})">${typeof IC=="function"?IC('plans'):"📄"}<small>${f}</small></button>`:"";
  const filas=pasos.map((p,j)=>{const sep=p.z!==ult&&j>0;ult=p.z;const prev=pasos[j-1],next=pasos[j+1];
-  return `${sep?`<div class="icsep"></div>`:""}<div class="icp${p.c?" icc":""}${p.dst?" icd":""}"><div class="icpt">${filaZ(p.z)}<b>${j+1}.</b> ${esc(p.n)} <span class="icb">${esc(p.p)}</span>${pl(p.f)}</div>
+  return `${sep?`<div class="icsep"></div>`:""}<div class="icp${p.c?" icc":""}${p.dst?" icd":""}"><div class="icpt">${filaZ(p.z)}<b class="icar">→</b> ${esc(p.n)} <span class="icb">${esc(p.p)}</span>${pl(p.f)}</div>
    <div class="icl"><span class="ick">Llega desde</span><span>${prev?esc(prev.p)+(prev.sale?" · "+esc(prev.sale):""):(p.src?"origen de tensión":"origen")}</span></div>
    <div class="icl"><span class="ick">Sale a</span><span>${next?esc(next.p)+(p.sale?" · por "+esc(p.sale):""):"destino (fin del recorrido)"}</span></div>
    <div class="icl icm"><span class="ick">Medir</span><span>${medir(p,d)}</span></div></div>`}).join("");
@@ -148,7 +148,7 @@ function senalHTML(d,ix,i){const e=d.e,{pasos,notas}=cadena(d);let ult="";
   ${notas.length?`<div class="mu icn">${notas.map(esc).join("<br>")}</div>`:""}
   ${d.on&&e.m!="AUX"?`<div class="icor"><b>Lectura en el PLC:</b> ${esc(d.on)}</div>`:""}</details>`}
 function tramosIA(o){const T=(o&&o.tramos)||[];if(!T.length)return "";
- return `<div class="anal">🤖 Tramos del lado de los equipos según los planos (${esc(o.lector||"IA")})</div>${T.map((t,n)=>`<div class="icp icia"><div class="icpt"><b>${n+1}.</b> ${esc(t.senal||t.equipo||"Tramo")}${t.equipo&&t.senal?` <span class="mu">· ${esc(t.equipo)}</span>`:""}</div>
+ return `<div class="anal">🤖 Tramos del lado de los equipos según los planos (${esc(o.lector||"IA")})</div>${T.map((t,n)=>`<div class="icp icia"><div class="icpt"><b class="icar">→</b> ${esc(t.senal||t.equipo||"Tramo")}${t.equipo&&t.senal?` <span class="mu">· ${esc(t.equipo)}</span>`:""}</div>
   ${t.recorrido?`<div class="icl"><span class="ick">Recorrido</span><span>${esc(t.recorrido).replace(/→/g,"<b>→</b>")}</span></div>`:""}
   ${t.origen||t.destino?`<div class="icl"><span class="ick">Origen → destino</span><span>${esc(t.origen||"?")} <b>→</b> ${esc(t.destino||"?")}</span></div>`:""}
   ${t.roja||t.esperado?`<div class="icl icm"><span class="ick">Medir</span><span>Roja en <b>${esc(t.roja||"-")}</b> · negra en <b>${esc(t.negra||"-")}</b> · debe marcar <b>${esc(t.esperado||"-")}</b>${t.si_no?"<br>Si no: "+esc(t.si_no):""}</span></div>`:""}
@@ -173,7 +173,7 @@ function botonHTML(i){return window.insCons(i.id)?"":`<button class="sec icbtn" 
 
 window.insCopia=function(){const i=otAct();if(!i)return;const S=senales(i);
  const t=`[Inspección cable a cable completa · origen → destino]\n`+S.filter(d=>d.rel).concat(S.filter(d=>!d.rel)).slice(0,8).map(d=>{const {pasos}=cadena(d);
-  return `■ ${d.eq||d.e.d} (${d.e.m=="AUX"?d.e.b:d.e.m+" IN "+d.e.b}, folio ${d.e.f})\n`+pasos.map((p,j)=>`  ☐ ${j+1}. ${p.n} · ${p.p}${p.sale?" · por "+p.sale:""}`).join("\n")}).join("\n");
+  return `■ ${d.eq||d.e.d} (${d.e.m=="AUX"?d.e.b:d.e.m+" IN "+d.e.b}, folio ${d.e.f})\n`+pasos.map((p,j)=>`  ☐ → ${p.n} · ${p.p}${p.sale?" · por "+p.sale:""}`).join("\n")}).join("\n");
  i.guiada=(i.guiada?i.guiada+"\n\n":"")+t;try{sv("pbb_inc",inc);msg(`Inspección completa añadida a la OT ${i.orden}`)}catch(e){}};
 
 /* ---------- pintado en la guía de campo de la OT ---------- */
@@ -226,6 +226,7 @@ const st=document.createElement("style");st.textContent=`
 .icpl{margin-left:auto}
 .icl{display:grid;grid-template-columns:7.2em 1fr;gap:6px;margin-top:3px;padding-left:12px;line-height:1.35}.ick{opacity:.7;font-size:11.5px;white-space:nowrap}
 .icm span:last-child{overflow-wrap:anywhere}
+.icar{color:var(--ac,#ff6a13);font-weight:900}
 .icsep{border-top:2px dashed var(--bd);margin:8px 0 4px 10px}
 .icn{font-size:11.5px;margin:6px 0 0 10px}
 .icbw{margin-top:8px}.icbtn{width:100%;white-space:normal;line-height:1.3;border:1.5px solid #2e7d32!important}`;document.head.appendChild(st);
