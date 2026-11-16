@@ -1,4 +1,4 @@
-/* ===== v517 (v519: barra de progreso en la lectura de planos y en la consulta IA · v518: caja antes de Seguridad · botón RECALCULAR IA siempre visible, también tras error): COTEJO ENTRE VARIOS PLANOS en la guía de campo de la OT (16/11/2026) =====
+/* ===== v517 (v520: caja tras «Planos a cotejar» · respuesta IA cortada leída igual y pedida más corta · v519: barra de progreso en la lectura de planos y en la consulta IA · v518: caja antes de Seguridad · botón RECALCULAR IA siempre visible, también tras error): COTEJO ENTRE VARIOS PLANOS en la guía de campo de la OT (16/11/2026) =====
    · Debajo de «Plano de esta guía» → «📐 Planos a cotejar»: casillas con todos los planos cargados. Se guarda por OT.
      Por defecto: el plano de la guía + los de los otros sistemas que cita la OT (PBB / RCS o plano propio, AAA, HZ, AAP, CBTH).
    · El plano principal (el del desplegable) se elige ahora POR OT y vale también en 504 / 507 / 508 (antes se ignoraba ahí):
@@ -52,12 +52,14 @@ async function texto(doc,av){if(TXT[doc.id])return TXT[doc.id];
 /* ---------- códigos y palabras de la OT ---------- */
 const VACIAS=new Set("cuando tiene esta estan desde hasta sobre entre donde porque equipo hacer queda quedan tambien".split(" "));
 function datosOT(i){let R=null;try{R=anaOT(i)}catch(e){}
- const ef=$q("#app details.gd.gef");const efT=ef?ef.textContent.replace(/\s+/g," ").trim():"";
+ const ef=$q("#app details.gd.gef");let efT="";if(ef){const w=document.createTreeWalker(ef,NodeFilter.SHOW_TEXT);const a=[];let n;while((n=w.nextNode()))a.push(n.nodeValue);efT=a.join(" ").replace(/\s+/g," ").trim()}
  const base=[i.desc,i.def,i.obs,i.com].filter(Boolean).join(" ");
  const fuente=(base+" "+(R?JSON.stringify(R):"")+" "+efT).toUpperCase();
  const cod=[];for(const m of fuente.matchAll(TAG)){const c=m[1];if(!cod.includes(c))cod.push(c)}
  const pal=[...new Set(nrm(base).split(/[^a-z0-9ñ]+/).filter(w=>w.length>=5&&!VACIAS.has(w)))].slice(0,12);
- return {cod:cod.slice(0,30),pal,efT:efT.slice(0,2500),R}}
+ /* v520: fuera los códigos pegados a otra palabra («E-A2E» = E-A2 + «Elementos») */
+ const cod2=cod.filter(c=>!(/[A-Z]$/.test(c)&&cod.includes(c.slice(0,-1))));
+ return {cod:cod2.slice(0,30),pal,efT:efT.slice(0,2500),R}}
 
 /* ---------- estado ---------- */
 let ST={k:"",docs:[],res:null,prog:"",ia:null,iaEst:"",iaK:""};let tIA=null;
@@ -76,6 +78,21 @@ async function calcula(forzar){const i=otAct();if(!i||typeof view=="undefined"||
  ST.res=res;ST.prog="";
  const g=ls.g(ST.iaK);if(g){try{ST.ia=JSON.parse(g)}catch(e){}}
  pintaCaja();if(!ST.ia){clearTimeout(tIA);tIA=setTimeout(()=>{if(ST.k==k)ia()},1200)}}
+
+/* ---------- v520: lectura del JSON de la IA aunque llegue cortado ----------
+   Causa del fallo «JSON Parse error: Expected ']'»: la respuesta superó el máximo de texto de la función (4000 tokens)
+   y llegó cortada a mitad de una lista. Se cierra lo que quedó abierto y se aprovecha lo que llegó completo. */
+function leeJSON(txt){const t=String(txt||"").replace(/```(?:json)?/g,"");const i=t.indexOf("{");if(i<0)throw new Error("respuesta sin formato");
+ const a=t.slice(i),j=a.lastIndexOf("}");if(j>0){try{return JSON.parse(a.slice(0,j+1))}catch(e){}}
+ let st=[],enS=false,esc2=false,ult=0;
+ for(let k=0;k<a.length;k++){const c=a[k];if(enS){if(esc2)esc2=false;else if(c=="\\")esc2=true;else if(c=='"')enS=false;continue}
+  if(c=='"')enS=true;else if(c=="{"||c=="[")st.push(c);else if(c=="}"||c=="]"){st.pop();ult=k+1}else if(c==",")ult=k}
+ let b=a;if(enS)b+='"';
+ const cierra=x=>{let y=x.replace(/,\s*$/,"").replace(/,\s*"[^"]*"\s*:?\s*$/,"").replace(/:\s*$/,':""');const s2=[];let e=false,q=false;
+  for(let k=0;k<y.length;k++){const c=y[k];if(e){if(q)q=false;else if(c=="\\")q=true;else if(c=='"')e=false;continue}if(c=='"')e=true;else if(c=="{"||c=="[")s2.push(c);else if(c=="}"||c=="]")s2.pop()}
+  return y+s2.reverse().map(c=>c=="{"?"}":"]").join("")};
+ try{const o=JSON.parse(cierra(b));o.cortado=1;return o}catch(e){}
+ const o=JSON.parse(cierra(a.slice(0,ult)));o.cortado=1;return o}
 
 /* ---------- Claude: cruce de los planos ---------- */
 function paginas(p,D,cupo){if(!p.P)return "";
@@ -99,14 +116,15 @@ Tareas:
 2) Da la actuación MÁS EFICAZ en campo, en pasos cortos y ordenados (lo más rápido primero; nunca puentear salidas de seguridad).
 3) Pasos de MEDIDA en campo con polímetro: punto, dónde va la punta roja y la negra, valor esperado y qué indica si no lo da.
 4) Lo que NO cuadra entre los planos (bornas, hilos o nombres distintos) o datos que faltan.
-No inventes: si un dato no está en el texto de los planos, dilo. Cita plano y página o folio de cada dato. Castellano técnico, conciso.
+No inventes: si un dato no está en el texto de los planos, dilo. Cita plano y página o folio de cada dato. Castellano técnico, MUY conciso.
+LÍMITES (obligatorios, la respuesta no puede pasar de 2500 palabras): "eficaz" máx. 8 pasos · "medir" máx. 6 puntos · "discrepancias" máx. 5 · "planos" máx. 5 · cada texto máx. 220 caracteres. Céntrate en la señal de la avería, no en todos los códigos.
 Responde SOLO con JSON, sin nada más:
 {"resumen":"causa más probable en 1-2 frases","eficaz":["paso 1","paso 2"],"medir":[{"punto":"","roja":"","negra":"","esperado":"","si_no":""}],"discrepancias":["…"],"planos":[{"plano":"","folios":"","aporta":""}]}`;
  try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("inicia sesión para usar la IA");
   const ac=new AbortController(),to=setTimeout(()=>ac.abort(),70000);
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({prompt})});clearTimeout(to);
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
-  const m=String(j.txt).match(/\{[\s\S]*\}/);if(!m)throw new Error("respuesta sin formato");const o=JSON.parse(m[0]);o.lector=j.lector||"IA";o.t=Date.now();
+  const o=leeJSON(j.txt);if(!o.resumen&&!(o.eficaz||[]).length&&!(o.medir||[]).length)throw new Error("respuesta incompleta");o.lector=j.lector||"IA";o.t=Date.now();
   {const b=$q("#gpcot .pcbar>i");if(b){b.style.width="100%";await new Promise(r=>setTimeout(r,350))}}
   ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ls.s(ST.iaK,JSON.stringify(o))}
  catch(e){ST.iaRun=false;if(ST.k!==k)return;ST.iaEst="No se ha podido cruzar con la IA: "+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+". Pulsa «RECALCULAR IA» para volver a lanzarla; el cotejo de códigos sí vale."}
@@ -132,7 +150,7 @@ function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre 
  if(R){const cs=Object.keys(R.cod);const en=cs.filter(c=>R.cod[c].some(a=>a&&a.length)),no=cs.filter(c=>!en.includes(c));
   const err=R.pl.filter(p=>!p.P);
   h+=`<details class="pccod"><summary>🔎 Dónde sale cada código · ${en.length} de ${cs.length} en los planos</summary>`+
-   en.map(c=>`<div class="pcr"><b>${esc(c)}</b><span>${R.cod[c].map((a,n)=>a&&a.length?a.slice(0,3).map(np=>`<button class="pcch" onclick="event.stopPropagation();pcAbre('${esc(R.pl[n].d.id)}',${np})">${String.fromCharCode(65+n)} · p.${np}</button>`).join(""):`<span class="pcno">${String.fromCharCode(65+n)} ✖</span>`).join("")}</span></div>`).join("")+
+   en.map(c=>`<div class="pcr"><b>${esc(c)}</b><span>${R.cod[c].map((a,n)=>a&&a.length?a.slice(0,3).map(np=>`<button class="pcch" onclick="event.stopPropagation();pcAbre('${esc(R.pl[n].d.id)}',${np})">${String.fromCharCode(65+n)} · p.${np}</button>`).join(""):"").join("")}</span></div>`).join("")+
    (no.length?`<div class="mu" style="font-size:11.5px;margin-top:6px">No aparecen en ningún plano elegido: ${no.map(esc).join(", ")}</div>`:"")+
    (err.length?`<div class="pcno" style="margin-top:6px">No se pudo leer: ${err.map(p=>esc(corto(p.d.name))).join(", ")}</div>`:"")+`</details>`}
  if(ST.iaRun)h+=`<div class="pcbar pcbia"><i style="width:${pctIA()}%"></i></div><div class="pcst pcbt">${esc(txIA())}</div>`;
@@ -142,7 +160,7 @@ function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre 
   ((o.medir||[]).length?`<div class="anal">📏 Pasos de campo a medir</div>${o.medir.map((m,n)=>`<div class="pcm"><b>${n+1}. ${esc(m.punto)}</b><div>Polímetro: punta <b class="pcro">ROJA</b> en <b>${esc(m.roja)}</b> · punta <b>NEGRA</b> en <b>${esc(m.negra)}</b></div><div>Debe marcar <b>${esc(m.esperado)}</b></div>${m.si_no?`<div class="mu">Si no: ${esc(m.si_no)}</div>`:""}</div>`).join("")}`:"")+
   ((o.discrepancias||[]).length?`<div class="anal">⚠️ No cuadra entre planos</div><ul class="pcul">${o.discrepancias.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"")+
   ((o.planos||[]).length?`<details class="pccod"><summary>📄 Qué aporta cada plano</summary><ul class="pcul">${o.planos.map(p=>`<li><b>${esc(p.plano)}</b>${p.folios?" · "+esc(p.folios):""}: ${esc(p.aporta)}</li>`).join("")}</ul></details>`:"")+
-  `<div class="mu" style="font-size:11px;margin-top:6px">Cotejo con ${esc(o.lector||"IA")} · ${new Date(o.t||Date.now()).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}. Comprueba en campo cada dato con el plano antes de actuar.</div>
+  `<div class="mu" style="font-size:11px;margin-top:6px">${o.cortado?"Respuesta de la IA recortada por longitud (se muestra lo recibido) · ":""}Cotejo con ${esc(o.lector||"IA")} · ${new Date(o.t||Date.now()).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}. Comprueba en campo cada dato con el plano antes de actuar.</div>
   <button class="sec" style="width:100%;margin-top:8px" onclick="pcCopia()">Pasar a «Actuación guiada» de la OT</button>`}
  if(R&&!ST.iaRun)h+=`<button class="pri pcre" onclick="event.stopPropagation();pcRehace()">🔄 RECALCULAR IA</button>`;
  return h}
@@ -158,7 +176,8 @@ function pintaCaja(){if(typeof view=="undefined"||view!="tec")return;const i=otA
   b.addEventListener("toggle",()=>ls.s("pc_open",b.open?"1":"0"))}
  const seg=$q('#app details.gd[data-k="SEG"]'),ef=$q("#app details.gd.gef"),cab=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
  /* v518: la caja va antes de «Seguridad antes de intervenir» */
- const ref=seg||ef||(cab&&cab.nextElementSibling);if(ref&&b.nextElementSibling!==ref)ref.insertAdjacentElement("beforebegin",b);else if(!ref&&!b.isConnected&&cab)cab.insertAdjacentElement("afterend",b);
+ /* v520: justo después de la cabecera de la guía, donde está «📐 Planos a cotejar» */
+ if(cab){if(cab.nextElementSibling!==b)cab.insertAdjacentElement("afterend",b)}else{const ref=seg||ef;if(ref&&b.nextElementSibling!==ref)ref.insertAdjacentElement("beforebegin",b)}
  const op=b.open;const sc=b.querySelector(".pccod[open]")?1:0;b.innerHTML=cajaHTML();b.open=op;if(sc){const c=b.querySelector(".pccod");if(c)c.open=true}}
 async function pinta(forzar){try{if(typeof view=="undefined"||view!="tec")return;const i=otAct();const s=$q("#g_doc");if(!s)return;
  if(i&&!$q("#gpcsel")){const l=await gLista();if(!$q("#gpcsel")&&$q("#g_doc")){if(!selDe(i.id))guardaSel(i.id,sugeridos(i,l));
