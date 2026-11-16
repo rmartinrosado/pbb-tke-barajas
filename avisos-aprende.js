@@ -86,7 +86,7 @@ window.avBorra=async function(id){if(!confirm("¿Olvidar este alias?"))return;co
 let ck={k:"",t:0,n:0};
 /* botones de administrador en Inicio (debajo de «PANEL DE CONTROL») */
 const pon=()=>{try{if(view!="dash"||!admin)return;const a=document.getElementById("app");if(!a)return;let t=document.getElementById("adtools");
- const k=(typeof inc!="undefined"?inc.length:0)+"|"+(window.__alAp||[]).length+"|"+ign().size;if(k!==ck.k||Date.now()-ck.t>60000){ck={k,t:Date.now(),n:pendientes().length}}const n=ck.n;const h=`<button class="sec" onclick="avPanel()">🧠 Avisos sin reconocer${n?`<span class="avn">${n}</span>`:""}</button><button class="sec" onclick="tmPanel()">⏱ Tiempos por avería</button>`;
+ const k=(typeof inc!="undefined"?inc.length+"/"+inc.filter(x=>x&&x.noRec).length:0)+"|"+(window.__alAp||[]).length+"|"+ign().size;if(k!==ck.k||Date.now()-ck.t>60000){ck={k,t:Date.now(),n:pendientes().length}}const n=ck.n;const h=`<button class="sec" onclick="avPanel()">🧠 Avisos sin reconocer${n?`<span class="avn">${n}</span>`:""}</button><button class="sec" onclick="tmPanel()">⏱ Tiempos por avería</button>`;
  if(!t){t=document.createElement("div");t.id="adtools";t.className="adtools";const p=document.getElementById("pctl");p?p.after(t):a.prepend(t)}
  if(t.innerHTML!==h)t.innerHTML=h}catch(e){}};
 let tm=null;new MutationObserver(()=>{if(!tm)tm=setTimeout(()=>{tm=null;pon()},300)}).observe(document.documentElement,{childList:true,subtree:true});
@@ -143,3 +143,9 @@ const st=document.createElement("style");st.textContent=`.enrb{width:100%!import
 #sheetc button.sec.enrb.on,.enrb.on{border:2px solid #7b1fa2!important;border-style:solid!important;color:#8e24aa!important;font-weight:700;background:color-mix(in srgb,#7b1fa2 14%,transparent)!important}
 .avman{display:inline-block;font-size:11px;font-weight:800;color:#ce93d8;border:1px solid #7b1fa2;border-radius:10px;padding:0 6px;vertical-align:middle}`;document.head.appendChild(st);
 })();
+
+/* v507: la OT marcada como «Avería no reconocida» se ve en su tarjeta (Inicio y Seguimiento) y el contador del botón
+   «🧠 Avisos sin reconocer» del Panel de control cambia al guardar (antes solo se recalculaba si cambiaba el nº de OT) */
+(function(){if(typeof card!="function")return;const o=card;card=function(i){const h=o.apply(this,arguments);if(!i||!i.noRec)return h;
+ const k=h.indexOf("</b>");return k<0?h:h.slice(0,k)+`<span class="nrtag">🧠 NO RECONOCIDA</span>`+h.slice(k)};
+ const st=document.createElement("style");st.textContent=`.nrtag{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:5px;background:#7b1fa2;color:#fff;font:800 11px/1.4 var(--tkmo,monospace);letter-spacing:.5px;vertical-align:middle;animation:nrp 2s ease-in-out infinite}@keyframes nrp{50%{opacity:.55}}`;document.head.appendChild(st)})();
