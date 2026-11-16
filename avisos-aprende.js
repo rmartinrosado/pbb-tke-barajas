@@ -147,5 +147,9 @@ const st=document.createElement("style");st.textContent=`.enrb{width:100%!import
 /* v507: la OT marcada como «Avería no reconocida» se ve en su tarjeta (Inicio y Seguimiento) y el contador del botón
    «🧠 Avisos sin reconocer» del Panel de control cambia al guardar (antes solo se recalculaba si cambiaba el nº de OT) */
 (function(){if(typeof card!="function")return;const o=card;card=function(i){const h=o.apply(this,arguments);if(!i||!i.noRec)return h;
- const k=h.indexOf("</b>");return k<0?h:h.slice(0,k)+`<span class="nrtag">🧠 NO RECONOCIDA</span>`+h.slice(k)};
- const st=document.createElement("style");st.textContent=`.nrtag{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:5px;background:#7b1fa2;color:#fff;font:800 11px/1.4 var(--tkmo,monospace);letter-spacing:.5px;vertical-align:middle;animation:nrp 2s ease-in-out infinite}@keyframes nrp{50%{opacity:.55}}`;document.head.appendChild(st)})();
+ const tg=`<span class="nrtag">🧠 NO RECONOCIDA</span>`;
+ /* v508: en Seguimiento la etiqueta va al inicio de la descripción, no junto a «PBB nnn», para no ensanchar la primera
+    columna y descentrar la caja de horas */
+ const d=h.indexOf('<div class="ohdesc"');if(d>=0){const e=h.indexOf(">",d);if(e>0)return h.slice(0,e+1)+tg.replace('nrtag"','nrtag nrd"')+h.slice(e+1)}
+ const k=h.indexOf("</b>");return k<0?h:h.slice(0,k)+tg+h.slice(k)};
+ const st=document.createElement("style");st.textContent=`.nrtag{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:5px;background:#7b1fa2;color:#fff;font:800 11px/1.4 var(--tkmo,monospace);letter-spacing:.5px;vertical-align:middle;animation:nrp 2s ease-in-out infinite}@keyframes nrp{50%{opacity:.55}}.nrtag.nrd{margin:0 6px 0 0}`;document.head.appendChild(st)})();
