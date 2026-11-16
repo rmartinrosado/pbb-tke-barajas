@@ -109,7 +109,12 @@ try{const L=GUIA.tipos.PAS.s;if(!L.some(x=>x.t=="Bumpers brazo y cabina · 4 bum
 }catch(e){}
 function inyecta(){document.querySelectorAll("details").forEach(d=>{const s=d.querySelector(":scope>summary");if(!s||d.dataset.bkok||!/Bumpers brazo y cabina/.test(s.textContent))return;
  d.dataset.bkok="1";const i=ot();const w=document.createElement("div");w.innerHTML=caja(i&&i.pos,["brazo","cabina"],"2ª opción · croquis de los bumpers de brazo y cabina en el bornero del pupitre");const bx=w.firstElementChild;s.insertAdjacentElement("afterend",bx);
- try{if(typeof window.puentePLCHTML=="function")bx.insertAdjacentHTML("beforebegin",window.puentePLCHTML(["E-A10","1.1"],"1ª opción · brazo")+window.puentePLCHTML(["E-A10","2.1"],"1ª opción · cabina"))}catch(e){}})}
+ try{if(typeof window.puentePLCHTML=="function"){/* v531: una sola 1ª opción: la del grupo de la OT; si la OT no lo dice, selector brazo | cabina */
+  const t=String(i?[i.desc,i.def,i.obs,i.com].join(" "):"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const br=/brazo|autonivel/.test(t),cb=/cabina|lateral/.test(t);const gs=br&&!cb?["1.1"]:cb&&!br?["2.1"]:["1.1","2.1"];
+  const h=gs.map((b,n)=>`<div class="bk-p1" data-g="${b}"${n?' hidden':''}>${window.puentePLCHTML(["E-A10",b],"1ª opción · "+(b=="1.1"?"brazo":"cabina"))}</div>`).join("");
+  const sel=gs.length>1?`<div class="bk-btn bk-p1s"><b>1ª opción:</b><button class="on" onclick="event.stopPropagation();const w=this.closest('.bk-p1w');w.querySelectorAll('.bk-p1').forEach(x=>x.hidden=x.dataset.g!='1.1');w.querySelectorAll('.bk-p1s button').forEach(x=>x.classList.toggle('on',x===this))">Brazo · C-B27 / C-B28</button><button onclick="event.stopPropagation();const w=this.closest('.bk-p1w');w.querySelectorAll('.bk-p1').forEach(x=>x.hidden=x.dataset.g!='2.1');w.querySelectorAll('.bk-p1s button').forEach(x=>x.classList.toggle('on',x===this))">Cabina · C-B29 / C-B30</button></div>`:"";
+  bx.insertAdjacentHTML("beforebegin",`<div class="bk-p1w">${sel}${h}</div>`)}}catch(e){}})}
 new MutationObserver(()=>inyecta()).observe(document.documentElement,{childList:true,subtree:true});
 /* ---------- estilos ---------- */
 const st=document.createElement("style");st.textContent=`
