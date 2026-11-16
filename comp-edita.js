@@ -30,13 +30,13 @@ function desde(c){const r=c.raw||{};const st=r.stock||{};
  return{codigo:c.id||"",titulo:c.t||"",fab:c.fab||"",claves:c.claves||r.claves||"",
   esp:(r.esp?r.esp:sinRep(c.esp)).map(x=>[x[0]||"",x[1]||""]),pin:(c.pin||[]).map(x=>x.slice(0,4)),med:(c.med||[]).slice(),av:c.av||"",
   fotos:(c.fotos||[]).map(([src,vista])=>({src,vista})),stock:{ref:st.ref||"",sust:st.sust||"",ubi:st.ubi||"",uds:st.uds==null?"":st.uds}}}
-async function foto(f){const im=await window.compLeeImg(f);const cv=window.compAJpg(im,1000);return cv.toDataURL("image/jpeg",.82)}
+async function foto(f){const im=await window.compLeeImg(f);const cv=window.compAJpg(im,1400);return cv.toDataURL("image/jpeg",.85)}
 
 window.compEdita=function(k,nuevas){const c=K[k]||(window.COMP_CAMPO||[]).find(x=>key(x)==k);if(!c){msg("Ficha no encontrada");return}
  if(!puede()){msg("Solo técnicos y administrador pueden editar");return}
  cur=c;ED=desde(c);sucio=!!nuevas;if(nuevas)nuevas.forEach(src=>ED.fotos.unshift({src,vista:VISTAS[0]}));abre();pinta()};
 window.compFotoNueva=async function(k,inp){const fs=[...(inp.files||[])];inp.value="";if(!fs.length)return;
- try{const src=await foto(fs[0]);compEdita(k,[src]);msg("Foto añadida: revisa la vista y pulsa Guardar")}catch(e){msg(String(e.message||e))}};
+ try{const src=await conRec(await foto(fs[0]));compEdita(k,[src]);msg("Foto añadida: revisa la vista y pulsa Guardar")}catch(e){msg(String(e.message||e))}};
 
 function abre(){if(!capa){capa=document.createElement("div");capa.id="cedCapa";document.body.appendChild(capa);
   ["click","dblclick","touchend","pointerdown"].forEach(t=>capa.addEventListener(t,e=>e.stopPropagation()));
@@ -64,7 +64,7 @@ function pinta(){if(!capa||!ED)return;const p=ED;const sc=(capa.querySelector(".
  <div class="cedst">Fotos</div>
  <div class="cedfs">${p.fotos.map((f,i)=>`<figure><img src="${E(f.src)}" alt="" onclick="typeof compVer=='function'&&compVer(this.src)">${i==0?'<span class="cedp">Principal</span>':""}
    <input list="ced_vis" data-f="vista" data-i="${i}" value="${E(f.vista)}" placeholder="Vista">
-   <div class="cedfb"><label class="sec" title="Sustituir">🔄<input type="file" accept="image/*" hidden onchange="compEdFoto(this,${i})"></label>${i?`<button type="button" class="sec" title="Poner la primera" onclick="compEdOp('foto^',${i})">⭐</button>`:""}<button type="button" class="sec" title="Quitar" onclick="compEdOp('foto-',${i})">🗑</button></div></figure>`).join("")}
+   <div class="cedfb"><button type="button" class="sec" title="Recortar" onclick="compEdRec(${i})">✂️</button><label class="sec" title="Sustituir">🔄<input type="file" accept="image/*" hidden onchange="compEdFoto(this,${i})"></label>${i?`<button type="button" class="sec" title="Poner la primera" onclick="compEdOp('foto^',${i})">⭐</button>`:""}<button type="button" class="sec" title="Quitar" onclick="compEdOp('foto-',${i})">🗑</button></div></figure>`).join("")}
   <label class="cedadd">📷<span>Añadir foto</span><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-1)"></label></div>
  <label>Código (de los planos)</label><input data-f="codigo" value="${E(p.codigo)}">
  <label>Título</label><input data-f="titulo" value="${E(p.titulo)}">
@@ -88,8 +88,11 @@ window.compEdOp=function(op,i){if(!ED)return;sucio=true;
  else if(op=="foto^"){const f=ED.fotos.splice(i,1)[0];ED.fotos.unshift(f)}
  pinta();if(/\+$/.test(op)){const l=capa.querySelector(".cedl");const b=[...capa.querySelectorAll(".cedmas")].find(x=>x.getAttribute("onclick").includes(op));
   if(b){const prev=b.previousElementSibling;const inp=prev&&prev.querySelector("input,textarea");if(inp)try{inp.focus({preventScroll:false})}catch(e){}}}};
+/* v535: recortar (sin vecinos ni cables); al añadir o sustituir una foto se abre el recorte directamente */
+window.compEdRec=async function(i){if(!ED||!ED.fotos[i]||typeof compRecorta!="function")return;const r=await compRecorta(ED.fotos[i].src);if(!r)return;ED.fotos[i].src=r.src;sucio=true;pinta()};
+const conRec=async src=>{if(typeof compRecorta!="function")return src;const r=await compRecorta(src);return r?r.src:src};
 window.compEdFoto=async function(inp,i){const fs=[...(inp.files||[])];inp.value="";if(!fs.length||!ED)return;sucio=true;
- try{if(i>=0){ED.fotos[i].src=await foto(fs[0])}else{for(const f of fs)ED.fotos.push({src:await foto(f),vista:VISTAS[Math.min(ED.fotos.length,VISTAS.length-1)]})}pinta()}
+ try{if(i>=0){ED.fotos[i].src=await conRec(await foto(fs[0]))}else{for(const f of fs)ED.fotos.push({src:await conRec(await foto(f)),vista:VISTAS[Math.min(ED.fotos.length,VISTAS.length-1)]})}pinta()}
  catch(e){msg(String(e.message||e))}};
 
 const limpia=a=>a.map(r=>r.map(x=>String(x||"").trim())).filter(r=>r.some(Boolean));

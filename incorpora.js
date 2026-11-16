@@ -29,8 +29,16 @@ setTimeout(carga,1500);setInterval(carga,10*60*1000);
 const lee=window.compLeeImg=f=>new Promise((ok,ko)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{ok(im);};im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error("No se pudo abrir la foto"))};im.src=u});
 window.compAJpg=aJpg;function aJpg(im,max){const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement("canvas");c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);
  const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);return c}
+let GEO=null;/* v535: geometría del collage para pasar la caja de recorte de la IA a cada foto */
 function collage(cs){const W=1600,h=Math.max(...cs.map(c=>c.height*(W/cs.length)/c.width));const cv=document.createElement("canvas");cv.width=W;cv.height=Math.min(1600,Math.round(h));
- const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);const w=W/cs.length;cs.forEach((c,i)=>{const k=Math.min(w/c.width,cv.height/c.height);x.drawImage(c,i*w+(w-c.width*k)/2,(cv.height-c.height*k)/2,c.width*k,c.height*k)});return cv.toDataURL("image/jpeg",.85)}
+ const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);const w=W/cs.length;GEO={W,H:cv.height,p:[]};cs.forEach((c,i)=>{const k=Math.min(w/c.width,cv.height/c.height);const ox=i*w+(w-c.width*k)/2,oy=(cv.height-c.height*k)/2;GEO.p.push({ox,oy,dw:c.width*k,dh:c.height*k});x.drawImage(c,ox,oy,c.width*k,c.height*k)});return cv.toDataURL("image/jpeg",.85)}
+/* caja de la IA (milésimas de la imagen completa) → foto i y caja en fracción de esa foto */
+function cajaFoto(b){if(!GEO||!b)return null;const n=v=>{v=+v;return isFinite(v)?(v>1.5?v/1000:v):NaN};
+ const X0=n(b.x0)*GEO.W,X1=n(b.x1)*GEO.W,Y0=n(b.y0)*GEO.H,Y1=n(b.y1)*GEO.H;if([X0,X1,Y0,Y1].some(isNaN)||X1<=X0||Y1<=Y0)return null;
+ const cx=(X0+X1)/2;const i=GEO.p.findIndex(p=>cx>=p.ox-2&&cx<=p.ox+p.dw+2);if(i<0)return null;const p=GEO.p[i];
+ const f=(v,o,d)=>Math.max(0,Math.min(1,(v-o)/d));let c={x0:f(X0,p.ox,p.dw),x1:f(X1,p.ox,p.dw),y0:f(Y0,p.oy,p.dh),y1:f(Y1,p.oy,p.dh)};
+ const mx=(c.x1-c.x0)*.04,my=(c.y1-c.y0)*.04;c={x0:Math.max(0,c.x0-mx),x1:Math.min(1,c.x1+mx),y0:Math.max(0,c.y0-my),y1:Math.min(1,c.y1+my)};
+ if(c.x1-c.x0<.03||c.y1-c.y0<.03)return null;return{i,c}}
 /* ---------- catálogo ---------- */
 window.compCatalogo=function(q){q=q||"";const t=nrm(q);const L=C().filter(c=>!t||nrm([c.id,c.t,c.fab,c.claves].join(" ")).includes(t));
  $("#sheetc").innerHTML=`<div class="icpw"><div class="icpfix"><div class="icph"><h3 style="margin:0">🔩 Componentes de campo</h3><button class="sec" onclick="closeSheet()" style="width:auto;margin:0">✕</button></div>
@@ -45,18 +53,26 @@ window.compIncorpora=function(){F=[];pinta()};
 function pinta(P){const p=P||{};$("#sheetc").innerHTML=`<div class="icph"><h3 style="margin:0">➕ Incorporar componente</h3><button class="sec" onclick="compCatalogo()" style="width:auto;margin:0">✕</button></div>
  <div class="mu" style="font-size:12.5px;margin:4px 0 8px">Haz fotos nítidas de la placa (texto impreso) y del componente; si puedes, también del cable o su marcado. La IA lee la placa y propone el código cruzándolo con los planos. Revisa antes de guardar.</div>
  <label class="btn" style="margin:0;justify-content:center;gap:6px;padding:12px">📷 Añadir foto<input type="file" accept="image/*" multiple hidden onchange="compFotos(this)"></label>
- <div class="icf">${F.map((f,i)=>`<figure><img src="${f.src}" alt=""><select onchange="compVista(${i},this.value)">${VISTAS.map(v=>`<option${v==f.vista?" selected":""}>${v}</option>`).join("")}</select><button class="sec" onclick="compQuita(${i})">🗑</button></figure>`).join("")}</div>
+ <div class="icf">${F.map((f,i)=>`<figure><img src="${f.src}" alt=""><select onchange="compVista(${i},this.value)">${VISTAS.map(v=>`<option${v==f.vista?" selected":""}>${v}</option>`).join("")}</select><div class="icfb"><button class="sec" title="Recortar" onclick="compRecInc(${i})">✂️</button><button class="sec" onclick="compQuita(${i})">🗑</button></div>${f.cut?'<span class="icfc">✂️ recortado</span>':""}${f.ubi?'<span class="icfc">📍 ubicación</span>':""}</figure>`).join("")}</div>
  <label>¿Dónde está montado?</label><input id="ic_donde" placeholder="Ej. rotonda, túnel exterior, cabina bajo el pupitre…" value="${E(p.donde||"")}">
  <label>¿En qué averías interviene? (palabras del aviso, separadas por comas)</label><input id="ic_cla" placeholder="Ej. barrera rotonda, evento 294" value="${E(p.claves||"")}">
  <button class="pri" style="margin-top:10px" onclick="compIA()" ${F.length?"":"disabled"}>🤖 Identificar con IA</button><div id="ic_st" class="mu" style="font-size:12.5px;margin-top:6px"></div><div id="ic_prop"></div>`;$("#sheet").style.display="flex"}
 const vals=()=>({donde:(document.getElementById("ic_donde")||{}).value||"",claves:(document.getElementById("ic_cla")||{}).value||""});
-window.compFotos=async function(inp){const v=vals();for(const f of [...(inp.files||[])]){try{const im=await lee(f);const c=aJpg(im,900);F.push({src:c.toDataURL("image/jpeg",.82),vista:VISTAS[Math.min(F.length,VISTAS.length-1)],c:aJpg(im,1400)})}catch(e){msg(String(e.message||e))}}pinta(v)};
-window.compVista=(i,v)=>{if(F[i])F[i].vista=v};window.compQuita=i=>{const v=vals();F.splice(i,1);pinta(v)};
+window.compFotos=async function(inp){const v=vals();for(const f of [...(inp.files||[])]){try{const im=await lee(f);const c=aJpg(im,900);const g=aJpg(im,1400);F.push({src:c.toDataURL("image/jpeg",.82),vista:VISTAS[Math.min(F.length,VISTAS.length-1)],c:g,o:g.toDataURL("image/jpeg",.88)})}catch(e){msg(String(e.message||e))}}pinta(v)};
+window.compVista=(i,v)=>{if(F[i])F[i].vista=v};
+/* v535: recorte a mano (o ajuste del recorte de la IA) */
+window.compRecInc=async function(i){const f=F[i];if(!f||typeof compRecorta!="function")return;const r=await compRecorta(f.o||f.src,f.caja);if(!r)return;
+ f.src=r.src;f.caja=r.caja;f.cut=true;repinta()};
+/* repinta las fotos sin perder la propuesta de la IA ni lo ya corregido */
+function repinta(){const v=vals();const pr=document.getElementById("ic_prop"),st=document.getElementById("ic_st");const keep=pr?pr.innerHTML:"",ks=st?st.innerHTML:"";const vv=keepVals();pinta(v);
+ const d=document.getElementById("ic_prop");if(d&&keep){d.innerHTML=keep;putVals(vv)}const s2=document.getElementById("ic_st");if(s2)s2.innerHTML=ks}
+const keepVals=()=>[...document.querySelectorAll("#ic_prop input,#ic_prop textarea")].map(e=>[e.id,e.value]);
+const putVals=a=>a.forEach(([id,v])=>{const e=id&&document.getElementById(id);if(e)e.value=v});window.compQuita=i=>{F.splice(i,1);repinta()};
 const codigos=()=>{const N=window.NOMBRES_EL||{};return Object.entries(N).map(([k,v])=>k+"="+v).join("; ")};
 let PROP=null;
 window.compIA=async function(){const v=vals();const st=document.getElementById("ic_st");const set=t=>{if(st)st.innerHTML=t};set("⏳ Leyendo la placa y cotejando con los planos…");
  try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("Inicia sesión para usar la IA");
-  const img=collage(F.map(f=>f.c)).split(",")[1];
+  F=F.filter(f=>!f.ubi);const img=collage(F.map(f=>f.c)).split(",")[1];
   const prompt=`Fotos (en una sola imagen, de izquierda a derecha) de un componente de campo de una pasarela de embarque (PBB) TKE del aeropuerto de Madrid Barajas, para la guía de componentes de la app de mantenimiento.
 Dónde está montado (según el técnico): ${v.donde||"(no indicado)"}.
 Averías en que interviene (según el técnico): ${v.claves||"(no indicado)"}.
@@ -66,14 +82,30 @@ TAREA
 1. Lee TODO lo impreso en la placa (fabricante, modelo, referencia, tensión, corriente, resistencia, salidas, pines/colores, normas, protección). No inventes datos que no se lean.
 2. Coteja el tipo de componente, lo impreso y dónde está montado con la lista de códigos y propone el CÓDIGO de plano más probable (si hay varios iguales, p. ej. izquierdo/derecho o emisor/receptor, ponlos juntos «R-B1 / R-B3» y explícalo). Si no encaja con ninguno, codigo = "SIN CÓDIGO".
 3. Propón: titulo (nombre del elemento en español), fab (fabricante · modelo · referencia), esp = filas [dato, valor] de la placa y su función en la PBB, pin = filas [pin, color, señal, función] si se ven, med = 3-5 pasos «Medir en campo» con valores esperados (por ejemplo «24 VDC entre pin 1 y pin 3»), av = aviso al sustituir, claves = palabras de los avisos de OT en que interviene (separadas por comas), justificacion = por qué ese código.
-Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":[["","","",""]],"med":[""],"av":"","claves":"","justificacion":""}`;
+4. RECORTE (obligatorio): el elemento se guarda RECORTADO, solo él, sin componentes vecinos a medias ni cables alrededor. Da la caja ajustada al cuerpo del componente principal en la foto donde mejor se ve su placa, en MILÉSIMAS (0-1000) de la imagen COMPLETA que recibes: x0,y0 = esquina superior izquierda, x1,y1 = inferior derecha. Ciñe la caja al borde del componente (no incluyas los elementos de al lado ni los mazos de cables).
+5. Si el componente está montado dentro de un BLOQUE de varios elementos (carril DIN, fila de magnetotérmicos, regleta, grupo de relés…): en_bloque = true, bloque = qué bloque es y dónde (p. ej. «carril DIN de magnetotérmicos del armario eléctrico AE»), posicion = su posición contando los elementos del bloque (p. ej. «3 de 10, de izquierda a derecha»), total = nº de elementos del bloque. Si va solo, en_bloque = false.
+Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":[["","","",""]],"med":[""],"av":"","claves":"","justificacion":"","recorte":{"x0":0,"y0":0,"x1":0,"y1":0},"en_bloque":false,"bloque":"","posicion":"","total":0}`;
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt})});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.mensaje||j.error||("error "+r.status));
   const m=String(j.txt||"").match(/\{[\s\S]*\}/);if(!m)throw new Error("La IA no devolvió datos");PROP=JSON.parse(m[0]);PROP.lector=j.lector;
-  if(!PROP.claves&&v.claves)PROP.claves=v.claves;set(`Leído con <b>${E(j.lector||"IA")}</b>. Revisa y corrige antes de guardar.`);propHTML()}
+  if(!PROP.claves&&v.claves)PROP.claves=v.claves;const rc=await recorteIA(PROP,v);pinta(v);
+  const st2=document.getElementById("ic_st");if(st2)st2.innerHTML=`Leído con <b>${E(j.lector||"IA")}</b>. ${rc}Revisa y corrige antes de guardar.`;propHTML()}
  catch(e){set(`<span style="color:#c62828">${E(String((e&&e.message)||e))}</span>`)}};
 const filas=a=>(a||[]).map(r=>Array.isArray(r)?r.join(" | "):String(r)).join("\n");
 const desf=(t,n)=>String(t||"").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>n?l.split("|").map(x=>x.trim()).concat(Array(n).fill("")).slice(0,n):l);
+/* v535: recorte automático del elemento + foto de UBICACIÓN si está dentro de un bloque de varios */
+async function recorteIA(p,v){let t="";try{
+ if(!p.recorte&&Array.isArray(p.box_2d)&&p.box_2d.length==4){const z=p.box_2d;p.recorte={y0:z[0],x0:z[1],y1:z[2],x1:z[3]}}
+ const b=cajaFoto(p.recorte);
+ if(b&&typeof compCortaCaja=="function"){const f=F[b.i];const src0=f.o||f.src;f.src=await compCortaCaja(src0,b.c,1400);f.caja=b.c;f.cut=true;
+  const vi=String(f.vista||"");if(!/vista/i.test(vi))f.vista=VISTAS[0];
+  if(p.en_bloque&&typeof compMarcaCaja=="function"){const bl=String(p.bloque||"bloque de varios elementos").trim();const ps=String(p.posicion||"").trim();
+   F.push({src:await compMarcaCaja(src0,b.c,1000),vista:"Ubicación · "+bl+(p.total?" ("+p.total+" elementos juntos)":""),c:null,ubi:true});
+   const txt=bl+(ps?" · posición "+ps.replace(/^posici[oó]n\s*/i,""):"");p.esp=(p.esp||[]).filter(r=>!/^ubicaci[oó]n$/i.test(Array.isArray(r)?r[0]:""));p.esp.push(["Ubicación",txt]);
+   t=`✂️ Recortado y 📍 ubicado en el bloque (${E(txt)}). `}
+  else t="✂️ Recortado automáticamente. ";
+  t+="Si el recorte no queda limpio, ajústalo con ✂️ en la foto. "}
+ else t="⚠️ La IA no dio el recorte: recorta la foto con ✂️ antes de guardar. "}catch(e){t="⚠️ No se pudo recortar: usa ✂️ en la foto. "}return t}
 function propHTML(){const p=PROP;const d=document.getElementById("ic_prop");if(!d)return;
  d.innerHTML=`<div class="icpr">${p.justificacion?`<div class="mu" style="font-size:12.5px;margin-bottom:6px">🔎 ${E(p.justificacion)}</div>`:""}
  <label>Código (de los planos)</label><input id="ip_cod" value="${E(p.codigo||"")}"><label>Título</label><input id="ip_tit" value="${E(p.titulo||"")}">
@@ -86,6 +118,7 @@ function propHTML(){const p=PROP;const d=document.getElementById("ic_prop");if(!
  <div class="icst"><b>Repuesto</b><div class="grid" style="grid-template-columns:1fr 1fr;gap:6px"><input id="ip_ref" placeholder="Referencia"><input id="ip_sus" placeholder="Sustituto compatible"><input id="ip_ubi" placeholder="Ubicación almacén"><input id="ip_uds" inputmode="numeric" placeholder="Unidades"></div></div>
  <button class="pri" style="margin-top:10px" onclick="compGuarda()">💾 Guardar en Componentes de campo</button></div>`}
 window.compGuarda=async function(){const g=id=>(document.getElementById(id)||{}).value||"";
+ if(F.length&&!F.some(f=>f.cut)&&!confirm("Ninguna foto está recortada: el elemento saldría con vecinos y cables alrededor.\n\n¿Guardar igualmente? (Cancelar para recortar con ✂️)"))return;
  const row={codigo:g("ip_cod").trim()||"SIN CÓDIGO",titulo:g("ip_tit").trim()||"Componente",fab:g("ip_fab").trim(),claves:g("ip_cla").trim(),esp:desf(g("ip_esp"),2),pin:desf(g("ip_pin"),4),med:desf(g("ip_med")),av:g("ip_av").trim(),
   fotos:F.map(f=>({src:f.src,vista:f.vista})),stock:{ref:g("ip_ref"),sust:g("ip_sus"),ubi:g("ip_ubi"),uds:g("ip_uds")},creado_por:(user&&user.email)||""};
  if(!row.claves){msg("Indica en qué averías interviene, para asociarlo a las OT");return}
@@ -101,7 +134,7 @@ const st=document.createElement("style");st.textContent=`
 .icph{display:flex;align-items:center;justify-content:space-between;gap:8px}.icpb{display:flex;gap:6px;margin-top:8px}.icpb input{flex:1;margin:0}
 .icpi{border:1px solid var(--bd,#ddd);border-radius:10px;padding:6px 8px;margin:6px 0}.icpi>summary{font-weight:700;font-size:14px}
 .icf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}.icf figure{margin:0;background:#fff;border:1px solid #cfd8dc;border-radius:9px;padding:4px;display:flex;flex-direction:column;gap:4px}
-.icf img{width:100%;height:90px;object-fit:contain}.icf select,.icf button{margin:0!important;padding:3px!important;font-size:11px!important;width:100%!important;min-height:0!important}
+.icf img{width:100%;height:90px;object-fit:contain}.icfb{display:flex;gap:4px}.icfb button{flex:1}.icfc{font-size:10px;font-weight:800;color:#e65100;text-align:center}.icf select,.icf button{margin:0!important;padding:3px!important;font-size:11px!important;width:100%!important;min-height:0!important}
 .icpr{margin-top:8px;padding:8px;border:1.5px solid #455a64;border-radius:10px}.icpr textarea{font-size:13px}
 .icst{margin-top:8px;padding:6px;border:1px dashed var(--bd,#bbb);border-radius:8px}.icst input{margin:0}
 .ubcmp{position:relative}.icpbh{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:auto!important;margin:0!important;padding:4px 9px!important;font-size:12px!important;background:rgba(255,255,255,.2)!important;color:#fff!important;border:1px solid rgba(255,255,255,.5)!important;border-radius:8px}`;
