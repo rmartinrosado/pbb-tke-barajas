@@ -5,7 +5,7 @@
      Al guardar un ?v= nuevo se borran las copias anteriores de ese mismo archivo.
    · Imágenes/iconos → caché y refresco en segundo plano. Supabase (API, storage, funciones) no pasa por aquí.
    Además: notificaciones push. */
-const C="pbb-tke-v394";
+const C="pbb-tke-v537"; /* v537: caché nueva → se borra la copia de «index.html» que en realidad era el simulador */
 self.addEventListener("install", e => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)));await self.clients.claim()})()));
 const CDN=/^(cdn\.jsdelivr\.net|unpkg\.com)$/;
@@ -14,6 +14,13 @@ self.addEventListener("fetch", e => {
   const mismo=u.origin===self.location.origin;
   if(!mismo&&!CDN.test(u.hostname))return;
   const f=u.pathname.split("/").pop();
+  /* v537: el Check abre simulador.html en un iframe (también es una navegación). Antes entraba aquí y se guardaba como
+     «index.html»: sin cobertura, la PWA arrancaba en el simulador y no se podía entrar. Ahora solo index.html es la PWA;
+     cualquier otra página propia va de la red y, sin cobertura, de su propia copia. */
+  if(mismo&&q.mode==="navigate"&&f!==""&&f!=="index.html"){
+    e.respondWith((async()=>{const c=await caches.open(C);const k="./__pg/"+f;
+      try{const r=await fetch(q.url,{cache:"no-store",credentials:"same-origin"});if(r&&r.ok&&r.type!=="opaqueredirect")c.put(k,r.clone());return r}
+      catch(x){const m=await c.match(k);return m||Response.error()}})());return}
   if(q.mode==="navigate"||(mismo&&(f===""||f==="index.html"))){
     e.respondWith((async()=>{const c=await caches.open(C);
       const vj=fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).catch(()=>null);
