@@ -1,4 +1,4 @@
-/* ===== v492 (v493: simulación del recogedor; caja del croquis ajustada al dibujo): PBB BLOQUEADA POR MANGUERA 400 Hz EXTENDIDA · PRIMERA ACTUACIÓN RÁPIDA EN CAMPO CON CROQUIS (15/11/2026) =====
+/* ===== v492 (v515: simulación del recogedor también en cada paso que cite la leva o el contacto del recogedor; v493: simulación del recogedor; caja del croquis ajustada al dibujo): PBB BLOQUEADA POR MANGUERA 400 Hz EXTENDIDA · PRIMERA ACTUACIÓN RÁPIDA EN CAMPO CON CROQUIS (15/11/2026) =====
    OT de cualquier tipo (HZ o PAS) cuyo aviso diga manguera 400 Hz extendida / PAS bloqueada por manguera / recogedor.
    Cotejo de planos (ESQUEMA GENERAL folios 63-65 y 85):
     · Señal: contacto «-400HZ» 13-14 del recogedor · P-X92:8 (hilo 336, +24 V) → 14-13 → P-X92:18 (hilo 3383) → P-A5 IN 2.1
@@ -189,6 +189,23 @@ function pinta(){try{if(typeof view=="undefined"||view!="tec")return;const i=(ty
 if(typeof vTec=="function"){const o=vTec;window.vTec=vTec=function(){const r=o.apply(this,arguments);pinta();return r}}
 setInterval(pinta,1500);
 
+/* ---------- v515: croquis DINÁMICO del recogedor donde se hable de la leva o del contacto del recogedor (16/11/2026) ----------
+   En cualquier guía, paso, actuación o instrucción cuyo texto cite la leva / el contacto «-400HZ» / el recogedor de la manguera
+   se dibuja debajo la misma simulación en movimiento (recogedor + palpador/leva + contacto 13-14 + P-A5 LED 2).
+   Una sola por caja (la del primer paso que lo cita) y nunca repetida si la caja ya la lleva. */
+window.m400Sim=sim;
+const RECOG=/recogedor|-400 ?hz/,LEVA=/\bleva|\bcontacto|palpador|rodillo|\btope\b/;
+const CAJA=".gst,.gav,details,.card,.sheet,#sheet,section";
+function escanea(){try{
+ document.querySelectorAll(".gpaso:not([data-m4c]),.puac:not([data-m4c]),li:not([data-m4c])").forEach(el=>{el.dataset.m4c=1;
+  if(el.closest(".m4sim,#gm400,svg"))return;
+  const t=nrm(el.textContent);if(t.length>900||!RECOG.test(t)||!LEVA.test(t))return;
+  const c=el.closest(CAJA)||el.parentElement;if(!c||c.querySelector(".m4sim"))return;
+  const d=document.createElement("div");d.className="gsim m4sim m4din";d.dataset.sim="m400";
+  if(el.tagName=="LI")el.appendChild(d);else el.insertAdjacentElement("afterend",d);sim(d)})}catch(e){}}
+let tE=null;new MutationObserver(()=>{if(tE)return;tE=setTimeout(()=>{tE=null;escanea()},350)}).observe(document.body,{childList:true,subtree:true});
+setTimeout(escanea,600);
+
 /* ---------- tarjeta de la OT (Inicio / Seguimiento): franja roja de primera actuación ---------- */
 window.m400Va=function(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(typeof gTipoOT=="function")gTipo=gTipoOT(i);
  if(view!="tec")go("tec");else vTec();setTimeout(()=>{pinta();const d=document.getElementById("gm400");if(d)d.scrollIntoView({block:"start",behavior:"smooth"})},200)};
@@ -230,6 +247,7 @@ html.lt .m4sim svg{--s-bg:#f4f5f7;--s-tx:#0b0d12;--s-mu:#4b5563;--s-bd:#6b7280;-
 .m4sim .s-h24{fill:none;stroke:var(--s-24);stroke-width:2.5}.m4sim .s-hs{fill:none;stroke:var(--s-bd);stroke-width:2.5}.m4sim .s-hs.vivo{stroke:var(--s-w);animation:m4p 1s steps(1,end) infinite}
 .m4sim .s-mod{fill:#2f8f46}.m4sim .s-led{fill:#7cc7ea}.m4sim .s-lo{fill:#6b7280}.m4sim .s-lon{fill:#fff7c2;stroke:var(--s-24);stroke-width:2;filter:drop-shadow(0 0 4px #ffd54f)}
 .m4sim .s-blq{fill:color-mix(in srgb,var(--s-w) 22%,transparent);stroke:var(--s-w);stroke-width:2;animation:m4p 1s steps(1,end) infinite}.m4sim .s-okb{fill:color-mix(in srgb,var(--s-ok) 20%,transparent);stroke:var(--s-ok);stroke-width:2}
+.m4din{margin:6px 0 10px;padding:8px;border:1px solid var(--bd);border-radius:8px}
 .m4sim .gsim-bt button.on{border-color:var(--ac);color:var(--ac);font-weight:700}
 @keyframes m4p{0%{opacity:1}50%{opacity:.2}}@keyframes m4l{0%{fill:#fff7c2}50%{fill:#6b7280}}
 @media (prefers-reduced-motion:reduce){.m4k .hs,.m4k .lon,.m4k .corte line{animation:none}}`;document.head.appendChild(st);
