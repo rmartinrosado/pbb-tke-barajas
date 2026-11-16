@@ -1,4 +1,4 @@
-/* ===== v408-v409: bornas y listas en columnas (pantalla y PDF) =====
+/* ===== v408-v409 (v516: sangría por dependencia en los pasos y apartados): bornas y listas en columnas (pantalla y PDF) =====
    v409: también listas «CLAVE: …» y bornas numeradas sin «=» («1 +24 V · 2 0 V · 3 señal»), claves largas y los PDF de jsPDF.
    v410: corregido · en la guía de campo no se aplicaba porque el desplegable «Elementos» del paso tapaba la detección.
    v411: las flechas → son pasos a seguir · «CLAVE → acción · …» en dos columnas (clave | → acción) y «A → B → C» como pasos numerados 1, 2, 3… (también en PDF).
@@ -24,7 +24,21 @@ summary.bcsum::after{content:none!important}.bcsum .bcl{display:inline}
 .bcdot{color:var(--ac,#ff6a13);font-weight:900;padding:0 4px}
 .bcar{color:var(--ac,#ff6a13);font-weight:800}
 .bcpa .bckc{border-radius:50%;min-width:1.5em;padding:0 4px}
-.bct{margin-top:4px}`;
+.bct{margin-top:4px}
+/* v516: sangría de apartados dependientes */
+.bcol>.bcsub,.bcol>.bcsub+.bcdep{border-top:0}
+.bcdep{position:relative;padding-left:calc(var(--lv,1)*16px + 14px)!important}
+.bcdep[data-lv="1"]{--lv:1}.bcdep[data-lv="2"]{--lv:2}.bcdep[data-lv="3"]{--lv:3}
+.bcdep::before{content:attr(data-mk);position:absolute;left:calc(var(--lv,1)*16px - 2px);top:4px;color:var(--ac,#ff6a13);font-weight:900}
+.bcdep[data-mk="↳"]{font-weight:700}
+.bchd{font-weight:700;border-top:0!important}
+.bchd+.bcsub,.bchd+.bcsub+.bcdep{border-top:0}
+.bcdep::after{content:"";position:absolute;left:calc(var(--lv,1)*16px - 10px);top:0;bottom:0;border-left:2px solid color-mix(in srgb,var(--ac,#ff6a13) 35%,transparent)}
+/* el apartado (encabezado) y lo que depende de él: título en negrita y el contenido sangrado con su línea guía */
+.bcl:has(+.bcol){font-weight:700}
+.bcl+.bcol{margin-left:10px;padding-left:8px;border-left:2px solid color-mix(in srgb,var(--ac,#ff6a13) 45%,transparent)}
+label.gpaso>span>details.elusd,.puac>details.elusd{margin-left:10px;padding-left:8px;border-left:2px dotted var(--bd,rgba(127,127,127,.5))}
+.gst>.m4din{margin-left:34px}`;
 document.head.appendChild(st);
 
 const NO=".cxrec,details:not(.elusd)>summary,svg,button,textarea,input,select,script,style,code,pre,header,nav,#nav,#navtab,[contenteditable=true],.bcol,.bcl,.bct,[data-nocol]";
@@ -82,7 +96,33 @@ function cadena(s,C){const fl=C.fl;if(fl.length<2)return null;
  for(let k=0;k<cortes.length;k++){let a=k?cortes[k]+fl[k-1].n:cortes[k];const b=k+1<cortes.length?cortes[k+1]:s.length;while(a<b&&/\s/.test(s[a]))a++;filas.push({a,b,k:null,v:a,n:k+1})}
  if(filas.some(f=>f.b-f.a<1))return null;
  const u=filas[filas.length-1];const fin=finFila(s,u.a);u.b=fin;
- return {tipo:"paso",lead:[0,ini],filas,tail:[fin,s.length]}}
+ return {tipo:"paso",lead:[0,ini],filas:depende(s,filas)||filas,tail:[fin,s.length]}}
+/* v516: sangría por dependencia en los pasos «condición → resultado. Si … → …»
+   · Cada frase nueva es un apartado numerado (①, ②…); lo que va detrás de una flecha es su resultado («→», un nivel más adentro).
+   · Una frase que empieza por condición («Si …», «Si no …», «Con …», «Sin …», «Apagado», «Encendido»…) depende del apartado
+     anterior: va sangrada debajo de él con «↳» y su resultado un nivel más.
+   · Las cadenas sin frases ni condiciones (recorridos de cables «A → B → C») siguen como antes: pasos numerados. */
+const COND=/^(si|sino|con|sin|apagad[oa]s?|encendid[oa]s?|no|s[ií]|igual|distinto|en caso|cuando|al (soltar|quitar|pulsar|poner))\b/i;
+function frases(s,a,b){const r=[];let d=0,i0=a;
+ for(let i=a;i<b-2;i++){const c=s[i];
+  if(c=="("||c=="["||c=="«")d++;else if((c==")"||c=="]"||c=="»")&&d>0)d--;
+  else if(d==0&&c=="."&&s[i+1]==" "&&/[A-ZÁÉÍÓÚÑ¿]/.test(s[i+2])){const w=(s.slice(Math.max(0,i-6),i).match(/(\S+)$/)||[""])[0];
+   if(/^(rev|pág|pag|nº|aprox|fig|cond|izq|dcha|dch|izqda|máx|mín|ej|p|sr|mód|bor)$/i.test(w))continue;
+   r.push([i0,i+1]);i0=i+2}}
+ r.push([i0,b]);return r.filter(([x,y])=>s.slice(x,y).trim())}
+function depende(s,filas){const P=[];let hay=false;
+ filas.forEach((f,k)=>{const fr=frases(s,f.a,f.b);if(fr.length>1)hay=true;
+  fr.forEach(([a,b],j)=>{const t=s.slice(a,b).trim();const res=k>0&&j==0;if(!res&&COND.test(t))hay=true;P.push({a,b,res,t})})});
+ if(!hay)return null;
+ let n=0,anc=0,base=0;const out=[];
+ P.forEach((p,i)=>{
+  if(p.res){const lv=base+1;out.push({a:p.a,b:p.b,k:null,v:p.a,n:"→",lv,pn:" ".repeat(lv*2)+"->"});return}
+  const cond=i>0&&(COND.test(p.t)||p.t.split(/\s+/).length<=2&&P[i+1]&&P[i+1].res);
+  if(cond){base=anc+1;out.push({a:p.a,b:p.b,k:null,v:p.a,n:"↳",lv:base,pn:" ".repeat(base*2)+">"})}
+  else{base=0;anc=0;out.push({a:p.a,b:p.b,k:null,v:p.a,n:++n,lv:0,pn:n+"."})}});
+ /* un solo apartado: es el título del paso (sin ①) y lo demás cuelga de él */
+ if(n==1&&out[0].lv==0){out[0].hd=1;out[0].n="";out[0].pn=""}
+ return out}
 const PRUEBA={test:t=>(t.match(/ · /g)||[]).length>=2||(t.match(/ (?:→|->) /g)||[]).length>=2||RE_COMA.test(t)};
 /* v415: elementos separados por comas («R-R1, IT-W16, IT-X62, E-X62…») → uno por línea */
 const RE_COD=/(?:^|[^A-Za-z0-9])\+?[A-Z]{1,5}\d?-[A-Z]{1,3}\d/;
@@ -149,6 +189,9 @@ function procesa(el){if(el.dataset.bcol)return;
  r.filas.forEach(f=>{
   if(f.k){const k=document.createElement("span");k.className="bck";const kc=trozo(tx,f.k[0],f.k[1]);if(chip){const c=document.createElement("span");c.className="bckc";if(kc)c.append(kc);k.append(c)}else if(kc)k.append(kc);
    const v=document.createElement("span");v.className="bcv";if(r.tipo=="fl"){const ar=document.createElement("span");ar.className="bcar";ar.textContent="→ ";v.append(ar)}const fv=trozo(tx,f.v,f.b);if(fv)v.append(limpia(fv));g.append(k,v)}
+  else if(f.hd){const v=document.createElement("span");v.className="bcv bcw bchd";const fv=trozo(tx,f.a,f.b);if(fv)v.append(limpia(fv));g.append(v)}
+  else if(f.lv!=null&&(f.lv>0||typeof f.n!="number")){const k=document.createElement("span");k.className="bck bcsub";
+   const v=document.createElement("span");v.className="bcv bcdep";v.dataset.lv=f.lv;v.dataset.mk=f.n;const fv=trozo(tx,f.a,f.b);if(fv)v.append(limpia(fv));g.append(k,v)}
   else if(f.n){const k=document.createElement("span");k.className="bck";const c=document.createElement("span");c.className=f.n=="•"?"bcdot":"bckc";c.textContent=f.n;k.append(c);
    const v=document.createElement("span");v.className="bcv";const fv=trozo(tx,f.a,f.b);if(fv)v.append(limpia(fv));g.append(k,v)}
   else{const v=document.createElement("span");v.className="bcv bcw";const fv=trozo(tx,f.a,f.b);if(fv)v.append(limpia(fv));g.append(v)}});
@@ -196,7 +239,7 @@ function envuelvePdf(d){if(!d||d.__bcol)return d;d.__bcol=1;
    const r=analiza(t);if(!r)return split(t,w,o);
    const out=[],sl=(a,b)=>t.slice(a,b).replace(/^[\s·]+|[\s·]+$/g,"");
    const lead=sl(r.lead[0],r.lead[1]);if(lead)out.push(...split(lead,w,o));
-   const kt=f=>f.k?sl(f.k[0],f.k[1]):f.n=="•"?"-":f.n?String(f.n)+".":"";
+   const kt=f=>f.k?sl(f.k[0],f.k[1]):f.pn!=null?f.pn:f.n=="•"?"-":f.n?String(f.n)+".":"";
    const ks=r.filas.filter(f=>f.k||f.n).map(kt);
    const kw=Math.min(Math.max(...ks.map(k=>oW.call(d,k)))+2.5,w*0.42);
    r.filas.forEach(f=>{
