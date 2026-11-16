@@ -39,13 +39,15 @@ function sigTags(x){const s=new Set([...(x.tg||[])].map(t=>String(t).replace(/^\
  const pts=((x.S&&x.S.p)||[]).map(q=>q.p).join(" ")+" "+((x.S&&x.S.t)||"");let m;TAG.lastIndex=0;const T=pts.toUpperCase();
  while((m=TAG.exec(T)))s.add(m[1].replace(/'+$/,""));return s}
 function citaSenal(x,C,TX){const tg=sigTags(x);
- for(const c of C){if(esMod(c))continue;if(tg.has(c))return 2}
+ for(const c of C){if(esMod(c)||esBor(c)||esMang(c))continue;if(tg.has(c))return 3}
  if(C.includes(x.mod)&&x.S){const led=String(x.S.led||x.S.b||"").trim();
-  if(led&&new RegExp(reE(x.mod)+"[^\\n;]{0,45}?(?<![\\d.])"+reE(led)+"(?![\\d])").test(TX))return 1}
+  if(led&&new RegExp(reE(x.mod)+"[^\\n;]{0,45}?(?<![\\d.])"+reE(led)+"(?![\\d])").test(TX))return 2}
+ /* borneros y mangueras: los comparten muchas señales; solo deciden si no hay nada más concreto (ver filtra) */
+ for(const c of C){if((esBor(c)||esMang(c))&&tg.has(c))return 1}
  return 0}
 function filtra(i,r){const o=iaDe(i&&i.id);if(!o)return r;
  const TX=iaTexto(o).toUpperCase();const C=codigos(TX);
- const rel0=r.rel||[];let rel=rel0.map((x,ix)=>({x,c:citaSenal(x,C,TX),ix})).filter(z=>z.c>0).sort((a,b)=>b.c-a.c||a.ix-b.ix).map(z=>z.x);
+ const rel0=r.rel||[];let rel=rel0.map((x,ix)=>({x,c:citaSenal(x,C,TX),ix})).filter(z=>z.c>0);const fu=rel.some(z=>z.c>=2);rel=rel.filter(z=>!fu||z.c>=2).sort((a,b)=>b.c-a.c||a.ix-b.ix).map(z=>z.x);
  const sinCita=!rel.length;if(sinCita&&rel0.length)rel=[rel0[0]];
  const mods=[...new Set(rel.map(x=>x.mod))];
  /* elementos: solo los que nombra la IA; dispositivos primero, después borneros y mangueras */
@@ -92,11 +94,69 @@ function iaHTML(R){const A=R._ia,o=A.o;const med=o.medir||[],ef=o.eficaz||[];
  return h}})();
 
 /* ---------- repintado al llegar la IA o al cambiar «Ver todo» ---------- */
-function repinta(){try{ANA_C={k:"",r:null}}catch(e){}
+function repinta(){try{ANA_C={k:"",r:null}}catch(e){}setTimeout(()=>{try{filtraGuia()}catch(e){}},60);
  try{if(document.querySelector(".insov")&&typeof gPintaIns=="function"){gPintaIns();return}}catch(e){}
  try{if(typeof view!="undefined"&&view=="tec"&&typeof render=="function"){const y=window.scrollY;const a=document.getElementById("anag");if(a)a.remove();render();requestAnimationFrame(()=>window.scrollTo(0,y))}}catch(e){}}
 window.anaIATodo=function(v){todo=!!v;repinta()};
 window.addEventListener("pc-ia",()=>{todo=false;repinta()});
+
+/* ===== v524: lo mismo en TODA la guía de la OT y en la inspección cable a cable =====
+   Con resultado de la IA para la OT:
+   · Casos de la guía (grupos y cajas sueltas): solo los que nombran un elemento, bornero, manguera o señal
+     (módulo + entrada) de la IA, más la avería más relacionada. Un grupo sin casos implicados se oculta entero.
+   · «Comprobaciones por sistema»: solo los sistemas que nombran lo de la IA.
+   · Inspección cable a cable: solo los módulos del PLC de las señales implicadas.
+   Se mantienen siempre: Seguridad, cotejo entre planos, Actuación más eficaz, Análisis de la OT, Cotejar PLC,
+   Inspección, Mapa de alimentaciones, Componentes y Cierre.
+   Aviso arriba de la guía con «Ver todo» / «Solo lo de la OT». ===== */
+function claveIA(){try{if(typeof gOT=="undefined"||!gOT||typeof inc=="undefined")return null;const i=inc.find(x=>x.id==gOT);if(!i)return null;
+ const o=iaDe(i.id);if(!o)return null;const was=todo;todo=false;let R=null;try{R=anaOT(i)}finally{todo=was}if(!R||!R._ia)return null;
+ const cod=R._ia.C.filter(t=>!esMod(t)&&!/^E-Q30/.test(t));
+ /* fuertes: dispositivos de campo, bornas concretas y señales (módulo + entrada); los borneros y mangueras sueltos
+    (p. ej. E-X1 de 0 V) salen en casi toda la guía y solo cuentan si la IA no nombra nada más concreto */
+ const re=t=>new RegExp("(^|[^A-Z0-9-])\\+?"+reE(t)+"(?![0-9A-Z.])");
+ const dis=cod.filter(t=>!esBor(t)&&!esMang(t));
+ const res=dis.map(re);
+ bornas(iaTexto(o)).forEach(b=>{const [x,n]=b.split(":");res.push(new RegExp("(^|[^A-Z0-9-])\\+?"+reE(x)+"\\s*(?::|BORNA|BORNE)\\s*"+reE(n)+"(?![0-9])"))});
+ (R.rel||[]).forEach(x=>{const led=String(x.S&&(x.S.led||x.S.b)||"").trim();if(led)res.push(new RegExp(reE(x.mod)+"[^\\n;]{0,45}?(?<![\\d.])"+reE(led)+"(?![\\d])"))});
+ if(!res.length)cod.forEach(t=>res.push(re(t)));
+ const keys=new Set((R.guia||[]).map(g=>(R.tipo||"PAS")+g.si));return {i,R,res,keys,o}}catch(e){return null}}
+const FIJAS=/^(SEG|COT|INS|SIS|ALIM|CMP|CIE|SIS.*)$/;
+const toca=(el,K)=>{const t=(el.textContent||"").toUpperCase();return K.res.some(r=>r.test(t))};
+function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=document.getElementById("app");if(!app)return;
+ const K=todo?null:claveIA();
+ app.querySelectorAll(".aiox").forEach(e=>e.classList.remove("aiox"));
+ let av=document.getElementById("aiguia");
+ if(!K&&!todo){if(av)av.remove();return}
+ if(K){let oc=0;
+  const caso=d=>{const k=d.dataset.k||"";if(FIJAS.test(k)||d.classList.contains("gef")||d.id=="gpcot"||d.id=="anag")return true;if(K.keys.has(k))return true;return toca(d,K)};
+  /* cajas sueltas de avería */
+  [...app.children].forEach(c=>{if(c.matches("details.gd")&&!caso(c)){c.classList.add("aiox");oc++}});
+  /* grupos de casos */
+  app.querySelectorAll(":scope > details.ggrp").forEach(g=>{const cs=[...g.querySelectorAll("details.gd")];let vis=0;
+   cs.forEach(d=>{if(caso(d))vis++;else{d.classList.add("aiox");oc++}});if(!vis&&(cs.length||!toca(g,K)))g.classList.add("aiox")});
+  /* comprobaciones por sistema */
+  const sis=app.querySelector('details.gd[data-k="SIS"]');if(sis){const ds=[...sis.querySelectorAll("details.sisd")];let v=0;
+   ds.forEach(d=>{if(toca(d,K))v++;else{d.classList.add("aiox");oc++}});if(ds.length&&!v)sis.classList.add("aiox")}
+  K.oc=oc}
+ const cab=[...app.querySelectorAll(":scope > .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));if(!cab)return;
+ if(!av){av=document.createElement("div");av.id="aiguia";av.className="aiof aigv"}
+ if(cab.nextElementSibling!==av)cab.insertAdjacentElement("afterend",av);
+ const h=todo?`Se ve toda la guía. <a href="#" onclick="event.preventDefault();anaIATodo(false)">Solo lo de la OT (IA)</a>`:
+  `🤖 Guía filtrada con la IA (${esc(K.o.lector||"IA")}): solo lo de la OT${K.oc?` · ${K.oc} apartado(s) ocultos`:""}. <a href="#" onclick="event.preventDefault();anaIATodo(true)">Ver todo</a>`;
+ if(av.innerHTML!==h)av.innerHTML=h}
+let tg=0;const app0=document.getElementById("app");
+if(app0)new MutationObserver(()=>{if(tg)return;tg=setTimeout(()=>{tg=0;try{filtraGuia()}catch(e){console.warn("ana-ia guía",e)}},120)}).observe(app0,{childList:true});
+if(typeof vTec=="function"){const ov=vTec;window.vTec=vTec=function(){const r=ov.apply(this,arguments);try{filtraGuia()}catch(e){}return r}}
+window.addEventListener("pc-ia",()=>setTimeout(filtraGuia,50));
+/* «Señales relacionadas con la OT» de la inspección: solo las que deja la IA */
+if(typeof window.otRelSig=="function"){const os=window.otRelSig;window.otRelSig=function(i){const A=os.apply(this,arguments);try{if(todo||!i||!iaDe(i.id))return A;
+ const R=anaOT(i);if(!R||!R._ia||!R.rel.length)return A;return {gr:["Según la IA"],rel:R.rel.map(x=>({mod:x.mod,S:x.S})),txt:(A&&A.txt)||i.desc||""}}catch(e){return A}}}
+/* inspección cable a cable: solo los módulos implicados */
+if(typeof gInsHTML=="function"){const oi=gInsHTML;window.gInsHTML=gInsHTML=function(){let h=oi.apply(this,arguments);try{if(todo)return h;
+ const i=inc.find(x=>x.id==gOT);const R=i&&anaOT(i);if(!R||!R._ia||!R.mods.length)return h;
+ h=h.replace(/<button class="([^"]*)"( onclick="gISel\('([^']+)'\)")/g,(m,c,on,k)=>R.mods.includes(k)||k==gIMod?m:`<button class="${c} aiox"${on}`)}catch(e){}return h}}
+const st2=document.createElement("style");st2.textContent=`.aiox{display:none!important}.aigv{margin:0 0 10px;padding:7px 10px;border:1.5px solid #1565c0;border-radius:8px;background:color-mix(in srgb,#1565c0 7%,transparent);opacity:1;font-size:12.5px}`;document.head.appendChild(st2);
 
 const st=document.createElement("style");st.textContent=`
 .aibox{margin:8px 0 10px;padding:8px 10px;border:2px solid #1565c0;border-radius:10px;background:color-mix(in srgb,#1565c0 6%,transparent)}
