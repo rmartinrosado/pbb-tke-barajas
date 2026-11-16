@@ -91,3 +91,35 @@ let tm=null;new MutationObserver(()=>{if(!tm)tm=setTimeout(()=>{tm=null;pon()},3
 /* v499: también en el mismo instante del repintado de Inicio (antes aparecía 0,3 s después y las fichas de OT bajaban de golpe) */
 try{const ro=render;render=function(){const r=ro.apply(this,arguments);pon();return r}}catch(e){}
 })();
+
+/* ===== v505: «Corresponde a (caja de la guía)» agrupado por familias del sistema (como la guía de campo): al pulsar se elige
+   primero la familia (Hidráulica y elevación, Traslación, Seguridades…) y luego la caja; el desplegable también va con grupos. ===== */
+(function(){
+const fam=(t,L)=>{try{return (window.guiaFamilia&&window.guiaFamilia(t,L))||"Otras cajas"}catch(e){return"Otras cajas"}};
+const Es=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nr=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+function grupos(sel){const L=[...sel.options].map(o=>o.value).filter(v=>v&&v!="*");const M=new Map();
+ L.forEach(t=>{const f=fam(t,L);if(!M.has(f))M.set(f,[]);M.get(f).push(t)});
+ const k=[...M.keys()].sort((a,b)=>(a=="Otras cajas")-(b=="Otras cajas"));return k.map(f=>[f,M.get(f)])}
+function agrupaSel(sel){if(sel.dataset.fam)return;sel.dataset.fam="1";const G=grupos(sel);
+ sel.innerHTML=`<option value="">— Elige —</option>${G.map(([f,l])=>`<optgroup label="${Es(f)}">${l.map(t=>`<option>${Es(t)}</option>`).join("")}</optgroup>`).join("")}<option value="*">✏️ Otro (escribir)…</option>`;
+ /* el desplegable queda oculto (guarda el valor) y en su sitio un botón que abre el selector por familias */
+ const b=document.createElement("button");b.type="button";b.className="sec avsb";sel.style.display="none";sel.after(b);
+ const pinta=()=>{const v=sel.value;b.innerHTML=v?(v=="*"?"✏️ Otro (escribir)…":`<small>${Es(fam(v,G.flatMap(g=>g[1])))}</small><br>${Es(v)}`):`<span class="mu">— Elige —</span>`};
+ sel.addEventListener("change",pinta);pinta();b.onclick=()=>picker(sel,G)}
+function picker(sel,G){let pk=document.getElementById("rcspk");if(pk)pk.remove();pk=document.createElement("div");pk.id="rcspk";pk.style.zIndex="100010";document.body.appendChild(pk);
+ const cierra=()=>pk.remove();const pon=v=>{sel.value=v;sel.dispatchEvent(new Event("change"));cierra()};
+ const fams=()=>{pk.innerHTML=`<div class="rcspkc"><div class="rcspkh"><b>Caja de la guía · familia</b><button type="button" class="sec rcspkx" aria-label="Cerrar">✕</button></div><div class="rcspl">
+  ${G.map(([f,l],k)=>`<button type="button" class="rcspf" data-k="${k}"><span><b>${Es(f)}</b><small>${l.length} caja${l.length==1?"":"s"}</small></span><span class="rcspfa">›</span></button>`).join("")}
+  <button type="button" class="rcspf" data-o="1"><span><b>✏️ Otro (escribir)…</b><small>elemento o avería que no está en la guía</small></span><span class="rcspfa">›</span></button></div></div>`;
+  pk.querySelector(".rcspkx").onclick=cierra;
+  pk.querySelectorAll(".rcspf").forEach(b=>b.onclick=()=>b.dataset.o?pon("*"):lista(+b.dataset.k))};
+ const lista=k=>{const [f,l]=G[k];pk.innerHTML=`<div class="rcspkc"><div class="rcspkh"><button type="button" class="sec rcspkb">‹ Familias</button><b>${Es(f)}</b><button type="button" class="sec rcspkx" aria-label="Cerrar">✕</button></div>
+  <input id="rcspq" type="search" autocomplete="off" placeholder="Filtrar"><div class="rcspl">${l.map(t=>`<button type="button" class="rcspi" data-v="${Es(t)}">${Es(t)}</button>`).join("")}</div></div>`;
+  pk.querySelector(".rcspkb").onclick=fams;pk.querySelector(".rcspkx").onclick=cierra;
+  const q=pk.querySelector("#rcspq");q.oninput=()=>{const v=nr(q.value).trim();pk.querySelectorAll(".rcspi").forEach(b=>b.style.display=!v||nr(b.dataset.v).includes(v)?"":"none")};
+  pk.querySelector(".rcspl").onclick=e=>{const b=e.target.closest(".rcspi");if(b)pon(b.dataset.v)}};
+ pk.onclick=e=>{if(e.target===pk)cierra()};fams()}
+const st=document.createElement("style");st.textContent=`.avsb{display:block;width:100%!important;margin:0!important;text-align:left;padding:10px 12px!important;font-size:15px!important;line-height:1.25}#rcspk .rcspf>span:first-child:not(.rcspfi){flex:1;display:flex;flex-direction:column;gap:2px}.avsb small{color:var(--mu);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}`;document.head.appendChild(st);
+const o=window.avPanel;if(typeof o=="function")window.avPanel=function(){const r=o.apply(this,arguments);try{document.querySelectorAll("#avv select.avs").forEach(agrupaSel)}catch(e){}return r};
+})();

@@ -24,6 +24,8 @@ const titulo=d=>{const b=d.querySelector(":scope > summary > b");if(!b)return"";
 function familia(t,todas){for(const[n,re] of FAM)if(re.test(t))return n;
  const i=t.indexOf(" · ");if(i>2){const p=t.slice(0,i);if(todas.filter(x=>x.startsWith(p+" · ")).length>1)return p}
  return null}
+/* v505: familia de una caja, para agrupar otras listas (avisos sin reconocer) */
+window.guiaFamilia=(t,todas)=>familia(t,todas||[]);
 function agrupa(){
  if(typeof view!="undefined"&&view!="tec")return;
  const app=document.getElementById("app");if(!app||app.querySelector("details.ggrp"))return;
