@@ -54,6 +54,32 @@ function build(){
    {const q=R[R.length-1];if((window.ES507?/(^|\D)129(\D|$)/:/(^|\D)205(\D|$)/).test(q.inV+' '+q.outV)&&q.vt&&!/^0/.test(q.vt))q.vt='0 V';}
   })});
  ST.forEach(s=>{const S=(IDX[s[0]]=IDX[s[0]]||{}),R=(S[s[1]]=S[s[1]]||[]);R.unshift({key:"",d:s[4],f:s[6],pf:s[6],nf:s[6],t:s[0],p:s[1],inV:s[2],outV:s[3],prev:"",next:"",vt:s[5],st:1})});
+ notasBornas();
+}
+/* v552: REVISIÓN DE TODOS LOS BORNEROS. Las bornas que el esquema solo cita en las notas de un circuito
+   (p. ej. «el sensor se alimenta por E-X62:1 (+24 V, 189) y E-X62:2 (0 V, 205)») o en la descripción de otra borna
+   (p. ej. «PE → +E-X11:1») no tenían recorrido propio y salían como «sin datos». Ahora se añaden a su bornero
+   con lo que dice el esquema, el folio, el hilo y la tensión que debe dar. */
+function notasBornas(){
+ const RX=/(?<![A-Za-z0-9])\+?([A-Z][A-Z0-9]{0,5}-X\d+(?:\.\d+)?):(\d+)/g, fuentes=[];
+ Object.keys(C).forEach(k=>{const e=C[k];(e.n||[]).forEach(x=>{if(x.k==="?"&&x.x)fuentes.push({t:x.x,f:e.f,o:e.m+" "+e.b+" · "+(e.d||"")})})});
+ ST.forEach(r=>fuentes.push({t:r[2]+" | "+r[3]+" | "+r[4],f:r[6],o:r[0]+":"+r[1]+" · "+r[4],st:r}));
+ const ten=(w)=>/4-20 ?mA/.test(w)?"4-20 mA":/\bFE\b/.test(w)?"0 V (FE)":/(−UB|\b0 V\b|\bGND\b|L−|\bPE\b|GNYE)|(^|\D)(205|129)(\D|$)/.test(w)?"0 V":/(\+UB|\+24 ?V|L\+)|(^|\D)(613|189|184|218|215|182|568)(\D|$)/.test(w)?"24 V":/230 ?V|SAI/.test(w)?"230 V":/400 ?V/.test(w)?"400 V":"";
+ /* la indicación de tensión más cercana (la última antes de la borna) */
+ const tenUlt=(w)=>{const K=[[/4-20 ?mA/g,"4-20 mA"],[/\bFE\b/g,"0 V (FE)"],[/−UB|\b0 V\b|\bGND\b|L−|\bPE\b|GNYE|pantalla|(?<!\d)(?:205|129)(?!\d)/gi,"0 V"],[/\+UB|\+24 ?V|L\+|(?<!\d)(?:613|189|184|218|215|182|568)(?!\d)/g,"24 V"],[/230 ?V|SAI/g,"230 V"],[/400 ?V/g,"400 V"]];
+  if(/\bPE\b|GNYE/.test(w))return "0 V (PE)";let best=-1,v="";K.forEach(([r,t])=>{let m;r.lastIndex=0;while((m=r.exec(w)))if(m.index>=best){best=m.index;v=t}});return v};
+ const ultHilo=(w)=>{const r=/hilo\s+(\d{2,4})/gi;let m,u="";while((m=r.exec(w)))u="hilo "+m[1];if(!u){const q=/(?:^|[\s(])(\d{3})\s*\($/.exec(w);if(q)u="hilo "+q[1]}return u};
+ /* tramo de la frase que va con la borna: desde el último «,» «;» o « y » (fuera de paréntesis cerrados) hasta la borna */
+ const tramo=(t,i)=>{let d=0,j=i-1;for(;j>=0&&i-j<120;j--){const c=t[j];if(c===")")d++;else if(c==="("){if(d)d--;}else if(!d&&(c===","||c===";"||c==="."||(t.slice(j-2,j+1)===" y ")))break}return t.slice(j+1,i)};
+ const frase=(t,i)=>{const a=t.lastIndexOf(". ",i),b=t.indexOf(". ",i);let f=t.slice(a<0?0:a+2,b<0?t.length:b+1).trim();if(f.length>220){const c=Math.max(0,i-(a<0?0:a+2)-90);f=(c?"…":"")+f.slice(c,c+200).trim()+"…"}return f};
+ const vistos={};
+ fuentes.forEach(F=>{let m;RX.lastIndex=0;while((m=RX.exec(F.t))){const t="+"+m[1],p=m[2],S=IDX[t];if(S&&S[p]&&S[p].length)continue;
+  const k=t+":"+p;const w=F.t.slice(Math.max(0,m.index-28),m.index+m[0].length+28);const antes=tramo(F.t,m.index);let desp=F.t.slice(m.index+m[0].length,m.index+m[0].length+26);desp=desp.split(/[,;)→]| y /)[0];const prev=F.t.slice(Math.max(0,m.index-90),m.index);
+  if(vistos[k]){vistos[k].de.add(F.o);continue}
+  const q={key:"",d:frase(F.t,m.index),f:F.f,pf:F.f,nf:F.f,t,p,inV:ultHilo(antes)||ultHilo(desp),outV:"",prev:"",next:"",vt:tenUlt(antes)||ten(desp)||tenUlt(prev),st:1,nota:1,de:new Set([F.o])};
+  if(/FE|PE/.test(q.vt))q.inV="";vistos[k]=q;const SS=(IDX[t]=IDX[t]||{});(SS[p]=SS[p]||[]).push(q)}});
+ Object.values(vistos).forEach(q=>{q.d="Según el esquema: "+q.d+"  (citada en "+[...q.de].slice(0,3).join(" · ")+(q.de.size>3?" …":"")+")";delete q.de});
+ window.BOR_NOTAS=Object.entries(vistos).map(([k,q])=>({k,vt:q.vt,h:q.inV,d:q.d}));
 }
 /* dónde poner las puntas del polímetro y qué debe marcar */
 const REF0={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",CP:"+P-X92:2 (0 V, hilo 205)",IT:"+IT-X51:2 (0 V, hilo 205)",ET:"+ET-X51:2 (0 V, hilo 205)",C:"+C-X51:2 (0 V, hilo 205)",
