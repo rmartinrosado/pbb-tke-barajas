@@ -47,7 +47,17 @@ function abre(){
  try{history.pushState({comp:1},"")}catch(e){}}
 function cierra(desdeHist){if(!capa||capa.style.display=="none")return;capa.style.display="none";document.documentElement.style.overflow="";
  if(!desdeHist){try{if(history.state&&history.state.comp)history.back()}catch(e){}}}
-window.abreComp=abre;window.cierraComp=()=>cierra(false);
+window.abreComp=abre;
+/* v511: abrir el catálogo ya buscado por un código (toque en la caja de un elemento del croquis por bloques).
+   Al cerrar (←, flecha atrás o atrás del móvil) se vuelve a la pantalla desde la que se abrió: la capa solo se oculta. */
+window.abreCompTag=function(tag){const t=String(tag||"").replace(/^\+/,"").replace(/\/.*$/,"").trim();abre();if(!capa||!t)return;
+ const q=capa.querySelector("#cn_q");zSel="";const n=nrm(t);
+ let hit=L().filter(c=>nrm(c.id)==n);if(!hit.length)hit=L().filter(c=>texto(c).includes(n));
+ if(!hit.length&&typeof compCampo=="function"){try{hit=compCampo(t)}catch(e){}}
+ q.value=hit.length&&!L().some(c=>texto(c).includes(n))?hit[0].id:t;
+ hit.slice(0,3).forEach(c=>abiertos.add(String(c.db||c.id)));lista();
+ const el=capa.querySelector("#cn_l");if(el)el.scrollTop=0;
+ if(!hit.length){const v=capa.querySelector(".cnvac");if(v)v.innerHTML=`Sin ficha de repuesto para <b>${E(t)}</b>${typeof nombreElemento=="function"&&nombreElemento(t)?" ("+E(nombreElemento(t))+")":""} en el catálogo.<br>Puedes añadirla con «Incorporar componente» o buscar otro código.`}};window.cierraComp=()=>cierra(false);
 addEventListener("popstate",()=>cierra(true));
 const IC='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5z"/><circle cx="12" cy="12" r="3.6"/></svg>';
 const pon=()=>{const nav=document.getElementById("nav");if(!nav||nav.querySelector("[data-compv]"))return;
