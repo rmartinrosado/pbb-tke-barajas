@@ -33,6 +33,7 @@ function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).v
 function abre(){
  if(!capa){capa=document.createElement("div");capa.id="compCapa";
   capa.innerHTML=`<div class="cnfix"><div class="cnh"><button type="button" class="sec cnb" aria-label="Volver" onclick="cierraComp()">←</button><div class="cnti"><b>🔩 Componentes de campo</b><small>Consulta de repuestos · sin OT asociada</small></div></div>
+  <button type="button" class="pri cninc" id="cn_inc">➕ Incorporar componente (foto)</button>
   <div class="cnbu"><input id="cn_q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Código, nombre, modelo o referencia"><button type="button" class="sec" aria-label="Buscar" id="cn_go">🔍</button><button type="button" class="sec" aria-label="Borrar búsqueda" id="cn_bo">🗑️</button></div>
   <div id="cn_z" class="cnz"></div></div><div id="cn_l" class="cnl"></div>`;
   document.body.appendChild(capa);
@@ -41,12 +42,26 @@ function abre(){
   q.addEventListener("keyup",e=>{if(e.key=="Enter"){q.blur();lista()}});
   capa.querySelector("#cn_go").onclick=()=>{q.blur();lista()};
   capa.querySelector("#cn_bo").onclick=()=>{q.value="";lista()};
+  capa.querySelector("#cn_inc").onclick=incorpora;
   capa.querySelector("#cn_z").addEventListener("click",e=>{const b=e.target.closest(".cnch");if(!b)return;zSel=b.dataset.z||"";lista()});
   capa.querySelector("#cn_l").addEventListener("toggle",e=>{const d=e.target;if(!d.classList||!d.classList.contains("cni"))return;d.open?abiertos.add(d.dataset.k):abiertos.delete(d.dataset.k)},true)}
  lista();capa.style.display="flex";document.documentElement.style.overflow="hidden";
  try{history.pushState({comp:1},"")}catch(e){}}
 function cierra(desdeHist){if(!capa||capa.style.display=="none")return;capa.style.display="none";document.documentElement.style.overflow="";
  if(!desdeHist){try{if(history.state&&history.state.comp)history.back()}catch(e){}}}
+/* v533: botón «Incorporar componente» en la consulta de repuestos del menú de abajo. Abre el mismo formulario de
+   incorporar (fotos + IA) por encima de la capa; al guardar, o al cerrarlo con ✕, se vuelve a esta lista (ya buscada por
+   el código guardado). */
+let incOn=false,envuelto=false;
+function finInc(){incOn=false;document.documentElement.classList.remove("cnInc")}
+function envuelve(){if(envuelto)return;envuelto=true;
+ const oc=window.compCatalogo;window.compCatalogo=function(q){if(!incOn)return oc.apply(this,arguments);
+  finInc();try{closeSheet()}catch(e){const sh=document.getElementById("sheet");if(sh)sh.style.display="none"}
+  if(capa){const i=capa.querySelector("#cn_q");if(i&&q){i.value=q;zSel=""}lista()}};
+ if(typeof window.closeSheet=="function"){const os=window.closeSheet;window.closeSheet=function(){if(incOn)finInc();return os.apply(this,arguments)}}}
+function incorpora(){if(typeof window.compIncorpora!="function"){if(typeof msg=="function")msg("Incorporar componente no disponible");return}
+ envuelve();incOn=true;document.documentElement.classList.add("cnInc");
+ window.compIncorpora();const sh=document.getElementById("sheet");if(sh)sh.style.display="flex"}
 window.abreComp=abre;
 /* v511: abrir el catálogo ya buscado por un código (toque en la caja de un elemento del croquis por bloques).
    Al cerrar (←, flecha atrás o atrás del móvil) se vuelve a la pantalla desde la que se abrió: la capa solo se oculta. */
@@ -74,6 +89,8 @@ const st=document.createElement("style");st.textContent=`
 #compCapa .cnb{width:44px!important;height:44px;margin:0!important;padding:0!important;font-size:22px;font-weight:800;flex:none}
 #compCapa .cnti{display:flex;flex-direction:column;min-width:0}#compCapa .cnti b{font-size:17px}
 #compCapa .cnti small{font:600 10px/1.4 var(--tkmo,monospace);letter-spacing:.7px;text-transform:uppercase;color:var(--mu,#8a93a3)}
+#compCapa .cninc{width:100%!important;margin:10px 0 0!important}
+html.cnInc #sheet{z-index:70!important}
 #compCapa .cnbu{display:flex;gap:6px;margin-top:10px}#compCapa .cnbu input{flex:1;margin:0;min-width:0;font-size:16px}
 #compCapa .cnbu button{width:auto!important;margin:0!important;padding:0 12px!important;flex:none}
 #compCapa .cnz{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;scrollbar-width:none}#compCapa .cnz::-webkit-scrollbar{display:none}
