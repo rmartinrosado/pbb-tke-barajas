@@ -1,4 +1,4 @@
-/* ===== v517: COTEJO ENTRE VARIOS PLANOS en la guía de campo de la OT (16/11/2026) =====
+/* ===== v517 (v518: caja antes de Seguridad · botón RECALCULAR IA siempre visible, también tras error): COTEJO ENTRE VARIOS PLANOS en la guía de campo de la OT (16/11/2026) =====
    · Debajo de «Plano de esta guía» → «📐 Planos a cotejar»: casillas con todos los planos cargados. Se guarda por OT.
      Por defecto: el plano de la guía + los de los otros sistemas que cita la OT (PBB / RCS o plano propio, AAA, HZ, AAP, CBTH).
    · El plano principal (el del desplegable) se elige ahora POR OT y vale también en 504 / 507 / 508 (antes se ignoraba ahí):
@@ -80,11 +80,11 @@ async function calcula(forzar){const i=otAct();if(!i||typeof view=="undefined"||
 /* ---------- Claude: cruce de los planos ---------- */
 function paginas(p,D,cupo){if(!p.P)return "";
  const sc=p.P.map(g=>({g,s:D.cod.filter(c=>g.tags.has(c)).length*3+D.pal.filter(w=>g.n.includes(w)).length})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
- let out="";for(const {g} of sc){const t=`\n### ${corto(p.d.name)} · página ${g.np}${g.fo?" (folio "+g.fo+")":""}\n`+g.tx.slice(0,2600);if(out.length+t.length>cupo)break;out+=t}
+ let out="";for(const {g} of sc){const t=`\n### ${corto(p.d.name)} · página ${g.np}${g.fo?" (folio "+g.fo+")":""}\n`+g.tx.slice(0,2000);if(out.length+t.length>cupo)break;out+=t}
  return out||`\n### ${corto(p.d.name)}: sin páginas con los códigos o palabras del aviso.`}
 async function ia(){const i=otAct();if(!i||!ST.res)return;const D=ST.D,R=ST.res,k=ST.k;
- ST.iaEst="🤖 Cruzando los planos con Claude…";pintaCaja();
- const cupo=Math.floor(21000/Math.max(1,R.pl.length));const al=window.aliasCampo||(x=>x);
+ if(ST.iaRun)return;ST.iaRun=true;ST.iaEst="🤖 Cruzando los planos con Claude…";pintaCaja();
+ const cupo=Math.floor(14000/Math.max(1,R.pl.length));const al=window.aliasCampo||(x=>x);
  const prompt=`Eres técnico experto en mantenimiento de pasarelas de embarque (PBB) TKE del aeropuerto Madrid-Barajas (puesto remoto RCS, PLC con módulos E-A… en el armario eléctrico y P-A… en el armario del pupitre, equipos AAA aire acondicionado, HZ convertidor 400 Hz, armario CBTH de interfaz con los equipos).
 Tienes que COTEJAR VARIOS PLANOS entre sí para una OT y dar con la actuación más eficaz en campo y los puntos a medir.
 OT ${i.orden||"-"} · PBB ${i.pos} · tipo ${i.tipo||"PAS"}${(i.equipos||[]).length?" · equipos "+i.equipos.join(", "):""}
@@ -107,8 +107,8 @@ Responde SOLO con JSON, sin nada más:
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({prompt})});clearTimeout(to);
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
   const m=String(j.txt).match(/\{[\s\S]*\}/);if(!m)throw new Error("respuesta sin formato");const o=JSON.parse(m[0]);o.lector=j.lector||"IA";o.t=Date.now();
-  if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ls.s(ST.iaK,JSON.stringify(o))}
- catch(e){if(ST.k!==k)return;ST.iaEst="No se ha podido cruzar con la IA: "+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+". El cotejo de códigos de arriba sí vale."}
+  ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ls.s(ST.iaK,JSON.stringify(o))}
+ catch(e){ST.iaRun=false;if(ST.k!==k)return;ST.iaEst="No se ha podido cruzar con la IA: "+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+". Pulsa «RECALCULAR IA» para volver a lanzarla; el cotejo de códigos sí vale."}
  pintaCaja()}
 
 /* ---------- pintado ---------- */
@@ -119,7 +119,7 @@ function selHTML(i,l){const sel=selDe(i.id)||[];
 window.pcMarca=function(cb){const i=otAct();if(!i)return;let s=selDe(i.id)||[];s=s.filter(x=>x!==cb.value);if(cb.checked)s.push(cb.value);guardaSel(i.id,s);
  const sm=cb.closest(".pcsel").querySelector("summary b");if(sm)sm.textContent=s.length;try{ANA_C={k:"",r:null}}catch(e){}calcula()};
 window.pcAbre=async function(id,np){try{gPagIni=np;await ver(id)}catch(e){}};
-window.pcRehace=function(){try{localStorage.removeItem(ST.iaK)}catch(e){}ST.ia=null;if(ST.res)ia();else calcula(true)};
+window.pcRehace=function(){if(ST.iaRun)return;try{localStorage.removeItem(ST.iaK)}catch(e){}ST.ia=null;ST.iaEst="";if(ST.res)ia();else calcula(true)};
 window.pcCopia=function(){const i=otAct(),o=ST.ia;if(!i||!o){msg("Todavía no hay resultado del cotejo");return}
  const t=`[Cotejo entre planos · ${ST.docs.map(d=>corto(d.name)).join(" + ")}]\n`+(o.resumen?"Causa probable: "+o.resumen+"\n":"")+
   (o.eficaz||[]).map((p,n)=>`${n+1}. ${p}`).join("\n")+((o.medir||[]).length?"\nMEDIR:\n"+(o.medir||[]).map(m=>`· ${m.punto}: roja en ${m.roja}, negra en ${m.negra} → debe marcar ${m.esperado}${m.si_no?". Si no → "+m.si_no:""}`).join("\n"):"");
@@ -142,14 +142,15 @@ function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre 
   ((o.planos||[]).length?`<details class="pccod"><summary>📄 Qué aporta cada plano</summary><ul class="pcul">${o.planos.map(p=>`<li><b>${esc(p.plano)}</b>${p.folios?" · "+esc(p.folios):""}: ${esc(p.aporta)}</li>`).join("")}</ul></details>`:"")+
   `<div class="mu" style="font-size:11px;margin-top:6px">Cotejo con ${esc(o.lector||"IA")} · ${new Date(o.t||Date.now()).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}. Comprueba en campo cada dato con el plano antes de actuar.</div>
   <button class="sec" style="width:100%;margin-top:8px" onclick="pcCopia()">Pasar a «Actuación guiada» de la OT</button>`}
- if(R&&!ST.iaEst)h+=`<button class="sec" style="width:100%;margin-top:6px" onclick="pcRehace()">↻ ${o?"Volver a cotejar":"Cotejar con Claude"}</button>`;
+ if(R&&!ST.iaRun)h+=`<button class="pri pcre" onclick="event.stopPropagation();pcRehace()">🔄 RECALCULAR IA</button>`;
  return h}
 function pintaCaja(){if(typeof view=="undefined"||view!="tec")return;const i=otAct();let b=$q("#gpcot");
  if(!i){if(b)b.remove();return}
  if(!b){b=document.createElement("details");b.id="gpcot";b.className="card gd pccaja";b.open=ls.g("pc_open")!=="0";
   b.addEventListener("toggle",()=>ls.s("pc_open",b.open?"1":"0"))}
- const ef=$q("#app details.gd.gef"),cab=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
- const ref=ef||(cab&&cab.nextElementSibling);if(ref&&b.nextElementSibling!==ref)ref.insertAdjacentElement("beforebegin",b);else if(!ref&&!b.isConnected&&cab)cab.insertAdjacentElement("afterend",b);
+ const seg=$q('#app details.gd[data-k="SEG"]'),ef=$q("#app details.gd.gef"),cab=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
+ /* v518: la caja va antes de «Seguridad antes de intervenir» */
+ const ref=seg||ef||(cab&&cab.nextElementSibling);if(ref&&b.nextElementSibling!==ref)ref.insertAdjacentElement("beforebegin",b);else if(!ref&&!b.isConnected&&cab)cab.insertAdjacentElement("afterend",b);
  const op=b.open;const sc=b.querySelector(".pccod[open]")?1:0;b.innerHTML=cajaHTML();b.open=op;if(sc){const c=b.querySelector(".pccod");if(c)c.open=true}}
 async function pinta(forzar){try{if(typeof view=="undefined"||view!="tec")return;const i=otAct();const s=$q("#g_doc");if(!s)return;
  if(i&&!$q("#gpcsel")){const l=await gLista();if(!$q("#gpcsel")&&$q("#g_doc")){if(!selDe(i.id))guardaSel(i.id,sugeridos(i,l));
@@ -172,6 +173,6 @@ const st=document.createElement("style");st.textContent=`
 html:not(.lt) .pcch{color:#64b5f6!important;border-color:#64b5f6!important}
 .pcno{color:#c62828;font-size:11px;font-weight:700}
 .pcm{margin:6px 0;padding:8px 10px;border-left:4px solid #f0a020;border-radius:6px;background:color-mix(in srgb,#f0a020 10%,transparent);font-size:13px;line-height:1.45}
-.pcro{color:#e53935}.pcul{margin:4px 0;padding-left:18px;font-size:13px}.pcul li{margin:3px 0}.pcres{margin-top:8px}`;document.head.appendChild(st);
+.pcre{width:100%;margin-top:8px;font-weight:800;letter-spacing:.5px}.pcro{color:#e53935}.pcul{margin:4px 0;padding-left:18px;font-size:13px}.pcul li{margin:3px 0}.pcres{margin-top:8px}`;document.head.appendChild(st);
 setTimeout(()=>pinta(),800);
 })();
