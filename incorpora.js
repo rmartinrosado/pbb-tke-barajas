@@ -15,13 +15,19 @@ const reDe=cl=>{const ws=String(cl||"").split(/[,;\n]+/).map(w=>nrm(w).trim()).f
  return t=>ws.some(w=>w.split(/\s+/).every(p=>t.includes(p)))};
 function aComp(r){return{id:r.codigo,t:r.titulo,fab:r.fab||"",db:r.id,claves:r.claves||"",re:(()=>{const f=reDe(r.claves),c=nrm(r.codigo).replace(/\s/g,"");return t=>f(t)||(c.length>=4&&t.replace(/\s/g,"").includes(c))})(),
  fotos:(r.fotos||[]).map(f=>[f.src,f.vista||"Vista"]),esp:(r.esp||[]).concat(r.stock&&Object.values(r.stock).some(Boolean)?[["Repuesto",[r.stock.ref&&"Ref. "+r.stock.ref,r.stock.sust&&"Sustituto: "+r.stock.sust,r.stock.ubi&&"Almacén: "+r.stock.ubi,r.stock.uds!=null&&r.stock.uds!==""&&r.stock.uds+" uds."].filter(Boolean).join(" · ")]]:[]),
- pin:r.pin||[],pint:"Conexionado",med:r.med||[],av:r.av||""}}
+ pin:r.pin||[],pint:"Conexionado",med:r.med||[],av:r.av||"",raw:r}}
+/* v534: fichas de fábrica (componentes.js) editadas desde la PWA → fila con base = código original; sustituye a la ficha
+   en su MISMO sitio (conserva su reconocimiento de avisos) y se puede restaurar. */
+const BASE=C().slice();window.COMP_BASE=BASE;
+function sobre(b,r){const n=aComp(r);const rb=b.re,rn=n.re;return Object.assign({},b,n,{baseId:b.id,pint:b.pint,re:t=>{try{if(rb(t))return true}catch(e){}return rn(t)}})}
 async function carga(){try{const {data,error}=await sb.from("componentes_campo").select("*").order("creado",{ascending:true});if(error||!data)return;
- const L=C();for(let i=L.length-1;i>=0;i--)if(L[i].db)L.splice(i,1);data.forEach(r=>L.push(aComp(r)))}catch(e){}}
+ const L=C();L.length=BASE.length;BASE.forEach((b,i)=>L[i]=b);
+ data.forEach(r=>{const i=r.base?BASE.findIndex(b=>b.id==r.base):-1;if(i>=0)L[i]=sobre(BASE[i],r);else L.push(aComp(r))})}catch(e){}}
+window.compRecarga=carga;window.compAComp=aComp;
 setTimeout(carga,1500);setInterval(carga,10*60*1000);
 /* ---------- utilidades de imagen ---------- */
-const lee=f=>new Promise((ok,ko)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{ok(im);};im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error("No se pudo abrir la foto"))};im.src=u});
-function aJpg(im,max){const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement("canvas");c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);
+const lee=window.compLeeImg=f=>new Promise((ok,ko)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{ok(im);};im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error("No se pudo abrir la foto"))};im.src=u});
+window.compAJpg=aJpg;function aJpg(im,max){const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement("canvas");c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);
  const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);return c}
 function collage(cs){const W=1600,h=Math.max(...cs.map(c=>c.height*(W/cs.length)/c.width));const cv=document.createElement("canvas");cv.width=W;cv.height=Math.min(1600,Math.round(h));
  const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);const w=W/cs.length;cs.forEach((c,i)=>{const k=Math.min(w/c.width,cv.height/c.height);x.drawImage(c,i*w+(w-c.width*k)/2,(cv.height-c.height*k)/2,c.width*k,c.height*k)});return cv.toDataURL("image/jpeg",.85)}

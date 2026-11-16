@@ -128,7 +128,7 @@ const ficha=c=>`<div class="cmpf"><div class="cmpt"><span class="cmpid">${E(c.id
  ${c.pin&&c.pin.length?`<div class="cmpst">${E(c.pint||"Conexionado (conector M12)")}</div><table class="cmpp"><tr><th>Pin</th><th>Color</th><th>Señal</th><th>Función</th></tr>${c.pin.map(r=>`<tr>${r.map(x=>`<td>${E(x)}</td>`).join("")}</tr>`).join("")}</table>`:""}
  <div class="cmpst">Medir en campo</div><ol class="cmpo">${c.med.map(x=>`<li>${E(x)}</li>`).join("")}</ol>${c.av?`<div class="gav">⚠️ ${E(c.av)}</div>`:""}</div>`;
 window.compFicha=ficha;
-window.compCampoHTML=function(t){const L=casa(t);if(!L.length)return"";return L.map(ficha).join("")};
+window.compCampoHTML=function(t){const L=casa(t);if(!L.length)return"";return L.map(c=>window.compFicha(c)).join("")};/* v534: window.compFicha (con barra de edición) */
 /* foto a pantalla completa (✕ para volver) */
 window.compVer=function(src){let o=document.getElementById("cmpv");if(o)o.remove();o=document.createElement("div");o.id="cmpv";
  o.style.cssText="position:fixed;inset:0;z-index:100000;background:#fff;display:flex;align-items:center;justify-content:center";

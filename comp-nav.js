@@ -28,7 +28,7 @@ function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).v
  capa.querySelector("#cn_z").innerHTML=[["","Todos"]].concat(zs.map(z=>[z,z])).map(([v,t])=>`<button type="button" class="cnch${zSel==v?" on":""}" data-z="${E(v)}">${E(t)} <small>${v?todos.filter(c=>zona(c)==v).length:todos.length}</small></button>`).join("");
  const el=capa.querySelector("#cn_l");
  el.innerHTML=`<div class="mu" style="font-size:12px;margin:6px 0">${F.length} componente${F.length==1?"":"s"}${ws.length||zSel?(F.length==1?" encontrado":" encontrados"):""}</div>`+
-  (F.length?F.map(c=>{const k=String(c.db||c.id);return`<details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${repuesto(c)}${typeof compFicha=="function"?compFicha(c):""}</details>`}).join("")
+  (F.length?F.map(c=>{const k=String(c.baseId||c.db||c.id);return`<details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${repuesto(c)}${typeof compFicha=="function"?compFicha(c):""}</details>`}).join("")
   :`<div class="cnvac">Sin componentes para «${E(q)}».<br>Prueba con el código (p. ej. E-Q24), el nombre o el modelo.</div>`)}
 function abre(){
  if(!capa){capa=document.createElement("div");capa.id="compCapa";
@@ -62,7 +62,7 @@ function envuelve(){if(envuelto)return;envuelto=true;
 function incorpora(){if(typeof window.compIncorpora!="function"){if(typeof msg=="function")msg("Incorporar componente no disponible");return}
  envuelve();incOn=true;document.documentElement.classList.add("cnInc");
  window.compIncorpora();const sh=document.getElementById("sheet");if(sh)sh.style.display="flex"}
-window.abreComp=abre;
+window.abreComp=abre;window.compNavLista=()=>{if(capa&&capa.style.display!="none")lista()};
 /* v511: abrir el catálogo ya buscado por un código (toque en la caja de un elemento del croquis por bloques).
    Al cerrar (←, flecha atrás o atrás del móvil) se vuelve a la pantalla desde la que se abrió: la capa solo se oculta. */
 window.abreCompTag=function(tag){const t=String(tag||"").replace(/^\+/,"").replace(/\/.*$/,"").trim();abre();if(!capa||!t)return;
@@ -70,7 +70,7 @@ window.abreCompTag=function(tag){const t=String(tag||"").replace(/^\+/,"").repla
  let hit=L().filter(c=>nrm(c.id)==n);if(!hit.length)hit=L().filter(c=>texto(c).includes(n));
  if(!hit.length&&typeof compCampo=="function"){try{hit=compCampo(t)}catch(e){}}
  q.value=hit.length&&!L().some(c=>texto(c).includes(n))?hit[0].id:t;
- hit.slice(0,3).forEach(c=>abiertos.add(String(c.db||c.id)));lista();
+ hit.slice(0,3).forEach(c=>abiertos.add(String(c.baseId||c.db||c.id)));lista();
  const el=capa.querySelector("#cn_l");if(el)el.scrollTop=0;
  if(!hit.length){const v=capa.querySelector(".cnvac");if(v)v.innerHTML=`Sin ficha de repuesto para <b>${E(t)}</b>${typeof nombreElemento=="function"&&nombreElemento(t)?" ("+E(nombreElemento(t))+")":""} en el catálogo.<br>Puedes añadirla con «Incorporar componente» o buscar otro código.`}};window.cierraComp=()=>cierra(false);
 addEventListener("popstate",()=>cierra(true));
