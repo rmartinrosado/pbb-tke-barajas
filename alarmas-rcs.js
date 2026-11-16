@@ -1,4 +1,4 @@
-/* ===== v501-v502: ALARMAS Y ADVERTENCIAS DEL MANUAL RCS (MAX Automate, F8-690.0312-51 rev. Ø, págs. 104-110) · 16/11/2026 =====
+/* ===== v501-v503: ALARMAS Y ADVERTENCIAS DEL MANUAL RCS (MAX Automate, F8-690.0312-51 rev. Ø, págs. 104-110) · 16/11/2026 =====
    Catálogo completo de códigos de la pantalla del puesto remoto / Magelis, con familia, grupo, qué significa en campo y cierre.
    · 🔴 ALARMA (001-143, roja, LED rojo del panel): avería o seguridad → intervención en campo. Rearme: OFF → riesgo cesado → ON.
    · 🟡 ADVERTENCIA (241-363, amarilla): la corrige el operador; NO es avería salvo que no se borre al resolver la causa.
@@ -7,7 +7,7 @@
    1) Guía de la OT: recuadro «Código del manual RCS» encima del Análisis de OT, con familia, qué es, actuación y rearme.
       Si la OT trae el código por número («AL 057», «alarma 115»), el análisis se hace con el texto oficial de esa alarma.
    2) SOS: buscador por número o texto de los ~250 códigos; al elegir uno se pone en «Escribir la alarma a mano».
-   3) Cierre CGA: «Código de alarma» y «Tipo de cierre» (avería reparada · rearme OFF→ON · operativa, no avería ·
+   3) Cierre CGA: «Código de alarma» (desplegable con la lista completa en orden ascendente, v503) y «Tipo de cierre» (avería reparada · rearme OFF→ON · operativa, no avería ·
       especialista / RCC). Se guardan en la OT y encabezan la Actuación.
    4) Sinónimos del manual en el análisis: longitud = extensión, TI / TM = túnel interior / medio, outriggers = estabilizadores,
       wrong docking = atraque incorrecto, RCC = puesto remoto, PWC = manguera de agua potable.
@@ -355,12 +355,12 @@ function ciePon(){const sc=document.getElementById("sheetc");if(!sc)return;const
  const id=((bc.getAttribute("onclick")||"").match(/\(\s*'([^']+)'/)||[])[1];const i=Array.isArray(inc)&&inc.find(x=>x.id==id);if(!i)return;
  const L=detecta(textoOT(i));const c0=i.alCod||(L[0]&&L[0].x.c)||"";const x0=c0&&porCod(c0);const t0=i.tipoCie||(x0?G[x0.g].c:"");
  const d=document.createElement("div");d.className="rcscie";
- d.innerHTML=`<div class="rcsct">📘 CIERRE SEGÚN MANUAL RCS</div><div class="rcscg"><input id="rcs_c" list="rcs_cl" autocomplete="off" placeholder="Código alarma" value="${E(x0?x0.c+" · "+x0.t:"")}"><datalist id="rcs_cl">${CAT.map(x=>`<option value="${E(x.c+" · "+x.t)}">`).join("")}</datalist>
+ d.innerHTML=`<div class="rcsct">📘 CIERRE SEGÚN MANUAL RCS</div><div class="rcscg"><select id="rcs_c"><option value="">Código alarma…</option>${[["A","🔴 Alarmas 001-143"],["W","🟡 Advertencias 241-363"],["R","🔵 Puesto remoto R001-R016"]].map(([f,n])=>`<optgroup label="${n}">${CAT.filter(x=>x.f==f).map(x=>`<option value="${x.c}"${x0&&x0.c==x.c?" selected":""}>${x.c} · ${E(x.t)}</option>`).join("")}</optgroup>`).join("")}</select>
  <select id="rcs_t"><option value="">Tipo de cierre…</option>${TC.map(([k,t])=>`<option value="${k}"${k==t0?" selected":""}>${t}</option>`).join("")}</select></div><div id="rcs_ci" class="mu"></div>`;
  const ra=sc.querySelector("#r_a");const lab=ra&&ra.previousElementSibling&&ra.previousElementSibling.tagName=="LABEL"?ra.previousElementSibling:ra;if(lab)lab.before(d);else bc.before(d);
  const ci=d.querySelector("#rcs_ci"),cc=d.querySelector("#rcs_c"),tt=d.querySelector("#rcs_t");
- const info=()=>{const x=porCod((cc.value.match(/^\s*(R?\d{1,3})/i)||[])[1]||"");ci.textContent=x?`${FN[x.f][0]} ${FN[x.f][1]} · ${G[x.g].n}`:"";return x};
- cc.addEventListener("change",()=>{const x=info();if(x&&!tt.value)tt.value=G[x.g].c});info()}
+ const info=()=>{const x=porCod(cc.value||"");ci.textContent=x?`${FN[x.f][0]} ${FN[x.f][1]} · ${G[x.g].n}`:"";return x};
+ cc.addEventListener("change",()=>{const x=info();if(x)tt.value=G[x.g].c||tt.value});info()}
 const lee=()=>{const cc=document.getElementById("rcs_c"),tt=document.getElementById("rcs_t");if(!cc||!tt)return null;
  const x=porCod((cc.value.match(/^\s*(R?\d{1,3})/i)||[])[1]||"");return{x,t:tt.value}};
 if(typeof cerrar=="function"){const oc=cerrar;cerrar=function(id){try{const v=lee();const i=inc.find(z=>z.id==id);const ra=document.getElementById("r_a");
@@ -380,7 +380,7 @@ const st=document.createElement("style");st.textContent=`
 #rcs_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}.rcsit{width:100%!important;margin:0!important;text-align:left;padding:7px 9px!important;font-size:13px!important;border-left:5px solid #888!important;border-radius:6px!important}
 .rcsit.rcsA{border-left-color:#d32f2f!important}.rcsit.rcsW{border-left-color:#f9a825!important}.rcsit.rcsR{border-left-color:#1e88e5!important}
 .rcscie{margin-top:8px;border:1.5px solid #1565c0;border-radius:10px;padding:6px 8px}.rcscg{display:grid;grid-template-columns:1.3fr 1fr;gap:6px}
-.rcscg input,.rcscg select{margin:0!important;min-width:0;font-size:14px}#rcs_ci{font-size:12px;margin-top:4px}
+.rcscg select{text-overflow:ellipsis;margin:0!important;min-width:0;font-size:14px}#rcs_ci{font-size:12px;margin-top:4px}
 .rcsp{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.rcsp button{width:auto!important;margin:0!important;padding:5px 10px!important;font-size:12.5px!important}`;
 document.head.appendChild(st);
 })();
