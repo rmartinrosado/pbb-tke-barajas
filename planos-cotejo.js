@@ -51,7 +51,7 @@ async function texto(doc,av){if(TXT[doc.id])return TXT[doc.id];
 
 /* ---------- códigos y palabras de la OT ---------- */
 const VACIAS=new Set("cuando tiene esta estan desde hasta sobre entre donde porque equipo hacer queda quedan tambien".split(" "));
-function datosOT(i){let R=null;try{R=anaOT(i)}catch(e){}
+function datosOT(i){let R=null;window.ANA_IA_OFF=1;try{R=anaOT(i)}catch(e){}finally{window.ANA_IA_OFF=0}/* v523: los códigos salen del análisis general, no del filtrado por la IA */
  const ef=$q("#app details.gd.gef");let efT="";if(ef){const w=document.createTreeWalker(ef,NodeFilter.SHOW_TEXT);const a=[];let n;while((n=w.nextNode()))a.push(n.nodeValue);efT=a.join(" ").replace(/\s+/g," ").trim()}
  const base=[i.desc,i.def,i.obs,i.com].filter(Boolean).join(" ");
  const fuente=(base+" "+(R?JSON.stringify(R):"")+" "+efT).toUpperCase();
@@ -63,6 +63,8 @@ function datosOT(i){let R=null;try{R=anaOT(i)}catch(e){}
 
 /* ---------- estado ---------- */
 let ST={k:"",docs:[],res:null,prog:"",ia:null,iaEst:"",iaK:""};let tIA=null;
+/* v523: resultado de la IA de la OT para el «Análisis de la OT» (ana-ia.js) */
+window.pcIAOT=id=>ST&&ST.ia&&ST.iaK&&ST.iaK.indexOf("pc_ia_"+id+"_")===0?ST.ia:null;
 /* v521: el cotejo NO arranca solo. Al pintar solo se prepara (planos elegidos, códigos, resultado guardado).
    La lectura de los planos y la consulta empiezan con «RECALCULAR IA»: primero Gemini (gratis); si no da resultado,
    el botón pasa a Claude, que tiene coste y hay que aceptarlo antes. */
@@ -130,7 +132,7 @@ Responde SOLO con JSON, sin nada más:
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
   const o=leeJSON(j.txt);if(!o.resumen&&!(o.eficaz||[]).length&&!(o.medir||[]).length)throw new Error("respuesta incompleta");o.lector=j.lector||"IA";o.t=Date.now();
   {const b=$q("#gpcot .pcbar>i");if(b){b.style.width="100%";await new Promise(r=>setTimeout(r,350))}}
-  ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ST.sigC=false;ls.s(ST.iaK,JSON.stringify(o))}
+  ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ST.sigC=false;ls.s(ST.iaK,JSON.stringify(o));try{window.dispatchEvent(new CustomEvent("pc-ia",{detail:{id:i.id}}))}catch(e){}}
  catch(e){ST.iaRun=false;if(ST.k!==k)return;if(motor=="gemini")ST.sigC=true;ST.iaEst=(motor=="gemini"?"Gemini (gratis) no ha dado resultado: ":"Claude no ha dado resultado: ")+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+(motor=="gemini"?". Puedes lanzarlo con Claude (tiene coste) con el botón de abajo, o reintentar con Gemini.":". Puedes volver a lanzarlo.")}
  pintaCaja()}
 
