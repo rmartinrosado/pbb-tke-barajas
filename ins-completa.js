@@ -69,7 +69,7 @@ const BLQ=[
   o:"Contacto «-400HZ» 13-14 de la leva del recogedor → P-X92:18 (hilo 3383) en el armario del pupitre.",
   on:"Manguera fuera del recogedor → 24 V y LED encendido (bloqueo, no traslada). Recogida → 0 V, LED apagado.",el:"Contacto «-400HZ» del recogedor"},
  {g:"POR",al:["242","108","049"],m:"E-A8",b:"1.1",re:/porton|cierre|trasla|atras|sacar|retir|desatrac/,eq:"Portón abajo · Sensor portón enrollable C-S9",
-  o:"Inductivo de cierre del portón C-S9 (cable P-W21, bornero P-X92.1:1-2-3). BAJAR PORTÓN (o anular este inductivo con puente P-X92.1:1 ↔ :2) permite la traslación hacia atrás con AAA y HZ conectados al avión.",
+  o:"Inductivo de cierre del portón C-S9 (cable P-W21, bornero P-X92.1:1-2-3). BAJAR PORTÓN de CABINA permite la traslación hacia atrás con AAA y HZ conectados al avión.",
   on:"Portón abajo → 24 V y LED 1 de E-A8 encendido (permite la traslación hacia atrás). Portón arriba → 0 V y advertencia 242 «Portón abierto»."},
  {g:"AO",al:["014"],m:"E-A3",b:"1.1",re:/seta|emergencia|\bao\b|armario exterior/,eq:"Seta del armario AO",
   o:"Contacto de la seta del AO → contacto en el CBTH (CBTH:SETA-AO, CBTH-X61:10-16).",
