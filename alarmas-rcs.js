@@ -1,4 +1,4 @@
-/* ===== v501-v503: ALARMAS Y ADVERTENCIAS DEL MANUAL RCS (MAX Automate, F8-690.0312-51 rev. Ø, págs. 104-110) · 16/11/2026 =====
+/* ===== v501-v504: ALARMAS Y ADVERTENCIAS DEL MANUAL RCS (MAX Automate, F8-690.0312-51 rev. Ø, págs. 104-110) · 16/11/2026 =====
    Catálogo completo de códigos de la pantalla del puesto remoto / Magelis, con familia, grupo, qué significa en campo y cierre.
    · 🔴 ALARMA (001-143, roja, LED rojo del panel): avería o seguridad → intervención en campo. Rearme: OFF → riesgo cesado → ON.
    · 🟡 ADVERTENCIA (241-363, amarilla): la corrige el operador; NO es avería salvo que no se borre al resolver la causa.
@@ -351,18 +351,44 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
   q.value="";l.innerHTML="";s.innerHTML=caja({x},true)})}
 /* ---------- 3) Cierre CGA: código y tipo de cierre ---------- */
 const TC=[["rep","🔧 Avería reparada"],["rea","🔁 Rearme OFF → ON"],["ope","🟡 Operativa (no avería)"],["esp","🔵 Especialista / RCC"]];
+/* v504: el código se elige en dos pasos (familia → alarmas de la familia, por grupos y en orden ascendente, con buscador),
+   papelera para borrar lo elegido, y autorrelleno al escribir en Actuación u Observaciones si el texto nombra una alarma */
+const FAMS=[["A","🔴","Alarmas","001-143 · avería o seguridad"],["W","🟡","Advertencias","241-363 · las resuelve el operador"],["R","🔵","Puesto remoto","R001-R016 · RCC y comunicaciones"]];
+function selPon(sc,x,auto){const cc=sc.querySelector("#rcs_c"),bt=sc.querySelector("#rcs_cb"),tt=sc.querySelector("#rcs_t"),ci=sc.querySelector("#rcs_ci"),bo=sc.querySelector("#rcs_cx");if(!cc)return;
+ cc.value=x?x.c:"";cc.dataset.auto=x&&auto?"1":"";
+ bt.innerHTML=x?`<span class="rcsbf rcs${x.f}">${FN[x.f][0]}</span> <b>${x.c}</b> · ${E(x.t)}`:`<span class="mu">Código alarma…</span>`;
+ bt.classList.toggle("on",!!x);bo.style.visibility=x?"visible":"hidden";
+ ci.textContent=x?`${FN[x.f][0]} ${FN[x.f][1]} · ${G[x.g].n}${auto?" · propuesto por el texto":""}`:"";
+ if(x){if(G[x.g].c)tt.value=G[x.g].c}else tt.value=""}
+function picker(sc){let pk=document.getElementById("rcspk");if(pk)pk.remove();pk=document.createElement("div");pk.id="rcspk";document.body.appendChild(pk);
+ const cierra=()=>pk.remove();
+ const fams=()=>{pk.innerHTML=`<div class="rcspkc"><div class="rcspkh"><b>Código de alarma · familia</b><button type="button" class="sec" aria-label="Cerrar">✕</button></div>
+  ${FAMS.map(([f,ic,n,d])=>`<button type="button" class="rcspf rcs${f}" data-f="${f}"><span class="rcspfi">${ic}</span><span><b>${n}</b><small>${d} · ${CAT.filter(x=>x.f==f).length} códigos</small></span><span class="rcspfa">›</span></button>`).join("")}</div>`;
+  pk.querySelector(".rcspkh button").onclick=cierra;pk.querySelectorAll(".rcspf").forEach(b=>b.onclick=()=>lista(b.dataset.f))};
+ const lista=f=>{const fam=FAMS.find(z=>z[0]==f);const L=CAT.filter(x=>x.f==f);const gs=[...new Set(L.map(x=>x.g))];
+  pk.innerHTML=`<div class="rcspkc"><div class="rcspkh"><button type="button" class="sec rcspkb" aria-label="Volver">‹ Familias</button><b>${fam[1]} ${fam[2]}</b><button type="button" class="sec rcspkx" aria-label="Cerrar">✕</button></div>
+  <input id="rcspq" type="search" autocomplete="off" enterkeyhint="search" placeholder="Filtrar por nº o texto"><div class="rcspl">${gs.map(g=>`<div class="rcspg" data-g="${g}"><div class="rcspgt">${E(G[g].n)}</div>${L.filter(x=>x.g==g).map(x=>`<button type="button" class="rcspi" data-c="${x.c}" data-n="${E(x.c+" "+x.n)}"><b>${x.c}</b> ${E(x.t)}</button>`).join("")}</div>`).join("")}</div></div>`;
+  pk.querySelector(".rcspkb").onclick=fams;pk.querySelector(".rcspkx").onclick=cierra;
+  const q=pk.querySelector("#rcspq");q.oninput=()=>{const v=nrm(q.value).trim();pk.querySelectorAll(".rcspi").forEach(b=>b.style.display=!v||b.dataset.n.includes(v)?"":"none");pk.querySelectorAll(".rcspg").forEach(g=>g.style.display=[...g.querySelectorAll(".rcspi")].some(b=>b.style.display!="none")?"":"none")};
+  pk.querySelector(".rcspl").onclick=e=>{const b=e.target.closest(".rcspi");if(!b)return;selPon(sc,porCod(b.dataset.c),false);cierra()}};
+ pk.onclick=e=>{if(e.target===pk)cierra()};fams()}
 function ciePon(){const sc=document.getElementById("sheetc");if(!sc)return;const bc=sc.querySelector('button[onclick^="cerrar("]');if(!bc||sc.querySelector(".rcscie"))return;
  const id=((bc.getAttribute("onclick")||"").match(/\(\s*'([^']+)'/)||[])[1];const i=Array.isArray(inc)&&inc.find(x=>x.id==id);if(!i)return;
- const L=detecta(textoOT(i));const c0=i.alCod||(L[0]&&L[0].x.c)||"";const x0=c0&&porCod(c0);const t0=i.tipoCie||(x0?G[x0.g].c:"");
+ const L=detecta(textoOT(i));const c0=i.alCod||(L[0]&&L[0].x.c)||"";const x0=c0&&porCod(c0);
  const d=document.createElement("div");d.className="rcscie";
- d.innerHTML=`<div class="rcsct">📘 CIERRE SEGÚN MANUAL RCS</div><div class="rcscg"><select id="rcs_c"><option value="">Código alarma…</option>${[["A","🔴 Alarmas 001-143"],["W","🟡 Advertencias 241-363"],["R","🔵 Puesto remoto R001-R016"]].map(([f,n])=>`<optgroup label="${n}">${CAT.filter(x=>x.f==f).map(x=>`<option value="${x.c}"${x0&&x0.c==x.c?" selected":""}>${x.c} · ${E(x.t)}</option>`).join("")}</optgroup>`).join("")}</select>
- <select id="rcs_t"><option value="">Tipo de cierre…</option>${TC.map(([k,t])=>`<option value="${k}"${k==t0?" selected":""}>${t}</option>`).join("")}</select></div><div id="rcs_ci" class="mu"></div>`;
+ d.innerHTML=`<div class="rcsct">📘 CIERRE SEGÚN MANUAL RCS</div><div class="rcscg"><div class="rcscw"><input type="hidden" id="rcs_c"><button type="button" id="rcs_cb" class="sec"></button><button type="button" id="rcs_cx" class="sec" aria-label="Borrar código">🗑️</button></div>
+ <select id="rcs_t"><option value="">Tipo de cierre…</option>${TC.map(([k,t])=>`<option value="${k}">${t}</option>`).join("")}</select></div><div id="rcs_ci" class="mu"></div>`;
  const ra=sc.querySelector("#r_a");const lab=ra&&ra.previousElementSibling&&ra.previousElementSibling.tagName=="LABEL"?ra.previousElementSibling:ra;if(lab)lab.before(d);else bc.before(d);
- const ci=d.querySelector("#rcs_ci"),cc=d.querySelector("#rcs_c"),tt=d.querySelector("#rcs_t");
- const info=()=>{const x=porCod(cc.value||"");ci.textContent=x?`${FN[x.f][0]} ${FN[x.f][1]} · ${G[x.g].n}`:"";return x};
- cc.addEventListener("change",()=>{const x=info();if(x)tt.value=G[x.g].c||tt.value});info()}
+ selPon(sc,x0||null,!i.alCod&&!!x0);if(i.tipoCie)d.querySelector("#rcs_t").value=i.tipoCie;
+ d.querySelector("#rcs_cb").onclick=()=>picker(sc);
+ d.querySelector("#rcs_cx").onclick=()=>{selPon(sc,null,false);d.querySelector("#rcs_c").dataset.borrado="1"};
+ /* autorrelleno desde Actuación / Observaciones: solo si no hay código o el que hay lo propuso el texto */
+ let tm=0;const mira=()=>{clearTimeout(tm);tm=setTimeout(()=>{const cc=sc.querySelector("#rcs_c");if(!cc)return;if(cc.value&&!cc.dataset.auto)return;
+  const t=[sc.querySelector("#r_a")&&sc.querySelector("#r_a").value,sc.querySelector("#r_o")&&sc.querySelector("#r_o").value].filter(Boolean).join(" · ");
+  const Lx=detecta(t);if(Lx.length&&Lx[0].x.c!=cc.value)selPon(sc,Lx[0].x,true)},600)};
+ ["#r_a","#r_o"].forEach(s=>{const el=sc.querySelector(s);if(el)el.addEventListener("input",mira)})}
 const lee=()=>{const cc=document.getElementById("rcs_c"),tt=document.getElementById("rcs_t");if(!cc||!tt)return null;
- const x=porCod((cc.value.match(/^\s*(R?\d{1,3})/i)||[])[1]||"");return{x,t:tt.value}};
+ const x=porCod(cc.value||"");return{x,t:tt.value}};
 if(typeof cerrar=="function"){const oc=cerrar;cerrar=function(id){try{const v=lee();const i=inc.find(z=>z.id==id);const ra=document.getElementById("r_a");
  if(v&&i&&(v.x||v.t)){if(v.x)i.alCod=v.x.c;if(v.t)i.tipoCie=v.t;
   const et="["+[v.x?v.x.c+" "+v.x.t:"",v.t?TC.find(z=>z[0]==v.t)[1].replace(/^\S+\s/,""):""].filter(Boolean).join(" · ")+"]";
@@ -381,6 +407,17 @@ const st=document.createElement("style");st.textContent=`
 .rcsit.rcsA{border-left-color:#d32f2f!important}.rcsit.rcsW{border-left-color:#f9a825!important}.rcsit.rcsR{border-left-color:#1e88e5!important}
 .rcscie{margin-top:8px;border:1.5px solid #1565c0;border-radius:10px;padding:6px 8px}.rcscg{display:grid;grid-template-columns:1.3fr 1fr;gap:6px}
 .rcscg select{text-overflow:ellipsis;margin:0!important;min-width:0;font-size:14px}#rcs_ci{font-size:12px;margin-top:4px}
+.rcscw{display:flex;gap:4px;min-width:0}#rcs_cb{flex:1;min-width:0;margin:0!important;padding:8px!important;text-align:left;font-size:13.5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:auto!important}
+#rcs_cb.on{border-color:#1565c0!important}#rcs_cx{width:40px!important;flex:none;margin:0!important;padding:0!important}.rcsbf{font-size:12px}
+#rcspk{position:fixed;inset:0;z-index:100003;background:#0008;display:flex;align-items:flex-start;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 8px 8px}
+.rcspkc{background:var(--card,#171a20);color:var(--tx,#e9ecf1);border-radius:14px;width:100%;max-width:560px;max-height:calc(100dvh - 24px);display:flex;flex-direction:column;padding:10px;box-shadow:0 10px 40px #000a}
+.rcspkh{display:flex;align-items:center;gap:8px;margin-bottom:8px}.rcspkh b{flex:1;font-size:15px}.rcspkh button{width:auto!important;margin:0!important;padding:6px 10px!important;flex:none}
+.rcspf{display:flex!important;align-items:center;gap:10px;width:100%!important;margin:0 0 8px!important;padding:14px 12px!important;text-align:left;border-left:6px solid #888!important;border-radius:10px!important}
+.rcspf.rcsA{border-left-color:#d32f2f!important}.rcspf.rcsW{border-left-color:#f9a825!important}.rcspf.rcsR{border-left-color:#1e88e5!important}
+.rcspfi{font-size:22px}.rcspf>span:nth-child(2){flex:1;display:flex;flex-direction:column}.rcspf b{font-size:16px}.rcspf small{font-size:12px;color:var(--mu,#8a93a3);font-weight:500}.rcspfa{font-size:24px;color:var(--mu,#8a93a3)}
+#rcspq{margin:0 0 6px;font-size:16px}.rcspl{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;flex:1;min-height:0}
+.rcspgt{font:800 11px/1.4 var(--tkmo,monospace);letter-spacing:.7px;text-transform:uppercase;color:#42a5f5;margin:10px 2px 4px}
+.rcspi{display:block;width:100%!important;margin:0 0 4px!important;padding:9px 10px!important;text-align:left;font-size:14px!important;line-height:1.25;border-radius:8px!important}.rcspi b{margin-right:4px}
 .rcsp{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.rcsp button{width:auto!important;margin:0!important;padding:5px 10px!important;font-size:12.5px!important}`;
 document.head.appendChild(st);
 })();
