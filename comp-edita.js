@@ -45,7 +45,7 @@ function abre(){if(!capa){capa=document.createElement("div");capa.id="cedCapa";d
 function cierra(desdeHist){if(!capa||capa.style.display=="none")return;capa.style.display="none";document.documentElement.classList.remove("cedOn");cur=null;ED=null;
  if(!desdeHist){try{if(history.state&&history.state.ced)history.back()}catch(e){}}}
 addEventListener("popstate",()=>{if(capa&&capa.style.display!="none")cierra(true)});
-window.compEditaCierra=()=>{if(sucio&&!confirm("¿Salir sin guardar los cambios?"))return;cierra(false)};
+window.compEditaCierra=()=>{if(window.fotoOrdenLimpia)fotoOrdenLimpia();if(sucio&&!confirm("¿Salir sin guardar los cambios?"))return;cierra(false)};
 
 /* lee los campos al vuelo para no perder lo escrito al repintar */
 function lee(e){if(!ED)return;const t=e.target;if(!t||!t.dataset)return;const f=t.dataset.f;if(!f)return;sucio=true;

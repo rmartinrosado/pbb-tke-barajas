@@ -15,6 +15,7 @@ const st=document.createElement("style");st.textContent=`
 #vzCapa .vzf.a{left:6px}#vzCapa .vzf.b{right:6px}
 #vzCapa .vzk{position:absolute;left:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));padding:4px 10px;border-radius:12px;background:rgba(0,0,0,.6);color:#fff;font:700 13px/1.4 system-ui,sans-serif;z-index:3;pointer-events:none}
 .foFant{position:fixed;z-index:100004;pointer-events:none;opacity:.85;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.45);transform:translate(-50%,-50%) scale(1.06);background:#fff;object-fit:contain}
+[data-fg] [data-fi] img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 [data-fi].foLev{outline:3px solid #ff7a00;outline-offset:1px;opacity:.55}
 [data-fi].foDst{outline:3px dashed #0b6e99;outline-offset:2px}`;
 document.head.appendChild(st);
@@ -64,13 +65,20 @@ function acaba(cancel){if(!D)return;const d=D;D=null;clearTimeout(d.tm);d.it.cla
  if(d.arm&&d.dst){const j=+d.dst.dataset.fi;if(j!==d.i&&H.mueve)H.mueve(d.i,j)}
  else if(!d.arm&&!d.mov&&H.toca)H.toca(d.i)}
 const enImg=e=>e.target&&e.target.tagName=="IMG"&&item(e.target);
-document.addEventListener("touchstart",e=>{const it=enImg(e);if(!it||e.touches.length>1){if(D)acaba(true);return}const t=e.touches[0];empieza(it,t.clientX,t.clientY);D.tm=setTimeout(arma,300)},{passive:true});
+document.addEventListener("touchstart",e=>{const it=enImg(e);if(!it||e.touches.length>1){if(D)acaba(true);return}if(D)acaba(true);const t=e.touches[0];empieza(it,t.clientX,t.clientY);D.tm=setTimeout(arma,300)},{passive:true,capture:true});
 document.addEventListener("touchmove",e=>{if(!D)return;const t=e.touches[0];if(!D.arm){if(Math.abs(t.clientX-D.x)+Math.abs(t.clientY-D.y)>8){clearTimeout(D.tm);D.mov=true}return}
- e.preventDefault();mueve(t.clientX,t.clientY)},{passive:false});
-document.addEventListener("touchend",e=>{if(!D)return;if(D.arm||(!D.mov))e.preventDefault();acaba(false)},{passive:false});
-document.addEventListener("touchcancel",()=>acaba(true));
+ e.preventDefault();mueve(t.clientX,t.clientY)},{passive:false,capture:true});
+document.addEventListener("touchend",e=>{if(!D)return;if(D.arm||(!D.mov))e.preventDefault();acaba(false)},{passive:false,capture:true});
+document.addEventListener("touchcancel",()=>acaba(true),true);
 /* ratón (ordenador): arrastrar directamente */
 document.addEventListener("mousedown",e=>{const it=enImg(e);if(!it)return;e.preventDefault();empieza(it,e.clientX,e.clientY)});
 document.addEventListener("mousemove",e=>{if(!D)return;if(!D.arm&&Math.abs(e.clientX-D.x)+Math.abs(e.clientY-D.y)>6)arma();mueve(e.clientX,e.clientY)});
-document.addEventListener("mouseup",()=>{if(D)acaba(false)});
+document.addEventListener("mouseup",()=>{if(D)acaba(false)},true);
+/* v548: la capa de Editar ficha corta el «touchend» (stopPropagation) y la foto fantasma se quedaba pegada al salir.
+   Ahora todo va en fase de captura y, por seguridad, nunca queda una foto fantasma sin arrastre en curso. */
+const limpia=()=>{if(D)acaba(true);document.querySelectorAll(".foFant").forEach(x=>x.remove());document.querySelectorAll(".foLev,.foDst").forEach(x=>x.classList.remove("foLev","foDst"))};
+document.addEventListener("visibilitychange",limpia);window.addEventListener("pagehide",limpia);window.addEventListener("blur",limpia);
+document.addEventListener("pointerup",()=>{setTimeout(()=>{if(!D)document.querySelectorAll(".foFant").forEach(x=>x.remove())},60)},true);
+setInterval(()=>{if(!D&&document.querySelector(".foFant"))limpia()},1500);
+window.fotoOrdenLimpia=limpia;
 })();

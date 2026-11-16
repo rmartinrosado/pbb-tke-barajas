@@ -30,7 +30,7 @@ window.compRecorta=function(src,caja,opt){opt=opt||{};return new Promise(res=>{
  const pinta=()=>{m.style.left=c.x0*100+"%";m.style.top=c.y0*100+"%";m.style.width=(c.x1-c.x0)*100+"%";m.style.height=(c.y1-c.y0)*100+"%"};
  im.onload=pinta;im.src=src;pinta();
  let drag=null;
- m.addEventListener("pointerdown",e=>{e.preventDefault();const r=w.getBoundingClientRect();drag={h:(e.target.dataset&&e.target.dataset.h)||"mv",x:e.clientX,y:e.clientY,c:Object.assign({},c),W:r.width,H:r.height};try{m.setPointerCapture(e.pointerId)}catch(x){}});
+ m.addEventListener("pointerdown",e=>{e.preventDefault();if(zp)return;const r=w.getBoundingClientRect();drag={h:(e.target.dataset&&e.target.dataset.h)||"mv",x:e.clientX,y:e.clientY,c:Object.assign({},c),W:r.width,H:r.height};try{m.setPointerCapture(e.pointerId)}catch(x){}});
  /* v545: lupa 3× de la zona que se ajusta (precisión al tacto) */
  const lu=o.querySelector(".recl"),lx=lu.getContext("2d"),z=o.querySelector(".recz");
  const lupa=(px,py,fx,fy)=>{if(!im.naturalWidth)return;const Z=3,R=75,W=im.naturalWidth,H=im.naturalHeight,r=w.getBoundingClientRect(),k=W/r.width;
@@ -41,11 +41,30 @@ window.compRecorta=function(src,caja,opt){opt=opt||{};return new Promise(res=>{
   lx.strokeStyle="rgba(255,255,255,.8)";lx.lineWidth=1;lx.beginPath();lx.moveTo(R,R-10);lx.lineTo(R,R+10);lx.moveTo(R-10,R);lx.lineTo(R+10,R);lx.stroke();lx.restore();
   lx.beginPath();lx.arc(R,R,R-2,0,7);lx.strokeStyle="#ff7a00";lx.lineWidth=3;lx.stroke();
   const zr=z.getBoundingClientRect();let L=px-zr.left-75,T=py-zr.top-190;if(T<0)T=py-zr.top+40;L=Math.max(0,Math.min(zr.width-150,L));lu.style.left=L+"px";lu.style.top=T+"px";lu.style.display="block"};
- m.addEventListener("pointermove",e=>{if(!drag)return;e.preventDefault();const dx=(e.clientX-drag.x)/drag.W,dy=(e.clientY-drag.y)/drag.H,s=drag.c,MIN=.05;let n=Object.assign({},s);
+ m.addEventListener("pointermove",e=>{if(!drag||zp)return;e.preventDefault();const dx=(e.clientX-drag.x)/drag.W,dy=(e.clientY-drag.y)/drag.H,s=drag.c,MIN=.05;let n=Object.assign({},s);
   if(drag.h=="mv"){const ww=s.x1-s.x0,hh=s.y1-s.y0;n.x0=Math.max(0,Math.min(1-ww,s.x0+dx));n.y0=Math.max(0,Math.min(1-hh,s.y0+dy));n.x1=n.x0+ww;n.y1=n.y0+hh}
   else{if(/w/.test(drag.h))n.x0=Math.max(0,Math.min(s.x1-MIN,s.x0+dx));if(/e/.test(drag.h))n.x1=Math.min(1,Math.max(s.x0+MIN,s.x1+dx));
    if(/n/.test(drag.h))n.y0=Math.max(0,Math.min(s.y1-MIN,s.y0+dy));if(/s/.test(drag.h))n.y1=Math.min(1,Math.max(s.y0+MIN,s.y1+dy))}
   c=n;pinta();if(drag.h!="mv"){const fx=/w/.test(drag.h)?c.x0:/e/.test(drag.h)?c.x1:(c.x0+c.x1)/2,fy=/n/.test(drag.h)?c.y0:/s/.test(drag.h)?c.y1:(c.y0+c.y1)/2;lupa(e.clientX,e.clientY,fx,fy)}});
+ /* v548: zoom con dos dedos (hasta 6×) para afinar el recuadro; con zoom, un dedo fuera del recuadro desplaza la foto.
+    Doble toque fuera del recuadro: vuelve a 1×. Las esquinas y bordes mantienen su tamaño en pantalla. */
+ let zs=1,ztx=0,zty=0,zg=null,zp=false,zt0=0;
+ const zpon=()=>{const zr=z.getBoundingClientRect(),W=w.offsetWidth,H=w.offsetHeight;const mx=Math.max(0,(W*zs-zr.width)/2)+40,my=Math.max(0,(H*zs-zr.height)/2)+40;
+  if(zs<=1){ztx=0;zty=0}else{ztx=Math.max(-mx,Math.min(mx,ztx));zty=Math.max(-my,Math.min(my,zty))}
+  w.style.transform=`translate(${ztx}px,${zty}px) scale(${zs})`;o.style.setProperty("--is",1/zs);zk.textContent=zs>1.02?zs.toFixed(1).replace(".",",")+"× · dos dedos para ajustar":"Pellizca con dos dedos para ampliar"};
+ const zk=document.createElement("span");zk.className="reck";z.appendChild(zk);
+ const pt=(t)=>({x:t.clientX,y:t.clientY});
+ z.addEventListener("touchstart",e=>{if(e.touches.length>=2){e.preventDefault();drag=null;lu.style.display="none";zp=true;const a=pt(e.touches[0]),b=pt(e.touches[1]);
+   zg={d:Math.hypot(a.x-b.x,a.y-b.y)||1,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,s:zs,tx:ztx,ty:zty}}
+  else if(e.touches.length==1&&!e.target.closest(".recm")){const a=pt(e.touches[0]);const t=Date.now();if(t-zt0<300){zs=1;zpon();zt0=0}else zt0=t;zp=false;zg={x:a.x,y:a.y,tx:ztx,ty:zty,pan:true}}},{passive:false});
+ z.addEventListener("touchmove",e=>{if(!zg)return;if(e.touches.length>=2&&zg.d){e.preventDefault();const a=pt(e.touches[0]),b=pt(e.touches[1]),zr=z.getBoundingClientRect();
+   const ns=Math.max(1,Math.min(6,zg.s*Math.hypot(a.x-b.x,a.y-b.y)/zg.d)),ox=zg.cx-zr.left-zr.width/2,oy=zg.cy-zr.top-zr.height/2,cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+   ztx=ox-(ox-zg.tx)*ns/zg.s+(cx-zg.cx);zty=oy-(oy-zg.ty)*ns/zg.s+(cy-zg.cy);zs=ns;zpon()}
+  else if(zg.pan&&e.touches.length==1&&zs>1){e.preventDefault();const a=pt(e.touches[0]);ztx=zg.tx+a.x-zg.x;zty=zg.ty+a.y-zg.y;zpon()}},{passive:false});
+ z.addEventListener("touchend",e=>{if(e.touches.length==0){zg=null;setTimeout(()=>{zp=false},50)}else if(e.touches.length==1&&zp)zg=null});
+ z.addEventListener("wheel",e=>{e.preventDefault();const zr=z.getBoundingClientRect(),ns=Math.max(1,Math.min(6,zs*(e.deltaY<0?1.15:1/1.15))),ox=e.clientX-zr.left-zr.width/2,oy=e.clientY-zr.top-zr.height/2;
+  ztx=ox-(ox-ztx)*ns/zs;zty=oy-(oy-zty)*ns/zs;zs=ns;zpon()},{passive:false});
+ zpon();
  const fin=()=>{drag=null;lu.style.display="none"};m.addEventListener("pointerup",fin);m.addEventListener("pointercancel",fin);
  o.querySelector(".recb").addEventListener("click",async e=>{const a=e.target.closest("button");if(!a)return;const ac=a.dataset.a;
   if(ac=="todo"){c={x0:0,y0:0,x1:1,y1:1};pinta();return}
@@ -68,6 +87,12 @@ const st=document.createElement("style");st.textContent=`
 #recCapa .recm u[data-h=n]::before,#recCapa .recm u[data-h=s]::before{left:50%;top:50%;width:36px;height:6px;margin:-3px 0 0 -18px}
 #recCapa .recm u[data-h=w],#recCapa .recm u[data-h=e]{top:30px;bottom:30px;width:30px}#recCapa .recm u[data-h=w]{left:-15px}#recCapa .recm u[data-h=e]{right:-15px}
 #recCapa .recm u[data-h=w]::before,#recCapa .recm u[data-h=e]::before{top:50%;left:50%;width:6px;height:36px;margin:-18px 0 0 -3px}
+#recCapa .recw{transform-origin:50% 50%;will-change:transform}
+#recCapa .recm{border-width:calc(2.5px * var(--is,1))!important}
+#recCapa .recm i{transform:scale(var(--is,1))}#recCapa .recm i[data-h=nw]{transform-origin:10px 10px}#recCapa .recm i[data-h=ne]{transform-origin:calc(100% - 10px) 10px}
+#recCapa .recm i[data-h=sw]{transform-origin:10px calc(100% - 10px)}#recCapa .recm i[data-h=se]{transform-origin:calc(100% - 10px) calc(100% - 10px)}
+#recCapa .recm u{transform:scale(var(--is,1))}
+#recCapa .reck{position:absolute;left:8px;bottom:8px;z-index:6;padding:3px 9px;border-radius:10px;background:rgba(0,0,0,.65);color:#fff;font:700 12px/1.4 system-ui,sans-serif;pointer-events:none}
 #recCapa .recl{position:absolute;display:none;width:150px;height:150px;border-radius:50%;pointer-events:none;z-index:5;box-shadow:0 4px 16px rgba(0,0,0,.6)}
 #recCapa .recm i[data-h=nw]{left:-10px;top:-10px;border-right:0;border-bottom:0}#recCapa .recm i[data-h=ne]{right:-10px;top:-10px;border-left:0;border-bottom:0}
 #recCapa .recm i[data-h=sw]{left:-10px;bottom:-10px;border-right:0;border-top:0}#recCapa .recm i[data-h=se]{right:-10px;bottom:-10px;border-left:0;border-top:0}
