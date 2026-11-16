@@ -19,12 +19,12 @@ window.compMarcaCaja=async function(src,caja,max){const im=await carga(src);cons
  x.fillStyle="rgba(0,0,0,.38)";x.beginPath();x.rect(0,0,cv.width,cv.height);x.rect(r[0],r[1],r[2],r[3]);x.fill("evenodd");
  x.lineWidth=Math.max(3,cv.width/180);x.strokeStyle="#ff7a00";x.strokeRect(r[0],r[1],r[2],r[3]);return cv.toDataURL("image/jpeg",.84)};
 
-window.compRecorta=function(src,caja){return new Promise(res=>{
+window.compRecorta=function(src,caja,opt){opt=opt||{};return new Promise(res=>{
  let c=lim(caja||{x0:.15,y0:.15,x1:.85,y1:.85});
  const o=document.createElement("div");o.id="recCapa";
- o.innerHTML=`<div class="rech"><b>✂️ Recortar el componente</b><small>Deja SOLO el elemento: sin vecinos a medias ni cables alrededor. Borneros: la etiqueta (portaetiquetas) dentro, a la IZQUIERDA</small></div>
+ o.innerHTML=`<div class="rech"><b>${opt.titulo||"✂️ Recortar el componente"}</b><small>${opt.sub||"Deja SOLO el elemento: sin vecinos a medias ni cables alrededor. Borneros: la etiqueta (portaetiquetas) dentro, a la IZQUIERDA"}</small></div>
  <div class="recz"><div class="recw"><img alt=""><div class="recm"><i data-h="nw"></i><i data-h="ne"></i><i data-h="sw"></i><i data-h="se"></i><u data-h="n"></u><u data-h="s"></u><u data-h="w"></u><u data-h="e"></u></div></div><canvas class="recl" width="150" height="150"></canvas></div>
- <div class="recb"><button type="button" class="sec" data-a="no">Cancelar</button><button type="button" class="sec" data-a="todo">Toda la foto</button><button type="button" class="pri" data-a="ok">✂️ Aplicar</button></div>`;
+ <div class="recb"><button type="button" class="sec" data-a="no">Cancelar</button><button type="button" class="sec" data-a="todo">Toda la foto</button><button type="button" class="pri" data-a="ok">${opt.ok||"✂️ Aplicar"}</button></div>`;
  ["click","dblclick","touchend","pointerdown"].forEach(t=>o.addEventListener(t,e=>e.stopPropagation()));
  document.body.appendChild(o);const im=o.querySelector("img"),w=o.querySelector(".recw"),m=o.querySelector(".recm");
  const pinta=()=>{m.style.left=c.x0*100+"%";m.style.top=c.y0*100+"%";m.style.width=(c.x1-c.x0)*100+"%";m.style.height=(c.y1-c.y0)*100+"%"};
@@ -50,7 +50,7 @@ window.compRecorta=function(src,caja){return new Promise(res=>{
  o.querySelector(".recb").addEventListener("click",async e=>{const a=e.target.closest("button");if(!a)return;const ac=a.dataset.a;
   if(ac=="todo"){c={x0:0,y0:0,x1:1,y1:1};pinta();return}
   if(ac=="no"){o.remove();res(null);return}
-  a.disabled=true;try{const s=await compCortaCaja(src,c,1400);o.remove();res({src:s,caja:c})}catch(x){o.remove();res(null)}});
+  a.disabled=true;if(opt.ok){o.remove();res({src,caja:c});return}try{const s=await compCortaCaja(src,c,1400);o.remove();res({src:s,caja:c})}catch(x){o.remove();res(null)}});
 });};
 const st=document.createElement("style");st.textContent=`
 #recCapa{position:fixed;inset:0;z-index:100002;background:#0b0d10;color:#fff;display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom,0px))}

@@ -29,7 +29,7 @@ const sinRep=a=>(a||[]).filter(r=>!/^repuesto$/i.test(r[0]||""));
 function desde(c){const r=c.raw||{};const st=r.stock||{};
  return{codigo:c.id||"",titulo:c.t||"",fab:c.fab||"",claves:c.claves||r.claves||"",
   esp:(r.esp?r.esp:sinRep(c.esp)).map(x=>[x[0]||"",x[1]||""]),pin:(c.pin||[]).map(x=>x.slice(0,4)),med:(c.med||[]).slice(),av:c.av||"",
-  fotos:(c.fotos||[]).map(([src,vista])=>({src,vista})),stock:{ref:st.ref||"",sust:st.sust||"",ubi:st.ubi||"",uds:st.uds==null?"":st.uds}}}
+  fotos:(c.fotos||[]).map(([src,vista,m])=>m&&m.o?{src,vista,o:m.o,caja:m.caja}:{src,vista}),stock:{ref:st.ref||"",sust:st.sust||"",ubi:st.ubi||"",uds:st.uds==null?"":st.uds}}}
 async function foto(f){const im=await window.compLeeImg(f);const cv=window.compAJpg(im,1400);return cv.toDataURL("image/jpeg",.85)}
 
 window.compEdita=function(k,nuevas){const c=K[k]||(window.COMP_CAMPO||[]).find(x=>key(x)==k);if(!c){msg("Ficha no encontrada");return}
@@ -64,7 +64,7 @@ function pinta(){if(!capa||!ED)return;const p=ED;const sc=(capa.querySelector(".
  <div class="cedst">Fotos</div>
  <div class="cedst" style="margin-top:-4px;font-weight:500;text-transform:none;letter-spacing:0;font-size:11.5px;opacity:.75">Toca para ampliar · mantén y arrastra para cambiar de sitio (la 1.ª es la principal)</div><div class="cedfs" data-fg="ced">${p.fotos.map((f,i)=>`<figure data-fi="${i}"><img src="${E(f.src)}" alt="">${i==0?'<span class="cedp">Principal</span>':""}
    <input list="ced_vis" data-f="vista" data-i="${i}" value="${E(f.vista)}" placeholder="Vista">
-   <div class="cedfb"><button type="button" class="sec" title="Recortar" onclick="compEdRec(${i})">✂️</button><label class="sec" title="Sustituir">🔄<input type="file" accept="image/*" hidden onchange="compEdFoto(this,${i})"></label>${i?`<button type="button" class="sec" title="Poner la primera" onclick="compEdOp('foto^',${i})">⭐</button>`:""}<button type="button" class="sec" title="Quitar" onclick="compEdOp('foto-',${i})">🗑</button></div></figure>`).join("")}
+   <div class="cedfb">${/^ubicaci/i.test(f.vista||"")?`<button type="button" class="sec" title="Marcar la ubicación (recuadro naranja)" onclick="compEdUbi(${i})">📍</button>`:`<button type="button" class="sec" title="Recortar" onclick="compEdRec(${i})">✂️</button>`}<label class="sec" title="Sustituir">🔄<input type="file" accept="image/*" hidden onchange="compEdFoto(this,${i})"></label>${i?`<button type="button" class="sec" title="Poner la primera" onclick="compEdOp('foto^',${i})">⭐</button>`:""}<button type="button" class="sec" title="Quitar" onclick="compEdOp('foto-',${i})">🗑</button></div></figure>`).join("")}
   <label class="cedadd">📷<span>Añadir foto</span><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-1)"></label></div>
  <label>Código (de los planos)</label><input data-f="codigo" value="${E(p.codigo)}">
  <label>Título</label><input data-f="titulo" value="${E(p.titulo)}">
@@ -91,17 +91,22 @@ window.compEdOp=function(op,i){if(!ED)return;sucio=true;
  pinta();if(/\+$/.test(op)){const l=capa.querySelector(".cedl");const b=[...capa.querySelectorAll(".cedmas")].find(x=>x.getAttribute("onclick").includes(op));
   if(b){const prev=b.previousElementSibling;const inp=prev&&prev.querySelector("input,textarea");if(inp)try{inp.focus({preventScroll:false})}catch(e){}}}};
 /* v535: recortar (sin vecinos ni cables); al añadir o sustituir una foto se abre el recorte directamente */
+/* v547: volver a marcar el recuadro naranja de la foto de UBICACIÓN sobre la foto de conjunto original (sin marcar) */
+window.compEdUbi=async function(i){const f=ED&&ED.fotos[i];if(!f||typeof compRecorta!="function"||typeof compMarcaCaja!="function")return;
+ const base=f.o||f.src;if(!f.o&&!confirm("Esta foto de ubicación no guarda la foto de conjunto sin marcar: el recuadro nuevo se pintará encima del antiguo. Para dejarla limpia, sustitúyela (🔄) por la foto de conjunto original y márcala. ¿Seguir?"))return;
+ const r=await compRecorta(base,f.caja,{titulo:"📍 Marcar la ubicación",sub:"Ajusta el recuadro naranja sobre el elemento dentro de la foto de conjunto",ok:"📍 Marcar"});if(!r)return;
+ try{f.src=await compMarcaCaja(base,r.caja,1000);f.o=base;f.caja=r.caja;sucio=true;pinta()}catch(e){msg(String(e.message||e))}};
 window.compEdRec=async function(i){if(!ED||!ED.fotos[i]||typeof compRecorta!="function")return;const r=await compRecorta(ED.fotos[i].src);if(!r)return;ED.fotos[i].src=r.src;sucio=true;pinta()};
 const conRec=async src=>{if(typeof compRecorta!="function")return src;const r=await compRecorta(src);return r?r.src:src};
 window.compEdFoto=async function(inp,i){const fs=[...(inp.files||[])];inp.value="";if(!fs.length||!ED)return;sucio=true;
- try{if(i>=0){ED.fotos[i].src=await conRec(await foto(fs[0]))}else{for(const f of fs)ED.fotos.push({src:await conRec(await foto(f)),vista:VISTAS[Math.min(ED.fotos.length,VISTAS.length-1)]})}pinta()}
+ try{if(i>=0&&/^ubicaci/i.test(ED.fotos[i].vista||"")){const f=ED.fotos[i];f.o=await foto(fs[0]);f.src=f.o;f.caja=null;pinta();await compEdUbi(i);return}if(i>=0){ED.fotos[i].src=await conRec(await foto(fs[0]))}else{for(const f of fs)ED.fotos.push({src:await conRec(await foto(f)),vista:VISTAS[Math.min(ED.fotos.length,VISTAS.length-1)]})}pinta()}
  catch(e){msg(String(e.message||e))}};
 
 const limpia=a=>a.map(r=>r.map(x=>String(x||"").trim())).filter(r=>r.some(Boolean));
 window.compEdGuarda=async function(){if(!ED||!cur)return;const p=ED;const b=capa.querySelectorAll(".cedg,.cedl>.pri");b.forEach(x=>x.disabled=true);
  const row={codigo:p.codigo.trim()||cur.id,titulo:p.titulo.trim()||cur.t,fab:p.fab.trim(),claves:p.claves.trim(),
   esp:limpia(p.esp),pin:limpia(p.pin),med:p.med.map(x=>String(x).trim()).filter(Boolean),av:p.av.trim(),
-  fotos:p.fotos.map(f=>({src:f.src,vista:(f.vista||"").trim()||"Vista"})),stock:p.stock};
+  fotos:p.fotos.map(f=>Object.assign({src:f.src,vista:(f.vista||"").trim()||"Vista"},f.o&&f.caja?{o:f.o,caja:f.caja}:{})),stock:p.stock};
  if(!cur.raw&&!cur.db)row.base=cur.id;
  try{let r;
   if(cur.db){r=await sb.from("componentes_campo").update(row).eq("id",cur.db).select().single()}

@@ -14,7 +14,7 @@ const C=()=>window.COMP_CAMPO||[];
 const reDe=cl=>{const ws=String(cl||"").split(/[,;\n]+/).map(w=>nrm(w).trim()).filter(Boolean);if(!ws.length)return()=>false;
  return t=>ws.some(w=>w.split(/\s+/).every(p=>t.includes(p)))};
 function aComp(r){return{id:r.codigo,t:r.titulo,fab:r.fab||"",db:r.id,claves:r.claves||"",re:(()=>{const f=reDe(r.claves),c=nrm(r.codigo).replace(/\s/g,"");return t=>f(t)||(c.length>=4&&t.replace(/\s/g,"").includes(c))})(),
- fotos:(r.fotos||[]).map(f=>[f.src,f.vista||"Vista"]),esp:(r.esp||[]).concat(r.stock&&Object.values(r.stock).some(Boolean)?[["Repuesto",[r.stock.ref&&"Ref. "+r.stock.ref,r.stock.sust&&"Sustituto: "+r.stock.sust,r.stock.ubi&&"Almacén: "+r.stock.ubi,r.stock.uds!=null&&r.stock.uds!==""&&r.stock.uds+" uds."].filter(Boolean).join(" · ")]]:[]),
+ fotos:(r.fotos||[]).map(f=>f.o&&f.caja?[f.src,f.vista||"Vista",{o:f.o,caja:f.caja}]:[f.src,f.vista||"Vista"]),esp:(r.esp||[]).concat(r.stock&&Object.values(r.stock).some(Boolean)?[["Repuesto",[r.stock.ref&&"Ref. "+r.stock.ref,r.stock.sust&&"Sustituto: "+r.stock.sust,r.stock.ubi&&"Almacén: "+r.stock.ubi,r.stock.uds!=null&&r.stock.uds!==""&&r.stock.uds+" uds."].filter(Boolean).join(" · ")]]:[]),
  pin:r.pin||[],pint:"Conexionado",med:r.med||[],av:r.av||"",raw:r}}
 /* v534: fichas de fábrica (componentes.js) editadas desde la PWA → fila con base = código original; sustituye a la ficha
    en su MISMO sitio (conserva su reconocimiento de avisos) y se puede restaurar. */
@@ -65,7 +65,8 @@ window.compVista=(i,v)=>{if(F[i])F[i].vista=v};
 /* v545: permutar fotos arrastrándolas y verlas a pantalla completa con zoom */
 (window.FOTO_ORDEN=window.FOTO_ORDEN||{}).inc={mueve:(i,j)=>{if(!F[i]||!F[j])return;[F[i],F[j]]=[F[j],F[i]];repinta()},toca:i=>{if(F[i]&&typeof compVer=="function")compVer(F[i].src,F.map(f=>f.src),i)}};
 /* v535: recorte a mano (o ajuste del recorte de la IA) */
-window.compRecInc=async function(i){const f=F[i];if(!f||typeof compRecorta!="function")return;const r=await compRecorta(f.o||f.src,f.caja);if(!r)return;
+window.compRecInc=async function(i){const f=F[i];if(!f||typeof compRecorta!="function")return;
+ if(f.ubi){if(!f.o)return;const r=await compRecorta(f.o,f.caja,{titulo:"📍 Marcar la ubicación",sub:"Ajusta el recuadro naranja sobre el elemento dentro de la foto de conjunto",ok:"📍 Marcar"});if(!r)return;f.caja=r.caja;f.src=await compMarcaCaja(f.o,r.caja,1000);repinta();return}const r=await compRecorta(f.o||f.src,f.caja);if(!r)return;
  f.src=r.src;f.caja=r.caja;f.cut=true;repinta()};
 /* repinta las fotos sin perder la propuesta de la IA ni lo ya corregido */
 function repinta(){const v=vals();const pr=document.getElementById("ic_prop"),st=document.getElementById("ic_st");const keep=pr?pr.innerHTML:"",ks=st?st.innerHTML:"";const vv=keepVals();pinta(v);
@@ -106,7 +107,7 @@ async function recorteIA(p,v){let t="";try{
  if(b&&typeof compCortaCaja=="function"){const f=F[b.i];const src0=f.o||f.src;f.src=await compCortaCaja(src0,b.c,1400);f.caja=b.c;f.cut=true;
   const vi=String(f.vista||"");if(!/vista/i.test(vi))f.vista=VISTAS[0];
   if(p.en_bloque&&typeof compMarcaCaja=="function"){const bl=String(p.bloque||"bloque de varios elementos").trim();const ps=String(p.posicion||"").trim();
-   F.push({src:await compMarcaCaja(src0,b.c,1000),vista:"Ubicación · "+bl+(p.total?" ("+p.total+" elementos juntos)":""),c:null,ubi:true});
+   F.push({src:await compMarcaCaja(src0,b.c,1000),o:await compCortaCaja(src0,{x0:0,y0:0,x1:1,y1:1},1000),caja:b.c,vista:"Ubicación · "+bl+(p.total?" ("+p.total+" elementos juntos)":""),c:null,ubi:true});
    const txt=bl+(ps?" · posición "+ps.replace(/^posici[oó]n\s*/i,""):"");p.esp=(p.esp||[]).filter(r=>!/^ubicaci[oó]n$/i.test(Array.isArray(r)?r[0]:""));p.esp.push(["Ubicación",txt]);
    t=`✂️ Recortado y 📍 ubicado en el bloque (${E(txt)}). `}
   else t="✂️ Recortado automáticamente. ";
@@ -126,7 +127,7 @@ function propHTML(){const p=PROP;const d=document.getElementById("ic_prop");if(!
 window.compGuarda=async function(){const g=id=>(document.getElementById(id)||{}).value||"";
  if(F.length&&!F.some(f=>f.cut)&&!confirm("Ninguna foto está recortada: el elemento saldría con vecinos y cables alrededor.\n\n¿Guardar igualmente? (Cancelar para recortar con ✂️)"))return;
  const row={codigo:g("ip_cod").trim()||"SIN CÓDIGO",titulo:g("ip_tit").trim()||"Componente",fab:g("ip_fab").trim(),claves:g("ip_cla").trim(),esp:desf(g("ip_esp"),2),pin:desf(g("ip_pin"),4),med:desf(g("ip_med")),av:g("ip_av").trim(),
-  fotos:F.map(f=>({src:f.src,vista:f.vista})),stock:{ref:g("ip_ref"),sust:g("ip_sus"),ubi:g("ip_ubi"),uds:g("ip_uds")},creado_por:(user&&user.email)||""};
+  fotos:F.map(f=>f.ubi&&f.o&&f.caja?{src:f.src,vista:f.vista,o:f.o,caja:f.caja}:{src:f.src,vista:f.vista}),stock:{ref:g("ip_ref"),sust:g("ip_sus"),ubi:g("ip_ubi"),uds:g("ip_uds")},creado_por:(user&&user.email)||""};
  if(!row.claves){msg("Indica en qué averías interviene, para asociarlo a las OT");return}
  try{const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");compCatalogo(row.codigo)}
  catch(e){msg("No se pudo guardar: "+String((e&&e.message)||e))}};
