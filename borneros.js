@@ -103,8 +103,8 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
    const todas=[...new Set([...Array.from({length:mx},(_,i)=>String(i+1)),...ks])].sort(nat);
    const hit=p=>!!q&&!!S[p]&&S[p].some(r=>(r.inV+" "+r.outV+" "+r.d+" "+r.next+" "+r.prev+" "+r.m+" "+r.b).toLowerCase().includes(q));
    const nh=todas.filter(hit).length;
-   h+='<div class="tbl"><h3>'+esc(bsel)+' <small>'+esc(ZONA[zonaDe(bsel)][1])+'</small></h3>'+
-    '<div class="bmap" aria-label="Mapa de bornas">'+todas.map(p=>'<a href="#bn-'+esc(p)+'" class="bmc'+(hit(p)?" hit":S[p]?" dat":" nod")+'">'+esc(p)+'</a>').join("")+'</div>'+
+   h+='<div class="tbl"><div class="bcab" id="bcab"><h3>'+esc(bsel)+' <small>'+esc(ZONA[zonaDe(bsel)][1])+'</small></h3>'+fotoBor(bsel)+
+    '<div class="bmap" aria-label="Mapa de bornas">'+todas.map(p=>'<a href="#bn-'+esc(p)+'" class="bmc'+(hit(p)?" hit":S[p]?" dat":" nod")+'">'+esc(p)+'</a>').join("")+'</div></div>'+
     '<div class="bley"><span class="bmc hit">n</span> del sistema buscado'+(q?' «'+esc(bq.trim())+'» ('+nh+')':' (escribe en la búsqueda)')+' · <span class="bmc dat">n</span> con datos · <span class="bmc nod">n</span> sin datos en el esquema cargado</div>'+
     todas.map((p,ix)=>!S[p]?(ix>0&&!S[todas[ix-1]]?'<i id="bn-'+esc(p)+'"></i>':(()=>{let j=ix;while(j+1<todas.length&&!S[todas[j+1]])j++;const r=j>ix?p+'–'+todas[j]:p;
      return '<div class="bn bnno" id="bn-'+esc(p)+'"><div class="bnp">'+esc(r)+'</div><div class="bnr"><div class="bnl"><span class="mu">'+(j>ix?'Bornas '+esc(r)+' ('+(j-ix+1)+')':'Borna '+esc(p))+': sin conexión en los datos cargados (reserva o circuito no pasado a datos: potencia, alumbrado…). Ver folio del plano.</span></div></div></div>'})()):
@@ -120,6 +120,7 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
    '<div class="bn"><div class="bnp">'+esc(d)+'</div><div class="bnr">'+M.c[d].map(r=>'<div class="bnl"><b>'+esc(r.a)+' ⟷ '+esc(r.b)+'</b><div class="w"><button class="lnk" data-go="'+esc(r.key)+'">'+esc(r.d)+'</button></div></div>').join("")+'</div></div>').join("")+'</div>'}).join("")||'<p class="foot">Sin resultados.</p>';
  }
  box.innerHTML=h;
+ zoomIni();cabAlto();
  /* v316: mientras se teclea no se redibuja nada (la pantalla no se mueve); la búsqueda se aplica al validar
     (Intro / «Buscar» del teclado) o al borrar con la ✕ del campo, y entonces se cierra el teclado y se va a los resultados */
  const i=document.getElementById("bq");if(i){
@@ -129,8 +130,53 @@ function render(){if(!IDX)build();const box=document.getElementById("bor");if(!b
   i.setAttribute("enterkeyhint","search")}
 }
 window.borRender=render;
+/* ===== v544: foto del bornero / regletero desde el catálogo de Componentes de campo, con zoom de dos dedos y arrastre.
+   Va entre el título del bornero y la numeración, y todo ese bloque queda fijo (no hace scroll) bajo la cabecera del CHECK. ===== */
+const nrmB=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[\s+]/g,"");
+function catalogo(){let L=[];try{if(window.parent!==window&&window.parent.COMP_CAMPO)L=window.parent.COMP_CAMPO}catch(e){}return L.length?L:(window.COMP_CAMPO||[])}
+function fotosDe(b){const k=nrmB(b);if(!k)return[];const out=[];
+ catalogo().forEach(c=>{const ids=String(c.id||"").split(/[\/,;·]| y /).map(nrmB).filter(Boolean),cl=nrmB(c.claves||"");
+  const tok=String(c.claves||"").split(/[,;\n]/).map(nrmB);
+  if(ids.includes(k)||tok.includes(k)||ids.some(x=>x.startsWith(k+":")))(c.fotos||[]).forEach(f=>out.push({src:f[0],v:f[1]||"Vista",c:c.id}))});
+ return out}
+let fIdx=0,fBor="";
+function fotoBor(b){const F=fotosDe(b);if(fBor!==b){fBor=b;fIdx=0}if(fIdx>=F.length)fIdx=0;
+ if(!F.length)return '<div class="bfoto nof">Sin foto de <b>'+esc(b)+'</b> en Componentes de campo · incorpórala desde «Comp.» con el código '+esc(b.replace(/^\+/,""))+'</div>';
+ const f=F[fIdx];
+ return '<div class="bfoto" id="bfoto"><div class="bz" id="bz"><img src="'+esc(f.src)+'" alt="'+esc(b)+'" draggable="false"></div>'+
+  '<span class="bfv">'+esc(f.v)+'</span>'+(F.length>1?'<span class="bfn">'+F.map((x,i)=>'<button type="button" data-bf="'+i+'" class="'+(i===fIdx?"sel":"")+'">'+(i+1)+'</button>').join("")+'</span>':'')+
+  '<button type="button" class="bfr" id="bfr" title="Ver entera">⤢</button></div>'}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-bf]");if(!b)return;fIdx=+b.dataset.bf;const x=document.getElementById("bfoto");
+ if(x){x.outerHTML=fotoBor(fBor);zoomIni();cabAlto()}});
+function zoomIni(){const box=document.getElementById("bz");if(!box)return;const img=box.querySelector("img");let s=1,tx=0,ty=0;const P=new Map();let g0=null;
+ const lim=()=>{const W=box.clientWidth,H=box.clientHeight,mx=W*(s-1)/2,my=H*(s-1)/2;tx=Math.max(-mx,Math.min(mx,tx));ty=Math.max(-my,Math.min(my,ty))};
+ const pon=()=>{lim();img.style.transform="translate("+tx+"px,"+ty+"px) scale("+s+")"};
+ const est=()=>{const v=[...P.values()];if(v.length>=2){const a=v[0],b=v[1];g0={d:Math.hypot(a.x-b.x,a.y-b.y)||1,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,s,tx,ty}}else if(v.length===1){g0={x:v[0].x,y:v[0].y,tx,ty,s}}else g0=null};
+ box.addEventListener("pointerdown",e=>{e.preventDefault();try{box.setPointerCapture(e.pointerId)}catch(_){}P.set(e.pointerId,{x:e.clientX,y:e.clientY});est()});
+ box.addEventListener("pointermove",e=>{if(!P.has(e.pointerId)||!g0)return;e.preventDefault();P.set(e.pointerId,{x:e.clientX,y:e.clientY});const v=[...P.values()];
+  if(v.length>=2){const a=v[0],b=v[1],d=Math.hypot(a.x-b.x,a.y-b.y),r=box.getBoundingClientRect();const ns=Math.max(1,Math.min(6,g0.s*d/g0.d));
+   const ox=g0.cx-r.left-r.width/2,oy=g0.cy-r.top-r.height/2,cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+   tx=ox-(ox-g0.tx)*ns/g0.s+(cx-g0.cx);ty=oy-(oy-g0.ty)*ns/g0.s+(cy-g0.cy);s=ns}
+  else if(s>1){tx=g0.tx+(v[0].x-g0.x);ty=g0.ty+(v[0].y-g0.y)}pon()});
+ const fin=e=>{P.delete(e.pointerId);est()};box.addEventListener("pointerup",fin);box.addEventListener("pointercancel",fin);
+ let t0=0;box.addEventListener("pointerup",e=>{const t=Date.now();if(t-t0<300&&P.size===0){if(s>1){s=1;tx=ty=0}else{const r=box.getBoundingClientRect();s=2.5;tx=-(e.clientX-r.left-r.width/2)*1.5;ty=-(e.clientY-r.top-r.height/2)*1.5}pon()}t0=t});
+ box.addEventListener("wheel",e=>{e.preventDefault();s=Math.max(1,Math.min(6,s*(e.deltaY<0?1.15:1/1.15)));pon()},{passive:false});
+ const rs=document.getElementById("bfr");if(rs)rs.onclick=()=>{s=1;tx=ty=0;pon()}}
+/* alto de las cabeceras fijas → para que las bornas enlazadas no queden tapadas */
+function cabAlto(){const c=document.getElementById("cab"),b=document.getElementById("bcab");const R=document.documentElement.style;
+ if(c)R.setProperty("--cabH",c.offsetHeight+"px");R.setProperty("--bcabH",(b?b.offsetHeight:0)+"px")}
+window.addEventListener("resize",cabAlto);
 (function(){const st=document.createElement("style");st.textContent=`
 .bmap{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px}
+.bcab{position:sticky;top:var(--cabH,0px);z-index:5;background:var(--panel);padding:4px 0 6px;margin:0 -8px;padding-left:8px;padding-right:8px;border-bottom:1px solid var(--line)}
+.bfoto{position:relative;height:150px;border-radius:8px;border:1px solid var(--line);background:#fff;overflow:hidden;margin:4px 0 6px}
+.bfoto.nof{height:auto;background:var(--bg);color:var(--muted);font:500 12.5px var(--f-body);padding:8px 10px}
+.bz{position:absolute;inset:0;touch-action:none;cursor:grab;overflow:hidden}
+.bz img{width:100%;height:100%;object-fit:contain;transform-origin:50% 50%;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;pointer-events:none}
+.bfv{position:absolute;left:6px;bottom:6px;font:600 11px var(--f-body);color:#fff;background:rgba(0,0,0,.6);padding:2px 6px;border-radius:4px;pointer-events:none}
+.bfn{position:absolute;right:6px;bottom:6px;display:flex;gap:4px}.bfn button{font:700 11px ui-monospace,monospace;width:24px;height:24px;border-radius:4px;border:0;background:rgba(0,0,0,.55);color:#fff}.bfn button.sel{background:var(--accent)}
+.bfr{position:absolute;right:6px;top:6px;width:30px;height:30px;border-radius:6px;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:16px}
+.bn,.tbl i[id^="bn-"]{scroll-margin-top:calc(var(--cabH,0px) + var(--bcabH,0px) + 8px)}
 .bmc{display:inline-grid;place-items:center;min-width:26px;height:24px;padding:0 3px;border-radius:4px;font:700 11px ui-monospace,Menlo,monospace;text-decoration:none;color:var(--fg);border:1px solid var(--line);background:var(--panel)}
 .bmc.dat{background:color-mix(in srgb,var(--accent) 12%,var(--panel))}
 .bmc.nod{border-style:dashed;color:var(--muted);background:transparent}
