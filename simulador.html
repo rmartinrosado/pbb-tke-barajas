@@ -85,6 +85,8 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 .tabs button.sel{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
 .presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .tree .row{padding-left:0}
+.tree .what{--d:0;padding-left:calc(var(--d) * 13px);background-image:repeating-linear-gradient(to right,var(--line) 0 1.5px,transparent 1.5px 13px);background-size:calc(var(--d) * 13px) 100%;background-repeat:no-repeat;background-position:2px 0;align-self:stretch;display:flex;flex-direction:column;justify-content:center}
+.tree .what .rm{font-style:normal;color:var(--accent);margin-right:4px;font-weight:700}
 .dz{display:block;font:600 11px var(--f-mono);color:var(--accent);margin-bottom:1px}
 .esc{margin-top:10px}
 .esc>span{display:block;font:700 12px var(--f-disp);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
@@ -364,7 +366,7 @@ const UL={"400":["400 V","entre fases"],"230":["230 V","F–N"],"24ac":["24 V","
 const MAN={reposo:["Reposo",[]],servicios:["Alumbrado y servicios",["k10","k60","k15","k14","k17"]],traslacion:["Trasladar",["k1","k24"]],subir:["Subir",["k3","ek61"]],bajar:["Bajar",["ek62"]],retorno:["Retorno autónomo",["k26","k24"]],capota:["Capota",["k41","k43"]],porton:["Portón",["k81"]],cabina:["Girar cabina",["pk61"]],brazo:["Brazo autonivelador",["pk51"]],suelo:["Suelo basculante",["pk71"]]};
 const AVE={ninguna:["Sin avería",{}],seg:["Línea de seguridades abierta",{lin:1}],red:["Corte de red (solo SAI)",{red:1}],sai:["Corte de SAI",{sai:1}],seta:["Seta del pupitre pulsada",{cps5:1}],fuente:["Fuente 24 V caída",{v3:1}],trafo:["E-Q15 disparado (trafo)",{q15:1}],mono:["E-Q150 disparado",{q150:1}],sobre:["Sobretensiones actuadas",{f19:1}]};
 const WIRE_POT={"309":"cps5","336":"pq302","189":"q303","613":"q304","332":"pq302","330":"pq303","208":"q301","215":"q302","635":"pq301"};
-let pst={}, pord={}, pfault=false, pmarks={}, pview="pot";
+let PHIJ={},PDEP={};let pst={}, pord={}, pfault=false, pmarks={}, pview="pot";
 const pnode=id=>POT.find(n=>n.id===id);
 /* por qué está abierto un elemento maniobrable ("" = cerrado) */
 function pwhy(id){const n=pnode(id);if(!n||!n.s)return "";
@@ -391,18 +393,23 @@ function pot(){
  const fol=[...new Set(POT.map(n=>n.f))].sort((a,b)=>a-b).reduce((r,f)=>{const l=r[r.length-1];if(l&&f-l[1]<=1)l[1]=f;else r.push([f,f]);return r},[]).map(([a,b])=>a===b?a:a+"-"+b).join(" · ");
  const mk=(o,k,a,attr)=>'<button class="chip'+(a?" sel":"")+'" '+attr+'="'+k+'">'+o+'</button>';
  const sm=Object.keys(MAN).find(k=>same(pord,Object.fromEntries(MAN[k][1].map(x=>[x,1])))), sa=Object.keys(AVE).find(k=>same(pst,AVE[k][1]));
+ /* v536: sangría por rama: cada elemento se desplaza a la derecha bajo el elemento del que cuelga. Un tramo en serie (un
+    solo hijo) sigue en la misma columna; donde el padre reparte a varios elementos se abre un nivel nuevo, con guías verticales
+    por nivel y «└» al inicio de cada rama. */
+ PHIJ={};POT.forEach(n=>{if(n.p)PHIJ[n.p]=(PHIJ[n.p]||0)+1});PDEP={};
+ POT.forEach(n=>{const pa=n.p&&POT.find(x=>x.id===n.p);PDEP[n.id]=pa?(PDEP[pa.id]||0)+(PHIJ[pa.id]>1?1:0):0});
  $("#pot").innerHTML='<div class="head"><div><h2>Potencia desde el CBTH</h2><div class="meta">Folios '+fol+'</div></div></div>'+
   '<div class="esc"><span>Maniobra</span><div class="chips">'+Object.keys(MAN).map(k=>mk(MAN[k][0],k,k===sm,"data-man")).join("")+'</div></div>'+
   '<div class="esc"><span>Avería</span><div class="chips">'+Object.keys(AVE).map(k=>mk(AVE[k][0],k,k===sa,"data-ave")).join("")+'</div></div>'+
   '<div class="presets"><button class="btn'+(pfault?" act":"")+'" id="pflt">'+(pfault?"Salir de búsqueda de avería":"Buscar avería midiendo")+'</button></div>'+
   '<p class="ref">Red: 400 V entre fases, ≈ 230 V fase–PE. SAI y servicios: 230 V entre fase y neutro. Mando: 24 V entre + y 0 V (hilo 205).</p>'+
   '<p class="ref sum">'+(marcha.length?'En marcha: <b>'+marcha.join(", ")+'</b>. ':'')+(man.length?'Abiertos o disparados: <b>'+man.join(", ")+'</b>. ':'')+(cae.length?'Caen solos → '+cae.join(" · ")+'.':'')+(!man.length&&!cae.length?'Sin elementos abiertos ni disparados.':'')+'</p>'+diag+
-  '<div class="chain tree">'+POT.map((n,i)=>{const L=live[n.id],u=UL[n.u],why=n.s?pwhy(n.id):"",prev=POT[i-1];
+  '<div class="chain tree">'+POT.map((n,i)=>{const L=live[n.id],u=UL[n.u],why=n.s?pwhy(n.id):"",prev=POT[i-1],dp=PDEP[n.id]||0,ram=n.p&&PHIJ[n.p]>1;
    const desde=n.p&&prev&&prev.id!==n.p?'<span class="dz">↳ desde '+(pnode(n.p).nm||pnode(n.p).t.split(" ")[0])+'</span>':'';
    const btn=n.s?'<button class="sw'+(why==="Sin orden"?" idle":why?" open":"")+'" '+(n.ord?'data-pord="':'data-psw="')+n.id+'">'+(why||n.on||"Cerrado")+'</button>':'<span></span>';
    return (n.p===null?'<div class="grp">'+(n.id==="red"?"Red 400 V · fuerza y servicios":"SAI 230 V · frenos, retorno y 24 V")+'</div>':'')+
    '<div class="row'+(pfault&&pmarks[n.id]==="n"?" suspect":"")+'"><div class="v '+(L?"live":"dead")+'">'+(L?u[0]:"0 V")+(L?'<small>'+u[1]+'</small>':'')+'</div>'+
-   '<div class="what">'+desde+'<b>'+n.t+'</b><div class="w">'+[n.d,n.m,FOL(n.f)].filter(Boolean).join(" · ")+'</div></div>'+
+   '<div class="what" style="--d:'+dp+'">'+desde+'<b>'+(ram?'<i class="rm">└</i>':'')+n.t+'</b><div class="w">'+[n.d,n.m,FOL(n.f)].filter(Boolean).join(" · ")+'</div></div>'+
    (pfault?'<div class="mk"><button data-pmk="'+n.id+'" data-a="y" class="'+(pmarks[n.id]==="y"?"y":"")+'">Sí</button><button data-pmk="'+n.id+'" data-a="n" class="'+(pmarks[n.id]==="n"?"n":"")+'">No</button></div>':btn)+'</div>'}).join("")+'</div>';
 }
 /* enlace fase 1 ↔ fase 2: si la protección que alimenta el común de una entrada está abierta, toda la cadena queda a 0 V */
