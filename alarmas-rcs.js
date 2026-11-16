@@ -1,4 +1,4 @@
-/* ===== v501: ALARMAS Y ADVERTENCIAS DEL MANUAL RCS (MAX Automate, F8-690.0312-51 rev. Ø, págs. 104-110) · 16/11/2026 =====
+/* ===== v501-v502: ALARMAS Y ADVERTENCIAS DEL MANUAL RCS (MAX Automate, F8-690.0312-51 rev. Ø, págs. 104-110) · 16/11/2026 =====
    Catálogo completo de códigos de la pantalla del puesto remoto / Magelis, con familia, grupo, qué significa en campo y cierre.
    · 🔴 ALARMA (001-143, roja, LED rojo del panel): avería o seguridad → intervención en campo. Rearme: OFF → riesgo cesado → ON.
    · 🟡 ADVERTENCIA (241-363, amarilla): la corrige el operador; NO es avería salvo que no se borre al resolver la causa.
@@ -312,8 +312,18 @@ const textoOT=i=>[i.desc,i.def,i.com,i.alarmas&&(typeof i.alarmas=="string"?i.al
 const caja=(o,compacta)=>{const x=o.x,g=G[x.g],[ic,fam,fs]=FN[x.f];
  return`<div class="rcsb rcs${x.f}"><div class="rcsh"><span class="rcsf">${ic} ${fam}</span><b>${E(x.c)}</b> ${E(x.t)}</div>
  <div class="rcsg">${E(g.n)} · <span class="mu">${E(fs)}</span></div>
- ${compacta?"":`<div class="rcsq">${E(g.q)}</div>`}<div class="rcsa">➜ ${E(g.a)}</div>${x.f=="A"&&!compacta?`<div class="rcsr">${E(REARME)}</div>`:""}</div>`};
+ ${compacta?"":`<div class="rcsq">${E(g.q)}</div>`}<div class="rcsa">➜ ${E(g.a)}</div>${x.f=="A"&&!compacta?`<div class="rcsr">${E(REARME)}</div>`:""}${enlaces(x)}</div>`};
 window.rcsCaja=caja;
+/* ---------- v502: enlace a la página del manual RCS subido a Planos ---------- */
+const PEXP={fc:34,lim:34,len:107,ope:84,eme:44,acc:24,pro:106,aux:106,byp:106,avi:107,col:107,pre:86,inf:106,est:106,rem:108};
+const pagLista=c=>/^R/.test(c)?110:+c<=76?108:+c<=261?109:110;
+window.rcsPag=async function(n){let l=[];try{l=await allPdf()}catch(e){}
+ const d=(l||[]).find(x=>/manual.?rcs|max.?automate|f8.?690/i.test(x.name))||(l||[]).find(x=>/manual/i.test(x.name)&&/rcs/i.test(x.name));
+ if(!d){msg("Sube el «Manual RCS» en la pestaña Planos");return}
+ try{if(typeof gDocs!="undefined")gDocs=null}catch(e){}
+ gPagIni=+n||1;await ver(d.id)};
+const enlaces=x=>{const ex=PEXP[x.g]||(x.f=="A"?104:105),li=pagLista(x.c);
+ return`<div class="rcsp"><button type="button" class="sec" onclick="event.stopPropagation();rcsPag(${li})">📖 Manual pág. ${li}</button>${ex!=li?`<button type="button" class="sec" onclick="event.stopPropagation();rcsPag(${ex})">📖 Explicación pág. ${ex}</button>`:""}</div>`};
 /* ---------- 1) guía de la OT ---------- */
 if(typeof vTec=="function"){const o=vTec;vTec=function(){
  const i=(typeof gOT!="undefined"&&gOT&&Array.isArray(inc))?inc.find(x=>x.id==gOT):null;let L=[],ori=null;
@@ -370,6 +380,7 @@ const st=document.createElement("style");st.textContent=`
 #rcs_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}.rcsit{width:100%!important;margin:0!important;text-align:left;padding:7px 9px!important;font-size:13px!important;border-left:5px solid #888!important;border-radius:6px!important}
 .rcsit.rcsA{border-left-color:#d32f2f!important}.rcsit.rcsW{border-left-color:#f9a825!important}.rcsit.rcsR{border-left-color:#1e88e5!important}
 .rcscie{margin-top:8px;border:1.5px solid #1565c0;border-radius:10px;padding:6px 8px}.rcscg{display:grid;grid-template-columns:1.3fr 1fr;gap:6px}
-.rcscg input,.rcscg select{margin:0!important;min-width:0;font-size:14px}#rcs_ci{font-size:12px;margin-top:4px}`;
+.rcscg input,.rcscg select{margin:0!important;min-width:0;font-size:14px}#rcs_ci{font-size:12px;margin-top:4px}
+.rcsp{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.rcsp button{width:auto!important;margin:0!important;padding:5px 10px!important;font-size:12.5px!important}`;
 document.head.appendChild(st);
 })();
