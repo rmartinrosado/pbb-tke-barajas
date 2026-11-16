@@ -56,7 +56,12 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 .ctrls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .btn{font:600 13.5px var(--f-body);padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--panel)}
-.ana{display:flex;flex-direction:column;gap:4px;width:100%;font:500 13.5px var(--f-body)}.ana input{width:100%;accent-color:var(--accent)}
+.ana{display:flex;flex-direction:column;gap:6px;width:100%;font:500 13.5px var(--f-body)}
+.ana input{width:100%;height:44px;margin:0;touch-action:none;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
+.ana input::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
+.ana input::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--accent);margin-top:-10px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.ana input::-moz-range-track{height:8px;border-radius:4px;background:var(--line)}.ana input::-moz-range-progress{height:8px;border-radius:4px;background:var(--accent)}
+.ana input::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--accent)}
 .btn.act{background:var(--warnBg);border-color:var(--warn);color:var(--warn)}
 .ref{font-size:12.5px;color:var(--muted);margin-top:8px}
 .chain{display:flex;flex-direction:column;margin-top:12px}
@@ -471,8 +476,20 @@ document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b
  else if(b.id==="pflt"){pfault=!pfault;pmarks={};pot()}});
 const _det=det;
 det=function(){_det();if(!sel||!isAna(C[sel]))return;const c=document.querySelector("#det .ctrls");if(!c)return;
- c.insertAdjacentHTML("afterbegin",'<label class="ana"><span>Posición del recorrido <b>'+anaPct+' %</b> → <b>'+(anaOpen?"0 mA":fmA(4+16*anaPct/100))+'</b></span><input type="range" id="anaR" min="0" max="100" step="5" value="'+anaPct+'"></label><button class="btn'+(anaOpen?" act":"")+'" id="anaL">'+(anaOpen?"Cerrar lazo":"Abrir lazo (cable cortado)")+'</button>');};
-document.addEventListener("input",ev=>{if(ev.target.id==="anaR"){anaPct=+ev.target.value;det()}});
+ c.insertAdjacentHTML("afterbegin",'<label class="ana"><span>Posición del recorrido <b>'+anaPct+' %</b> → <b>'+(anaOpen?"0 mA":fmA(4+16*anaPct/100))+'</b></span><input type="range" id="anaR" style="--p:'+anaPct+'%" min="0" max="100" step="1" value="'+anaPct+'"></label><button class="btn'+(anaOpen?" act":"")+'" id="anaL">'+(anaOpen?"Cerrar lazo":"Abrir lazo (cable cortado)")+'</button>');};
+/* v540: el deslizador ya no redibuja la ficha mientras se arrastra (se perdía el dedo): solo se actualizan los valores.
+   Arrastre propio con el dedo en toda la barra (toque = salta a esa posición), paso del 1 %. */
+function anaUpd(){const e=C[sel];if(!e||!isAna(e))return;const r=simAna(e);
+ const L=document.querySelector("#det .led");if(L){L.classList.toggle("on",!!r.led);L.innerHTML="<i></i>"+r.ledTxt}
+ const T=document.querySelector("#det .ana span");if(T)T.innerHTML='Posición del recorrido <b>'+anaPct+' %</b> → <b>'+(anaOpen?"0 mA":fmA(4+16*anaPct/100))+'</b>';
+ document.querySelectorAll("#det .chain .row .v").forEach((v,i)=>{const x=r.rows[i];if(x&&x.txt)v.textContent=x.txt});}
+function anaSet(inp,x){const b=inp.getBoundingClientRect();let p=Math.round((x-b.left-14)/(b.width-28)*100);p=Math.max(0,Math.min(100,p));
+ if(p!==anaPct){anaPct=p;inp.value=p;inp.style.setProperty('--p',p+'%');anaUpd()}}
+document.addEventListener("input",ev=>{if(ev.target.id==="anaR"){anaPct=+ev.target.value;ev.target.style.setProperty("--p",anaPct+"%");anaUpd()}});
+document.addEventListener("pointerdown",ev=>{const inp=ev.target.closest&&ev.target.closest("#anaR");if(!inp)return;ev.preventDefault();
+ try{inp.setPointerCapture(ev.pointerId)}catch(_){}anaSet(inp,ev.clientX);
+ const mv=e=>{e.preventDefault();anaSet(inp,e.clientX)},up=()=>{inp.removeEventListener("pointermove",mv);inp.removeEventListener("pointerup",up);inp.removeEventListener("pointercancel",up)};
+ inp.addEventListener("pointermove",mv);inp.addEventListener("pointerup",up);inp.addEventListener("pointercancel",up)});
 document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;if(b.id==="anaL"){anaOpen=!anaOpen;det()}else if(b.dataset.k){anaPct=50;anaOpen=false}},true);
 pshow();
 
