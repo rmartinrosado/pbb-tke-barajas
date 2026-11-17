@@ -76,7 +76,7 @@ function pinta(P){const p=P||{};$("#sheetc").innerHTML=`<div class="icph"><h3 st
  <label>Código si lo sabes (p. ej. E-X62, ET-B9)</label><input id="ic_cod" placeholder="Opcional: la IA recorta ESE elemento" value="${E(p.cod||"")}" autocapitalize="characters">
  <label>¿Dónde está montado?</label><input id="ic_donde" placeholder="Ej. rotonda, túnel exterior, cabina bajo el pupitre…" value="${E(p.donde||"")}">
  <label>¿En qué averías interviene? (palabras del aviso, separadas por comas)</label><input id="ic_cla" placeholder="Ej. barrera rotonda, evento 294" value="${E(p.claves||"")}">
- <button class="pri" style="margin-top:10px" onclick="compIA()" ${F.length?"":"disabled"}>🤖 Identificar con IA</button><div id="ic_st" class="mu" style="font-size:12.5px;margin-top:6px"></div><div id="ic_prop"></div>`;$("#sheet").style.display="flex"}
+ ${selHTML(p)}<div id="ic_st" class="mu" style="font-size:12.5px;margin-top:6px"></div><div id="ic_prop"></div>`;$("#sheet").style.display="flex"}
 const vals=()=>({cod:((document.getElementById("ic_cod")||{}).value||"").trim().toUpperCase().replace(/^\+/,""),donde:(document.getElementById("ic_donde")||{}).value||"",claves:(document.getElementById("ic_cla")||{}).value||""});
 window.compFotos=async function(inp){const v=vals();for(const f of [...(inp.files||[])]){try{const im=await lee(f);const c=aJpg(im,900);const g=aJpg(im,1400);F.push({src:c.toDataURL("image/jpeg",.82),vista:VISTAS[Math.min(F.length,VISTAS.length-1)],c:g,o:g.toDataURL("image/jpeg",.88)})}catch(e){msg(String(e.message||e))}}pinta(v)};
 window.compVista=(i,v)=>{if(F[i])F[i].vista=v};
@@ -131,14 +131,17 @@ window.compIA=async function(opt){opt=opt||{};const v=vals();const st=document.g
  set("⏳ Leyendo la placa y cotejando con los planos con <b>"+(motor=="claude"?"Claude":"Gemini")+"</b>…");
  try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("Inicia sesión para usar la IA");
   const MAN=F.filter(f=>f.ubiMan);F=F.filter(f=>!f.ubi);const img=collage(F.map(f=>f.c)).split(",")[1];
+  if(!v.cod&&!listaOK()){if(MAN.length)F.push(...MAN);set("");await compDetecta(motor);return}
   if(!GRUPO||!F.some(f=>f.o===GRUPO.o)){const f0=F[0];GRUPO=f0?{o:f0.o,c:f0.c,hechos:[],salta:[]}:null}
+  const SEL=!v.cod&&listaOK()?(GRUPO.sel||[]).slice().sort((a,b)=>a-b):[];if(!v.cod&&!SEL.length){if(MAN.length)F.push(...MAN);set("");msg("Marca en la lista el componente (o los que forman uno) que quieres incorporar");return}
+  const LS=SEL.length?GRUPO.lista:[];const UN=SEL.length?union(SEL.map(i=>LS[i])):null;
   const yaCods=[...new Set(C().map(c=>String(c.id||"").trim()).filter(c=>c&&!/^SIN C/i.test(c)))];
   const hechosF=(GRUPO?GRUPO.hechos:[]).map(h=>`${h.codigo} (caja x ${Math.round(h.x0)}-${Math.round(h.x1)}, y ${Math.round(h.y0)}-${Math.round(h.y1)} milésimas)`);
   const salta=[...new Set((GRUPO?GRUPO.salta:[]).concat(opt.salta||[]))];
   const IH=idxHilos(/\b507\b/.test(v.donde+" "+v.claves));const prompt=`Fotos (en una sola imagen, de izquierda a derecha) de un componente de campo de una pasarela de embarque (PBB) TKE del aeropuerto de Madrid Barajas, para la guía de componentes de la app de mantenimiento.
 Dónde está montado (según el técnico): ${v.donde||"(no indicado)"}.
 Averías en que interviene (según el técnico): ${v.claves||"(no indicado)"}.
-${opt.objetivo&&!v.cod?`PASAR AL SIGUIENTE (OBLIGATORIO): describe y recorta SOLO el elemento nº ${opt.objetivo.i+1} de la foto${opt.objetivo.codigo?` (etiqueta «${opt.objetivo.codigo}»)`:""}${opt.objetivo.tipo?`, «${opt.objetivo.tipo}»`:""}, que está en la caja x ${Math.round(opt.objetivo.x0)}-${Math.round(opt.objetivo.x1)}, y ${Math.round(opt.objetivo.y0)}-${Math.round(opt.objetivo.y1)} milésimas. Aunque ya esté incorporado o su etiqueta no se lea entera, describe ESE y no otro (si no se lee el código, pon el más probable por tipo y posición o "SIN CÓDIGO"); elegido = ${opt.objetivo.i}.`:""}
+${SEL.length?`SELECCIÓN DEL TÉCNICO (OBLIGATORIO): forman UN SOLO componente de campo ${SEL.length>1?"los elementos":"el elemento"} ${SEL.map(k=>`nº ${k+1}${LS[k].codigo?` «${LS[k].codigo}»`:""}${LS[k].tipo?` (${LS[k].tipo})`:""}`).join(" + ")}, en la caja x ${Math.round(UN.x0)}-${Math.round(UN.x1)}, y ${Math.round(UN.y0)}-${Math.round(UN.y1)} milésimas. Describe y recorta ESO y nada más, aunque ya esté incorporado o alguna etiqueta no se lea entera.${SEL.length>1?" Es una sola ficha: codigo = los códigos de plano juntos separados por « / » (p. ej. etiquetas P-K7.1 y P-K7.2 → «P-K71 / P-K72»), titulo y especificaciones del conjunto, y el recorte abarca TODOS los elementos seleccionados.":""} elegido = ${SEL[0]}.`:""}
 ${v.cod?`CÓDIGO INDICADO POR EL TÉCNICO: ${v.cod}. Es OBLIGATORIO: el componente es ${v.cod}; búscalo por su rótulo/etiqueta en la foto, recorta ESE (no otro aunque se vea mejor) y pon codigo="${v.cod}".`:""}
 CÓDIGOS DE ELEMENTOS DE LOS PLANOS (código=nombre): ${codigos()}
 
@@ -151,7 +154,7 @@ TAREA
 4d. BORNERO SIN ETIQUETA: si el componente es un bornero/regleta y NO se ve o NO se lee su portaetiquetas, identifícalo por los MANGUITOS (marcadores impresos en los cables que entran en sus bornas). Lee el texto de cada manguito de izquierda a derecha (número de hilo y, si lo lleva, color o «bornero:borna»), crúzalo con este ÍNDICE DE HILOS POR BORNERO (bornero: borna=hilo color, …) y elige el bornero con más coincidencias; delimita el grupo por las bornas cuyos hilos coinciden. Devuelve "manguitos" = lista de lo leído en cada manguito (en orden), "por_manguitos" = true, y en justificacion qué hilos coinciden y en qué bornas. No inventes manguitos que no se lean.
 ÍNDICE DE HILOS POR BORNERO: ${hilosTxt(IH)}
 BREVEDAD: responde con el JSON compacto: "esp" máx. 14 filas, "pin" máx. 12, "med" máx. 8 pasos, "elementos" máx. 12, textos cortos.
-4c. YA INCORPORADOS en Componentes de campo: ${yaCods.join(", ")||"(ninguno)"}.${hechosF.length?` De ESTA MISMA FOTO ya se han incorporado (no los vuelvas a elegir, aunque otro tenga el mismo código): ${hechosF.join("; ")}.`:""}${salta.length?` El técnico ha pedido PASAR AL SIGUIENTE: NO elijas ${salta.join(", ")}.`:""}${v.cod||opt.objetivo?"":" Si en la foto hay varios componentes, elige el PRIMERO (de izquierda a derecha y de arriba abajo) que NO esté ya incorporado; si todos lo están, elige el primero y dilo en justificacion."}
+4c. YA INCORPORADOS en Componentes de campo: ${yaCods.join(", ")||"(ninguno)"}.${hechosF.length?` De ESTA MISMA FOTO ya se han incorporado (no los vuelvas a elegir, aunque otro tenga el mismo código): ${hechosF.join("; ")}.`:""}${salta.length?` El técnico ha pedido PASAR AL SIGUIENTE: NO elijas ${salta.join(", ")}.`:""}${v.cod||SEL.length?"":" Si en la foto hay varios componentes, elige el PRIMERO (de izquierda a derecha y de arriba abajo) que NO esté ya incorporado; si todos lo están, elige el primero y dilo en justificacion."}
 7. ALARMAS, ADVERTENCIAS Y EVENTOS DEL PLC (pantalla Magelis / puesto remoto, manual RCS). Coteja el componente con este listado (código|texto) y devuelve en "alarmas" las que dispara, provoca o en las que interviene (máx. 8, SOLO códigos del listado, [] si ninguna), con "por" = motivo en pocas palabras:
 ${typeof compAlarmasListado=="function"?compAlarmasListado():""}
 6. ELEMENTOS DE LA FOTO: si se ven VARIOS componentes (de un bloque o sueltos), lístalos TODOS en "elementos", en orden de izquierda a derecha y de arriba abajo: {"codigo": el que se lee en su etiqueta o el código de plano más probable ("" si no se sabe), "tipo": qué es, "x0","y0","x1","y1": su caja en milésimas}. "elegido" = índice (desde 0) del componente que describes y recortas.
@@ -169,18 +172,16 @@ Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":
      if(!v.cod&&(!cod||/^SINC/.test(cod)||(cod!==mj&&M.mejor.n>=2))){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+txt+(cod&&cod!==mj&&!/^SINC/.test(cod)?" La IA proponía «"+PROP.codigo+"»: se toma "+M.mejor.t+" por los hilos.":"");PROP.codigo=M.mejor.t}
      else PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+txt}
     else PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"⚠️ Ningún hilo de los manguitos leídos ("+M.leidos.join(", ")+") está en los borneros de los planos: revisa el código."}}
-  /* v571: siguiente de la foto: se mantiene la lista y se fuerza el elemento elegido por la app */
-  if(opt.objetivo&&!v.cod){const o=opt.objetivo;if(Array.isArray(opt.lista)&&opt.lista.length)PROP.elementos=opt.lista;PROP.elegido=o.i;
-   const bx={x0:o.x0,y0:o.y0,x1:o.x1,y1:o.y1},ok=bx.x1>bx.x0&&bx.y1>bx.y0;const r=PROP.recorte||{};
-   const sal=(GRUPO?GRUPO.salta:[]),pc=partes(PROP.codigo),po=partes(o.codigo);
-   if(pc.length&&pc.some(c=>sal.includes(c))&&!po.some(c=>sal.includes(c))){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"(La IA volvía a dar «"+PROP.codigo+"»: se toma el elemento nº "+(o.i+1)+(o.codigo?" «"+o.codigo+"»":"")+".)";PROP.codigo=o.codigo||"SIN CÓDIGO";if(ok)PROP.recorte=bx}
-   else if(ok&&!(+r.x1>+r.x0&&+r.y1>+r.y0))PROP.recorte=bx}
+  /* v572: selección del técnico: se mantiene la lista y el recorte abarca lo marcado */
+  if(SEL.length){PROP.elementos=LS;PROP.elegido=SEL[0];PROP._sel=SEL.slice();const r=PROP.recorte||{};const cx=(+r.x0+ +r.x1)/2,cy=(+r.y0+ +r.y1)/2;
+   const okR=+r.x1>+r.x0&&+r.y1>+r.y0&&cx>=UN.x0&&cx<=UN.x1&&cy>=UN.y0&&cy<=UN.y1&&(SEL.length==1||(+r.x1-+r.x0)>=(UN.x1-UN.x0)*.7);if(!okR)PROP.recorte=Object.assign({},UN);
+   if(!PROP.codigo||/^SIN C/i.test(PROP.codigo)){const cs=SEL.map(k=>LS[k].codigo).filter(Boolean);if(cs.length)PROP.codigo=cs.join(" / ")}}
   if(!PROP.claves&&v.claves)PROP.claves=v.claves;if(v.cod&&String(PROP.codigo||"").toUpperCase().replace(/^\+/,"")!==v.cod){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"(Código indicado por el técnico: "+v.cod+"; la IA proponía «"+(PROP.codigo||"—")+"». Revisa que el recorte sea el de "+v.cod+".)";PROP.codigo=v.cod}const rc=await recorteIA(PROP,v);if(MAN.length)F.push(...MAN);pinta(v);
   const st2=document.getElementById("ic_st");if(st2)st2.innerHTML=`Leído con <b>${E(j.lector||"IA")}</b>. ${rc}Revisa y corrige antes de guardar.`;propHTML();grupoHTML()}
  catch(e){set(`<span style="color:#c62828">${E(String((e&&e.message)||e))}</span>`+(motor=="gemini"?` <button class="sec" style="width:auto;margin:6px 0 0" onclick="compIA({motor:'claude'})">✳️ Probar con Claude</button>`:""))}};
 /* ===== v554: motor de IA, varios componentes en una misma foto y avisos de repetidos ===== */
 let MOTOR=null,GRUPO=null;
-const nCod=c=>String(c||"").toUpperCase().replace(/^\+/,"").replace(/\s+/g,"");
+const nCod=c=>String(c||"").toUpperCase().replace(/^\+/,"").replace(/\s+/g,"").replace(/\./g,"");/* v572: etiqueta P-K7.1 = plano P-K71 */
 const partes=c=>String(c||"").split(/\s*[\/,]\s*/).map(nCod).filter(x=>x&&!/^SINC/.test(x));
 const yaSet=()=>{const S=new Set();C().forEach(c=>partes(c.id).forEach(x=>S.add(x)));return S};
 const nCat=c=>{const p=partes(c);return p.length?C().filter(x=>partes(x.id).some(y=>p.includes(y))).length:0};
@@ -197,40 +198,54 @@ function pideMotor(){return new Promise(res=>{const o=document.createElement("di
  ["touchend","pointerdown","dblclick"].forEach(t=>o.addEventListener(t,e=>e.stopPropagation()));document.body.appendChild(o)})}
 /* panel: componentes que hay en la foto, cuáles ya están incorporados, cuál es este y si se repite alguno */
 function grupoHTML(){const d=document.getElementById("ic_prop");if(!d||!PROP)return;
- const L=Array.isArray(PROP.elementos)?PROP.elementos.filter(x=>x&&(x.codigo||x.tipo)):[];const el=+PROP.elegido||0;
- const este=nCod(PROP.codigo);const enF=Math.max(1,L.filter(x=>partes(x.codigo).join("/")===partes(PROP.codigo).join("/")).length);const ya=esYa(PROP.codigo)&&nCat(PROP.codigo)>=enF;
- const cuenta={};L.forEach(x=>partes(x.codigo).forEach(c=>cuenta[c]=(cuenta[c]||0)+1));const rep=Object.keys(cuenta).filter(c=>cuenta[c]>1);
+ const L=Array.isArray(PROP.elementos)?PROP.elementos.filter(x=>x&&(x.codigo||x.tipo)):[];
+ const ya=esYa(PROP.codigo);const cuenta={};L.forEach(x=>partes(x.codigo).forEach(c=>cuenta[c]=(cuenta[c]||0)+1));const rep=Object.keys(cuenta).filter(c=>cuenta[c]>1);
  let h="";
- if(ya)h+=`<div class="icgr icgr-r">⚠️ <b>${E(PROP.codigo)}</b> ya está incorporado en Componentes de campo.<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${L.length>1?`<button class="pri" style="width:auto;margin:0" onclick="compSalta()">➡️ Pasar al siguiente de la foto</button>`:""}<button class="sec" style="width:auto;margin:0" onclick="compCatalogo('${E(PROP.codigo)}')">Ver la ficha</button></div></div>`;
+ if(ya)h+=`<div class="icgr icgr-r">⚠️ <b>${E(PROP.codigo)}</b> ya está incorporado en Componentes de campo.<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="sec" style="width:auto;margin:0" onclick="compCatalogo('${E(PROP.codigo)}')">Ver la ficha</button></div></div>`;
  if(rep.length)h+=`<div class="icgr icgr-a">⚠️ Código repetido en la foto: <b>${E(rep.join(", "))}</b>. Comprueba la etiqueta de cada uno antes de guardar.</div>`;
- if(L.length>1){const pend=quedan();
-  h+=`<div class="icgr">📦 <b>Esta foto tiene ${L.length} componentes</b>${pend.length?` · quedan <b>${pend.length}</b> por incorporar`:" · los demás ya están incorporados"}<div class="icgl">${L.map((x,i)=>{const c=x.codigo||"¿?";const yx=!pend.includes(x);const s=i===el?"este":yx?"ya":"pend";
-   return `<span class="icg-${s}${cuenta[nCod(x.codigo)]>1?" icg-rep":""}">${i+1}. ${E(c)}${x.tipo?` <small>${E(x.tipo)}</small>`:""} · ${s=="este"?"ESTE":s=="ya"?"✓ ya incorporado":"pendiente"}</span>`}).join("")}</div>
-   ${pend.length?`<div class="mu" style="font-size:11.5px;margin-top:4px">Al guardar este, la app te ofrece seguir con el siguiente usando la misma foto.</div>`:""}</div>`}
  let g=document.getElementById("ic_grp");if(!g){g=document.createElement("div");g.id="ic_grp";d.prepend(g)}g.innerHTML=h}
-/* v571: «Pasar al siguiente de la foto» elige en la app el SIGUIENTE elemento de la lista (pendientes primero, luego el resto)
-   y obliga a la IA a describir y recortar ESE por su caja; antes se dejaba elegir a la IA, que volvía a dar el mismo. */
-window.compSalta=function(){if(!PROP)return;
- const L=(Array.isArray(PROP.elementos)?PROP.elementos:[]).filter(x=>x&&(x.codigo||x.tipo));const el=+PROP.elegido||0;const n=L.length;
- if(n<2){msg("En esta foto no hay más componentes");return}
- if(GRUPO){GRUPO.salta=[...new Set(GRUPO.salta.concat(partes(PROP.codigo)))];GRUPO.lista=L;GRUPO.vistos=[...new Set((GRUPO.vistos||[]).concat([el]))]}
- const vis=i=>GRUPO&&GRUPO.vistos.includes(i);const pend=quedan();let k=-1;
- for(let s=1;s<n&&k<0;s++){const i=(el+s)%n;if(pend.includes(L[i])&&!vis(i))k=i}
- for(let s=1;s<n&&k<0;s++){const i=(el+s)%n;if(!vis(i))k=i}
- if(k<0){if(GRUPO)GRUPO.vistos=[el];k=(el+1)%n}
- F=F.filter(f=>!f.ubi);F.forEach(f=>{if(f.cut&&f.o===(GRUPO&&GRUPO.o)){f.src=f.o;f.cut=false;f.caja=null}});
- PROP=null;const d=document.getElementById("ic_prop");if(d)d.innerHTML="";repinta();
- const x=L[k];compIA({motor:MOTOR||"claude",objetivo:{i:k,codigo:x.codigo||"",tipo:x.tipo||"",x0:+x.x0||0,y0:+x.y0||0,x1:+x.x1||0,y1:+x.y1||0},lista:L})};
-function quedan(){if(!PROP)return[];const L=(Array.isArray(PROP.elementos)?PROP.elementos:[]).filter(x=>x&&(x.codigo||x.tipo));const el=+PROP.elegido||0;
- const visto={};return L.filter((x,i)=>{if(i===el)return false;const k=partes(x.codigo).join("/");if(!k)return true;visto[k]=(visto[k]||0)+1;
-  const enFoto=L.filter(y=>partes(y.codigo).join("/")===k).length;return nCat(x.codigo)<enFoto&&visto[k]<=enFoto-nCat(x.codigo)})}
-window.compSiguiente=function(){if(!GRUPO)return;const v=vals();const g=GRUPO;F=[{src:g.o,vista:VISTAS[0],c:g.c,o:g.o}];PROP=null;pinta({donde:v.donde,claves:v.claves});compIA({motor:MOTOR||"claude"})};
+/* ===== v572: la IA primero BUSCA los componentes de la foto; el técnico marca con ✅ el que quiere incorporar (o varios
+   que forman uno, p. ej. P-K7.1 + P-K7.2) y «🤖 Identificar con IA», debajo de la lista, analiza solo lo marcado. ===== */
+const base=()=>F.filter(f=>!f.ubi);
+function listaOK(){const b=base();return !!(GRUPO&&Array.isArray(GRUPO.lista)&&GRUPO.lista.length&&GRUPO.os&&b.length===GRUPO.os.length&&b.every((f,i)=>f===GRUPO.os[i]))}
+function union(a){const n=v=>{v=+v;return isFinite(v)?(v>1.5?v:v*1000):0};return{x0:Math.min(...a.map(x=>n(x.x0))),y0:Math.min(...a.map(x=>n(x.y0))),x1:Math.max(...a.map(x=>n(x.x1))),y1:Math.max(...a.map(x=>n(x.y1)))}}
+function estado(i){const x=GRUPO.lista[i];if((GRUPO.hechosIdx||[]).includes(i))return"hecho";return esYa(x.codigo)?"ya":"pend"}
+function quedan(){if(!listaOK())return[];return GRUPO.lista.filter((x,i)=>estado(i)=="pend"&&!(GRUPO.sel||[]).includes(i))}
+function selHTML(p){p=p||{};if(!F.length)return`<button class="pri" style="margin-top:10px" disabled>🔎 Buscar componentes en la foto</button>`;
+ if(!listaOK())return`<div id="ic_selw"><button class="pri" style="margin-top:10px" onclick="compIA()">${p.cod?"🤖 Identificar con IA":"🔎 Buscar componentes en la foto"}</button>${p.cod?"":`<div class="mu" style="font-size:11.5px;margin-top:4px">La IA lista lo que hay en la foto; luego marcas cuál incorporar. Si ya sabes el código, escríbelo arriba y se identifica directamente.</div>`}</div>`;
+ const L=GRUPO.lista,S=GRUPO.sel||[];const np=L.filter((x,i)=>estado(i)=="pend").length;
+ return`<div id="ic_selw"><div class="icgr"><b>📦 Componentes en la foto (${L.length})</b>${np?` · ${np} por incorporar`:" · todos incorporados"}
+ <div class="mu" style="font-size:11.5px;margin-top:2px">Marca el componente a incorporar. Si un componente de campo son varios (p. ej. P-K7.1 + P-K7.2), márcalos todos.</div>
+ <div class="icgl">${L.map((x,i)=>{const e=estado(i),on=S.includes(i);return`<label class="icg-row${on?" icg-este":e!="pend"?" icg-ya":""}"><input type="checkbox" ${on?"checked":""} onchange="compSel(${i},this.checked)"><span>${i+1}. <b>${E(x.codigo||"¿?")}</b>${x.tipo?` <small>${E(x.tipo)}</small>`:""} · ${e=="hecho"?"✓ incorporado ahora":e=="ya"?"✓ ya incorporado":"pendiente"}</span></label>`}).join("")}</div>
+ <button class="pri" style="margin-top:8px" onclick="compIA()" ${S.length?"":"disabled"}>🤖 Identificar con IA${S.length?` · ${S.length>1?S.length+" elementos como uno":"1 elemento"}`:""}</button>
+ <button class="sec" style="margin-top:6px" onclick="compDetecta()">🔄 Volver a buscar en la foto</button></div></div>`}
+window.compSel=function(i,on){if(!GRUPO)return;const S=new Set(GRUPO.sel||[]);on?S.add(i):S.delete(i);GRUPO.sel=[...S].sort((a,b)=>a-b);
+ const w=document.getElementById("ic_selw");if(w)w.outerHTML=selHTML(vals())};
+window.compDetecta=async function(motor){motor=motor||MOTOR||await pideMotor();if(!motor)return;MOTOR=motor;const v=vals();const st=document.getElementById("ic_st");const set=t=>{if(st)st.innerHTML=t};
+ set("⏳ Buscando los componentes de la foto con <b>"+(motor=="claude"?"Claude":"Gemini")+"</b>…");
+ try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("Inicia sesión para usar la IA");
+  const B=base();if(!B.length)throw new Error("Añade una foto del componente");const img=collage(B.map(f=>f.c)).split(",")[1];
+  const prompt=`Fotos (en una sola imagen, de izquierda a derecha) de componentes de campo de una pasarela de embarque (PBB) TKE de Madrid Barajas.
+Dónde está montado (según el técnico): ${v.donde||"(no indicado)"}.
+CÓDIGOS DE ELEMENTOS DE LOS PLANOS (código=nombre): ${codigos()}
+TAREA: lista TODOS los componentes que se ven (contactores, relés, magnetotérmicos, borneros, fuentes, módulos, sensores…), en orden de izquierda a derecha y de arriba abajo. Cada contactor/relé con su propia etiqueta es un elemento aparte (p. ej. P-K7.1 y P-K7.2 son dos). Para cada uno: "codigo" = lo que se lee en su etiqueta tal cual (o el código de plano más probable; "" si no se sabe; no inventes), "tipo" = qué es, con fabricante y modelo si se leen (corto; si está cortado por el borde de la foto, dilo), "x0","y0","x1","y1" = su caja ajustada en MILÉSIMAS (0-1000) de la imagen completa. Máximo 16.
+Responde SOLO con JSON: {"elementos":[{"codigo":"","tipo":"","x0":0,"y0":0,"x1":0,"y1":0}]}`;
+  const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt,motor})});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.mensaje||j.error||("error "+r.status));
+  const R=jsonIA(j.txt);const L=(Array.isArray(R.elementos)?R.elementos:[]).filter(x=>x&&(x.codigo||x.tipo)).map(x=>({codigo:String(x.codigo||"").trim(),tipo:String(x.tipo||"").trim(),x0:+x.x0||0,y0:+x.y0||0,x1:+x.x1||0,y1:+x.y1||0}));
+  if(!L.length)throw new Error("La IA no encontró componentes en la foto. Prueba con otra foto o escribe el código.");
+  const f0=B[0];GRUPO={o:f0.o,c:f0.c,os:B.slice(),lista:L,sel:L.length==1?[0]:[],hechos:[],hechosIdx:[],salta:[]};PROP=null;
+  const d=document.getElementById("ic_prop");if(d)d.innerHTML="";const w=document.getElementById("ic_selw");if(w)w.outerHTML=selHTML(v);
+  set(`Leído con <b>${E(j.lector||"IA")}</b>. Marca el componente que quieres incorporar y pulsa <b>🤖 Identificar con IA</b>.`)}
+ catch(e){set(`<span style="color:#c62828">${E(String((e&&e.message)||e))}</span>`)}};
+window.compSiguiente=function(){if(!GRUPO)return;const v=vals();F=F.filter(f=>!f.ubi);F.forEach(f=>{if(f.cut){f.src=f.o;f.cut=false;f.caja=null}});
+ GRUPO.os=base();GRUPO.sel=[];PROP=null;pinta({donde:v.donde,claves:v.claves});const w=document.getElementById("ic_selw");if(w)w.scrollIntoView({block:"center"})};
 const filas=a=>(a||[]).map(r=>Array.isArray(r)?r.join(" | "):String(r)).join("\n");
 const desf=(t,n)=>String(t||"").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>n?l.split("|").map(x=>x.trim()).concat(Array(n).fill("")).slice(0,n):l);
 (function(){const st=document.createElement("style");st.textContent=`.icgr{margin:8px 0;padding:9px 11px;border-radius:10px;border:1px solid #0b6e9955;background:#0b6e9912;font-size:13px}
 .icgr-r{border-color:#c6282880;background:#c6282814}.icgr-a{border-color:#ef6c0080;background:#ef6c0014}
 .icgl{display:flex;flex-direction:column;gap:3px;margin-top:6px}.icgl span{padding:4px 8px;border-radius:6px;background:#0001;font-size:12.5px}
-.icgl .icg-este{background:#ef6c00;color:#fff;font-weight:700}.icgl .icg-ya{opacity:.65}.icgl .icg-rep{outline:2px dashed #c62828}`;document.head.appendChild(st)})();
+.icgl .icg-este{background:#ef6c00;color:#fff;font-weight:700}.icg-row{display:flex;align-items:flex-start;gap:8px;cursor:pointer}.icg-row input{width:22px;height:22px;margin:1px 0 0;flex:none;accent-color:#2e7d32}.icgl .icg-ya{opacity:.65}.icgl .icg-rep{outline:2px dashed #c62828}`;document.head.appendChild(st)})();
 /* v535: recorte automático del elemento + foto de UBICACIÓN si está dentro de un bloque de varios */
 async function recorteIA(p,v){let t="";try{
  if(!p.recorte&&Array.isArray(p.box_2d)&&p.box_2d.length==4){const z=p.box_2d;p.recorte={y0:z[0],x0:z[1],y1:z[2],x1:z[3]}}
@@ -270,8 +285,8 @@ window.compGuarda=async function(){const g=id=>(document.getElementById(id)||{})
  if(esYa(row.codigo)&&!confirm("⚠️ "+row.codigo+" ya está incorporado en Componentes de campo.\n\n¿Guardar otra ficha igualmente? (Cancelar para no duplicarlo)"))return;
  try{if(typeof compSubeFotos=="function")row.fotos=await compSubeFotos(row.fotos);
   const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");
-  if(GRUPO){const r=(PROP&&PROP.recorte)||{};GRUPO.hechos.push({codigo:row.codigo,x0:+r.x0||0,x1:+r.x1||0,y0:+r.y0||0,y1:+r.y1||0})}const q=quedan();
-  if(q.length&&GRUPO&&confirm("📦 En esta misma foto quedan "+q.length+" componente(s) por incorporar: "+q.map(x=>x.codigo||x.tipo||"¿?").join(", ")+".\n\n¿Incorporar el siguiente con la misma foto?")){compSiguiente();return}
+  if(GRUPO){const r=(PROP&&PROP.recorte)||{};GRUPO.hechos.push({codigo:row.codigo,x0:+r.x0||0,x1:+r.x1||0,y0:+r.y0||0,y1:+r.y1||0});GRUPO.hechosIdx=(GRUPO.hechosIdx||[]).concat((PROP&&PROP._sel)||[]);GRUPO.sel=[]}const q=quedan();
+  if(q.length&&GRUPO&&confirm("📦 En esta misma foto quedan "+q.length+" componente(s) por incorporar: "+q.map(x=>x.codigo||x.tipo||"¿?").join(", ")+".\n\n¿Elegir otro de la misma foto?")){compSiguiente();return}
   GRUPO=null;compCatalogo(row.codigo)}
  catch(e){msg("No se pudo guardar: "+String((e&&e.message)||e))}};
 /* ---------- accesos ---------- */
