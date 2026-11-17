@@ -123,7 +123,7 @@ window.COMP_CAMPO=COMP; /* v470: «Incorporar» añade aquí los componentes gua
 const casa=t=>{t=nrm(t);return COMP.filter(c=>{try{return c.re(t)}catch(e){return false}})};
 window.compCampo=casa;
 const ficha=c=>`<div class="cmpf"><div class="cmpt"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</div><div class="cmpm">${E(c.fab)}</div>
- <div class="cmpfs" style="grid-template-columns:repeat(${c.fotos.length},minmax(0,1fr))">${c.fotos.map(([src,v])=>`<figure class="cmpfo" onclick="compVer('${src}',${E(JSON.stringify(c.fotos.map(f=>f[0])))})"><img src="${src}" alt="${E(c.id+" · "+v)}" loading="lazy"><figcaption><b>${E(c.id)}</b> · ${E(v)}</figcaption></figure>`).join("")}</div>
+ ${c._fp?`<div class="mu" style="padding:10px;text-align:center;font-size:13px">⏳ Cargando las fotos…</div>`:""}<div class="cmpfs" style="grid-template-columns:repeat(${c.fotos.length},minmax(0,1fr))">${c.fotos.map(([src,v])=>`<figure class="cmpfo" onclick="compVer('${src}',${E(JSON.stringify(c.fotos.map(f=>f[0])))})"><img src="${src}" alt="${E(c.id+" · "+v)}" loading="lazy"><figcaption><b>${E(c.id)}</b> · ${E(v)}</figcaption></figure>`).join("")}</div>
  ${(()=>{/* v557: alarmas / eventos del PLC del componente (guardadas en la ficha o, si no, cotejo automático) */
    if(typeof compAlarmasDe!="function")return"";const fila=(c.esp||[]).find(r=>/^alarmas?\s*\/?\s*eventos/i.test(r[0]||""));
    const L=fila?String(fila[1]).split(/\s*·\s*/).map(x=>{const m=/^([0-9R]\d{0,3})\s+(.*)$/.exec(x.trim());return m?{c:m[1],t:m[2]}:null}).filter(Boolean):compAlarmasDe({codigo:c.id,titulo:c.t,fab:c.fab,claves:c.claves,esp:c.esp});

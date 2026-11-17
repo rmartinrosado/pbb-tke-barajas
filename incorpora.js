@@ -13,16 +13,33 @@ const C=()=>window.COMP_CAMPO||[];
 /* ---------- cargar los componentes guardados ---------- */
 const reDe=cl=>{const ws=String(cl||"").split(/[,;\n]+/).map(w=>nrm(w).trim()).filter(Boolean);if(!ws.length)return()=>false;
  return t=>ws.some(w=>w.split(/\s+/).every(p=>t.includes(p)))};
-function aComp(r){return{id:r.codigo,t:r.titulo,fab:r.fab||"",db:r.id,claves:r.claves||"",re:(()=>{const f=reDe(r.claves),c=nrm(r.codigo).replace(/\s/g,"");return t=>f(t)||(c.length>=4&&t.replace(/\s/g,"").includes(c))})(),
- fotos:(r.fotos||[]).map(f=>f.o&&f.caja?[f.src,f.vista||"Vista",{o:f.o,caja:f.caja}]:[f.src,f.vista||"Vista"]),esp:(r.esp||[]).concat(r.stock&&Object.values(r.stock).some(Boolean)?[["Repuesto",[r.stock.ref&&"Ref. "+r.stock.ref,r.stock.sust&&"Sustituto: "+r.stock.sust,r.stock.ubi&&"Almacén: "+r.stock.ubi,r.stock.uds!=null&&r.stock.uds!==""&&r.stock.uds+" uds."].filter(Boolean).join(" · ")]]:[]),
+/* ===== v560: las fotos (≈51 MB en base64) ya NO se descargan con la lista: se perdían los componentes porque la consulta
+   con todas las fotos fallaba y solo quedaban las fichas de fábrica. La lista llega sin fotos y estas se cargan después,
+   de pocas en pocas, y al abrir una ficha; se guardan en memoria (FC) para no volver a bajarlas. ===== */
+const FC={};
+const mapF=fs=>(fs||[]).map(f=>f.o&&f.caja?[f.src,f.vista||"Vista",{o:f.o,caja:f.caja}]:[f.src,f.vista||"Vista"]);
+window.compFotosPon=(id,fs)=>{if(!id||!Array.isArray(fs))return;FC[id]=fs;C().forEach(c=>{if(String(c.db)==String(id)){c.fotos=mapF(fs);c._fp=false;if(c.raw)c.raw.fotos=fs}})};
+const pend=new Map();
+window.compFotosAsegura=async function(c){if(!c||!c._fp||!c.db)return c;if(FC[c.db]){compFotosPon(c.db,FC[c.db]);return c}
+ if(!pend.has(c.db))pend.set(c.db,(async()=>{try{const {data,error}=await sb.from("componentes_campo").select("id,fotos").eq("id",c.db).single();if(!error&&data)compFotosPon(data.id,data.fotos||[])}catch(e){}finally{pend.delete(c.db)}})());
+ await pend.get(c.db);return c};
+let fondoOn=false;
+async function fondo(){if(fondoOn)return;fondoOn=true;try{
+ const ids=C().filter(c=>c._fp&&c.db&&!FC[c.db]).map(c=>c.db);
+ for(let i=0;i<ids.length;i+=3){const lote=ids.slice(i,i+3).filter(id=>!FC[id]);if(!lote.length)continue;
+  try{const {data,error}=await sb.from("componentes_campo").select("id,fotos").in("id",lote);if(!error&&data)data.forEach(r=>compFotosPon(r.id,r.fotos||[]))}catch(e){}}
+ if(typeof compNavLista=="function")compNavLista()}finally{fondoOn=false}}
+function aComp(r){if(Array.isArray(r.fotos))FC[r.id]=r.fotos;const fs=Array.isArray(r.fotos)?r.fotos:FC[r.id];return{_fp:!fs,id:r.codigo,t:r.titulo,fab:r.fab||"",db:r.id,claves:r.claves||"",re:(()=>{const f=reDe(r.claves),c=nrm(r.codigo).replace(/\s/g,"");return t=>f(t)||(c.length>=4&&t.replace(/\s/g,"").includes(c))})(),
+ fotos:mapF(fs),esp:(r.esp||[]).concat(r.stock&&Object.values(r.stock).some(Boolean)?[["Repuesto",[r.stock.ref&&"Ref. "+r.stock.ref,r.stock.sust&&"Sustituto: "+r.stock.sust,r.stock.ubi&&"Almacén: "+r.stock.ubi,r.stock.uds!=null&&r.stock.uds!==""&&r.stock.uds+" uds."].filter(Boolean).join(" · ")]]:[]),
  pin:r.pin||[],pint:"Conexionado",med:r.med||[],av:r.av||"",raw:r}}
 /* v534: fichas de fábrica (componentes.js) editadas desde la PWA → fila con base = código original; sustituye a la ficha
    en su MISMO sitio (conserva su reconocimiento de avisos) y se puede restaurar. */
 const BASE=C().slice();window.COMP_BASE=BASE;
-function sobre(b,r){const n=aComp(r);const rb=b.re,rn=n.re;return Object.assign({},b,n,{baseId:b.id,pint:b.pint,re:t=>{try{if(rb(t))return true}catch(e){}return rn(t)}})}
-async function carga(){try{const {data,error}=await sb.from("componentes_campo").select("*").order("creado",{ascending:true});if(error||!data)return;
+function sobre(b,r){const n=aComp(r);if(n._fp){n.fotos=b.fotos;}const rb=b.re,rn=n.re;return Object.assign({},b,n,{baseId:b.id,pint:b.pint,re:t=>{try{if(rb(t))return true}catch(e){}return rn(t)}})}
+async function carga(){try{const {data,error}=await sb.from("componentes_campo").select("id,codigo,titulo,fab,claves,esp,pin,med,av,stock,creado_por,creado,base").order("creado",{ascending:true});if(error||!data){console.warn("componentes_campo:",error);return}
  const L=C();L.length=BASE.length;BASE.forEach((b,i)=>L[i]=b);
- data.forEach(r=>{const i=r.base?BASE.findIndex(b=>b.id==r.base):-1;if(i>=0)L[i]=sobre(BASE[i],r);else L.push(aComp(r))})}catch(e){}}
+ data.forEach(r=>{const i=r.base?BASE.findIndex(b=>b.id==r.base):-1;if(i>=0)L[i]=sobre(BASE[i],r);else L.push(aComp(r))});
+ if(typeof compNavLista=="function")compNavLista();setTimeout(fondo,300)}catch(e){console.warn("componentes_campo:",e)}}
 window.compRecarga=carga;window.compAComp=aComp;
 setTimeout(carga,1500);setInterval(carga,10*60*1000);
 /* ---------- utilidades de imagen ---------- */

@@ -33,6 +33,7 @@ function desde(c){const r=c.raw||{};const st=r.stock||{};
 async function foto(f){const im=await window.compLeeImg(f);const cv=window.compAJpg(im,1400);return cv.toDataURL("image/jpeg",.85)}
 
 window.compEdita=function(k,nuevas){const c=K[k]||(window.COMP_CAMPO||[]).find(x=>key(x)==k);if(!c){msg("Ficha no encontrada");return}
+ if(c._fp&&typeof compFotosAsegura=="function"){msg("⏳ Cargando las fotos de la ficha…");compFotosAsegura(c).then(()=>{c._fp=false;window.compEdita(k,nuevas)});return} /* v560: nunca editar sin sus fotos */
  if(!puede()){msg("Solo técnicos y administrador pueden editar");return}
  cur=c;ED=desde(c);sucio=!!nuevas;if(nuevas)nuevas.forEach(src=>ED.fotos.unshift({src,vista:VISTAS[0]}));abre();pinta()};
 window.compFotoNueva=async function(k,inp){const fs=[...(inp.files||[])];inp.value="";if(!fs.length)return;
@@ -153,7 +154,7 @@ window.compEdGuarda=async function(){if(!ED||!cur)return;const p=ED;const b=capa
   if(cur.db){r=await sb.from("componentes_campo").update(row).eq("id",cur.db).select().single()}
   else{row.creado_por=(typeof user!="undefined"&&user&&user.email)||"";r=await sb.from("componentes_campo").insert(row).select().single()}
   if(r.error)throw r.error;if(!r.data)throw new Error("Sin permiso para guardar");
-  const k=key(cur);sucio=false;
+  const k=key(cur);sucio=false;if(typeof compFotosPon=="function")compFotosPon(r.data.id,r.data.fotos||[]);
   if(typeof compRecarga=="function")await compRecarga();
   const nc=(window.COMP_CAMPO||[]).find(x=>String(x.db)==String(r.data.id));
   cierra(false);refresca(k,nc);msg("Ficha "+row.codigo+" guardada")}
