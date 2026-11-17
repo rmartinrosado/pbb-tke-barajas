@@ -245,7 +245,7 @@ const desf=(t,n)=>String(t||"").split("\n").map(l=>l.trim()).filter(Boolean).map
 (function(){const st=document.createElement("style");st.textContent=`.icgr{margin:8px 0;padding:9px 11px;border-radius:10px;border:1px solid #0b6e9955;background:#0b6e9912;font-size:13px}
 .icgr-r{border-color:#c6282880;background:#c6282814}.icgr-a{border-color:#ef6c0080;background:#ef6c0014}
 .icgl{display:flex;flex-direction:column;gap:3px;margin-top:6px}.icgl span{padding:4px 8px;border-radius:6px;background:#0001;font-size:12.5px}
-.icgl .icg-este{background:#ef6c00;color:#fff;font-weight:700}.icg-row{display:flex;align-items:flex-start;gap:8px;cursor:pointer}.icg-row input{width:22px;height:22px;margin:1px 0 0;flex:none;accent-color:#2e7d32}.icgl .icg-ya{opacity:.65}.icgl .icg-rep{outline:2px dashed #c62828}`;document.head.appendChild(st)})();
+.icgl .icg-este,.icgl .icg-este *{font-weight:800!important}.icg-row{display:flex;align-items:flex-start;gap:8px;cursor:pointer}.icg-row input{width:22px;height:22px;margin:1px 0 0;flex:none;accent-color:#2e7d32}.icgl .icg-ya{opacity:.65}.icgl .icg-rep{outline:2px dashed #c62828}`;document.head.appendChild(st)})();
 /* v535: recorte automático del elemento + foto de UBICACIÓN si está dentro de un bloque de varios */
 async function recorteIA(p,v){let t="";try{
  if(!p.recorte&&Array.isArray(p.box_2d)&&p.box_2d.length==4){const z=p.box_2d;p.recorte={y0:z[0],x0:z[1],y1:z[2],x1:z[3]}}
