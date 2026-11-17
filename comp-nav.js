@@ -28,7 +28,8 @@ function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).v
  capa.querySelector("#cn_z").innerHTML=[["","Todos"]].concat(zs.map(z=>[z,z])).map(([v,t])=>`<button type="button" class="cnch${zSel==v?" on":""}" data-z="${E(v)}">${E(t)} <small>${v?todos.filter(c=>zona(c)==v).length:todos.length}</small></button>`).join("");
  const el=capa.querySelector("#cn_l");
  el.innerHTML=`<div class="mu" style="font-size:12px;margin:6px 0">${F.length} componente${F.length==1?"":"s"}${ws.length||zSel?(F.length==1?" encontrado":" encontrados"):""}</div>`+
-  (F.length?F.map(c=>{const k=String(c.baseId||c.db||c.id);return`<details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${repuesto(c)}${typeof compFicha=="function"?compFicha(c):""}</details>`}).join("")
+  (F.length?F.map(c=>{const k=String(c.baseId||c.db||c.id);const bt=c.db?(c.baseId?"↩️<br>Restaurar":"🗑<br>Eliminar"):"🔒<br>De fábrica";
+   return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${repuesto(c)}${typeof compFicha=="function"?compFicha(c):""}</details></div>`}).join("")
   :`<div class="cnvac">Sin componentes para «${E(q)}».<br>Prueba con el código (p. ej. E-Q24), el nombre o el modelo.</div>`)}
 function abre(){
  if(!capa){capa=document.createElement("div");capa.id="compCapa";
@@ -62,6 +63,35 @@ function envuelve(){if(envuelto)return;envuelto=true;
 function incorpora(){if(typeof window.compIncorpora!="function"){if(typeof msg=="function")msg("Incorporar componente no disponible");return}
  envuelve();incOn=true;document.documentElement.classList.add("cnInc");
  window.compIncorpora();const sh=document.getElementById("sheet");if(sh)sh.style.display="flex"}
+/* ===== v559: deslizar una ficha a la izquierda → botón rojo «Eliminar» (con confirmación) para quitar repetidos o volver a
+   incorporarla. Las fichas de fábrica modificadas se «Restauran»; las de fábrica sin cambios no se pueden borrar. ===== */
+(function(){const st=document.createElement("style");st.textContent=`#compCapa .cnsw{position:relative;overflow:hidden;border-radius:8px;margin:6px 0}
+#compCapa .cnsw>details{position:relative;z-index:1;margin:0!important;transition:transform .18s ease;will-change:transform}
+#compCapa .cnsw.mov>details{transition:none}
+#compCapa .cnsx{position:absolute;right:0;top:0;bottom:0;width:104px;z-index:0;border:0;border-radius:0 8px 8px 0;background:#d32f2f;color:#fff;font:800 14px/1.25 system-ui,sans-serif;display:flex;align-items:center;justify-content:center;text-align:center}
+#compCapa .cnsw.fab .cnsx{background:#78909c}`;document.head.appendChild(st)})();
+let SW=null,abiertoSw=null;
+const swEl=t=>t&&t.closest&&t.closest("#compCapa .cnsw");
+const swPon=(w,x)=>{const d=w.querySelector(":scope>details");if(d)d.style.transform=x?`translateX(${x}px)`:""};
+const cierraSw=()=>{if(abiertoSw){swPon(abiertoSw,0);abiertoSw=null}};
+document.addEventListener("touchstart",e=>{const w=swEl(e.target);if(e.target.closest&&e.target.closest(".cnsx"))return;if(!w){cierraSw();return}
+ if(abiertoSw&&abiertoSw!==w)cierraSw();const t=e.touches[0];SW={w,x:t.clientX,y:t.clientY,dx:0,h:null,base:abiertoSw===w?-104:0}},{passive:true});
+document.addEventListener("touchmove",e=>{if(!SW)return;const t=e.touches[0],dx=t.clientX-SW.x,dy=t.clientY-SW.y;
+ if(SW.h===null&&Math.abs(dx)+Math.abs(dy)>8)SW.h=Math.abs(dx)>Math.abs(dy)*1.2;if(!SW.h)return;
+ e.preventDefault();SW.w.classList.add("mov");SW.dx=dx;swPon(SW.w,Math.max(-120,Math.min(0,SW.base+dx)))},{passive:false});
+document.addEventListener("touchend",()=>{if(!SW)return;const s=SW;SW=null;s.w.classList.remove("mov");if(!s.h)return;
+ const x=s.base+s.dx;if(x<-50){swPon(s.w,-104);abiertoSw=s.w}else{swPon(s.w,0);if(abiertoSw===s.w)abiertoSw=null}},{passive:true});
+document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#compCapa .cnsx");if(!b)return;e.preventDefault();e.stopPropagation();
+ const k=b.dataset.del;const c=L().find(x=>String(x.baseId||x.db||x.id)==k);if(!c){cierraSw();return}
+ if(!c.db){alert("🔒 "+c.id+" es una ficha de fábrica de la app: no se puede eliminar.\\nPara cambiarla, ábrela y usa ✏️ Editar.");cierraSw();return}
+ const esAd=(()=>{try{return (typeof admin!="undefined"&&!!admin)||(typeof rol!="undefined"&&/admin/i.test(rol))}catch(_){return false}})();
+ if(!esAd){alert("Solo el administrador puede eliminar fichas del catálogo.");cierraSw();return}
+ const rep=L().filter(x=>x!==c&&String(x.id).toUpperCase()==String(c.id).toUpperCase()).length;
+ const txt=c.baseId?`¿Restaurar la ficha original de fábrica de ${c.id}?\\n\\nSe pierden los cambios guardados.`:`¿ELIMINAR ${c.id} · ${c.t}?\\n\\n${rep?`⚠️ Hay ${rep} ficha(s) más con el código ${c.id}: esta parece repetida.\\n\\n`:""}Se borra del catálogo para todos los técnicos. Después puedes volver a incorporarla.`;
+ if(!confirm(txt)){cierraSw();return}
+ try{const {error}=await sb.from("componentes_campo").delete().eq("id",c.db);if(error)throw error;abiertoSw=null;
+  if(typeof compRecarga=="function")await compRecarga();lista();if(typeof msg=="function")msg(c.baseId?"Ficha original restaurada":c.id+" eliminado")}
+ catch(err){alert("No se pudo eliminar: "+String((err&&err.message)||err))}},true);
 window.abreComp=abre;window.compNavLista=()=>{if(capa&&capa.style.display!="none")lista()};
 /* v511: abrir el catálogo ya buscado por un código (toque en la caja de un elemento del croquis por bloques).
    Al cerrar (←, flecha atrás o atrás del móvil) se vuelve a la pantalla desde la que se abrió: la capa solo se oculta. */
