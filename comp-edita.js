@@ -99,36 +99,38 @@ window.compEdUbi=async function(i){const f=ED&&ED.fotos[i];if(!f||typeof compRec
 /* ===== v555: convertir una foto añadida en FOTO DE UBICACIÓN: la IA localiza el componente (con la foto principal recortada
    como referencia) dentro de la foto de conjunto, se marca con el recuadro naranja y se ajusta con 📍 antes de guardar ===== */
 const cargaImg=src=>new Promise((ok,ko)=>{const im=new Image();im.crossOrigin="anonymous";im.onload=()=>ok(im);im.onerror=()=>ko(new Error("No se pudo abrir la foto"));im.src=src});
+/* compartida con Incorporar componente: localiza el componente (ref = foto recortada) en la foto de conjunto base */
+window.compUbicaIA=async function(base,refSrc,info,motor){info=info||{};
+ const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("Inicia sesión para usar la IA");
+ const g=await cargaImg(base);const r=refSrc?await cargaImg(refSrc):null;
+ const H=900,wg=Math.round(g.naturalWidth*H/g.naturalHeight),wr=r?Math.round(r.naturalWidth*H/r.naturalHeight):0,sep=r?24:0;
+ const cv=document.createElement("canvas");cv.width=Math.min(2400,wr+sep+wg);const k=cv.width/(wr+sep+wg);cv.height=Math.round(H*k);
+ const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);if(r)x.drawImage(r,0,0,wr*k,H*k);x.drawImage(g,(wr+sep)*k,0,wg*k,H*k);
+ const RX=(wr+sep)/(wr+sep+wg);const img=cv.toDataURL("image/jpeg",.85).split(",")[1];const cod=info.codigo||"",tit=info.titulo||"";
+ const prompt=`Imagen de una pasarela de embarque (PBB) TKE de Madrid Barajas. ${r?`A la IZQUIERDA (hasta x=${Math.round(RX*1000)} milésimas) está el componente ${cod} «${tit}» RECORTADO, como referencia; a la DERECHA (desde x=${Math.round(RX*1000)}) está una FOTO DE CONJUNTO (armario, carril DIN, regleta…).`:`La imagen es una FOTO DE CONJUNTO (armario, carril DIN, regleta…) donde está el componente ${cod} «${tit}» (${info.fab||""}).`}
+TAREA: localiza ESE componente dentro de la foto de conjunto (por su forma, color, placa, etiqueta con el código ${cod} y el texto impreso). Si hay varios iguales, elige el que lleve la etiqueta ${cod}; si no se distingue, el que más se parezca a la referencia y dilo.
+Da su caja ajustada al cuerpo del componente en MILÉSIMAS (0-1000) de la imagen COMPLETA que recibes (x0,y0 esquina superior izquierda; x1,y1 inferior derecha), sin incluir los elementos de al lado. Indica el bloque en que está montado y su posición contando los elementos del bloque de izquierda a derecha.
+Responde SOLO con JSON: {"encontrado":true,"caja":{"x0":0,"y0":0,"x1":0,"y1":0},"bloque":"","posicion":"","total":0,"justificacion":""}`;
+ const rs=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt,motor})});
+ const j=await rs.json().catch(()=>({}));if(!rs.ok)throw new Error(j.mensaje||j.error||("error "+rs.status));
+ const m=String(j.txt||"").match(/\{[\s\S]*\}/);if(!m)throw new Error("La IA no devolvió datos");const P=JSON.parse(m[0]);
+ if(P.encontrado===false||!P.caja)throw new Error("La IA no encuentra "+(cod||"el componente")+" en esta foto"+(P.justificacion?": "+P.justificacion:""));
+ const n=v=>{v=+v;return isFinite(v)?(v>1.5?v/1000:v):NaN};let c={x0:n(P.caja.x0),y0:n(P.caja.y0),x1:n(P.caja.x1),y1:n(P.caja.y1)};
+ if(![c.x0,c.y0,c.x1,c.y1].every(isFinite))throw new Error("Caja no válida");
+ const cx=v=>Math.max(0,Math.min(1,(v-RX)/(1-RX)));c={x0:cx(Math.min(c.x0,c.x1)),x1:cx(Math.max(c.x0,c.x1)),y0:Math.max(0,Math.min(c.y0,c.y1)),y1:Math.min(1,Math.max(c.y0,c.y1))};
+ const mg=.015;c={x0:Math.max(0,c.x0-mg),y0:Math.max(0,c.y0-mg),x1:Math.min(1,c.x1+mg),y1:Math.min(1,c.y1+mg)};
+ if(c.x1-c.x0<.01||c.y1-c.y0<.01)throw new Error("La IA dio una caja vacía: márcala a mano con 📍");
+ const bl=String(P.bloque||"").trim(),ps=String(P.posicion||"").trim();
+ return{caja:c,src:await compMarcaCaja(base,c,1000),vista:"Ubicación"+(bl?" · "+bl:"")+(ps?" · posición "+ps.replace(/^posici[oó]n\s*/i,""):""),lector:j.lector||motor}};
 window.compEdUbiIA=async function(i){const f=ED&&ED.fotos[i];if(!f)return;
  const ref=ED.fotos.find((x,j)=>j!==i&&!/^ubicaci/i.test(x.vista||""));
  const motor=typeof window.compPideMotor=="function"?await window.compPideMotor():"claude";if(!motor)return;
- const ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;z-index:100006;background:#0008;display:flex;align-items:center;justify-content:center;color:#fff;font:700 16px system-ui;text-align:center;padding:20px";
- ov.textContent="⏳ "+(motor=="claude"?"Claude":"Gemini")+" está localizando "+(ED.codigo||"el componente")+" en la foto…";document.body.appendChild(ov);
- try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("Inicia sesión para usar la IA");
-  const base=f.o||f.src;const g=await cargaImg(base);const r=ref?await cargaImg(ref.src):null;
-  /* imagen única: a la izquierda la referencia (si hay), a la derecha la foto de conjunto (ocupa de RX a 1000) */
-  const H=900,wg=Math.round(g.naturalWidth*H/g.naturalHeight),wr=r?Math.round(r.naturalWidth*H/r.naturalHeight):0,sep=r?24:0;
-  const cv=document.createElement("canvas");cv.width=Math.min(2400,wr+sep+wg);const k=cv.width/(wr+sep+wg);cv.height=Math.round(H*k);
-  const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);if(r)x.drawImage(r,0,0,wr*k,H*k);x.drawImage(g,(wr+sep)*k,0,wg*k,H*k);
-  const RX=(wr+sep)/(wr+sep+wg);const img=cv.toDataURL("image/jpeg",.85).split(",")[1];
-  const prompt=`Imagen de una pasarela de embarque (PBB) TKE de Madrid Barajas. ${r?`A la IZQUIERDA (hasta x=${Math.round(RX*1000)} milésimas) está el componente ${ED.codigo||""} «${ED.titulo||""}» RECORTADO, como referencia; a la DERECHA (desde x=${Math.round(RX*1000)}) está una FOTO DE CONJUNTO (armario, carril DIN, regleta…).`:`La imagen es una FOTO DE CONJUNTO (armario, carril DIN, regleta…) donde está el componente ${ED.codigo||""} «${ED.titulo||""}» (${ED.fab||""}).`}
-TAREA: localiza ESE componente dentro de la foto de conjunto (por su forma, color, placa, etiqueta con el código ${ED.codigo||""} y el texto impreso). Si hay varios iguales, elige el que lleve la etiqueta ${ED.codigo||""}; si no se distingue, el que más se parezca a la referencia y dilo.
-Da su caja ajustada al cuerpo del componente en MILÉSIMAS (0-1000) de la imagen COMPLETA que recibes (x0,y0 esquina superior izquierda; x1,y1 inferior derecha), sin incluir los elementos de al lado. Indica el bloque en que está montado y su posición contando los elementos del bloque de izquierda a derecha.
-Responde SOLO con JSON: {"encontrado":true,"caja":{"x0":0,"y0":0,"x1":0,"y1":0},"bloque":"","posicion":"","total":0,"justificacion":""}`;
-  const rs=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt,motor})});
-  const j=await rs.json().catch(()=>({}));if(!rs.ok)throw new Error(j.mensaje||j.error||("error "+rs.status));
-  const m=String(j.txt||"").match(/\{[\s\S]*\}/);if(!m)throw new Error("La IA no devolvió datos");const P=JSON.parse(m[0]);
-  if(P.encontrado===false||!P.caja)throw new Error("La IA no encuentra "+(ED.codigo||"el componente")+" en esta foto"+(P.justificacion?": "+P.justificacion:""));
-  const n=v=>{v=+v;return isFinite(v)?(v>1.5?v/1000:v):NaN};let c={x0:n(P.caja.x0),y0:n(P.caja.y0),x1:n(P.caja.x1),y1:n(P.caja.y1)};
-  if(![c.x0,c.y0,c.x1,c.y1].every(isFinite))throw new Error("Caja no válida");
-  /* de la imagen completa a la foto de conjunto */
-  const cx=v=>Math.max(0,Math.min(1,(v-RX)/(1-RX)));c={x0:cx(Math.min(c.x0,c.x1)),x1:cx(Math.max(c.x0,c.x1)),y0:Math.max(0,Math.min(c.y0,c.y1)),y1:Math.min(1,Math.max(c.y0,c.y1))};
-  const mg=.015;c={x0:Math.max(0,c.x0-mg),y0:Math.max(0,c.y0-mg),x1:Math.min(1,c.x1+mg),y1:Math.min(1,c.y1+mg)};
-  if(c.x1-c.x0<.01||c.y1-c.y0<.01)throw new Error("La IA dio una caja vacía: márcala a mano con 📍");
-  f.o=base;f.caja=c;f.src=await compMarcaCaja(base,c,1000);
-  const bl=String(P.bloque||"").trim(),ps=String(P.posicion||"").trim();f.vista="Ubicación"+(bl?" · "+bl:"")+(ps?" · posición "+ps.replace(/^posici[oó]n\s*/i,""):"");
-  sucio=true;pinta();msg("📍 Ubicado con "+(j.lector||motor)+". Revisa el recuadro (📍 para ajustarlo) y pulsa GUARDAR")}
+ const ov=espera((motor=="claude"?"Claude":"Gemini")+" está localizando "+(ED.codigo||"el componente")+" en la foto…");
+ try{const base=f.o||f.src;const R=await compUbicaIA(base,ref&&ref.src,{codigo:ED.codigo,titulo:ED.titulo,fab:ED.fab},motor);
+  f.o=base;f.caja=R.caja;f.src=R.src;f.vista=R.vista;sucio=true;pinta();msg("📍 Ubicado con "+R.lector+". Revisa el recuadro (📍 para ajustarlo) y pulsa GUARDAR")}
  catch(e){msg(String((e&&e.message)||e))}finally{ov.remove()}};
+function espera(t){const ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;z-index:100006;background:#0008;display:flex;align-items:center;justify-content:center;color:#fff;font:700 16px system-ui;text-align:center;padding:20px";ov.textContent="⏳ "+t;document.body.appendChild(ov);return ov}
+window.compEspera=espera;
 window.compEdRec=async function(i){if(!ED||!ED.fotos[i]||typeof compRecorta!="function")return;const r=await compRecorta(ED.fotos[i].src);if(!r)return;ED.fotos[i].src=r.src;sucio=true;pinta()};
 const conRec=async src=>{if(typeof compRecorta!="function")return src;const r=await compRecorta(src);return r?r.src:src};
 window.compEdFoto=async function(inp,i){const fs=[...(inp.files||[])];inp.value="";if(!fs.length||!ED)return;sucio=true;

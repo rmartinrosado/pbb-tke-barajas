@@ -53,7 +53,8 @@ window.compIncorpora=function(){F=[];GRUPO=null;PROP=null;pinta()};
 function pinta(P){const p=P||{};$("#sheetc").innerHTML=`<div class="icph"><h3 style="margin:0">➕ Incorporar componente</h3><button class="sec" onclick="compCatalogo()" style="width:auto;margin:0">✕</button></div>
  <div class="mu" style="font-size:12.5px;margin:4px 0 8px">Haz fotos nítidas de la placa (texto impreso) y del componente; si puedes, también del cable o su marcado. La IA lee la placa y propone el código cruzándolo con los planos. Revisa antes de guardar.</div>
  <label class="btn" style="margin:0;justify-content:center;gap:6px;padding:12px">📷 Añadir foto<input type="file" accept="image/*" multiple hidden onchange="compFotos(this)"></label>
- <div class="icf" data-fg="inc">${F.map((f,i)=>`<figure data-fi="${i}"><img src="${f.src}" alt=""><select onchange="compVista(${i},this.value)">${VISTAS.map(v=>`<option${v==f.vista?" selected":""}>${v}</option>`).join("")}</select><div class="icfb"><button class="sec" title="Recortar" onclick="compRecInc(${i})">✂️</button><button class="sec" onclick="compQuita(${i})">🗑</button></div>${f.cut?'<span class="icfc">✂️ recortado</span>':""}${f.ubi?'<span class="icfc">📍 ubicación</span>':""}</figure>`).join("")}</div>
+ <label class="btn" style="margin:6px 0 0;justify-content:center;gap:6px;padding:10px">📍 Añadir foto de ubicación<input type="file" accept="image/*" hidden onchange="compFotoUbi(this)"></label>
+ <div class="icf" data-fg="inc">${F.map((f,i)=>`<figure data-fi="${i}"><img src="${f.src}" alt=""><select onchange="compVista(${i},this.value)">${VISTAS.map(v=>`<option${v==f.vista?" selected":""}>${v}</option>`).join("")}</select><div class="icfb"><button class="sec" title="Recortar" onclick="compRecInc(${i})">✂️</button>${f.ubi?"":`<button class="sec" title="Usar como foto de ubicación (la IA marca el componente)" onclick="compUbiInc(${i})">📍</button>`}<button class="sec" onclick="compQuita(${i})">🗑</button></div>${f.cut?'<span class="icfc">✂️ recortado</span>':""}${f.ubi?'<span class="icfc">📍 ubicación</span>':""}</figure>`).join("")}</div>
  <div class="mu" style="font-size:11.5px;margin:-2px 0 6px">Toca una foto para verla a pantalla completa (zoom con dos dedos). Mantenla pulsada y arrástrala sobre otra para cambiarlas de sitio. Si el recorte de la IA no es bueno, corrígelo a mano antes de guardar con ✂️ (el componente) o con ✂️ en la ubicación: los dos se ajustan juntos.</div>
  <label>Código si lo sabes (p. ej. E-X62, ET-B9)</label><input id="ic_cod" placeholder="Opcional: la IA recorta ESE elemento" value="${E(p.cod||"")}" autocapitalize="characters">
  <label>¿Dónde está montado?</label><input id="ic_donde" placeholder="Ej. rotonda, túnel exterior, cabina bajo el pupitre…" value="${E(p.donde||"")}">
@@ -62,6 +63,20 @@ function pinta(P){const p=P||{};$("#sheetc").innerHTML=`<div class="icph"><h3 st
 const vals=()=>({cod:((document.getElementById("ic_cod")||{}).value||"").trim().toUpperCase().replace(/^\+/,""),donde:(document.getElementById("ic_donde")||{}).value||"",claves:(document.getElementById("ic_cla")||{}).value||""});
 window.compFotos=async function(inp){const v=vals();for(const f of [...(inp.files||[])]){try{const im=await lee(f);const c=aJpg(im,900);const g=aJpg(im,1400);F.push({src:c.toDataURL("image/jpeg",.82),vista:VISTAS[Math.min(F.length,VISTAS.length-1)],c:g,o:g.toDataURL("image/jpeg",.88)})}catch(e){msg(String(e.message||e))}}pinta(v)};
 window.compVista=(i,v)=>{if(F[i])F[i].vista=v};
+/* v556: foto de UBICACIÓN en Incorporar (como en Editar ficha): la IA localiza el componente en la foto de conjunto y lo marca en naranja */
+async function ubicaEn(f){const ref=F.find(x=>x!==f&&!x.ubi&&x.cut)||F.find(x=>x!==f&&!x.ubi);const v=vals();
+ const cod=((document.getElementById("ip_cod")||{}).value||v.cod||"").trim(),tit=(document.getElementById("ip_tit")||{}).value||"",fab=(document.getElementById("ip_fab")||{}).value||"";
+ if(typeof window.compUbicaIA!="function"){msg("Función no disponible");return false}
+ const motor=MOTOR||await pideMotor();if(!motor)return false;MOTOR=motor;
+ const ov=window.compEspera?compEspera((motor=="claude"?"Claude":"Gemini")+" está localizando "+(cod||"el componente")+" en la foto…"):null;
+ try{const base=f.o||f.src;const R=await compUbicaIA(base,ref&&(ref.src),{codigo:cod,titulo:tit,fab},motor);
+  f.o=base;f.caja=R.caja;f.src=R.src;f.vista=R.vista;f.ubi=true;f.ubiMan=true;f.c=null;F=F.filter(x=>!(x.ubi&&!x.ubiMan));repinta();msg("📍 Ubicado con "+R.lector+". Ajusta con ✂️ en la foto si hace falta y guarda");return true}
+ catch(e){msg(String((e&&e.message)||e));return false}finally{if(ov)ov.remove()}}
+window.compFotoUbi=async function(inp){const fs=[...(inp.files||[])];inp.value="";if(!fs.length)return;
+ try{const im=await lee(fs[0]);const g=aJpg(im,1400);const o=g.toDataURL("image/jpeg",.88);const f={src:o,o,vista:"Ubicación",c:g};
+  if(!F.some(x=>!x.ubi)){msg("Añade primero la foto del componente (la IA la usa como referencia)");}
+  F.push(f);repinta();if(!await ubicaEn(f)){f.ubi=true;f.ubiMan=true;f.c=null;repinta()}}catch(e){msg(String(e.message||e))}};
+window.compUbiInc=async function(i){const f=F[i];if(f)await ubicaEn(f)};
 /* v545: permutar fotos arrastrándolas y verlas a pantalla completa con zoom */
 (window.FOTO_ORDEN=window.FOTO_ORDEN||{}).inc={mueve:(i,j)=>{if(!F[i]||!F[j])return;[F[i],F[j]]=[F[j],F[i]];repinta()},toca:i=>{if(F[i]&&typeof compVer=="function")compVer(F[i].src,F.map(f=>f.src),i)}};
 /* v535: recorte a mano (o ajuste del recorte de la IA) */
@@ -84,7 +99,7 @@ window.compIA=async function(opt){opt=opt||{};const v=vals();const st=document.g
  const motor=opt.motor||await pideMotor();if(!motor)return;MOTOR=motor;
  set("⏳ Leyendo la placa y cotejando con los planos con <b>"+(motor=="claude"?"Claude":"Gemini")+"</b>…");
  try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("Inicia sesión para usar la IA");
-  F=F.filter(f=>!f.ubi);const img=collage(F.map(f=>f.c)).split(",")[1];
+  const MAN=F.filter(f=>f.ubiMan);F=F.filter(f=>!f.ubi);const img=collage(F.map(f=>f.c)).split(",")[1];
   if(!GRUPO||!F.some(f=>f.o===GRUPO.o)){const f0=F[0];GRUPO=f0?{o:f0.o,c:f0.c,hechos:[],salta:[]}:null}
   const yaCods=[...new Set(C().map(c=>String(c.id||"").trim()).filter(c=>c&&!/^SIN C/i.test(c)))];
   const hechosF=(GRUPO?GRUPO.hechos:[]).map(h=>`${h.codigo} (caja x ${Math.round(h.x0)}-${Math.round(h.x1)}, y ${Math.round(h.y0)}-${Math.round(h.y1)} milésimas)`);
@@ -108,7 +123,7 @@ Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt,motor})});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.mensaje||j.error||("error "+r.status));
   const m=String(j.txt||"").match(/\{[\s\S]*\}/);if(!m)throw new Error("La IA no devolvió datos");PROP=JSON.parse(m[0]);PROP.lector=j.lector;
-  if(!PROP.claves&&v.claves)PROP.claves=v.claves;if(v.cod&&String(PROP.codigo||"").toUpperCase().replace(/^\+/,"")!==v.cod){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"(Código indicado por el técnico: "+v.cod+"; la IA proponía «"+(PROP.codigo||"—")+"». Revisa que el recorte sea el de "+v.cod+".)";PROP.codigo=v.cod}const rc=await recorteIA(PROP,v);pinta(v);
+  if(!PROP.claves&&v.claves)PROP.claves=v.claves;if(v.cod&&String(PROP.codigo||"").toUpperCase().replace(/^\+/,"")!==v.cod){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"(Código indicado por el técnico: "+v.cod+"; la IA proponía «"+(PROP.codigo||"—")+"». Revisa que el recorte sea el de "+v.cod+".)";PROP.codigo=v.cod}const rc=await recorteIA(PROP,v);if(MAN.length){F=F.filter(f=>!(f.ubi&&!f.ubiMan));F.push(...MAN)}pinta(v);
   const st2=document.getElementById("ic_st");if(st2)st2.innerHTML=`Leído con <b>${E(j.lector||"IA")}</b>. ${rc}Revisa y corrige antes de guardar.`;propHTML();grupoHTML()}
  catch(e){set(`<span style="color:#c62828">${E(String((e&&e.message)||e))}</span>`+(motor=="gemini"?` <button class="sec" style="width:auto;margin:6px 0 0" onclick="compIA({motor:'claude'})">✳️ Probar con Claude</button>`:""))}};
 /* ===== v554: motor de IA, varios componentes en una misma foto y avisos de repetidos ===== */
