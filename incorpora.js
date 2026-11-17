@@ -49,7 +49,7 @@ window.compCatalogo=function(q){q=q||"";const t=nrm(q);const L=C().filter(c=>!t|
  $("#sheet").style.display="flex"};
 /* ---------- incorporar ---------- */
 let F=[];const VISTAS=["Vista frontal · placa","Vista lateral","Vista trasera","Vista conector"];
-window.compIncorpora=function(){F=[];pinta()};
+window.compIncorpora=function(){F=[];GRUPO=null;PROP=null;pinta()};
 function pinta(P){const p=P||{};$("#sheetc").innerHTML=`<div class="icph"><h3 style="margin:0">➕ Incorporar componente</h3><button class="sec" onclick="compCatalogo()" style="width:auto;margin:0">✕</button></div>
  <div class="mu" style="font-size:12.5px;margin:4px 0 8px">Haz fotos nítidas de la placa (texto impreso) y del componente; si puedes, también del cable o su marcado. La IA lee la placa y propone el código cruzándolo con los planos. Revisa antes de guardar.</div>
  <label class="btn" style="margin:0;justify-content:center;gap:6px;padding:12px">📷 Añadir foto<input type="file" accept="image/*" multiple hidden onchange="compFotos(this)"></label>
@@ -79,9 +79,16 @@ const keepVals=()=>[...document.querySelectorAll("#ic_prop input,#ic_prop textar
 const putVals=a=>a.forEach(([id,v])=>{const e=id&&document.getElementById(id);if(e)e.value=v});window.compQuita=i=>{F.splice(i,1);repinta()};
 const codigos=()=>{const N=window.NOMBRES_EL||{};return Object.entries(N).map(([k,v])=>k+"="+v).join("; ")};
 let PROP=null;
-window.compIA=async function(){const v=vals();const st=document.getElementById("ic_st");const set=t=>{if(st)st.innerHTML=t};set("⏳ Leyendo la placa y cotejando con los planos…");
+window.compIA=async function(opt){opt=opt||{};const v=vals();const st=document.getElementById("ic_st");const set=t=>{if(st)st.innerHTML=t};
+ /* v554: antes de identificar se elige el motor de IA (Claude más eficaz · Gemini gratis); en «siguiente componente» se repite el elegido */
+ const motor=opt.motor||await pideMotor();if(!motor)return;MOTOR=motor;
+ set("⏳ Leyendo la placa y cotejando con los planos con <b>"+(motor=="claude"?"Claude":"Gemini")+"</b>…");
  try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("Inicia sesión para usar la IA");
   F=F.filter(f=>!f.ubi);const img=collage(F.map(f=>f.c)).split(",")[1];
+  if(!GRUPO||!F.some(f=>f.o===GRUPO.o)){const f0=F[0];GRUPO=f0?{o:f0.o,c:f0.c,hechos:[],salta:[]}:null}
+  const yaCods=[...new Set(C().map(c=>String(c.id||"").trim()).filter(c=>c&&!/^SIN C/i.test(c)))];
+  const hechosF=(GRUPO?GRUPO.hechos:[]).map(h=>`${h.codigo} (caja x ${Math.round(h.x0)}-${Math.round(h.x1)}, y ${Math.round(h.y0)}-${Math.round(h.y1)} milésimas)`);
+  const salta=[...new Set((GRUPO?GRUPO.salta:[]).concat(opt.salta||[]))];
   const prompt=`Fotos (en una sola imagen, de izquierda a derecha) de un componente de campo de una pasarela de embarque (PBB) TKE del aeropuerto de Madrid Barajas, para la guía de componentes de la app de mantenimiento.
 Dónde está montado (según el técnico): ${v.donde||"(no indicado)"}.
 Averías en que interviene (según el técnico): ${v.claves||"(no indicado)"}.
@@ -94,16 +101,57 @@ TAREA
 3. Propón: titulo (nombre del elemento en español), fab (fabricante · modelo · referencia), esp = filas [dato, valor] de la placa y su función en la PBB, pin = filas [pin, color, señal, función] si se ven, med = 3-5 pasos «Medir en campo» con valores esperados (por ejemplo «24 VDC entre pin 1 y pin 3»), av = aviso al sustituir, claves = palabras de los avisos de OT en que interviene (separadas por comas), justificacion = por qué ese código.
 4. RECORTE (obligatorio): el elemento se guarda RECORTADO, solo él, sin componentes vecinos a medias ni cables alrededor. Da la caja ajustada al cuerpo del componente principal en la foto donde mejor se ve su placa, en MILÉSIMAS (0-1000) de la imagen COMPLETA que recibes: x0,y0 = esquina superior izquierda, x1,y1 = inferior derecha. Ciñe la caja al borde del componente (no incluyas los elementos de al lado ni los mazos de cables).
 4b. BORNEROS / REGLETAS DE BORNES (códigos «X», p. ej. E-X62, P-X51, IT-X51): su código es el que se lee en su PORTAETIQUETAS (no pongas «SIN CÓDIGO»). Las bornas van en GRUPOS DE ETIQUETA A ETIQUETA: el portaetiquetas con el código está a la IZQUIERDA del grupo y el bornero son TODAS las bornas que hay a su DERECHA hasta justo antes del portaetiquetas siguiente (o hasta el final del carril). Un bornero puede tener 2 o más bornas (normalmente varias, numeradas 1, 2, 3…). El RECORTE NO es solo la etiqueta: abarca la etiqueta (dentro, a la izquierda) Y todas las bornas de su grupo, en todo su alto (de la fila de tornillos/bornas de arriba a la de abajo, sin los mazos de cables). Las bornas a la izquierda de su etiqueta o a la derecha de la etiqueta siguiente NO son suyas. Devuelve además "etiqueta" = caja de SU portaetiquetas y "fin_x" = coordenada x (milésimas de la imagen completa) donde empieza el portaetiquetas siguiente o acaba el carril, y "bornas" = nº de bornas del grupo.
+4c. YA INCORPORADOS en Componentes de campo: ${yaCods.join(", ")||"(ninguno)"}.${hechosF.length?` De ESTA MISMA FOTO ya se han incorporado (no los vuelvas a elegir, aunque otro tenga el mismo código): ${hechosF.join("; ")}.`:""}${salta.length?` El técnico ha pedido PASAR AL SIGUIENTE: NO elijas ${salta.join(", ")}.`:""}${v.cod?"":" Si en la foto hay varios componentes, elige el PRIMERO (de izquierda a derecha y de arriba abajo) que NO esté ya incorporado; si todos lo están, elige el primero y dilo en justificacion."}
+6. ELEMENTOS DE LA FOTO: si se ven VARIOS componentes (de un bloque o sueltos), lístalos TODOS en "elementos", en orden de izquierda a derecha y de arriba abajo: {"codigo": el que se lee en su etiqueta o el código de plano más probable ("" si no se sabe), "tipo": qué es, "x0","y0","x1","y1": su caja en milésimas}. "elegido" = índice (desde 0) del componente que describes y recortas.
 5. Si el componente está montado dentro de un BLOQUE de varios elementos (carril DIN, fila de magnetotérmicos, regleta, grupo de relés…): en_bloque = true, bloque = qué bloque es y dónde (p. ej. «carril DIN de magnetotérmicos del armario eléctrico AE»), posicion = su posición contando los elementos del bloque (p. ej. «3 de 10, de izquierda a derecha»), total = nº de elementos del bloque. Si va solo, en_bloque = false.
-Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":[["","","",""]],"med":[""],"av":"","claves":"","justificacion":"","recorte":{"x0":0,"y0":0,"x1":0,"y1":0},"en_bloque":false,"bloque":"","posicion":"","total":0,"etiqueta":{"x0":0,"y0":0,"x1":0,"y1":0},"fin_x":0,"bornas":0}`;
-  const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt})});
+Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":[["","","",""]],"med":[""],"av":"","claves":"","justificacion":"","recorte":{"x0":0,"y0":0,"x1":0,"y1":0},"en_bloque":false,"bloque":"","posicion":"","total":0,"etiqueta":{"x0":0,"y0":0,"x1":0,"y1":0},"fin_x":0,"bornas":0,"elementos":[{"codigo":"","tipo":"","x0":0,"y0":0,"x1":0,"y1":0}],"elegido":0}`;
+  const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt,motor})});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.mensaje||j.error||("error "+r.status));
   const m=String(j.txt||"").match(/\{[\s\S]*\}/);if(!m)throw new Error("La IA no devolvió datos");PROP=JSON.parse(m[0]);PROP.lector=j.lector;
   if(!PROP.claves&&v.claves)PROP.claves=v.claves;if(v.cod&&String(PROP.codigo||"").toUpperCase().replace(/^\+/,"")!==v.cod){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"(Código indicado por el técnico: "+v.cod+"; la IA proponía «"+(PROP.codigo||"—")+"». Revisa que el recorte sea el de "+v.cod+".)";PROP.codigo=v.cod}const rc=await recorteIA(PROP,v);pinta(v);
-  const st2=document.getElementById("ic_st");if(st2)st2.innerHTML=`Leído con <b>${E(j.lector||"IA")}</b>. ${rc}Revisa y corrige antes de guardar.`;propHTML()}
- catch(e){set(`<span style="color:#c62828">${E(String((e&&e.message)||e))}</span>`)}};
+  const st2=document.getElementById("ic_st");if(st2)st2.innerHTML=`Leído con <b>${E(j.lector||"IA")}</b>. ${rc}Revisa y corrige antes de guardar.`;propHTML();grupoHTML()}
+ catch(e){set(`<span style="color:#c62828">${E(String((e&&e.message)||e))}</span>`+(motor=="gemini"?` <button class="sec" style="width:auto;margin:6px 0 0" onclick="compIA({motor:'claude'})">✳️ Probar con Claude</button>`:""))}};
+/* ===== v554: motor de IA, varios componentes en una misma foto y avisos de repetidos ===== */
+let MOTOR=null,GRUPO=null;
+const nCod=c=>String(c||"").toUpperCase().replace(/^\+/,"").replace(/\s+/g,"");
+const partes=c=>String(c||"").split(/\s*[\/,]\s*/).map(nCod).filter(x=>x&&!/^SINC/.test(x));
+const yaSet=()=>{const S=new Set();C().forEach(c=>partes(c.id).forEach(x=>S.add(x)));return S};
+const nCat=c=>{const p=partes(c);return p.length?C().filter(x=>partes(x.id).some(y=>p.includes(y))).length:0};
+const esYa=c=>{const S=yaSet();const p=partes(c);return p.length>0&&p.every(x=>S.has(x))};
+function pideMotor(){return new Promise(res=>{const o=document.createElement("div");o.id="icMotor";
+ o.style.cssText="position:fixed;inset:0;z-index:100005;background:#0009;display:flex;align-items:center;justify-content:center;padding:18px";
+ o.innerHTML=`<div style="background:var(--card,#fff);color:var(--ink,#111);border-radius:14px;padding:16px;max-width:420px;width:100%;box-shadow:0 10px 30px #0008">
+  <b style="font-size:17px">¿Con qué IA identifico el componente?</b>
+  <button class="pri" data-m="claude" style="margin-top:12px;display:block;width:100%;text-align:left">✳️ <b>Claude</b> · más eficaz leyendo placas y recortando<br><small style="opacity:.85">Tiene coste por consulta</small></button>
+  <button class="sec" data-m="gemini" style="margin-top:8px;display:block;width:100%;text-align:left">♊ <b>Gemini</b> · gratis<br><small style="opacity:.8">Menos preciso; si falla puedes repetir con Claude</small></button>
+  <button class="sec" data-m="" style="margin-top:8px;width:100%">Cancelar</button></div>`;
+ o.addEventListener("click",e=>{const b=e.target.closest("button");if(!b&&e.target!==o)return;e.stopPropagation();o.remove();res(b?b.dataset.m||null:null)});
+ ["touchend","pointerdown","dblclick"].forEach(t=>o.addEventListener(t,e=>e.stopPropagation()));document.body.appendChild(o)})}
+/* panel: componentes que hay en la foto, cuáles ya están incorporados, cuál es este y si se repite alguno */
+function grupoHTML(){const d=document.getElementById("ic_prop");if(!d||!PROP)return;
+ const L=Array.isArray(PROP.elementos)?PROP.elementos.filter(x=>x&&(x.codigo||x.tipo)):[];const el=+PROP.elegido||0;
+ const este=nCod(PROP.codigo);const enF=Math.max(1,L.filter(x=>partes(x.codigo).join("/")===partes(PROP.codigo).join("/")).length);const ya=esYa(PROP.codigo)&&nCat(PROP.codigo)>=enF;
+ const cuenta={};L.forEach(x=>partes(x.codigo).forEach(c=>cuenta[c]=(cuenta[c]||0)+1));const rep=Object.keys(cuenta).filter(c=>cuenta[c]>1);
+ let h="";
+ if(ya)h+=`<div class="icgr icgr-r">⚠️ <b>${E(PROP.codigo)}</b> ya está incorporado en Componentes de campo.<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${L.length>1?`<button class="pri" style="width:auto;margin:0" onclick="compSalta()">➡️ Pasar al siguiente de la foto</button>`:""}<button class="sec" style="width:auto;margin:0" onclick="compCatalogo('${E(PROP.codigo)}')">Ver la ficha</button></div></div>`;
+ if(rep.length)h+=`<div class="icgr icgr-a">⚠️ Código repetido en la foto: <b>${E(rep.join(", "))}</b>. Comprueba la etiqueta de cada uno antes de guardar.</div>`;
+ if(L.length>1){const pend=quedan();
+  h+=`<div class="icgr">📦 <b>Esta foto tiene ${L.length} componentes</b>${pend.length?` · quedan <b>${pend.length}</b> por incorporar`:" · los demás ya están incorporados"}<div class="icgl">${L.map((x,i)=>{const c=x.codigo||"¿?";const yx=!pend.includes(x);const s=i===el?"este":yx?"ya":"pend";
+   return `<span class="icg-${s}${cuenta[nCod(x.codigo)]>1?" icg-rep":""}">${i+1}. ${E(c)}${x.tipo?` <small>${E(x.tipo)}</small>`:""} · ${s=="este"?"ESTE":s=="ya"?"✓ ya incorporado":"pendiente"}</span>`}).join("")}</div>
+   ${pend.length?`<div class="mu" style="font-size:11.5px;margin-top:4px">Al guardar este, la app te ofrece seguir con el siguiente usando la misma foto.</div>`:""}</div>`}
+ let g=document.getElementById("ic_grp");if(!g){g=document.createElement("div");g.id="ic_grp";d.prepend(g)}g.innerHTML=h}
+window.compSalta=function(){if(!PROP)return;if(GRUPO)GRUPO.salta=[...new Set(GRUPO.salta.concat(partes(PROP.codigo)))];
+ F=F.filter(f=>!f.ubi);F.forEach(f=>{if(f.cut&&f.o===(GRUPO&&GRUPO.o)){f.src=f.o;f.cut=false;f.caja=null}});repinta();compIA({motor:MOTOR||"claude"})};
+function quedan(){if(!PROP)return[];const L=(Array.isArray(PROP.elementos)?PROP.elementos:[]).filter(x=>x&&(x.codigo||x.tipo));const el=+PROP.elegido||0;
+ const visto={};return L.filter((x,i)=>{if(i===el)return false;const k=partes(x.codigo).join("/");if(!k)return true;visto[k]=(visto[k]||0)+1;
+  const enFoto=L.filter(y=>partes(y.codigo).join("/")===k).length;return nCat(x.codigo)<enFoto&&visto[k]<=enFoto-nCat(x.codigo)})}
+window.compSiguiente=function(){if(!GRUPO)return;const v=vals();const g=GRUPO;F=[{src:g.o,vista:VISTAS[0],c:g.c,o:g.o}];PROP=null;pinta({donde:v.donde,claves:v.claves});compIA({motor:MOTOR||"claude"})};
 const filas=a=>(a||[]).map(r=>Array.isArray(r)?r.join(" | "):String(r)).join("\n");
 const desf=(t,n)=>String(t||"").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>n?l.split("|").map(x=>x.trim()).concat(Array(n).fill("")).slice(0,n):l);
+(function(){const st=document.createElement("style");st.textContent=`.icgr{margin:8px 0;padding:9px 11px;border-radius:10px;border:1px solid #0b6e9955;background:#0b6e9912;font-size:13px}
+.icgr-r{border-color:#c6282880;background:#c6282814}.icgr-a{border-color:#ef6c0080;background:#ef6c0014}
+.icgl{display:flex;flex-direction:column;gap:3px;margin-top:6px}.icgl span{padding:4px 8px;border-radius:6px;background:#0001;font-size:12.5px}
+.icgl .icg-este{background:#ef6c00;color:#fff;font-weight:700}.icgl .icg-ya{opacity:.65}.icgl .icg-rep{outline:2px dashed #c62828}`;document.head.appendChild(st)})();
 /* v535: recorte automático del elemento + foto de UBICACIÓN si está dentro de un bloque de varios */
 async function recorteIA(p,v){let t="";try{
  if(!p.recorte&&Array.isArray(p.box_2d)&&p.box_2d.length==4){const z=p.box_2d;p.recorte={y0:z[0],x0:z[1],y1:z[2],x1:z[3]}}
@@ -139,7 +187,11 @@ window.compGuarda=async function(){const g=id=>(document.getElementById(id)||{})
  const row={codigo:g("ip_cod").trim()||"SIN CÓDIGO",titulo:g("ip_tit").trim()||"Componente",fab:g("ip_fab").trim(),claves:g("ip_cla").trim(),esp:desf(g("ip_esp"),2),pin:desf(g("ip_pin"),4),med:desf(g("ip_med")),av:g("ip_av").trim(),
   fotos:F.map(f=>f.ubi&&f.o&&f.caja?{src:f.src,vista:f.vista,o:f.o,caja:f.caja}:{src:f.src,vista:f.vista}),stock:{ref:g("ip_ref"),sust:g("ip_sus"),ubi:g("ip_ubi"),uds:g("ip_uds")},creado_por:(user&&user.email)||""};
  if(!row.claves){msg("Indica en qué averías interviene, para asociarlo a las OT");return}
- try{const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");compCatalogo(row.codigo)}
+ if(esYa(row.codigo)&&!confirm("⚠️ "+row.codigo+" ya está incorporado en Componentes de campo.\n\n¿Guardar otra ficha igualmente? (Cancelar para no duplicarlo)"))return;
+ try{const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");
+  if(GRUPO){const r=(PROP&&PROP.recorte)||{};GRUPO.hechos.push({codigo:row.codigo,x0:+r.x0||0,x1:+r.x1||0,y0:+r.y0||0,y1:+r.y1||0})}const q=quedan();
+  if(q.length&&GRUPO&&confirm("📦 En esta misma foto quedan "+q.length+" componente(s) por incorporar: "+q.map(x=>x.codigo||x.tipo||"¿?").join(", ")+".\n\n¿Incorporar el siguiente con la misma foto?")){compSiguiente();return}
+  GRUPO=null;compCatalogo(row.codigo)}
  catch(e){msg("No se pudo guardar: "+String((e&&e.message)||e))}};
 /* ---------- accesos ---------- */
 /* v495: cabecera del catálogo (título + «Incorporar componente») fija arriba; la búsqueda (con la lupa) debajo del botón, también fija (v496); v497: la cabecera ya no es sticky: el listado tiene su propio scroll */
