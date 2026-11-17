@@ -20,14 +20,14 @@ const repuesto=c=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
  const s=String(c.av||"").match(/AL SUSTITUIR:?\s*([^]*)$/i);if(s)f.push(["Al sustituir",s[1].trim()]);
  const r=(c.esp||[]).find(x=>/^repuesto$/i.test(x[0]));if(r)f.push(["Almacén",r[1]]);
  return f.length?`<div class="cnrep"><div class="cnrt">🔧 Repuesto</div><table>${f.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table></div>`:""};
-let capa=null,zSel="",abiertos=new Set();
+let capa=null,zSel="",abiertos=new Set(),solo=null;/* v563: solo = {k:Set de claves, t:rótulo} → lista acotada a los componentes de una alarma */
 function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).value||"").trim();
  const ws=q.split(/\s+/).filter(Boolean);
  const todos=L(),zs=[...new Set(todos.map(zona))];
- const F=todos.filter(c=>(!zSel||zona(c)==zSel)&&(!ws.length||ws.every(w=>texto(c).includes(w))));
+ const F=todos.filter(c=>(!solo||solo.k.has(String(c.baseId||c.db||c.id)))&&(!zSel||zona(c)==zSel)&&(!ws.length||ws.every(w=>texto(c).includes(w))));
  capa.querySelector("#cn_z").innerHTML=[["","Todos"]].concat(zs.map(z=>[z,z])).map(([v,t])=>`<button type="button" class="cnch${zSel==v?" on":""}" data-z="${E(v)}">${E(t)} <small>${v?todos.filter(c=>zona(c)==v).length:todos.length}</small></button>`).join("");
  const el=capa.querySelector("#cn_l");
- el.innerHTML=`<div class="mu" style="font-size:12px;margin:6px 0">${F.length} componente${F.length==1?"":"s"}${ws.length||zSel?(F.length==1?" encontrado":" encontrados"):""}</div>`+
+ el.innerHTML=(solo?`<div class="cnsolo"><span>🚨 ${E(solo.t)}</span><button type="button" class="sec" data-todos="1">Ver todos</button></div>`:"")+`<div class="mu" style="font-size:12px;margin:6px 0">${F.length} componente${F.length==1?"":"s"}${ws.length||zSel?(F.length==1?" encontrado":" encontrados"):""}</div>`+
   (F.length?F.map(c=>{const k=String(c.baseId||c.db||c.id);const bt=c.db?(c.baseId?"↩️<br>Restaurar":"🗑<br>Eliminar"):"🔒<br>De fábrica";
    return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${repuesto(c)}${typeof compFicha=="function"?compFicha(c):""}</details></div>`}).join("")
   :`<div class="cnvac">Sin componentes para «${E(q)}».<br>Prueba con el código (p. ej. E-Q24), el nombre o el modelo.</div>`)}
@@ -44,12 +44,13 @@ function abre(){
   capa.querySelector("#cn_go").onclick=()=>{q.blur();lista()};
   capa.querySelector("#cn_bo").onclick=()=>{q.value="";lista()};
   capa.querySelector("#cn_inc").onclick=incorpora;
+  capa.querySelector("#cn_l").addEventListener("click",e=>{if(e.target.closest("[data-todos]")){solo=null;lista()}});
   capa.querySelector("#cn_z").addEventListener("click",e=>{const b=e.target.closest(".cnch");if(!b)return;zSel=b.dataset.z||"";lista()});
   capa.querySelector("#cn_l").addEventListener("toggle",e=>{const d=e.target;if(!d.classList||!d.classList.contains("cni"))return;d.open?abiertos.add(d.dataset.k):abiertos.delete(d.dataset.k);
   /* v560: al abrir una ficha cuyas fotos aún no han llegado, se piden ya */
   if(d.open){const c=L().find(x=>String(x.baseId||x.db||x.id)==d.dataset.k);if(c&&c._fp&&typeof compFotosAsegura=="function")compFotosAsegura(c).then(()=>{if(d.isConnected)lista()})}},true)}
  /* v562: al abrir Componentes de campo, SIEMPRE todas las fichas plegadas (no recuerda las abiertas la vez anterior) */
- abiertos.clear();lista();{const l=capa.querySelector("#cn_l");if(l)l.scrollTop=0}capa.style.display="flex";document.documentElement.style.overflow="hidden";
+ abiertos.clear();solo=null;lista();{const l=capa.querySelector("#cn_l");if(l)l.scrollTop=0}capa.style.display="flex";document.documentElement.style.overflow="hidden";
  try{history.pushState({comp:1},"")}catch(e){}}
 function cierra(desdeHist){if(!capa||capa.style.display=="none")return;capa.style.display="none";document.documentElement.style.overflow="";
  if(!desdeHist){try{if(history.state&&history.state.comp)history.back()}catch(e){}}}
@@ -106,6 +107,9 @@ window.abreCompTag=function(tag){const t=String(tag||"").replace(/^\+/,"").repla
  hit.slice(0,3).forEach(c=>abiertos.add(String(c.baseId||c.db||c.id)));lista();
  const el=capa.querySelector("#cn_l");if(el)el.scrollTop=0;
  if(!hit.length){const v=capa.querySelector(".cnvac");if(v)v.innerHTML=`Sin ficha de repuesto para <b>${E(t)}</b>${typeof nombreElemento=="function"&&nombreElemento(t)?" ("+E(nombreElemento(t))+")":""} en el catálogo.<br>Puedes añadirla con «Incorporar componente» o buscar otro código.`}};window.cierraComp=()=>cierra(false);
+/* v563: abrir la lista acotada a unos componentes (los de una alarma del SOS), desplegados si son pocos */
+window.abreCompClaves=function(claves,rotulo){abre();if(!capa)return;const K=new Set((claves||[]).map(String));
+ const q=capa.querySelector("#cn_q");if(q)q.value="";zSel="";solo={k:K,t:rotulo||""};if(K.size<=3)K.forEach(k=>abiertos.add(k));lista()};
 /* v549: al volver atrás desde Editar ficha (p. ej. tras Guardar) el historial queda en el estado de esta capa: no se cierra */
 addEventListener("popstate",()=>{try{if(history.state&&history.state.comp)return}catch(e){}cierra(true)});
 const IC='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5z"/><circle cx="12" cy="12" r="3.6"/></svg>';
@@ -140,6 +144,7 @@ html.cnInc #sheet{z-index:70!important}
 #compCapa .cnrep table{width:100%;border-collapse:collapse;font-size:13px}#compCapa .cnrep th{text-align:left;vertical-align:top;padding:3px 8px 3px 0;white-space:nowrap;color:var(--mu,#8a93a3);font-weight:700}
 #compCapa .cnrep td{padding:3px 0;vertical-align:top}
 #compCapa .cni .cmpf>.cmpt,#compCapa .cni .cmpf>.cmpm{display:none}#compCapa .cni .cmpf{border:0;padding:0}
+#compCapa .cnsolo{display:flex;align-items:center;gap:8px;margin:8px 0 2px;padding:7px 9px;border:1.5px solid #d32f2f;border-radius:8px;font-size:13px;font-weight:700}#compCapa .cnsolo span{flex:1;min-width:0}#compCapa .cnsolo button{width:auto!important;margin:0!important;padding:5px 10px!important;font-size:12.5px!important;flex:none}
 #compCapa .cnvac{text-align:center;color:var(--mu,#8a93a3);margin-top:30px;line-height:1.5}`;
 document.head.appendChild(st);
 })();

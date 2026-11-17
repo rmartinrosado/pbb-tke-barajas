@@ -340,15 +340,71 @@ if(typeof vTec=="function"){const o=vTec;vTec=function(){
 const busca=q=>{q=nrm(q).trim();if(!q)return[];const n=q.replace(/^r?0*/,"");
  if(/^r?\d{1,3}$/.test(q)){return CAT.filter(x=>x.c.replace(/^R?0*/,"").startsWith(n)&&(/^r/.test(q)?/^R/.test(x.c):true)).slice(0,8)}
  const ws=pal(q+" "+sinon(q));return CAT.filter(x=>ws.every(w=>x.n.includes(w)||x.n.split(/\W+/).some(v=>v.startsWith(w)))).slice(0,8)};
+/* v563: SOS · fila con dos buscadores: a la izquierda el COMPONENTE de campo (código o nombre) y a la derecha la ALARMA RCS.
+   · Alarma: al tocar la caja sale el desplegable con todos los avisos y alarmas del manual RCS (por familias); al escribir se
+     filtra. Al elegir una: se pone en «alarma a mano», sale su recuadro y se abre el componente de campo que falla (si hay
+     varios, el catálogo acotado a ellos).
+   · Componente: admite mayúsculas o minúsculas, sin guiones ni puntos y la letra O por el cero (eq24, EQ 24, es0.1, esO1).
+     Si falta un 0 delante (es1 → E-S0.1) avisa de cuál puede ser. */
+const ckey=t=>String(t||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/O/g,"0").replace(/[^A-Z0-9]/g,"");
+const ckey0=t=>String(t||"").toUpperCase().replace(/O/g,"0").split(/[^A-Z0-9]+/).map(p=>p.replace(/(^|[A-Z])0+(?=\d|$)/g,"$1")).join("");
+const COMPS=()=>window.COMP_CAMPO||[];
+const ckClave=c=>String(c.baseId||c.db||c.id);
+const ckIds=c=>String(c.id||"").split(/\s*\/\s*/).map(x=>x.replace(/^(ACOPL\.?\s*)/i,"").trim()).filter(Boolean);
+function compBusca(q){const raw=String(q||"").trim();if(!raw)return{L:[],avisa:[]};const k=ckey(raw),k0=ckey0(raw),n=nrm(raw);
+ const ex=[],cero=[],pre=[],txt=[];
+ COMPS().forEach(c=>{const ids=ckIds(c).concat([c.id]);
+  if(ids.some(i=>ckey(i)==k))ex.push(c);
+  else if(k0&&ids.some(i=>ckey0(i)==k0))cero.push(c);
+  else if(k.length>=2&&/\d/.test(k)&&ids.some(i=>ckey(i).startsWith(k)))pre.push(c);
+  else if(n.length>=3){const T=nrm([c.id,c.t,c.fab,c.claves].join(" "));if(n.split(/\s+/).every(w=>T.includes(w)))txt.push(c)}
+  else if(k.length>=2&&ids.some(i=>ckey(i).startsWith(k)))pre.push(c)});
+ /* sin la O→0 en el texto: «sirena», «potenciometro» */
+ return{L:ex.concat(cero,pre,txt).slice(0,12),avisa:ex.length?[]:cero}}
+window.compBuscaSOS=compBusca;
+/* componentes en que interviene una alarma: ficha con esa alarma, cotejo automático o texto de la alarma */
+function compDeAlarma(x){const out=new Map();const add=c=>{if(c)out.set(ckClave(c),c)};const cod=x.c;
+ COMPS().forEach(c=>{const fila=(c.esp||[]).find(r=>/^alarmas?\s*\/?\s*eventos/i.test(r[0]||""));
+  if(fila){if(new RegExp("(^|[^0-9R])"+cod+"([^0-9]|$)").test(String(fila[1]).toUpperCase()))add(c);return}
+  try{if(typeof compAlarmasDe=="function"&&compAlarmasDe({codigo:c.id,titulo:c.t,fab:c.fab,claves:c.claves,esp:c.esp}).some(a=>a.c==cod))add(c)}catch(e){}});
+ try{if(typeof compCampo=="function")compCampo(x.t+" "+(ALIAS[x.c]||"").replace(/\|/g," ")).forEach(add)}catch(e){}
+ return[...out.values()]}
+window.compDeAlarma=compDeAlarma;
+const itAl=x=>`<button type="button" class="rcsit rcs${x.f}" data-c="${x.c}">${FN[x.f][0]} <b>${x.c}</b> ${E(x.t)}</button>`;
+const todasAl=()=>[["A","🔴 Alarmas"],["W","🟡 Advertencias"],["R","🔵 Puesto remoto"]].map(([f,t])=>`<div class="rcslg">${t}</div>`+CAT.filter(x=>x.f==f).map(itAl).join("")).join("");
 function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const sel=sc.querySelector("#sr_a");if(!sel||sc.querySelector("#rcs_q"))return;
- const lab=sel.previousElementSibling;const d=document.createElement("div");d.className="rcsbus";
- d.innerHTML=`<div class="rcsbi"><input id="rcs_q" type="search" autocomplete="off" enterkeyhint="search" placeholder="🔎 Nº o texto de la alarma (manual RCS)"></div><div id="rcs_l"></div><div id="rcs_s"></div>`;
- (lab&&lab.tagName=="LABEL"?lab:sel).before(d);
- const q=d.querySelector("#rcs_q"),l=d.querySelector("#rcs_l"),s=d.querySelector("#rcs_s");
- q.addEventListener("input",()=>{const R=busca(q.value);l.innerHTML=R.map(x=>`<button type="button" class="rcsit rcs${x.f}" data-c="${x.c}">${FN[x.f][0]} <b>${x.c}</b> ${E(x.t)}</button>`).join("")});
- l.addEventListener("click",e=>{const b=e.target.closest(".rcsit");if(!b)return;const x=porCod(b.dataset.c);if(!x)return;
-  const t=sc.querySelector("#sr_t");if(t){const v=`${x.c} ${x.t}`;if(!nrm(t.value).includes(nrm(v)))t.value=[t.value.trim(),v].filter(Boolean).join(" · ");const dt=t.closest("details");if(dt)dt.open=true}
-  q.value="";l.innerHTML="";s.innerHTML=caja({x},true)})}
+ const lab=sel.previousElementSibling;const fila=sel.closest(".soscr2");
+ const d=document.createElement("div");d.className="rcsbus";
+ d.innerHTML=`<div class="rcsfil"><div class="rcsbi rcscmp"><input id="cmp_q" type="search" autocomplete="off" autocapitalize="characters" enterkeyhint="search" placeholder="🔩 Componente"></div>
+ <div class="rcsbi"><input id="rcs_q" type="search" autocomplete="off" enterkeyhint="search" placeholder="🔎 Nº o texto de la alarma (manual RCS)"></div></div>
+ <div id="cmp_l"></div><div id="rcs_l"></div><div id="rcs_s"></div>`;
+ if(fila)fila.before(d);else(lab&&lab.tagName=="LABEL"?lab:sel).before(d);
+ const q=d.querySelector("#rcs_q"),l=d.querySelector("#rcs_l"),s=d.querySelector("#rcs_s"),cq=d.querySelector("#cmp_q"),cl=d.querySelector("#cmp_l");
+ /* --- alarma: desplegable completo al tocar, filtrado al escribir --- */
+ const pinta=()=>{cl.innerHTML="";const v=q.value.trim();l.innerHTML=v?(busca(v).map(itAl).join("")||`<div class="rcsnada">Sin alarmas para «${E(v)}»</div>`):todasAl();l.classList.add("on");l.scrollTop=0};
+ q.addEventListener("focus",pinta);q.addEventListener("click",()=>{if(!l.classList.contains("on"))pinta()});q.addEventListener("input",pinta);
+ q.addEventListener("keyup",e=>{if(e.key=="Enter"){const R=busca(q.value);if(R.length==1)elige(R[0])}});
+ const elige=x=>{const t=sc.querySelector("#sr_t");if(t){const v=`${x.c} ${x.t}`;if(!nrm(t.value).includes(nrm(v)))t.value=[t.value.trim(),v].filter(Boolean).join(" · ");const dt=t.closest("details");if(dt)dt.open=true}
+  q.value="";q.blur();l.innerHTML="";l.classList.remove("on");
+  const C=compDeAlarma(x);
+  s.innerHTML=caja({x},true)+(C.length?`<div class="rcscf"><div class="rcscft">🔩 Componente de campo que falla</div>${C.map(c=>`<button type="button" class="rcscb" data-k="${E(ckClave(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</button>`).join("")}</div>`
+   :`<div class="rcscf rcsnada">🔩 Sin componente de campo asociado a la alarma ${E(x.c)} en el catálogo.</div>`);
+  s.querySelectorAll(".rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],x.c+" "+x.t)});
+  if(C.length&&typeof abreCompClaves=="function")abreCompClaves(C.map(ckClave),x.c+" "+x.t)};
+ l.addEventListener("click",e=>{const b=e.target.closest(".rcsit");if(!b)return;const x=porCod(b.dataset.c);if(x)elige(x)});
+ /* --- componente --- */
+ const abreC=c=>{cq.blur();cl.innerHTML="";if(typeof abreCompClaves=="function")abreCompClaves([ckClave(c)],"Componente "+c.id);else if(typeof abreCompTag=="function")abreCompTag(c.id)};
+ const pintaC=enter=>{if(document.activeElement===cq){l.innerHTML="";l.classList.remove("on")}const v=cq.value.trim();if(!v){cl.innerHTML="";return}
+  const {L,avisa}=compBusca(v);
+  if(enter&&L.length==1&&!avisa.length){abreC(L[0]);return}
+  cl.innerHTML=(avisa.length?`<div class="cmpav">⚠️ No hay «${E(v.toUpperCase())}». Falta un 0 delante: ¿es ${avisa.map(c=>`<b>${E(c.id)}</b>`).join(" o ")}?</div>`:"")+
+   (L.length?L.map(c=>`<button type="button" class="rcscb" data-k="${E(ckClave(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}${c.fab?`<small>${E(c.fab)}</small>`:""}</button>`).join("")
+   :`<div class="rcsnada">Sin componente «${E(v)}» en el catálogo${typeof nombreElemento=="function"&&nombreElemento(v.toUpperCase())?" ("+E(nombreElemento(v.toUpperCase()))+")":""}.</div>`);
+  cl.querySelectorAll(".rcscb").forEach(b=>b.onclick=()=>{const c=COMPS().find(z=>ckClave(z)==b.dataset.k);if(c)abreC(c)})};
+ let tc=0;cq.addEventListener("input",()=>{clearTimeout(tc);tc=setTimeout(()=>pintaC(false),200)});
+ cq.addEventListener("keyup",e=>{if(e.key=="Enter")pintaC(true)});cq.addEventListener("focus",()=>{l.innerHTML="";l.classList.remove("on")});
+ /* tocar fuera cierra el desplegable de alarmas */
+ sc.addEventListener("click",e=>{if(!e.target.closest(".rcsbus")){l.innerHTML="";l.classList.remove("on")}})}
 /* ---------- 3) Cierre CGA: código y tipo de cierre ---------- */
 const TC=[["rep","🔧 Avería reparada"],["rea","🔁 Rearme OFF → ON"],["ope","🟡 Operativa (no avería)"],["esp","🔵 Especialista / RCC"]];
 /* v504: el código se elige en dos pasos (familia → alarmas de la familia, por grupos y en orden ascendente, con buscador),
@@ -403,6 +459,15 @@ const st=document.createElement("style");st.textContent=`
 .rcsA .rcsf{color:#ff5252}.rcsW .rcsf{color:#fbc02d}.rcsR .rcsf{color:#42a5f5}
 .rcsg{font-size:12px;font-weight:700;margin-top:2px}.rcsq{font-size:13px;margin-top:4px}.rcsa{font-size:13px;margin-top:4px;font-weight:600}.rcsr{font-size:12px;margin-top:4px;color:var(--mu,#8a93a3)}
 .rcsbus{margin-top:8px}.rcsbi input{width:100%;box-sizing:border-box;margin:0}
+.rcsfil{display:flex;gap:6px}.rcsfil .rcscmp{flex:0 0 33%;min-width:0}.rcsfil .rcsbi:not(.rcscmp){flex:1;min-width:0}.rcsfil input{height:44px;font-size:15px;padding:6px 8px}.rcsfil .rcscmp input::placeholder{font-size:13px}
+#rcs_l.on{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border:1px solid var(--bd,#bbb);border-radius:8px;padding:4px}
+.rcslg{font:800 11px/1.4 var(--tkmo,monospace);letter-spacing:.7px;text-transform:uppercase;color:#1565c0;margin:6px 2px 2px}
+#cmp_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.rcscb{display:block;width:100%!important;margin:0 0 4px!important;padding:8px 9px!important;text-align:left;font-size:13.5px!important;line-height:1.3;border-left:5px solid #455a64!important;border-radius:6px!important}
+.rcscb small{display:block;font-size:11.5px;opacity:.75;font-weight:500}.rcscb .cmpid{display:inline-block;background:#455a64;color:#fff;border-radius:6px;padding:1px 7px;margin-right:4px;font-family:ui-monospace,monospace}
+.rcscf{margin-top:6px}.rcscft{font:800 12px/1.4 var(--tkmo,monospace);letter-spacing:.5px;color:#455a64;margin-bottom:4px}
+.cmpav{padding:7px 9px;border:1.5px solid #f9a825;background:#f9a8251a;border-radius:8px;font-size:13px;margin-bottom:4px}
+.rcsnada{font-size:12.5px;color:var(--mu,#7a8394);padding:4px 2px}
 #rcs_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}.rcsit{width:100%!important;margin:0!important;text-align:left;padding:7px 9px!important;font-size:13px!important;border-left:5px solid #888!important;border-radius:6px!important}
 .rcsit.rcsA{border-left-color:#d32f2f!important}.rcsit.rcsW{border-left-color:#f9a825!important}.rcsit.rcsR{border-left-color:#1e88e5!important}
 .rcscie{margin-top:8px;border:1.5px solid #1565c0;border-radius:10px;padding:6px 8px}.rcscg{display:grid;grid-template-columns:1.3fr 1fr;gap:6px}
