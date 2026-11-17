@@ -48,7 +48,8 @@ function abre(){
   capa.querySelector("#cn_l").addEventListener("toggle",e=>{const d=e.target;if(!d.classList||!d.classList.contains("cni"))return;d.open?abiertos.add(d.dataset.k):abiertos.delete(d.dataset.k);
   /* v560: al abrir una ficha cuyas fotos aún no han llegado, se piden ya */
   if(d.open){const c=L().find(x=>String(x.baseId||x.db||x.id)==d.dataset.k);if(c&&c._fp&&typeof compFotosAsegura=="function")compFotosAsegura(c).then(()=>{if(d.isConnected)lista()})}},true)}
- lista();capa.style.display="flex";document.documentElement.style.overflow="hidden";
+ /* v562: al abrir Componentes de campo, SIEMPRE todas las fichas plegadas (no recuerda las abiertas la vez anterior) */
+ abiertos.clear();lista();{const l=capa.querySelector("#cn_l");if(l)l.scrollTop=0}capa.style.display="flex";document.documentElement.style.overflow="hidden";
  try{history.pushState({comp:1},"")}catch(e){}}
 function cierra(desdeHist){if(!capa||capa.style.display=="none")return;capa.style.display="none";document.documentElement.style.overflow="";
  if(!desdeHist){try{if(history.state&&history.state.comp)history.back()}catch(e){}}}
