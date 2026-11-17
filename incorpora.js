@@ -138,6 +138,7 @@ window.compIA=async function(opt){opt=opt||{};const v=vals();const st=document.g
   const IH=idxHilos(/\b507\b/.test(v.donde+" "+v.claves));const prompt=`Fotos (en una sola imagen, de izquierda a derecha) de un componente de campo de una pasarela de embarque (PBB) TKE del aeropuerto de Madrid Barajas, para la guía de componentes de la app de mantenimiento.
 Dónde está montado (según el técnico): ${v.donde||"(no indicado)"}.
 Averías en que interviene (según el técnico): ${v.claves||"(no indicado)"}.
+${opt.objetivo&&!v.cod?`PASAR AL SIGUIENTE (OBLIGATORIO): describe y recorta SOLO el elemento nº ${opt.objetivo.i+1} de la foto${opt.objetivo.codigo?` (etiqueta «${opt.objetivo.codigo}»)`:""}${opt.objetivo.tipo?`, «${opt.objetivo.tipo}»`:""}, que está en la caja x ${Math.round(opt.objetivo.x0)}-${Math.round(opt.objetivo.x1)}, y ${Math.round(opt.objetivo.y0)}-${Math.round(opt.objetivo.y1)} milésimas. Aunque ya esté incorporado o su etiqueta no se lea entera, describe ESE y no otro (si no se lee el código, pon el más probable por tipo y posición o "SIN CÓDIGO"); elegido = ${opt.objetivo.i}.`:""}
 ${v.cod?`CÓDIGO INDICADO POR EL TÉCNICO: ${v.cod}. Es OBLIGATORIO: el componente es ${v.cod}; búscalo por su rótulo/etiqueta en la foto, recorta ESE (no otro aunque se vea mejor) y pon codigo="${v.cod}".`:""}
 CÓDIGOS DE ELEMENTOS DE LOS PLANOS (código=nombre): ${codigos()}
 
@@ -150,7 +151,7 @@ TAREA
 4d. BORNERO SIN ETIQUETA: si el componente es un bornero/regleta y NO se ve o NO se lee su portaetiquetas, identifícalo por los MANGUITOS (marcadores impresos en los cables que entran en sus bornas). Lee el texto de cada manguito de izquierda a derecha (número de hilo y, si lo lleva, color o «bornero:borna»), crúzalo con este ÍNDICE DE HILOS POR BORNERO (bornero: borna=hilo color, …) y elige el bornero con más coincidencias; delimita el grupo por las bornas cuyos hilos coinciden. Devuelve "manguitos" = lista de lo leído en cada manguito (en orden), "por_manguitos" = true, y en justificacion qué hilos coinciden y en qué bornas. No inventes manguitos que no se lean.
 ÍNDICE DE HILOS POR BORNERO: ${hilosTxt(IH)}
 BREVEDAD: responde con el JSON compacto: "esp" máx. 14 filas, "pin" máx. 12, "med" máx. 8 pasos, "elementos" máx. 12, textos cortos.
-4c. YA INCORPORADOS en Componentes de campo: ${yaCods.join(", ")||"(ninguno)"}.${hechosF.length?` De ESTA MISMA FOTO ya se han incorporado (no los vuelvas a elegir, aunque otro tenga el mismo código): ${hechosF.join("; ")}.`:""}${salta.length?` El técnico ha pedido PASAR AL SIGUIENTE: NO elijas ${salta.join(", ")}.`:""}${v.cod?"":" Si en la foto hay varios componentes, elige el PRIMERO (de izquierda a derecha y de arriba abajo) que NO esté ya incorporado; si todos lo están, elige el primero y dilo en justificacion."}
+4c. YA INCORPORADOS en Componentes de campo: ${yaCods.join(", ")||"(ninguno)"}.${hechosF.length?` De ESTA MISMA FOTO ya se han incorporado (no los vuelvas a elegir, aunque otro tenga el mismo código): ${hechosF.join("; ")}.`:""}${salta.length?` El técnico ha pedido PASAR AL SIGUIENTE: NO elijas ${salta.join(", ")}.`:""}${v.cod||opt.objetivo?"":" Si en la foto hay varios componentes, elige el PRIMERO (de izquierda a derecha y de arriba abajo) que NO esté ya incorporado; si todos lo están, elige el primero y dilo en justificacion."}
 7. ALARMAS, ADVERTENCIAS Y EVENTOS DEL PLC (pantalla Magelis / puesto remoto, manual RCS). Coteja el componente con este listado (código|texto) y devuelve en "alarmas" las que dispara, provoca o en las que interviene (máx. 8, SOLO códigos del listado, [] si ninguna), con "por" = motivo en pocas palabras:
 ${typeof compAlarmasListado=="function"?compAlarmasListado():""}
 6. ELEMENTOS DE LA FOTO: si se ven VARIOS componentes (de un bloque o sueltos), lístalos TODOS en "elementos", en orden de izquierda a derecha y de arriba abajo: {"codigo": el que se lee en su etiqueta o el código de plano más probable ("" si no se sabe), "tipo": qué es, "x0","y0","x1","y1": su caja en milésimas}. "elegido" = índice (desde 0) del componente que describes y recortas.
@@ -168,6 +169,12 @@ Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":
      if(!v.cod&&(!cod||/^SINC/.test(cod)||(cod!==mj&&M.mejor.n>=2))){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+txt+(cod&&cod!==mj&&!/^SINC/.test(cod)?" La IA proponía «"+PROP.codigo+"»: se toma "+M.mejor.t+" por los hilos.":"");PROP.codigo=M.mejor.t}
      else PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+txt}
     else PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"⚠️ Ningún hilo de los manguitos leídos ("+M.leidos.join(", ")+") está en los borneros de los planos: revisa el código."}}
+  /* v571: siguiente de la foto: se mantiene la lista y se fuerza el elemento elegido por la app */
+  if(opt.objetivo&&!v.cod){const o=opt.objetivo;if(Array.isArray(opt.lista)&&opt.lista.length)PROP.elementos=opt.lista;PROP.elegido=o.i;
+   const bx={x0:o.x0,y0:o.y0,x1:o.x1,y1:o.y1},ok=bx.x1>bx.x0&&bx.y1>bx.y0;const r=PROP.recorte||{};
+   const sal=(GRUPO?GRUPO.salta:[]),pc=partes(PROP.codigo),po=partes(o.codigo);
+   if(pc.length&&pc.some(c=>sal.includes(c))&&!po.some(c=>sal.includes(c))){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"(La IA volvía a dar «"+PROP.codigo+"»: se toma el elemento nº "+(o.i+1)+(o.codigo?" «"+o.codigo+"»":"")+".)";PROP.codigo=o.codigo||"SIN CÓDIGO";if(ok)PROP.recorte=bx}
+   else if(ok&&!(+r.x1>+r.x0&&+r.y1>+r.y0))PROP.recorte=bx}
   if(!PROP.claves&&v.claves)PROP.claves=v.claves;if(v.cod&&String(PROP.codigo||"").toUpperCase().replace(/^\+/,"")!==v.cod){PROP.justificacion=(PROP.justificacion?PROP.justificacion+" ":"")+"(Código indicado por el técnico: "+v.cod+"; la IA proponía «"+(PROP.codigo||"—")+"». Revisa que el recorte sea el de "+v.cod+".)";PROP.codigo=v.cod}const rc=await recorteIA(PROP,v);if(MAN.length)F.push(...MAN);pinta(v);
   const st2=document.getElementById("ic_st");if(st2)st2.innerHTML=`Leído con <b>${E(j.lector||"IA")}</b>. ${rc}Revisa y corrige antes de guardar.`;propHTML();grupoHTML()}
  catch(e){set(`<span style="color:#c62828">${E(String((e&&e.message)||e))}</span>`+(motor=="gemini"?` <button class="sec" style="width:auto;margin:6px 0 0" onclick="compIA({motor:'claude'})">✳️ Probar con Claude</button>`:""))}};
@@ -201,8 +208,19 @@ function grupoHTML(){const d=document.getElementById("ic_prop");if(!d||!PROP)ret
    return `<span class="icg-${s}${cuenta[nCod(x.codigo)]>1?" icg-rep":""}">${i+1}. ${E(c)}${x.tipo?` <small>${E(x.tipo)}</small>`:""} · ${s=="este"?"ESTE":s=="ya"?"✓ ya incorporado":"pendiente"}</span>`}).join("")}</div>
    ${pend.length?`<div class="mu" style="font-size:11.5px;margin-top:4px">Al guardar este, la app te ofrece seguir con el siguiente usando la misma foto.</div>`:""}</div>`}
  let g=document.getElementById("ic_grp");if(!g){g=document.createElement("div");g.id="ic_grp";d.prepend(g)}g.innerHTML=h}
-window.compSalta=function(){if(!PROP)return;if(GRUPO)GRUPO.salta=[...new Set(GRUPO.salta.concat(partes(PROP.codigo)))];
- F=F.filter(f=>!f.ubi);F.forEach(f=>{if(f.cut&&f.o===(GRUPO&&GRUPO.o)){f.src=f.o;f.cut=false;f.caja=null}});repinta();compIA({motor:MOTOR||"claude"})};
+/* v571: «Pasar al siguiente de la foto» elige en la app el SIGUIENTE elemento de la lista (pendientes primero, luego el resto)
+   y obliga a la IA a describir y recortar ESE por su caja; antes se dejaba elegir a la IA, que volvía a dar el mismo. */
+window.compSalta=function(){if(!PROP)return;
+ const L=(Array.isArray(PROP.elementos)?PROP.elementos:[]).filter(x=>x&&(x.codigo||x.tipo));const el=+PROP.elegido||0;const n=L.length;
+ if(n<2){msg("En esta foto no hay más componentes");return}
+ if(GRUPO){GRUPO.salta=[...new Set(GRUPO.salta.concat(partes(PROP.codigo)))];GRUPO.lista=L;GRUPO.vistos=[...new Set((GRUPO.vistos||[]).concat([el]))]}
+ const vis=i=>GRUPO&&GRUPO.vistos.includes(i);const pend=quedan();let k=-1;
+ for(let s=1;s<n&&k<0;s++){const i=(el+s)%n;if(pend.includes(L[i])&&!vis(i))k=i}
+ for(let s=1;s<n&&k<0;s++){const i=(el+s)%n;if(!vis(i))k=i}
+ if(k<0){if(GRUPO)GRUPO.vistos=[el];k=(el+1)%n}
+ F=F.filter(f=>!f.ubi);F.forEach(f=>{if(f.cut&&f.o===(GRUPO&&GRUPO.o)){f.src=f.o;f.cut=false;f.caja=null}});
+ PROP=null;const d=document.getElementById("ic_prop");if(d)d.innerHTML="";repinta();
+ const x=L[k];compIA({motor:MOTOR||"claude",objetivo:{i:k,codigo:x.codigo||"",tipo:x.tipo||"",x0:+x.x0||0,y0:+x.y0||0,x1:+x.x1||0,y1:+x.y1||0},lista:L})};
 function quedan(){if(!PROP)return[];const L=(Array.isArray(PROP.elementos)?PROP.elementos:[]).filter(x=>x&&(x.codigo||x.tipo));const el=+PROP.elegido||0;
  const visto={};return L.filter((x,i)=>{if(i===el)return false;const k=partes(x.codigo).join("/");if(!k)return true;visto[k]=(visto[k]||0)+1;
   const enFoto=L.filter(y=>partes(y.codigo).join("/")===k).length;return nCat(x.codigo)<enFoto&&visto[k]<=enFoto-nCat(x.codigo)})}
