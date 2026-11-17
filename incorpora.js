@@ -118,6 +118,7 @@ const partes=c=>String(c||"").split(/\s*[\/,]\s*/).map(nCod).filter(x=>x&&!/^SIN
 const yaSet=()=>{const S=new Set();C().forEach(c=>partes(c.id).forEach(x=>S.add(x)));return S};
 const nCat=c=>{const p=partes(c);return p.length?C().filter(x=>partes(x.id).some(y=>p.includes(y))).length:0};
 const esYa=c=>{const S=yaSet();const p=partes(c);return p.length>0&&p.every(x=>S.has(x))};
+window.compPideMotor=()=>pideMotor();
 function pideMotor(){return new Promise(res=>{const o=document.createElement("div");o.id="icMotor";
  o.style.cssText="position:fixed;inset:0;z-index:100005;background:#0009;display:flex;align-items:center;justify-content:center;padding:18px";
  o.innerHTML=`<div style="background:var(--card,#fff);color:var(--ink,#111);border-radius:14px;padding:16px;max-width:420px;width:100%;box-shadow:0 10px 30px #0008">
