@@ -11,7 +11,10 @@
 "use strict";
 const E=s=>typeof esc=="function"?esc(s):String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const nrm=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
-const L=()=>window.COMP_CAMPO||[];
+/* v570: listado SIEMPRE en orden alfabético por código (orden natural: E-Q2 antes que E-Q10), y a igual código por nombre */
+const ordAlf=(a,b)=>String(a.id||"").localeCompare(String(b.id||""),"es",{numeric:true,sensitivity:"base"})||String(a.t||"").localeCompare(String(b.t||""),"es",{numeric:true,sensitivity:"base"});
+window.compOrdenAlf=ordAlf;
+const L=()=>(window.COMP_CAMPO||[]).slice().sort(ordAlf);
 const ZONAS={E:"Armario eléctrico",P:"Pupitre",C:"Cabina",ET:"Túnel",A:"Túnel",R:"Rotonda",T:"Traslación",H:"Hidráulica",B:"Brazo"};
 const zona=c=>{const m=String(c.id||"").toUpperCase().match(/\b([A-Z]{1,3})-/);return m?(ZONAS[m[1]]||"Otros"):"Otros"};
 const texto=c=>nrm([c.id,c.t,c.fab,c.claves,(c.esp||[]).map(r=>r.join(" ")).join(" "),c.av].join(" "));
@@ -23,7 +26,7 @@ const repuesto=c=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
 let capa=null,zSel="",abiertos=new Set(),solo=null;/* v563: solo = {k:Set de claves, t:rótulo} → lista acotada a los componentes de una alarma */
 function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).value||"").trim();
  const ws=q.split(/\s+/).filter(Boolean);
- const todos=L(),zs=[...new Set(todos.map(zona))];
+ const todos=L(),zs=[...new Set(todos.map(zona))].sort((a,b)=>(a=="Otros")-(b=="Otros")||a.localeCompare(b,"es"));/* v570: zonas en orden alfabético, «Otros» al final */
  const F=todos.filter(c=>(!solo||solo.k.has(String(c.baseId||c.db||c.id)))&&(!zSel||zona(c)==zSel)&&(!ws.length||ws.every(w=>texto(c).includes(w))));
  capa.querySelector("#cn_z").innerHTML=[["","Todos"]].concat(zs.map(z=>[z,z])).map(([v,t])=>`<button type="button" class="cnch${zSel==v?" on":""}" data-z="${E(v)}">${E(t)} <small>${v?todos.filter(c=>zona(c)==v).length:todos.length}</small></button>`).join("");
  const el=capa.querySelector("#cn_l");

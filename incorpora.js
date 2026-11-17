@@ -57,7 +57,7 @@ function cajaFoto(b){if(!GEO||!b)return null;const n=v=>{v=+v;return isFinite(v)
  const mx=(c.x1-c.x0)*.04,my=(c.y1-c.y0)*.04;c={x0:Math.max(0,c.x0-mx),x1:Math.min(1,c.x1+mx),y0:Math.max(0,c.y0-my),y1:Math.min(1,c.y1+my)};
  if(c.x1-c.x0<.03||c.y1-c.y0<.03)return null;return{i,c}}
 /* ---------- catálogo ---------- */
-window.compCatalogo=function(q){q=q||"";const t=nrm(q);const L=C().filter(c=>!t||nrm([c.id,c.t,c.fab,c.claves].join(" ")).includes(t));
+window.compCatalogo=function(q){q=q||"";const t=nrm(q);const L=C().filter(c=>!t||nrm([c.id,c.t,c.fab,c.claves].join(" ")).includes(t)).sort(typeof compOrdenAlf=="function"?compOrdenAlf:(a,b)=>String(a.id||"").localeCompare(String(b.id||""),"es",{numeric:true}));/* v570: orden alfabético */
  $("#sheetc").innerHTML=`<div class="icpw"><div class="icpfix"><div class="icph"><h3 style="margin:0">🔩 Componentes de campo</h3><button class="sec" onclick="closeSheet()" style="width:auto;margin:0">✕</button></div>
  ${(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin)?`<button class="pri" style="margin:8px 0 2px" onclick="compIncorpora()">➕ Incorporar componente (foto)</button>`:""}
  <div class="icpb"><input id="icp_q" type="search" placeholder="Buscar código, nombre o modelo" value="${E(q)}" onkeyup="if(event.key=='Enter')compCatalogo(this.value)"><button class="sec" onclick="compCatalogo(document.getElementById('icp_q').value)" style="width:auto;margin:0">🔍</button></div></div>
