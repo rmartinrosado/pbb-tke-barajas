@@ -114,7 +114,7 @@ Da su caja ajustada al cuerpo del componente en MILÉSIMAS (0-1000) de la imagen
 Responde SOLO con JSON: {"encontrado":true,"caja":{"x0":0,"y0":0,"x1":0,"y1":0},"bloque":"","posicion":"","total":0,"justificacion":""}`;
  const rs=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({img,tipo:"image/jpeg",prompt,motor})});
  const j=await rs.json().catch(()=>({}));if(!rs.ok)throw new Error(j.mensaje||j.error||("error "+rs.status));
- const m=String(j.txt||"").match(/\{[\s\S]*\}/);if(!m)throw new Error("La IA no devolvió datos");const P=JSON.parse(m[0]);
+ const P=jsonIA(j.txt);
  if(P.encontrado===false||!P.caja)throw new Error("La IA no encuentra "+(cod||"el componente")+" en esta foto"+(P.justificacion?": "+P.justificacion:""));
  const n=v=>{v=+v;return isFinite(v)?(v>1.5?v/1000:v):NaN};let c={x0:n(P.caja.x0),y0:n(P.caja.y0),x1:n(P.caja.x1),y1:n(P.caja.y1)};
  if(![c.x0,c.y0,c.x1,c.y1].every(isFinite))throw new Error("Caja no válida");
