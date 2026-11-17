@@ -66,10 +66,11 @@ function pinta(){if(!capa||!ED)return;const p=ED;const sc=(capa.querySelector(".
    <input list="ced_vis" data-f="vista" data-i="${i}" value="${E(f.vista)}" placeholder="Vista">
    <div class="cedfb">${/^ubicaci/i.test(f.vista||"")?`<button type="button" class="sec" title="Marcar la ubicación (recuadro naranja)" onclick="compEdUbi(${i})">📍</button>`:`<button type="button" class="sec" title="Recortar" onclick="compEdRec(${i})">✂️</button><button type="button" class="sec" title="Usar como foto de ubicación: la IA localiza el componente y lo marca en naranja" onclick="compEdUbiIA(${i})">📍</button>`}<label class="sec" title="Sustituir">🔄<input type="file" accept="image/*" hidden onchange="compEdFoto(this,${i})"></label>${i?`<button type="button" class="sec" title="Poner la primera" onclick="compEdOp('foto^',${i})">⭐</button>`:""}<button type="button" class="sec" title="Quitar" onclick="compEdOp('foto-',${i})">🗑</button></div></figure>`).join("")}
   <label class="cedadd">📷<span>Añadir foto</span><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-1)"></label></div>
- <label>Código (de los planos)</label><input data-f="codigo" value="${E(p.codigo)}">
- <label>Título</label><input data-f="titulo" value="${E(p.titulo)}">
- <label>Fabricante · modelo · referencia</label><input data-f="fab" value="${E(p.fab)}" placeholder="Ej. Schneider · ref. …">
- <label>Averías en que interviene (palabras del aviso, separadas por comas)</label><input data-f="claves" value="${E(p.claves)}"${cur.raw?"":` placeholder="Opcional: se suman a las de fábrica"`}>
+ <label>Código (de los planos)</label><textarea class="tx1" rows="1" data-f="codigo">${E(p.codigo)}</textarea>
+ <label>Título</label><textarea class="tx1" rows="1" data-f="titulo">${E(p.titulo)}</textarea>
+ <label>Fabricante · modelo · referencia</label><textarea class="tx1" rows="1" data-f="fab" placeholder="Ej. Schneider · ref. …">${E(p.fab)}</textarea>
+ <label>Averías en que interviene (palabras del aviso, separadas por comas)</label><textarea class="tx1" rows="1" data-f="claves"${cur.raw?"":` placeholder="Opcional: se suman a las de fábrica"`}>${E(p.claves)}</textarea>
+ <button type="button" class="sec" style="margin:6px 0 0" onclick="compEdAlarmas()">🚨 Cotejar con alarmas y eventos del PLC</button>${typeof compAlarmasHTML=="function"?compAlarmasHTML(typeof compAlarmasDe=="function"?compAlarmasDe(p):[],"Alarmas / eventos del PLC relacionados (cotejo)"):""}
  <div class="cedst">Especificaciones</div>${p.esp.map(filaEsp).join("")}<button type="button" class="sec cedmas" onclick="compEdOp('esp+')">➕ Añadir especificación</button>
  <div class="cedst">Conexionado</div>${p.pin.map(filaPin).join("")}<button type="button" class="sec cedmas" onclick="compEdOp('pin+')">➕ Añadir pin</button>
  <div class="cedst">Medir en campo</div>${p.med.map(filaMed).join("")}<button type="button" class="sec cedmas" onclick="compEdOp('med+')">➕ Añadir paso</button>
@@ -131,6 +132,10 @@ window.compEdUbiIA=async function(i){const f=ED&&ED.fotos[i];if(!f)return;
  catch(e){msg(String((e&&e.message)||e))}finally{ov.remove()}};
 function espera(t){const ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;z-index:100006;background:#0008;display:flex;align-items:center;justify-content:center;color:#fff;font:700 16px system-ui;text-align:center;padding:20px";ov.textContent="⏳ "+t;document.body.appendChild(ov);return ov}
 window.compEspera=espera;
+/* v557: cotejo con el listado de alarmas / eventos del PLC → fila «Alarmas / eventos PLC» y «alarma NNN» en las averías */
+window.compEdAlarmas=function(){if(!ED||typeof compAlarmasDe!="function")return;const L=compAlarmasDe(ED);
+ if(!L.length){msg("No hay alarmas ni eventos del PLC relacionados con este componente");return}
+ const r=compAlarmasEnFicha(ED.esp,ED.claves,L);ED.esp=r.esp;ED.claves=r.claves;sucio=true;pinta();msg("🚨 "+L.length+" alarmas / eventos añadidos a la ficha. Pulsa GUARDAR")};
 window.compEdRec=async function(i){if(!ED||!ED.fotos[i]||typeof compRecorta!="function")return;const r=await compRecorta(ED.fotos[i].src);if(!r)return;ED.fotos[i].src=r.src;sucio=true;pinta()};
 const conRec=async src=>{if(typeof compRecorta!="function")return src;const r=await compRecorta(src);return r?r.src:src};
 window.compEdFoto=async function(inp,i){const fs=[...(inp.files||[])];inp.value="";if(!fs.length||!ED)return;sucio=true;
