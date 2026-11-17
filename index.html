@@ -4084,7 +4084,10 @@ function abrirSegOT(id){try{bqOT=""}catch(e){}if(typeof segPl!="undefined")segPl
 <button type="button" class="srobdel" aria-label="Borrar lo escrito" title="Borrar lo escrito" onclick="sosObLimpia()">${PAP}</button></div>
 <div class="srobrow"><button type="button" class="sec srobok" onclick="sosObClaude()"><span><b>ACEPTAR</b></span><img class="srobwm" src="claude-wordmark-sos.png" alt="Claude"></button><button type="button" class="sec srobrst" aria-label="Borrar el PDF y reiniciar el SOS" title="Borrar el PDF y reiniciar el SOS" onclick="sosReinicia()">${PAP}</button></div>`);
   return r};
- window.sosObLimpia=function(){const t=document.getElementById("sr_ob");if(!t)return;t.value="";t.focus()};
+ /* v565: la papelera de «Avería en campo» deja el SOS vacío (borra también alarma, foto y resultados), como al abrirlo */
+ window.sosObLimpia=function(){const t=document.getElementById("sr_ob");if(!t)return;
+  if(typeof window.sosReinicia=="function"){window.sosReinicia();const c=document.getElementById("sheetc");if(c)c.scrollTop=0;return}
+  t.value="";t.focus()};
  window.sosObClaude=function(){const t=document.getElementById("sr_ob"),ob=(t&&t.value.trim())||"";
   if(!ob){msg("Escribe en Observaciones lo que has detectado");if(t)t.focus();return}
   const pos=(($("#sr_p")||{}).value||"").trim(),sa=$("#sr_a"),al=sa&&sa.value?sa.options[sa.selectedIndex].text:"",am=(($("#sr_t")||{}).value||"").trim();
