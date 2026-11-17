@@ -6,7 +6,7 @@
    · compMarcaCaja(src, caja) → Promise<dataURL>: foto de UBICACIÓN del bloque con el elemento enmarcado en naranja. ===== */
 (function(){
 "use strict";
-const carga=src=>new Promise((ok,ko)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>ko(new Error("No se pudo abrir la foto"));im.src=src});
+const carga=src=>new Promise((ok,ko)=>{const im=new Image();if(/^https?:/.test(src))im.crossOrigin="anonymous";im.onload=()=>ok(im);im.onerror=()=>ko(new Error("No se pudo abrir la foto"));im.src=src});
 const lim=c=>{let {x0,y0,x1,y1}=c;x0=Math.max(0,Math.min(1,x0));x1=Math.max(0,Math.min(1,x1));y0=Math.max(0,Math.min(1,y0));y1=Math.max(0,Math.min(1,y1));
  if(x1<x0)[x0,x1]=[x1,x0];if(y1<y0)[y0,y1]=[y1,y0];return{x0,y0,x1,y1}};
 window.compCortaCaja=async function(src,caja,max){const im=await carga(src);const c=lim(caja);const W=im.naturalWidth,H=im.naturalHeight;

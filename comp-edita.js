@@ -150,7 +150,7 @@ window.compEdGuarda=async function(){if(!ED||!cur)return;const p=ED;const b=capa
   esp:limpia(p.esp),pin:limpia(p.pin),med:p.med.map(x=>String(x).trim()).filter(Boolean),av:p.av.trim(),
   fotos:p.fotos.map(f=>Object.assign({src:f.src,vista:(f.vista||"").trim()||"Vista"},f.o&&f.caja?{o:f.o,caja:f.caja}:{})),stock:p.stock};
  if(!cur.raw&&!cur.db)row.base=cur.id;
- try{let r;
+ try{let r;if(typeof compSubeFotos=="function")row.fotos=await compSubeFotos(row.fotos);
   if(cur.db){r=await sb.from("componentes_campo").update(row).eq("id",cur.db).select().single()}
   else{row.creado_por=(typeof user!="undefined"&&user&&user.email)||"";r=await sb.from("componentes_campo").insert(row).select().single()}
   if(r.error)throw r.error;if(!r.data)throw new Error("Sin permiso para guardar");

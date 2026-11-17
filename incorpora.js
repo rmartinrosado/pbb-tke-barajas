@@ -36,7 +36,7 @@ function aComp(r){if(Array.isArray(r.fotos))FC[r.id]=r.fotos;const fs=Array.isAr
    en su MISMO sitio (conserva su reconocimiento de avisos) y se puede restaurar. */
 const BASE=C().slice();window.COMP_BASE=BASE;
 function sobre(b,r){const n=aComp(r);if(n._fp){n.fotos=b.fotos;}const rb=b.re,rn=n.re;return Object.assign({},b,n,{baseId:b.id,pint:b.pint,re:t=>{try{if(rb(t))return true}catch(e){}return rn(t)}})}
-async function carga(){try{const {data,error}=await sb.from("componentes_campo").select("id,codigo,titulo,fab,claves,esp,pin,med,av,stock,creado_por,creado,base").order("creado",{ascending:true});if(error||!data){console.warn("componentes_campo:",error);return}
+async function carga(){try{const {data,error}=await sb.from("componentes_campo").select("id,codigo,titulo,fab,claves,esp,pin,med,av,stock,creado_por,creado,base,fotos") /* v561: fotos en el almacén → solo direcciones (≈45 kB) */.order("creado",{ascending:true});if(error||!data){console.warn("componentes_campo:",error);return}
  const L=C();L.length=BASE.length;BASE.forEach((b,i)=>L[i]=b);
  data.forEach(r=>{const i=r.base?BASE.findIndex(b=>b.id==r.base):-1;if(i>=0)L[i]=sobre(BASE[i],r);else L.push(aComp(r))});
  if(typeof compNavLista=="function")compNavLista();setTimeout(fondo,300)}catch(e){console.warn("componentes_campo:",e)}}
@@ -227,7 +227,8 @@ window.compGuarda=async function(){const g=id=>(document.getElementById(id)||{})
   fotos:F.map(f=>f.ubi&&f.o&&f.caja?{src:f.src,vista:f.vista,o:f.o,caja:f.caja}:{src:f.src,vista:f.vista}),stock:{ref:g("ip_ref"),sust:g("ip_sus"),ubi:g("ip_ubi"),uds:g("ip_uds")},creado_por:(user&&user.email)||""};
  if(!row.claves){msg("Indica en qué averías interviene, para asociarlo a las OT");return}
  if(esYa(row.codigo)&&!confirm("⚠️ "+row.codigo+" ya está incorporado en Componentes de campo.\n\n¿Guardar otra ficha igualmente? (Cancelar para no duplicarlo)"))return;
- try{const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");
+ try{if(typeof compSubeFotos=="function")row.fotos=await compSubeFotos(row.fotos);
+  const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");
   if(GRUPO){const r=(PROP&&PROP.recorte)||{};GRUPO.hechos.push({codigo:row.codigo,x0:+r.x0||0,x1:+r.x1||0,y0:+r.y0||0,y1:+r.y1||0})}const q=quedan();
   if(q.length&&GRUPO&&confirm("📦 En esta misma foto quedan "+q.length+" componente(s) por incorporar: "+q.map(x=>x.codigo||x.tipo||"¿?").join(", ")+".\n\n¿Incorporar el siguiente con la misma foto?")){compSiguiente();return}
   GRUPO=null;compCatalogo(row.codigo)}
