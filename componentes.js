@@ -119,11 +119,14 @@ const COMP=[
   med:["Con tensión y la maneta en ON: 230 VAC entre las dos bornas de ENTRADA (arriba) y entre las dos de SALIDA (abajo). Entrada sí y salida no → magnetotérmico averiado (contactos).", "Disparado: NO rearmar a ciegas. Con la maneta en OFF medir aislamiento de la salida a tierra y entre polos (circuito alimentación auxiliar de variadores / retorno autónomo). Corto o derivación → localizarla antes de rearmar.", "Si dispara al rearmar sin carga (salida suelta) → magnetotérmico averiado: sustituir por otro de la MISMA curva y calibre.", "El retorno autónomo debe funcionar en todas las PBB: comprobar E-Q26 en ON y el estado de E-K26 (P-A5 mód. 2 LED 3)."],
   av:"Es el único de la fila con curva D: AL SUSTITUIR poner C60N 2P D16 (curva D, 16 A). Una curva C dispararía en el arranque."}
 ];
+/* v582: ficha con VARIOS CÓDIGOS (p. ej. «R-B1 / R-B3»): cada foto es de un elemento distinto, así que el rótulo
+   de las fotos (salvo las de ubicación) es solo «Vista componente», sin código ni vista concreta */
+window.compVariosCod=id=>String(id||"").split(/\s*(?:\/|,|\+|\by\b)\s*/).filter(x=>/[a-z]-?[a-z]?\d/i.test(x)).length>1;
 window.COMP_CAMPO=COMP; /* v470: «Incorporar» añade aquí los componentes guardados en Supabase */
 const casa=t=>{t=nrm(t);return COMP.filter(c=>{try{return c.re(t)}catch(e){return false}})};
 window.compCampo=casa;
 const ficha=c=>`<div class="cmpf"><div class="cmpt"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</div><div class="cmpm">${E(c.fab)}</div>
- ${c._fp?`<div class="mu" style="padding:10px;text-align:center;font-size:13px">⏳ Cargando las fotos…</div>`:""}<div class="cmpfs" style="grid-template-columns:repeat(${c.fotos.length},minmax(0,1fr))">${c.fotos.map(([src,v])=>`<figure class="cmpfo" onclick="compVer('${src}',${E(JSON.stringify(c.fotos.map(f=>f[0])))})"><img src="${src}" alt="${E(c.id+" · "+v)}" loading="lazy"><figcaption><b>${E(c.id)}</b> · ${E(v)}</figcaption></figure>`).join("")}</div>
+ ${c._fp?`<div class="mu" style="padding:10px;text-align:center;font-size:13px">⏳ Cargando las fotos…</div>`:""}<div class="cmpfs" style="grid-template-columns:repeat(${c.fotos.length},minmax(0,1fr))">${c.fotos.map(([src,v])=>`<figure class="cmpfo" onclick="compVer('${src}',${E(JSON.stringify(c.fotos.map(f=>f[0])))})"><img src="${src}" alt="${E(c.id+" · "+v)}" loading="lazy"><figcaption>${window.compVariosCod&&compVariosCod(c.id)&&!/^ubicaci/i.test(v||"")?"Vista componente":`<b>${E(c.id)}</b> · ${E(v)}`}</figcaption></figure>`).join("")}</div>
  ${(()=>{/* v557: alarmas / eventos del PLC del componente (guardadas en la ficha o, si no, cotejo automático) */
    if(typeof compAlarmasDe!="function")return"";const fila=(c.esp||[]).find(r=>/^alarmas?\s*\/?\s*eventos/i.test(r[0]||""));
    const L=fila?String(fila[1]).split(/\s*·\s*/).map(x=>{const m=/^([0-9R]\d{0,3})\s+(.*)$/.exec(x.trim());return m?{c:m[1],t:m[2]}:null}).filter(Boolean):compAlarmasDe({codigo:c.id,titulo:c.t,fab:c.fab,claves:c.claves,esp:c.esp});

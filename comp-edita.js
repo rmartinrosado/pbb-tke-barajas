@@ -15,7 +15,7 @@ const puede=()=>{try{return (typeof tecnico!="undefined"&&!!tecnico)||(typeof ad
 const msg=t=>{const d=document.createElement("div");d.textContent=t;d.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(80px + env(safe-area-inset-bottom,0px));background:#111;color:#fff;padding:12px;border-radius:8px;z-index:100001;text-align:center;font-weight:600";document.body.appendChild(d);setTimeout(()=>d.remove(),2800)};
 const esAdmin=()=>{try{return (typeof admin!="undefined"&&!!admin)||(typeof rol!="undefined"&&/admin/i.test(rol))}catch(e){return false}};
 const K={};const key=c=>String(c.baseId||c.db||c.id);
-const VISTAS=["Vista frontal · placa","Vista lateral","Vista superior","Vista trasera","Vista conector","Ubicación","Ubicación · AE (armario eléctrico)","Ubicación · Armario de pupitre"];
+const VISTAS=["Vista frontal · placa","Vista lateral","Vista superior","Vista trasera","Vista conector","Vista componente","Ubicación","Ubicación · AE (armario eléctrico)","Ubicación · Armario de pupitre"];
 /* ===== v569: la foto de UBICACIÓN dice en qué ARMARIO está (según la PBB el componente puede ir en el AE o en el
    armario de pupitre): al añadirla se elige AE / Armario de pupitre / otro y, opcional, en qué PBB. ===== */
 const ARMS=[["⚡","AE (armario eléctrico)"],["🎛","Armario de pupitre"]];
@@ -44,8 +44,8 @@ window.compPideArmario=function(){return new Promise(ok=>{const ov=document.crea
 const base=window.compFicha;
 if(typeof base=="function")window.compFicha=function(c){const h=base(c);if(!c)return h;const k=key(c);K[k]=c;
  const bar=puede()?`<div class="cedb"><button type="button" class="sec" onclick="event.stopPropagation();compEdita('${E(k).replace(/'/g,"\\'")}')">✏️ Editar ficha</button><label class="sec" onclick="event.stopPropagation()">📷 Foto nueva<input type="file" accept="image/*" hidden onchange="compFotoNueva('${E(k).replace(/'/g,"\\'")}',this)"></label></div>`:"";
- let n=0;const hx=puede()?h.replace(/(<figure class="cmpfo"[^>]*>)/g,m=>m+`<button type="button" class="cfx" data-fi="${n++}" aria-label="Quitar esta foto" title="Quitar esta foto" onclick="event.stopPropagation();compFichaX(this)">✕</button>`):h;
- return hx.replace('<div class="cmpf">',`<div class="cmpf" data-ck="${E(k)}">${bar}`)};
+ /* v582: la ✕ de cada foto ya no se ve en la ficha: aparece al pulsar «✏️ Editar ficha» y desaparece al guardar */
+ return h.replace('<div class="cmpf">',`<div class="cmpf" data-ck="${E(k)}">${bar}`)};
 
 /* ===== v581: ✕ en la esquina de cada foto de DETALLES DE CAMPO (18/11/2026) =====
    Tocar la ✕ quita la foto de la vista (sin borrar aún); aparece una barra «N foto(s) quitada(s) · ↩️ Deshacer · 💾 Guardar».
@@ -78,7 +78,7 @@ async function foto(f){const im=await window.compLeeImg(f);const cv=window.compA
 window.compEdita=function(k,nuevas){const c=K[k]||(window.COMP_CAMPO||[]).find(x=>key(x)==k);if(!c){msg("Ficha no encontrada");return}
  if(c._fp&&typeof compFotosAsegura=="function"){msg("⏳ Cargando las fotos de la ficha…");compFotosAsegura(c).then(()=>{c._fp=false;window.compEdita(k,nuevas)});return} /* v560: nunca editar sin sus fotos */
  if(!puede()){msg("Solo técnicos y administrador pueden editar");return}
- cur=c;ED=desde(c);sucio=!!nuevas;if(nuevas)nuevas.forEach(src=>ED.fotos.unshift({src,vista:VISTAS[0]}));abre();pinta()};
+ cur=c;ED=desde(c);sucio=!!nuevas;if(nuevas)nuevas.forEach(src=>ED.fotos.unshift({src,vista:window.compVariosCod&&compVariosCod(ED.codigo)?"Vista componente":VISTAS[0]}));abre();pinta()};
 window.compFotoNueva=async function(k,inp){const fs=[...(inp.files||[])];inp.value="";if(!fs.length)return;
  try{const src=await conRec(await foto(fs[0]));compEdita(k,[src]);msg("Foto añadida: revisa la vista y pulsa Guardar")}catch(e){msg(String(e.message||e))}};
 
@@ -106,9 +106,9 @@ function pinta(){if(!capa||!ED)return;const p=ED;const sc=(capa.querySelector(".
  capa.innerHTML=`<div class="cedfix"><button type="button" class="sec cedb0" aria-label="Volver" onclick="compEditaCierra()">←</button><div class="cedti"><b>✏️ Editar ficha</b><small>${E(cur.id)}${cur.raw?"":" · ficha de fábrica"}</small></div><button type="button" class="pri cedg" onclick="compEdGuarda()">💾 Guardar</button></div>
  <div class="cedl">${dl}
  <div class="cedst">Fotos</div>
- <div class="cedst" style="margin-top:-4px;font-weight:500;text-transform:none;letter-spacing:0;font-size:11.5px;opacity:.75">Toca para ampliar · mantén y arrastra para cambiar de sitio (la 1.ª es la principal)</div><div class="cedfs" data-fg="ced">${p.fotos.map((f,i)=>`<figure data-fi="${i}"><img src="${E(f.src)}" alt="">${i==0?'<span class="cedp">Principal</span>':""}
+ <div class="cedst" style="margin-top:-4px;font-weight:500;text-transform:none;letter-spacing:0;font-size:11.5px;opacity:.75">Toca para ampliar · mantén y arrastra para cambiar de sitio (la 1.ª es la principal)</div><div class="cedfs" data-fg="ced">${p.fotos.map((f,i)=>`<figure data-fi="${i}"><img src="${E(f.src)}" alt=""><button type="button" class="cfx" aria-label="Quitar esta foto" title="Quitar esta foto (se borra al Guardar)" onclick="event.stopPropagation();compEdOp('fotoX',${i})">✕</button>${i==0?'<span class="cedp">Principal</span>':""}
    <input list="ced_vis" data-f="vista" data-i="${i}" value="${E(f.vista)}" placeholder="Vista">
-   <div class="cedfb">${/^ubicaci/i.test(f.vista||"")?`<button type="button" class="sec" title="Marcar la ubicación (recuadro naranja)" onclick="compEdUbi(${i})">📍</button>`:`<button type="button" class="sec" title="Recortar" onclick="compEdRec(${i})">✂️</button><button type="button" class="sec" title="Usar como foto de ubicación: la IA localiza el componente y lo marca en naranja" onclick="compEdUbiIA(${i})">📍</button>`}<label class="sec" title="Sustituir">🔄<input type="file" accept="image/*" hidden onchange="compEdFoto(this,${i})"></label>${i?`<button type="button" class="sec" title="Poner la primera" onclick="compEdOp('foto^',${i})">⭐</button>`:""}<button type="button" class="sec" title="Quitar" onclick="compEdOp('foto-',${i})">🗑</button></div></figure>`).join("")}
+   <div class="cedfb">${/^ubicaci/i.test(f.vista||"")?`<button type="button" class="sec" title="Marcar la ubicación (recuadro naranja)" onclick="compEdUbi(${i})">📍</button>`:`<button type="button" class="sec" title="Recortar" onclick="compEdRec(${i})">✂️</button><button type="button" class="sec" title="Usar como foto de ubicación: la IA localiza el componente y lo marca en naranja" onclick="compEdUbiIA(${i})">📍</button>`}<label class="sec" title="Sustituir">🔄<input type="file" accept="image/*" hidden onchange="compEdFoto(this,${i})"></label>${i?`<button type="button" class="sec" title="Poner la primera" onclick="compEdOp('foto^',${i})">⭐</button>`:""}</div></figure>`).join("")}
   <label class="cedadd">📷<span>Añadir foto</span><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-1)"></label><label class="cedadd cedubi">📍<span>Añadir foto de ubicación</span><small>AE · Armario de pupitre</small><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-2)"></label></div>
  <label>Código (de los planos)</label><textarea class="tx1" rows="1" data-f="codigo">${E(p.codigo)}</textarea>
  <label>Título</label><textarea class="tx1" rows="1" data-f="titulo">${E(p.titulo)}</textarea>
@@ -132,6 +132,7 @@ window.compEdOp=function(op,i){if(!ED)return;sucio=true;
  else if(op=="pin+")ED.pin.push(["","","",""]);else if(op=="pin-")ED.pin.splice(i,1);
  else if(op=="med+")ED.med.push("");else if(op=="med-")ED.med.splice(i,1);
  else if(op=="foto-"){if(!confirm("¿Quitar esta foto de la ficha?"))return;ED.fotos.splice(i,1)}
+ else if(op=="fotoX"){ED.fotos.splice(i,1);msg("Foto quitada · pulsa GUARDAR para confirmar")}
  else if(op=="foto^"){const f=ED.fotos.splice(i,1)[0];ED.fotos.unshift(f)}
  pinta();if(/\+$/.test(op)){const l=capa.querySelector(".cedl");const b=[...capa.querySelectorAll(".cedmas")].find(x=>x.getAttribute("onclick").includes(op));
   if(b){const prev=b.previousElementSibling;const inp=prev&&prev.querySelector("input,textarea");if(inp)try{inp.focus({preventScroll:false})}catch(e){}}}};
@@ -186,7 +187,7 @@ const conRec=async src=>{if(typeof compRecorta!="function")return src;const r=aw
 window.compEdFoto=async function(inp,i){const fs=[...(inp.files||[])];inp.value="";if(!fs.length||!ED)return;sucio=true;
  try{if(i>=0&&/^ubicaci/i.test(ED.fotos[i].vista||"")){const f=ED.fotos[i];f.o=await foto(fs[0]);f.src=f.o;f.caja=null;pinta();await compEdUbi(i);return}if(i>=0){ED.fotos[i].src=await conRec(await foto(fs[0]))}else if(i==-2){const arm=await compPideArmario();if(arm==null)return;
    for(const fl of fs){const raw=await foto(fl);ED.fotos.push({src:raw,o:raw,arm,vista:conArm("Ubicación",arm)});pinta();await compEdUbiIA(ED.fotos.length-1)}return}else{
-  for(const f of fs)ED.fotos.push({src:await conRec(await foto(f)),vista:VISTAS[Math.min(ED.fotos.length,VISTAS.length-1)]})}pinta()}
+  for(const f of fs)ED.fotos.push({src:await conRec(await foto(f)),vista:window.compVariosCod&&compVariosCod(ED.codigo)?"Vista componente":VISTAS[Math.min(ED.fotos.length,VISTAS.length-1)]})}pinta()}
  catch(e){msg(String(e.message||e))}};
 
 const limpia=a=>a.map(r=>r.map(x=>String(x||"").trim())).filter(r=>r.some(Boolean));
@@ -245,6 +246,7 @@ html.cedOn{overflow:hidden}
 #cedCapa .cedfs figure{position:relative;margin:0;background:#fff;border:1px solid #cfd8dc;border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:5px}
 #cedCapa .cedfs img{width:100%;height:120px;object-fit:contain;background:#fff;cursor:zoom-in}
 #cedCapa .cedfs input{font-size:13px;padding:6px;background:#fff;color:#111;border-color:#cfd8dc}
+#cedCapa .cedfs .cfx{position:absolute;top:4px;right:4px;z-index:2;width:28px!important;height:28px;min-height:0!important;margin:0!important;padding:0!important;border-radius:50%;border:2px solid #fff;background:#e53935;color:#fff;font:900 14px/1 system-ui;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px #0006;cursor:pointer}
 #cedCapa .cedp{position:absolute;top:8px;left:8px;background:#f0700a;color:#fff;font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px}
 #cedCapa .cedfb{display:flex;gap:4px}#cedCapa .cedfb>*{flex:1;margin:0!important;padding:6px 0!important;text-align:center;font-size:15px;background:#eceff1;color:#111;border:1px solid #cfd8dc;border-radius:8px;cursor:pointer;min-height:0!important;width:auto!important}
 #cedCapa .cedadd{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:170px;border:2px dashed var(--ac,#ff8a2b);border-radius:10px;color:var(--ac,#ff8a2b);font-size:28px;cursor:pointer}
