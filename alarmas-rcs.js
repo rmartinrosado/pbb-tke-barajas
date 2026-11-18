@@ -390,7 +390,7 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
  q.addEventListener("keyup",e=>{if(e.key=="Enter"){const R=busca(q.value);if(R.length==1)elige(R[0])}});
  const elige=x=>{const t=sc.querySelector("#sr_t");if(t){const v=`${x.c} ${x.t}`;if(!nrm(t.value).includes(nrm(v)))t.value=[t.value.trim(),v].filter(Boolean).join(" · ");const dt=t.closest("details");if(dt)dt.open=true}
   q.value="";q.blur();l.innerHTML="";l.classList.remove("on");
-  const C=compDeAlarma(x);
+  const C=window.compDeAlarma(x);
   s.innerHTML=caja({x},true)+(C.length?`<div class="rcscf"><div class="rcscft">🔩 Componente de campo que falla</div>${C.map(c=>`<button type="button" class="rcscb" data-k="${E(ckClave(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</button>`).join("")}</div>`
    :`<div class="rcscf rcsnada">🔩 Sin componente de campo asociado a la alarma ${E(x.c)} en el catálogo.</div>`);
   s.querySelectorAll(".rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],x.c+" "+x.t)});
