@@ -1,4 +1,5 @@
-/* ===== v588: FOTOS DEL COMPONENTE EN LA PRIMERA ACTUACIÓN (18/11/2026) =====
+/* v589: «Condiciones obligatorias» de la primera actuación PLEGADAS por defecto (details.pucondd, estilo abajo).
+   ===== v588: FOTOS DEL COMPONENTE EN LA PRIMERA ACTUACIÓN (18/11/2026) =====
    En la caja de la primera actuación en campo, justo ANTES del texto del trueno amarillo (⚡), dos fotos centradas
    al ancho para localizar antes el componente que cita la actuación:
      1.ª · el componente recortado, con su código en el pie.
@@ -56,7 +57,11 @@ const st=document.createElement("style");st.textContent=`
 .pafig figcaption{margin-top:5px;font-size:14px;line-height:1.3;color:#111;text-align:center}
 .pafig figcaption small{display:block;font-size:12px;color:#555;font-weight:400}
 .pafig.paubi{border-color:#e08a00}
-.pafalta{font-size:13px;color:#555;padding:12px 8px;border-style:dashed}`;
+.pafalta{font-size:13px;color:#555;padding:12px 8px;border-style:dashed}
+details.pucondd>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;padding:6px 0;font-size:14px}
+details.pucondd>summary::-webkit-details-marker{display:none}
+details.pucondd>summary::after{content:"▼";font-size:11px;margin-left:auto;opacity:.7}
+details.pucondd[open]>summary::after{content:"▲"}`;
 document.head.appendChild(st);
 pide();
 })();
