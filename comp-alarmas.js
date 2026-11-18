@@ -21,7 +21,7 @@ const R=[
  [[/laser|láser|dl50|et-b9/,/extensi|longitud|retracc/],["057","114","250","251","339","340"]],[[/laser|láser/,/elevaci|descompens/],["027"]],
  [[/potenciometro|c-r10|encoder/,/cabina/],["058","246","247"]],[[/potenciometro|encoder/,/rotonda/],["059","257","258"]],
  [[/medidor de altura|inclinometro|c-b14|sensor de altura/],["056","248","249","111"]],
- [[/barrera|fotocelula|cortina/,/rotonda/],["022","139"]],[[/fotocelula/,/seguridad|barrera|test/],["022"],/crepuscular/],
+ [[/barrera|fotocelula|cortina/,/rotonda/],["294","022","139"]],[[/fotocelula/,/seguridad|barrera|test/],["022"],/crepuscular/],
  [[/zapata/],["072","073","075","096","097","098","099"]],[[/autonivel/],["063","064","077","241"]],
  [[/bumper|borde de seguridad|t-b5|t-b6/,/traslaci|rueda/],["010"]],[[/bumper/,/\bala\b/],["015"]],[[/bumper/,/brazo/],["021"]],
  [[/antiatrapamiento|antipinzamiento/],["017","018","019","020","358","359","360","361"]],

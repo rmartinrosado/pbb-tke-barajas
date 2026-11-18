@@ -1,3 +1,5 @@
+/* v580: añadido el evento 294 (barrera de rotonda) fuera de la lista del manual (salta de 288 a 337); texto provisional,
+   pendiente de revisar los eventos 289-336 de la Magelis. */
 /* ===== v501-v504: ALARMAS Y ADVERTENCIAS DEL MANUAL RCS (MAX Automate, F8-690.0312-51 rev. Ø, págs. 104-110) · 16/11/2026 =====
    Catálogo completo de códigos de la pantalla del puesto remoto / Magelis, con familia, grupo, qué significa en campo y cierre.
    · 🔴 ALARMA (001-143, roja, LED rojo del panel): avería o seguridad → intervención en campo. Rearme: OFF → riesgo cesado → ON.
@@ -185,6 +187,7 @@ const TXT=`001|Límite FC de inclinación
 286|PBB control remoto activo
 287|PBB controlada por RCC 1
 288|PBB controlada por RCC 2
+294|Barrera de seguridad de rotonda activada (haz cortado) · texto por confirmar
 337|Bypass activado
 338|Avión detectado
 339|Próximo a límite de extensión
@@ -244,6 +247,7 @@ const G={
  con:{n:"Contactor / relé",q:"El PLC no recibe el retorno del contactor o relé indicado (no activa o no desactiva).",a:"Bobina, contactos auxiliares de retorno y cableado del contactor del aviso (E-K1, E-K14, E-K63, P-K6, bomba, frenos).",c:"rep"},
  plc:{n:"PLC / comunicaciones",q:"Fallo del PLC, de sus tarjetas STB o de la comunicación con el PLC de seguridad.",a:"LED de los módulos, alimentación 24 V y bus. Si es el PLC de seguridad: comunicación safety.",c:"rep"},
  var:{n:"Variadores / frenos de traslación",q:"Fallo de variador o de freno del motor de traslación.",a:"Display del variador (código de fallo), freno manual liberado, retorno de la señal de frenos al PLC.",c:"rep"},
+ bro:{n:"Barrera de seguridad de rotonda",q:"Se ha cortado el haz de la barrera fotoeléctrica de rotonda (emisor R-B1 / R-B3, receptor R-B2 / R-B4 → E-A10 IN03S). No es avería si hay alguien o algo en la rotonda.",a:"Rotonda libre y entrada E-A10 IN03S encendida fija. Si el evento entra y sale solo: limpiar ópticas, realinear, revisar soporte y cable. No se puentea: es entrada de seguridad.",c:"ope"},
  acc:{n:"Acceso / autorización remota",q:"Detector de acceso o autorización del puesto remoto. No es avería si hay alguien dentro o falta autorización.",a:"Pasarela vacía y puerta de servicio cerrada (SS-B15); botones azules «Pasarela vacía» (rotonda) y «OK Apron» (10 s para aceptar en el RCC). Selector de REMOTO a LOCAL y a REMOTO.",c:"ope"},
  sir:{n:"Sirena / flash de cabina",q:"Fallo de la sirena o de su sensor, o de la luz flash de cabina.",a:"138 / 137: sirena de seguridad de CABINA C-H41 (no la de movimiento ET-H1). 142: sirena de movimiento de cabina. 143: flash de cabina.",c:"rep"},
  equ:{n:"Equipo de servicio",q:"Alarma del equipo de servicio (400 Hz, PCAir) o de su parada de emergencia.",a:"1º en el equipo (estado, manguera, conector); 2º señal de bloqueo en el PLC.",c:"rep"},
@@ -275,13 +279,13 @@ const GR=c=>{if(/^R/.test(c))return"rem";const n=+c;
  if((n>=244&&n<=255)||n==257||n==258)return"lim";if([263,265,266,267,272,274,281,282,283,285].includes(n))return"aux";
  if([337,343,350,351,354,355].includes(n))return"byp";if(n>=339&&n<=342||n==344)return"len";if(n==338)return"avi";
  if([261,262,264,268,347,348].includes(n))return"col";if([259,269,275,345,362,363].includes(n))return"pre";if((n>=276&&n<=280)||n==284)return"cal";
- if(n>=358&&n<=361)return"ant";return"inf"};
+ if(n==294)return"bro";if(n>=358&&n<=361)return"ant";return"inf"};
 const FAM=c=>/^R/.test(c)?"R":+c<=143?"A":"W";
 const FN={A:["🔴","ALARMA","Avería / seguridad: intervención en campo"],W:["🟡","ADVERTENCIA","La resuelve el operador: no es avería si se borra al corregir la causa"],R:["🔵","PUESTO REMOTO","Fallo del RCC o comunicaciones, no de la pasarela"]};
 const ALIAS={"057":"medida analogica extension|laser extension","056":"medida analogica altura|ultrasonido altura","058":"medida analogica giro cabina|potenciometro cabina","059":"medida analogica giro rotonda|potenciometro rotonda",
  "115":"wrong docking|atraque incorrecto","354":"bypass atraque incorrecto","273":"estabilizadores bajados","352":"posicionando estabilizador","081":"inductivos estabilizadores",
  "017":"antiatrapamiento izquierdo tunel interior","018":"antiatrapamiento derecho tunel interior","019":"antiatrapamiento izquierdo tunel medio","020":"antiatrapamiento derecho tunel medio",
- "010":"bumper traslacion|bordes ruedas","285":"manguera agua potable","263":"400 hz conectado","272":"manguera 400 hz desenrollada|manguera 400 hz extendida","256":"hombre muerto"};
+ "010":"bumper traslacion|bordes ruedas","285":"manguera agua potable","263":"400 hz conectado","272":"manguera 400 hz desenrollada|manguera 400 hz extendida","256":"hombre muerto","294":"barrera rotonda|haz cortado|fotocelula rotonda|r-b1|r-b2|r-b3|r-b4"};
 const NO={"242":/sensor|c-?s9|enrollable/,"241":/fallo/};
 const CAT=TXT.split("\n").map(l=>{const [c,t]=l.split("|");const g=GR(c);return{c,t,f:FAM(c),g,n:nrm(t+" "+(ALIAS[c]||"").replace(/\|/g," "))}});
 window.RCS_AL=CAT;
