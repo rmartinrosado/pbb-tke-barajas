@@ -16,7 +16,15 @@ const L=()=>window.COMP_CAMPO||[];
 const codsDe=id=>String(id||"").split(/\s*(?:\/|,|\+|\by\b)\s*/).map(N).filter(Boolean);
 const fo=f=>Array.isArray(f)?{src:f[0],v:String(f[1]||"")}:{src:(f||{}).src,v:String((f||{}).vista||"")};
 const esUbi=f=>/^ubicaci/i.test(f.v);
-const codigos=t=>{const o=[];String(t||"").replace(RE,(m,c)=>{c=N(c);if(!o.includes(c))o.push(c);return m});return o};
+/* v590: prioridad del componente = donde se ACTÚA. Fuera los códigos negados («no pasa por E-X62», «sin pasar por…»);
+   primero los que siguen a «En el / En la <dispositivo>» (p. ej. «En el convertidor E-R10 soltar…»), luego el resto por orden.
+   Caso fijado: fallo de medida de giro de cabina → «La señal de cabina no pasa por E-X62. En el convertidor E-R10…» → E-R10. */
+const NEG=/(no pasa|no va|no llega|no entra|sin pasar|no se puentea|nunca)[^.;]{0,30}$/i;
+const ACT=/\ben (el|la|los|las)\s+[a-záéíóúñ]+(\s+[a-záéíóúñ]+)?\s*$/i;
+const codigos=t=>{t=String(t||"");const A=[],B=[],X=[];let m;RE.lastIndex=0;
+ while((m=RE.exec(t))){const c=N(m[1]),pre=t.slice(Math.max(0,m.index-45),m.index);
+  if([A,B,X].some(l=>l.includes(c)))continue;(NEG.test(pre)?X:ACT.test(pre)?A:B).push(c)}
+ return A.concat(B)};
 /* fichas de un código (exacto; si no, sin el sufijo .1/.2…) · la que tenga foto de ubicación primero */
 function fichas(cod){const L0=L();let r=L0.filter(c=>codsDe(c.id).includes(cod));
  if(!r.length&&/\.\d+$/.test(cod)){const b=cod.replace(/\.\d+$/,"");r=L0.filter(c=>codsDe(c.id).includes(b))}
