@@ -19,11 +19,21 @@ const ZONAS={E:"Armario eléctrico",P:"Pupitre",C:"Cabina",ET:"Túnel",A:"Túnel
 const zona=c=>{const m=String(c.id||"").toUpperCase().match(/\b([A-Z]{1,3})-/);return m?(ZONAS[m[1]]||"Otros"):"Otros"};
 const texto=c=>nrm([c.id,c.t,c.fab,c.claves,(c.esp||[]).map(r=>r.join(" ")).join(" "),c.av].join(" "));
 /* caja «Repuesto»: lo que hace falta para pedir o cambiar la pieza */
-const repuesto=c=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
+/* v578: orden de la ficha en la consulta de repuestos: caja Repuesto (modelo, Ficha técnica y, debajo, las ESPECIFICACIONES
+   y el conexionado) → «DETALLES DE CAMPO» (junto a Editar ficha) con las fotos montadas → «ALARMAS RELACIONADAS» (o «SIN ALARMAS RELACIONADAS») → medir en campo. */
+function fichaOrden(c){let fh=typeof compFicha=="function"?compFicha(c):"";
+ const m=fh.match(/<table class="cmpe">[\s\S]*?<\/table>(\s*<div class="cmpst">[^<]*<\/div><table class="cmpp">[\s\S]*?<\/table>)?/);const spec=m?m[0]:"";if(spec)fh=fh.replace(spec,"");
+ const V=t=>`<div class="cnverde">${t}</div>`;
+ if(fh.includes('<div class="alpl">'))fh=fh.replace('<div class="alpl">',V("ALARMAS RELACIONADAS")+'<div class="alpl">');
+ else fh=fh.replace(/(<div class="cmpfs"[^>]*>[\s\S]*?<\/figure><\/div>|<div class="cmpfs"[^>]*><\/div>)/,"$1"+V("SIN ALARMAS RELACIONADAS"));
+ if(fh.includes('<div class="cedb">'))fh=fh.replace('<div class="cedb">','<div class="cedb">'+V("DETALLES DE CAMPO"));
+ else fh=fh.replace('<div class="cmpfs"',V("DETALLES DE CAMPO")+'<div class="cmpfs"');
+ return {fh,spec:spec?`<div class="cnspec">${spec}</div>`:""}}
+const repuesto=(c,spec)=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
  const s=String(c.av||"").match(/AL SUSTITUIR:?\s*([^]*)$/i);if(s)f.push(["Al sustituir",s[1].trim()]);
  const r=(c.esp||[]).find(x=>/^repuesto$/i.test(x[0]));if(r)f.push(["Almacén",r[1]]);
  const ft=typeof compFichaTec=="function"?compFichaTec(c):"";/* v576: botón «Ficha técnica» del repuesto */
- return f.length||ft?`<div class="cnrep"><div class="cnrt">🔧 Repuesto</div>${f.length?`<table>${f.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table>`:""}${ft}</div>`:""};
+ return f.length||ft||spec?`<div class="cnrep"><div class="cnrt">🔧 Repuesto</div>${f.length?`<table>${f.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table>`:""}${ft}${spec||""}</div>`:""};
 /* v574: pestaña «A IMPORTAR»: elementos de campo, dispositivos y borneros de los planos (window.COMP_PLANOS, comp-importar-datos.js)
    que todavía no tienen ficha en Componentes de campo. Se calcula al vuelo: al incorporar un componente con su código, desaparece de la lista. */
 const IMP="__imp";
@@ -61,7 +71,7 @@ function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).v
  const el=capa.querySelector("#cn_l");if(zSel==IMP){el.innerHTML=listaImp(ws);return}
  el.innerHTML=(solo?`<div class="cnsolo"><span>🚨 ${E(solo.t)}</span><button type="button" class="sec" data-todos="1">Ver todos</button></div>`:"")+`<div class="mu" style="font-size:12px;margin:6px 0">${F.length} componente${F.length==1?"":"s"}${ws.length||zSel?(F.length==1?" encontrado":" encontrados"):""}</div>`+
   (F.length?F.map(c=>{const k=String(c.baseId||c.db||c.id);const bt=c.db?(c.baseId?"↩️<br>Restaurar":"🗑<br>Eliminar"):"🔒<br>De fábrica";
-   return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${repuesto(c)}${typeof compFicha=="function"?compFicha(c):""}</details></div>`}).join("")
+   return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${(()=>{const o=fichaOrden(c);return repuesto(c,o.spec)+o.fh})()}</details></div>`}).join("")
   :`<div class="cnvac">Sin componentes para «${E(q)}».<br>Prueba con el código (p. ej. E-Q24), el nombre o el modelo.</div>`)}
 function abre(){
  if(!capa){capa=document.createElement("div");capa.id="compCapa";
@@ -172,6 +182,9 @@ html.cnInc #sheet{z-index:70!important}
 #compCapa .cnch{flex:none;width:auto!important;margin:0!important;padding:5px 10px!important;border-radius:16px!important;border:1px solid var(--bd,#2a2f38)!important;
  background:transparent!important;color:var(--tx,#e9ecf1)!important;font-size:12.5px!important;font-weight:600;white-space:nowrap;min-height:0!important}
 #compCapa .cnch small{opacity:.65;font-weight:700;margin-left:2px}
+#compCapa .cnverde{display:inline-flex;align-items:center;padding:6px 12px;border-radius:8px;background:#22c55e;color:#000;font-weight:900;font-size:13.5px;letter-spacing:.8px;text-transform:uppercase;margin:8px 0 6px}
+#compCapa .cedb{align-items:center}#compCapa .cedb{justify-content:flex-start!important}#compCapa .cedb .cnverde{margin:0;flex:1 1 0;min-width:0;justify-content:center;text-align:center;font-size:12.5px;line-height:1.15;padding:6px 8px;align-self:stretch}#compCapa .cedb{gap:5px!important}#compCapa .cedb>.sec{flex:0 0 auto;min-width:0;white-space:nowrap;width:auto!important;margin:0!important;padding:7px 8px!important;font:700 12.5px/1.2 inherit!important;font-family:inherit!important;letter-spacing:normal!important;text-transform:none!important}
+#compCapa .cnspec{margin-top:10px;background:var(--card,#fff);border-radius:8px;padding:2px 6px}#compCapa .cnspec table{width:100%}
 #compCapa .cnchimp{border:1.5px dashed #ff7a1a!important;color:#ff7a1a!important;font-weight:800!important;letter-spacing:.4px}
 #compCapa .cnchimp.on{background:#ff7a1a!important;color:#111!important;border-style:solid!important}
 #compCapa .cnimpc{margin:8px 0 4px;padding:9px 11px;border-radius:10px;border:1px solid #ff7a1a66;background:color-mix(in srgb,#ff7a1a 10%,transparent);font-size:13px;line-height:1.4}
