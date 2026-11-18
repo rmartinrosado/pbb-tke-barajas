@@ -36,7 +36,7 @@ function aComp(r){if(Array.isArray(r.fotos))FC[r.id]=r.fotos;const fs=Array.isAr
    en su MISMO sitio (conserva su reconocimiento de avisos) y se puede restaurar. */
 const BASE=C().slice();window.COMP_BASE=BASE;
 function sobre(b,r){const n=aComp(r);if(n._fp){n.fotos=b.fotos;}const rb=b.re,rn=n.re;return Object.assign({},b,n,{baseId:b.id,pint:b.pint,re:t=>{try{if(rb(t))return true}catch(e){}return rn(t)}})}
-async function carga(){try{const {data,error}=await sb.from("componentes_campo").select("id,codigo,titulo,fab,claves,esp,pin,med,av,stock,creado_por,creado,base,fotos") /* v561: fotos en el almacén → solo direcciones (≈45 kB) */.order("creado",{ascending:true});if(error||!data){console.warn("componentes_campo:",error);return}
+async function carga(){try{const {data,error}=await sb.from("componentes_campo").select("id,codigo,titulo,fab,claves,esp,pin,med,av,stock,creado_por,creado,base,fotos,ficha") /* v561: fotos en el almacén → solo direcciones (≈45 kB) */.order("creado",{ascending:true});if(error||!data){console.warn("componentes_campo:",error);return}
  const L=C();L.length=BASE.length;BASE.forEach((b,i)=>L[i]=b);
  data.forEach(r=>{const i=r.base?BASE.findIndex(b=>b.id==r.base):-1;if(i>=0)L[i]=sobre(BASE[i],r);else L.push(aComp(r))});
  if(typeof compNavLista=="function")compNavLista();setTimeout(fondo,300)}catch(e){console.warn("componentes_campo:",e)}}

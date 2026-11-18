@@ -22,7 +22,8 @@ const texto=c=>nrm([c.id,c.t,c.fab,c.claves,(c.esp||[]).map(r=>r.join(" ")).join
 const repuesto=c=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
  const s=String(c.av||"").match(/AL SUSTITUIR:?\s*([^]*)$/i);if(s)f.push(["Al sustituir",s[1].trim()]);
  const r=(c.esp||[]).find(x=>/^repuesto$/i.test(x[0]));if(r)f.push(["Almacén",r[1]]);
- return f.length?`<div class="cnrep"><div class="cnrt">🔧 Repuesto</div><table>${f.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table></div>`:""};
+ const ft=typeof compFichaTec=="function"?compFichaTec(c):"";/* v576: botón «Ficha técnica» del repuesto */
+ return f.length||ft?`<div class="cnrep"><div class="cnrt">🔧 Repuesto</div>${f.length?`<table>${f.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table>`:""}${ft}</div>`:""};
 /* v574: pestaña «A IMPORTAR»: elementos de campo, dispositivos y borneros de los planos (window.COMP_PLANOS, comp-importar-datos.js)
    que todavía no tienen ficha en Componentes de campo. Se calcula al vuelo: al incorporar un componente con su código, desaparece de la lista. */
 const IMP="__imp";
