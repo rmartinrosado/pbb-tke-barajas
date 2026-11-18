@@ -11,8 +11,13 @@ const E=s=>typeof esc=="function"?esc(s):String(s==null?"":s).replace(/[&<>"]/g,
 const nrm=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const C=()=>window.COMP_CAMPO||[];
 /* ---------- cargar los componentes guardados ---------- */
-const reDe=cl=>{const ws=String(cl||"").split(/[,;\n]+/).map(w=>nrm(w).trim()).filter(Boolean);if(!ws.length)return()=>false;
- return t=>ws.some(w=>w.split(/\s+/).every(p=>t.includes(p)))};
+/* v591: las claves genéricas sueltas («cabina», «relé», «bornero», «24 V», «analógica»…) ya NO traen el componente:
+   «cabina» metía el relé de iluminación E-K10 en un fallo de medida analógica de cabina. Una clave cuenta solo si tiene
+   alguna palabra propia; y las palabras se comparan desde su inicio (no «rele» dentro de «relevante»). */
+const GEN=new Set("cabina tunel rotonda pupitre brazo rele reles contactor bornero borneros regleta borna bornas borne cableado mazo tierra pe manguera mangueras conexion senal senales 24 24v vdc 230 400 v vac alimentacion tension seguridad seguridades proteccion armario mando luz luces analogica potenciometro convertidor sensor motor subir bajar plc fuente bobina contacto mantenimiento retorno interconexion circuito auxiliar falso salida entrada digital de del la el los las en y o a e ae p".split(" "));
+const reDe=cl=>{const ws=String(cl||"").split(/[,;\n]+/).map(w=>nrm(w).trim().split(/[^a-z0-9.\-]+/).filter(Boolean)).filter(ps=>ps.length&&ps.some(p=>!GEN.has(p)&&!/^alarma$/.test(p)));if(!ws.length)return()=>false;
+ const R=ws.map(ps=>ps.map(p=>new RegExp("(^|[^a-z0-9])"+(/^\d+$/.test(p)?"0*"+p+"(?![0-9])":p.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")))));
+ return t=>R.some(rs=>rs.every(r=>r.test(t)))};
 /* ===== v560: las fotos (≈51 MB en base64) ya NO se descargan con la lista: se perdían los componentes porque la consulta
    con todas las fotos fallaba y solo quedaban las fichas de fábrica. La lista llega sin fotos y estas se cargan después,
    de pocas en pocas, y al abrir una ficha; se guardan en memoria (FC) para no volver a bajarlas. ===== */

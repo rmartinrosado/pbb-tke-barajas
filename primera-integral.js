@@ -45,6 +45,10 @@ function plan(i){if(!i)return null;const T=textoOT(i);const ck=i.id+"|"+T+"|"+JS
  /* 4) medidas ya tomadas en la OT: las fuera de rango suben de prioridad */
  const MD=(i.medidas||[]);
  M.forEach(o=>{(o.c.med||[]).forEach(st=>{const m=MD.find(x=>x.paso&&String(st).slice(0,60)==String(x.paso).slice(0,60));if(m){if(!m.ok){o.p+=4;if(!o.por.includes("medida fuera de rango"))o.por.push("medida fuera de rango")}else o.ok=(o.ok||0)+1}})});
+ /* v591: en un FALLO DE MEDIDA ANALÓGICA solo entran los componentes de la cadena de medida (sensor, potenciómetro,
+    acoplamiento, convertidor, láser…) o los citados por código: fuera relés de iluminación, motores o guardamotores de giro. */
+ if(/medida analog|fallo (de )?(la )?medida|medidor|4-?20 ?ma|potenciometro|encoder|ultrason/.test(nrm(T))){const CAD=/medid|analog|potenciom|convertidor|4-?20|encoder|laser|ultrason|acoplamiento|inclinom|transductor/;
+  M.forEach((o,k)=>{if(o.por.includes("código en el aviso"))return;const c=o.c;if(!CAD.test(nrm([c.id,c.t,c.fab,c.claves].join(" "))))M.delete(k)})}
  const CP=[...M.values()].sort((a,b)=>b.p-a.p||(b.por.length-a.por.length)||String(a.c.id).localeCompare(String(b.c.id),"es",{numeric:true})).slice(0,6);
  const r={AL,CP,RE:RE.filter(x=>x.act||x.estado=="cerrada").slice(0,3),MD,n:AL.length+CP.length+RE.length+MD.length};
  CACHE.set(ck,r);if(CACHE.size>200)CACHE.delete(CACHE.keys().next().value);return r}
