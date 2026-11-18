@@ -26,7 +26,7 @@ function fichaOrden(c){let fh=typeof compFicha=="function"?compFicha(c):"";
  const V=t=>`<div class="cnverde">${t}</div>`;
  if(fh.includes('<div class="alpl">'))fh=fh.replace('<div class="alpl">',V("ALARMAS RELACIONADAS")+'<div class="alpl">');
  else fh=fh.replace(/(<div class="cmpfs"[^>]*>[\s\S]*?<\/figure><\/div>|<div class="cmpfs"[^>]*><\/div>)/,"$1"+V("SIN ALARMAS RELACIONADAS"));
- fh=fh.replace(/<div class="cmpst">\s*Medir en campo\s*<\/div>/i,V("MEDIR EN CAMPO"));/* v579: «MEDIR EN CAMPO» también en caja verde y negra */
+ fh=fh.replace(/<div class="cmpst">\s*Medir en campo\s*<\/div>/i,`<div class="cnverde cnmedir">MEDIR EN CAMPO</div>`);/* v585: amarilla, letras negras y parpadeando *//* v579: «MEDIR EN CAMPO» también en caja verde y negra */
  if(fh.includes('<div class="cedb">'))fh=fh.replace('<div class="cedb">','<div class="cedb">'+V("DETALLES DE CAMPO"));
  else fh=fh.replace('<div class="cmpfs"',V("DETALLES DE CAMPO")+'<div class="cmpfs"');
  return {fh,spec:spec?`<div class="cnspec">${spec}</div>`:""}}
@@ -183,6 +183,8 @@ html.cnInc #sheet{z-index:70!important}
 #compCapa .cnch{flex:none;width:auto!important;margin:0!important;padding:5px 10px!important;border-radius:16px!important;border:1px solid var(--bd,#2a2f38)!important;
  background:transparent!important;color:var(--tx,#e9ecf1)!important;font-size:12.5px!important;font-weight:600;white-space:nowrap;min-height:0!important}
 #compCapa .cnch small{opacity:.65;font-weight:700;margin-left:2px}
+#compCapa .cnverde.cnmedir{background:#facc15;color:#000;animation:cnmedirP 1s ease-in-out infinite}
+@keyframes cnmedirP{0%,100%{background:#facc15;box-shadow:0 0 0 0 #facc1599}50%{background:#fde68a;box-shadow:0 0 0 6px #facc1500}}
 #compCapa .cnverde{display:inline-flex;align-items:center;padding:6px 12px;border-radius:8px;background:#22c55e;color:#000;font-weight:900;font-size:13.5px;letter-spacing:.8px;text-transform:uppercase;margin:8px 0 6px}
 #compCapa .cedb{align-items:center}#compCapa .cedb{justify-content:flex-start!important}#compCapa .cedb .cnverde{margin:0;flex:1 1 0;min-width:0;justify-content:center;text-align:center;font-size:12.5px;line-height:1.15;padding:6px 8px;align-self:stretch}#compCapa .cedb{gap:5px!important}#compCapa .cedb>.sec{flex:0 0 auto;min-width:0;white-space:nowrap;width:auto!important;margin:0!important;padding:7px 8px!important;font:700 12.5px/1.2 inherit!important;font-family:inherit!important;letter-spacing:normal!important;text-transform:none!important}
 #compCapa .cnspec{margin-top:10px;background:var(--card,#fff);border-radius:8px;padding:2px 6px}#compCapa .cnspec table{width:100%}

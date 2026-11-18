@@ -11,18 +11,19 @@ const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">
 const nrm=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
 const key=c=>String(c.baseId||c.db||c.id);
 const esAdm=()=>{try{return typeof admin!="undefined"&&!!admin}catch(e){return false}};
-const ABI=new Set(),EST={};
+/* v585: la ficha técnica sale DESPLEGADA al abrir un componente (fotos + especificaciones); CER = las que el técnico ha plegado */
+const CER=new Set(),EST={};
 const L=()=>window.COMP_CAMPO||[];
 const busca=k=>L().find(c=>key(c)==k);
 const fichaDe=c=>(c&&c.raw&&Array.isArray(c.raw.ficha))?c.raw.ficha:[];
 const repinta=()=>{if(typeof compNavLista=="function")compNavLista()};
 const pon=(k,h)=>{EST[k]=h;const d=document.querySelector(`.cfts[data-k="${CSS.escape(k)}"]`);if(d)d.innerHTML=h};
 
-window.compFichaTec=function(c){if(!c)return"";const k=key(c),fs=fichaDe(c),on=ABI.has(k),adm=esAdm();
+window.compFichaTec=function(c){if(!c)return"";const k=key(c),fs=fichaDe(c),on=!CER.has(k),adm=esAdm();
  return `<div class="cft"><button type="button" class="cftb" data-cft="${E(k)}">📄 Ficha técnica${fs.length?` · ${fs.length} foto${fs.length>1?"s":""}`:""} <span>${on?"▲":"▼"}</span></button>`+
  (on?`<div class="cftp">${fs.length?`<div class="cftg">${fs.map((f,i)=>`<img src="${E(f.src)}" alt="Ficha técnica ${i+1}" data-cfv="${E(k)}" data-i="${i}" loading="lazy">`).join("")}</div>`
    :`<div class="cftv">Sin fotos de ficha técnica. Haz fotos del repuesto <b>sin montar</b>: placa de características, caja, etiqueta u hoja de datos, que se lean bien.</div>`}
-  ${adm?`${pasables(c).length?`<button type="button" class="cftr cftpa" data-cfp="${E(k)}">📥 Pasar fotos ya importadas a ficha técnica</button>${SELP[k]?selHTML(c,k):""}`:""}<label class="cfta">📷 Añadir fotos de la ficha<input type="file" accept="image/*" multiple hidden data-cfa="${E(k)}"></label>${fs.length?`<button type="button" class="cftr" data-cfr="${E(k)}">🔍 Volver a leer las fotos y actualizar especificaciones</button>`:""}`
+  ${adm?`<details class="cftgest"${SELP[k]?" open":""}><summary>⚙️ Gestionar fotos de la ficha técnica</summary>${pasables(c).length?`<button type="button" class="cftr cftpa" data-cfp="${E(k)}">📥 Pasar fotos ya importadas a ficha técnica</button>${SELP[k]?selHTML(c,k):""}`:""}<label class="cfta">📷 Añadir fotos de la ficha<input type="file" accept="image/*" multiple hidden data-cfa="${E(k)}"></label>${fs.length?`<button type="button" class="cftr" data-cfr="${E(k)}">🔍 Volver a leer las fotos y actualizar especificaciones</button>`:""}</details>`
    :`<div class="cftv">🔒 Solo el modo Administrador añade fotos de ficha técnica.</div>`}
   <div class="cfts" data-k="${E(k)}">${EST[k]||""}</div></div>`:"")+`</div>`};
 
@@ -82,12 +83,12 @@ async function proceso(k,nuevas,copia){const c=busca(k);if(!c)return;
   if(motor){pon(k,`⏳ Leyendo la ficha técnica con <b>${motor=="claude"?"Claude":"Gemini"}</b> y actualizando especificaciones…`);
    const srcs=nuevas&&nuevas.length?nuevas.map(f=>f.src):ficha.map(f=>f.src);
    const P=await analiza(c,srcs,motor);M=mezcla(c,P);res=`✅ Leído con <b>${E(P.lector||motor)}</b>. ${E(P.resumen||"")} Especificaciones: ${M.esp.length} filas.`}
-  await guarda(c,ficha,M);ABI.add(k);EST[k]=res||"✅ Fotos de ficha técnica guardadas (sin leer con IA).";repinta();if(typeof msg=="function")msg("Ficha técnica de "+c.id+" actualizada")}
+  await guarda(c,ficha,M);CER.delete(k);EST[k]=res||"✅ Fotos de ficha técnica guardadas (sin leer con IA).";repinta();if(typeof msg=="function")msg("Ficha técnica de "+c.id+" actualizada")}
  catch(e){pon(k,`<span style="color:#c62828">${E(String((e&&e.message)||e))}</span>`)}}
 
 /* ---- eventos (delegados) ---- */
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-cft]");
- if(b){e.preventDefault();e.stopPropagation();const k=b.dataset.cft;ABI.has(k)?ABI.delete(k):ABI.add(k);repinta();return}
+ if(b){e.preventDefault();e.stopPropagation();const k=b.dataset.cft;CER.has(k)?CER.delete(k):CER.add(k);repinta();return}
  const v=e.target.closest&&e.target.closest("[data-cfv]");
  if(v){const c=busca(v.dataset.cfv);const fs=fichaDe(c).map(f=>f.src);if(typeof compVer=="function")compVer(fs[+v.dataset.i],fs,+v.dataset.i);return}
  const pa=e.target.closest&&e.target.closest("[data-cfp]");
@@ -113,6 +114,8 @@ const st=document.createElement("style");st.textContent=`
 .cftg img{width:100%;height:120px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid #0002;cursor:zoom-in}
 .cftv{font-size:13px;opacity:.85;margin:6px 0;line-height:1.4}
 .cfta{display:flex!important;align-items:center;justify-content:center;gap:8px;margin:8px 0 0!important;padding:12px!important;border-radius:10px;background:var(--ac,#ff7a1a);color:#111!important;font:800 14px/1.2 inherit!important;font-family:inherit!important;letter-spacing:.3px!important;opacity:1!important;cursor:pointer}
+.cftgest{margin:8px 0 0}.cftgest>summary{cursor:pointer;list-style:none;padding:9px 12px;border-radius:10px;border:1.5px dashed #b0bec5;font-weight:800;font-size:13px;color:#455a64;background:#eceff1}
+.cftgest>summary::-webkit-details-marker{display:none}.cftgest>summary::after{content:" ▼";float:right}.cftgest[open]>summary::after{content:" ▲"}
 .cftr{width:100%!important;margin:8px 0 0!important;font-size:13px!important}
 .cfts{font-size:13px;margin-top:6px;line-height:1.4}
 .cftsel{margin-top:8px;padding:8px;border:1px dashed var(--ac,#ff7a1a);border-radius:10px}
