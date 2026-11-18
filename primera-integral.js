@@ -53,7 +53,7 @@ window.pciPlan=plan;
 /* ---------- caja ---------- */
 function html(i,P,segundo){const G=window.RCS_G||{};let n=0;const paso=(ic,tit,cuerpo,cls)=>`<div class="pcip${cls?" "+cls:""}"><div class="pcin">${++n}</div><div class="pcic"><div class="pcit">${ic} ${tit}</div>${cuerpo||""}</div></div>`;
  const cot=[P.AL.length&&`${P.AL.length} alarma${P.AL.length>1?"s":""}/evento${P.AL.length>1?"s":""}`,P.CP.length&&`${P.CP.length} componente${P.CP.length>1?"s":""}`,P.RE.length&&`${P.RE.length} reincidencia${P.RE.length>1?"s":""}`,P.MD.length&&`${P.MD.length} medida${P.MD.length>1?"s":""}`].filter(Boolean).join(" · ");
- let h=`<div class="pucab">🔎 ${segundo?"2º · TRAS SACAR LA PBB · COMPROBACIÓN EN CAMPO":"PRIMERA ACTUACIÓN EN CAMPO · COMPROBACIÓN EN CAMPO"}</div>
+ let h=`<div class="pucab">🔎 ${segundo?"2 · ACTUACIÓN GUIADA · tras el puente provisional (1)":"1 · PRIMERA ACTUACIÓN EN CAMPO · ACTUACIÓN GUIADA"}</div>
  <div class="pcisub">Por orden de prioridad para atajar la avería${cot?` · cotejo: ${cot}`:""}</div>`;
  /* alarmas */
  if(!P.AL.length)h+=paso("📟","Leer la Magelis: ESTADO DE ALARMAS y eventos",`<div class="mu">Anota el código en la OT (Observaciones o foto de la Magelis): acota el componente y reordena esta lista.</div>`);
@@ -76,12 +76,15 @@ function pinta(){try{if(typeof view=="undefined"||view!="tec")return;const i=(ty
  const old=document.getElementById("gcomp");if(!i||i.estado=="cerrada"){if(old)old.remove();return}
  const P=plan(i);if(!P||(!P.AL.length&&!P.CP.length)){if(old)old.remove();return}
  const seg=hayPuente();const h=html(i,P,seg);
- const d=old||document.createElement("div");d.id="gcomp";d.className="card "+(seg?"pcisec":"pucard");if(d.dataset.h!==h){d.innerHTML=h;d.dataset.h=h}
- let ref=null;if(seg)ref=PUENTE.map(id=>document.getElementById(id)).filter(Boolean).pop();
+ const d=old||document.createElement("div");d.id="gcomp";const cl="card "+(seg?"pcisec":"pucard");if(d.className!==cl)d.className=cl;if(d.dataset.h!==h){d.innerHTML=h;d.dataset.h=h}
+ let ref=null;if(seg)ref=PUENTE.map(id=>document.getElementById(id)).filter(Boolean).sort((x,y)=>x.compareDocumentPosition(y)&4?-1:1).pop();
  if(!ref)ref=document.getElementById("greset")||document.querySelector('#app details.gd[data-k="SEG"]')||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
  if(!ref){if(!d.isConnected){const a=document.getElementById("anag");if(a)a.before(d)}return}
  if(ref.nextElementSibling!==d)ref.insertAdjacentElement("afterend",d)}catch(e){}}
 if(typeof vTec=="function"){const o=vTec;vTec=function(){const r=o.apply(this,arguments);pinta();setTimeout(pinta,150);setTimeout(pinta,600);return r}}
+/* v587: orden fijo · 1 el puente provisional (si existe) y 2 la actuación guiada justo debajo: si el puente se pinta más tarde
+   (o lo mueve otra caja), se recoloca y pasa a «2 · ACTUACIÓN GUIADA» */
+let tmo=null;new MutationObserver(()=>{if(tmo)return;tmo=setTimeout(()=>{tmo=null;if(typeof view!="undefined"&&view=="tec")pinta()},120)}).observe(document.documentElement,{childList:true,subtree:true});
 
 /* ---------- tarjeta de la OT (Inicio / Seguimiento): franja si la primera actuación es la comprobación ---------- */
 window.pciVa=function(id){gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(view!="tec")go("tec");else vTec();
@@ -89,7 +92,7 @@ window.pciVa=function(id){gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(vi
 if(typeof card=="function"){const o=card;card=function(i){let h=o(i);try{if(!i||i.estado!="abierta"||h.includes('class="pact"'))return h;
  const P=plan(i);if(!P||!P.CP.length&&!P.AL.some(a=>a.x.f=="A"))return h;
  const sub=[P.AL.slice(0,2).map(a=>a.x.c+" "+a.x.t).join(" / "),P.CP.slice(0,2).map(o=>o.c.id).join(" · ")].filter(Boolean).join(" · ");
- const ban=`<div class="pact" role="button" tabindex="0" onclick="event.stopPropagation();pciVa('${i.id}')"><span class="pacti">🔎</span><span>PRIMERA ACTUACIÓN EN CAMPO · COMPROBACIÓN<small>${E(sub)}</small></span><span class="pactv">›</span></div>`;
+ const ban=`<div class="pact" role="button" tabindex="0" onclick="event.stopPropagation();pciVa('${i.id}')"><span class="pacti">🔎</span><span>PRIMERA ACTUACIÓN EN CAMPO · ACTUACIÓN GUIADA<small>${E(sub)}</small></span><span class="pactv">›</span></div>`;
  const re=/(<div class="mu">Inicio [\s\S]*?<\/div>)/;return re.test(h)?h.replace(re,"$1"+ban):h.replace(/(<p style="margin:6px 0">[\s\S]*?<\/p>)/,"$1"+ban)}catch(e){return h}}}
 
 const st=document.createElement("style");st.textContent=`
