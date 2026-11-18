@@ -94,7 +94,7 @@ async function ubicaEn(f){const ref=F.find(x=>x!==f&&!x.ubi&&x.cut)||F.find(x=>x
 window.compFotoUbi=async function(inp){const fs=[...(inp.files||[])];inp.value="";if(!fs.length)return;
  if(!F.some(x=>!x.ubi))msg("Añade primero la foto del componente (la IA la usa como referencia)");
  /* v569: en qué armario está (AE / armario de pupitre / otro) y, opcional, en qué PBB */
- const arm=window.compPideArmario?await compPideArmario():"";if(arm==null)return;
+ const arm=window.compPideArmario?await compPideArmario(window.compUbiDe?compUbiDe({id:((document.getElementById("ip_cod")||document.getElementById("ic_cod")||{}).value||"")}):""):"";if(arm==null)return;
  for(const fl of fs){try{const im=await lee(fl);const g=aJpg(im,1400);const o=g.toDataURL("image/jpeg",.88);const f={src:o,o,arm,vista:window.compConArm?compConArm("Ubicación",arm):"Ubicación",c:g};
   F.push(f);repinta();if(!await ubicaEn(f)){f.ubi=true;f.ubiMan=true;f.c=null;repinta()}}catch(e){msg(String(e.message||e))}}};
 window.compUbiInc=async function(i){const f=F[i];if(f)await ubicaEn(f)};

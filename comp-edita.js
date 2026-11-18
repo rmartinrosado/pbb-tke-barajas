@@ -19,16 +19,27 @@ const VISTAS=["Vista frontal · placa","Vista lateral","Vista superior","Vista t
 /* ===== v569: la foto de UBICACIÓN dice en qué ARMARIO está (según la PBB el componente puede ir en el AE o en el
    armario de pupitre): al añadirla se elige AE / Armario de pupitre / otro y, opcional, en qué PBB. ===== */
 const ARMS=[["⚡","AE (armario eléctrico)"],["🎛","Armario de pupitre"]];
-const armDe=v=>{const m=String(v||"").match(/^Ubicaci[oó]n\s*·\s*([^·]+)/i);if(!m)return"";const a=m[1].trim();return /^(AE\b|armario|caja|cuadro|pupitre|cabina|rotonda|t[uú]nel)/i.test(a)?a:""};
+/* ===== v584: UBICACIÓN DEL COMPONENTE (18/11/2026) =====
+   · Se toma de la fila «Ubicación» de las especificaciones; si no hay, de la zona del código de los planos
+     (R- → Interior Rotonda, E- → AE, P- → Armario de pupitre, C- → Cabina, ET-/A- → Túnel…).
+   · En Detalles de campo sale debajo del código de cada foto (📍).
+   · En el editor, la caja «Añadir foto de ubicación» muestra esa ubicación y, al añadir la foto, es la primera opción
+     (marcada) del selector de armario / sitio. ===== */
+const ZUBI={E:["⚡","AE (armario eléctrico)"],P:["🎛","Armario de pupitre"],C:["🚪","Cabina"],ET:["🚇","Túnel"],A:["🚇","Túnel"],R:["🔄","Interior Rotonda"],T:["🛞","Traslación"],H:["🛢","Hidráulica"],B:["🦾","Brazo"]};
+window.compUbiDe=function(c){if(!c)return"";const esp=c.esp||(c.raw&&c.raw.esp)||[];const f=esp.find(r=>/^ubicaci[oó]n$/i.test(String(r[0]||"").trim()));
+ if(f&&String(f[1]||"").trim())return String(f[1]).split(/\s*·\s*/)[0].trim();
+ const m=String(c.id||c.codigo||"").toUpperCase().match(/\b([A-Z]{1,3})-/);const z=m&&ZUBI[m[1]];return z?z[1]:""};
+const icoUbi=u=>{const z=Object.values(ZUBI).find(x=>x[1]==u);return z?z[0]:"📍"};
+const armDe=v=>{const m=String(v||"").match(/^Ubicaci[oó]n\s*·\s*([^·]+)/i);if(!m)return"";const a=m[1].trim();return /^(AE\b|armario|caja|cuadro|pupitre|cabina|rotonda|t[uú]nel|interior|exterior|traslaci|hidr[aá]ulica|brazo)/i.test(a)?a:""};
 const conArm=(v,a)=>{v=String(v||"Ubicación");if(!a||armDe(v))return v;return v.replace(/^Ubicaci[oó]n/i,"Ubicación · "+a)};
 window.compArmDe=armDe;window.compConArm=conArm;
-window.compPideArmario=function(){return new Promise(ok=>{const ov=document.createElement("div");
+window.compPideArmario=function(sug){sug=String(sug||"").trim();const L=sug?[[icoUbi(sug),sug,1]].concat(ARMS.filter(a=>a[1].toLowerCase()!=sug.toLowerCase())):ARMS;return new Promise(ok=>{const ov=document.createElement("div");
  ov.style.cssText="position:fixed;inset:0;z-index:100006;background:#000a;display:flex;align-items:flex-end;justify-content:center";
  ["click","dblclick","touchend","pointerdown"].forEach(t=>ov.addEventListener(t,e=>e.stopPropagation()));
  ov.innerHTML=`<div style="background:var(--bg,#0e1014);color:var(--tx,#e9ecf1);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px">
   <b style="font-size:17px">📍 Foto de ubicación · ¿en qué armario?</b>
-  <small style="opacity:.75;font-size:12.5px">Según la PBB el componente puede estar en el AE o en el armario de pupitre</small>
-  ${ARMS.map(([i,t])=>`<button type="button" class="pri" data-a="${E(t)}" style="margin:0;padding:14px;font-size:15px">${i} ${E(t)}</button>`).join("")}
+  <small style="opacity:.75;font-size:12.5px">${sug?`Ubicación de este componente: <b>${E(sug)}</b>`:"Según la PBB el componente puede estar en el AE o en el armario de pupitre"}</small>
+  ${L.map(([i,t,s])=>`<button type="button" class="${s?"pri":"sec"}" data-a="${E(t)}" style="margin:0;padding:14px;font-size:15px">${i} ${E(t)}${s?" ✔":""}</button>`).join("")}
   <input data-o placeholder="Otro sitio (p. ej. caja rotonda, cabina…)" style="font-size:16px;margin:0">
   <input data-p placeholder="Solo en las PBB… (opcional, p. ej. 507, 508)" style="font-size:16px;margin:0">
   <button type="button" class="sec" data-a="" style="margin:0;padding:12px">✔️ Usar «Otro sitio» / sin armario</button>
@@ -45,7 +56,8 @@ const base=window.compFicha;
 if(typeof base=="function")window.compFicha=function(c){const h=base(c);if(!c)return h;const k=key(c);K[k]=c;
  const bar=puede()?`<div class="cedb"><button type="button" class="sec" onclick="event.stopPropagation();compEdita('${E(k).replace(/'/g,"\\'")}')">✏️ Editar ficha</button><label class="sec" onclick="event.stopPropagation()">📷 Foto nueva<input type="file" accept="image/*" hidden onchange="compFotoNueva('${E(k).replace(/'/g,"\\'")}',this)"></label></div>`:"";
  /* v582: la ✕ de cada foto ya no se ve en la ficha: aparece al pulsar «✏️ Editar ficha» y desaparece al guardar */
- return h.replace('<div class="cmpf">',`<div class="cmpf" data-ck="${E(k)}">${bar}`)};
+ const u=compUbiDe(c);const hu=u?h.replace(/(<figure class="cmpfo"[\s\S]*?<figcaption>)([\s\S]*?)(<\/figcaption>)/g,(m,a,b,z)=>/^\s*(<b>[^<]*<\/b>\s*·\s*)?Ubicaci/i.test(b.replace(/<b>[^<]*<\/b>\s*·\s*/,""))?m:a+b+`<span class="cmpubi">📍 ${E(u)}</span>`+z):h;
+ return hu.replace('<div class="cmpf">',`<div class="cmpf" data-ck="${E(k)}">${bar}`)};
 
 /* ===== v581: ✕ en la esquina de cada foto de DETALLES DE CAMPO (18/11/2026) =====
    Tocar la ✕ quita la foto de la vista (sin borrar aún); aparece una barra «N foto(s) quitada(s) · ↩️ Deshacer · 💾 Guardar».
@@ -109,7 +121,7 @@ function pinta(){if(!capa||!ED)return;const p=ED;const sc=(capa.querySelector(".
  <div class="cedst" style="margin-top:-4px;font-weight:500;text-transform:none;letter-spacing:0;font-size:11.5px;opacity:.75">Toca para ampliar · mantén y arrastra para cambiar de sitio (la 1.ª es la principal)</div><div class="cedfs" data-fg="ced">${p.fotos.map((f,i)=>`<figure data-fi="${i}"><img src="${E(f.src)}" alt=""><button type="button" class="cfx" aria-label="Quitar esta foto" title="Quitar esta foto (se borra al Guardar)" onclick="event.stopPropagation();compEdOp('fotoX',${i})">✕</button>${i==0?'<span class="cedp">Principal</span>':""}
    <input list="ced_vis" data-f="vista" data-i="${i}" value="${E(f.vista)}" placeholder="Vista">
    <div class="cedfb">${/^ubicaci/i.test(f.vista||"")?`<button type="button" class="sec" title="Marcar la ubicación (recuadro naranja)" onclick="compEdUbi(${i})">📍</button>`:`<button type="button" class="sec" title="Recortar" onclick="compEdRec(${i})">✂️</button><button type="button" class="sec" title="Usar como foto de ubicación: la IA localiza el componente y lo marca en naranja" onclick="compEdUbiIA(${i})">📍</button>`}<label class="sec" title="Sustituir">🔄<input type="file" accept="image/*" hidden onchange="compEdFoto(this,${i})"></label>${i?`<button type="button" class="sec" title="Poner la primera" onclick="compEdOp('foto^',${i})">⭐</button>`:""}</div></figure>`).join("")}
-  <label class="cedadd">📷<span>Añadir foto</span><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-1)"></label><label class="cedadd cedubi">📍<span>Añadir foto de ubicación</span><small>AE · Armario de pupitre</small><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-2)"></label></div>
+  <label class="cedadd">📷<span>Añadir foto</span><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-1)"></label><label class="cedadd cedubi">📍<span>Añadir foto de ubicación</span><small>${(()=>{const u=compUbiDe({id:p.codigo,esp:p.esp});return u?"📍 "+E(u):"AE · Armario de pupitre"})()}</small><input type="file" accept="image/*" multiple hidden onchange="compEdFoto(this,-2)"></label></div>
  <label>Código (de los planos)</label><textarea class="tx1" rows="1" data-f="codigo">${E(p.codigo)}</textarea>
  <label>Título</label><textarea class="tx1" rows="1" data-f="titulo">${E(p.titulo)}</textarea>
  <label>Fabricante · modelo · referencia</label><textarea class="tx1" rows="1" data-f="fab" placeholder="Ej. Schneider · ref. …">${E(p.fab)}</textarea>
@@ -185,7 +197,7 @@ window.compEdAlarmas=function(){if(!ED||typeof compAlarmasDe!="function")return;
 window.compEdRec=async function(i){if(!ED||!ED.fotos[i]||typeof compRecorta!="function")return;const r=await compRecorta(ED.fotos[i].src);if(!r)return;ED.fotos[i].src=r.src;sucio=true;pinta()};
 const conRec=async src=>{if(typeof compRecorta!="function")return src;const r=await compRecorta(src);return r?r.src:src};
 window.compEdFoto=async function(inp,i){const fs=[...(inp.files||[])];inp.value="";if(!fs.length||!ED)return;sucio=true;
- try{if(i>=0&&/^ubicaci/i.test(ED.fotos[i].vista||"")){const f=ED.fotos[i];f.o=await foto(fs[0]);f.src=f.o;f.caja=null;pinta();await compEdUbi(i);return}if(i>=0){ED.fotos[i].src=await conRec(await foto(fs[0]))}else if(i==-2){const arm=await compPideArmario();if(arm==null)return;
+ try{if(i>=0&&/^ubicaci/i.test(ED.fotos[i].vista||"")){const f=ED.fotos[i];f.o=await foto(fs[0]);f.src=f.o;f.caja=null;pinta();await compEdUbi(i);return}if(i>=0){ED.fotos[i].src=await conRec(await foto(fs[0]))}else if(i==-2){const arm=await compPideArmario(compUbiDe({id:ED.codigo,esp:ED.esp}));if(arm==null)return;
    for(const fl of fs){const raw=await foto(fl);ED.fotos.push({src:raw,o:raw,arm,vista:conArm("Ubicación",arm)});pinta();await compEdUbiIA(ED.fotos.length-1)}return}else{
   for(const f of fs)ED.fotos.push({src:await conRec(await foto(f)),vista:window.compVariosCod&&compVariosCod(ED.codigo)?"Vista componente":VISTAS[Math.min(ED.fotos.length,VISTAS.length-1)]})}pinta()}
  catch(e){msg(String(e.message||e))}};
@@ -224,6 +236,7 @@ function refresca(k,nc){
 const st=document.createElement("style");st.textContent=`
 .cmpfo{position:relative}.cmpfo .cfx{position:absolute;top:3px;right:3px;z-index:2;width:26px!important;height:26px;min-height:0!important;margin:0!important;padding:0!important;border-radius:50%;border:2px solid #fff;background:#e53935;color:#fff;font:900 14px/1 system-ui;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px #0006;cursor:pointer}
 .cmpfo.cfxq{display:none!important}
+.cmpfo .cmpubi{display:block;margin-top:2px;font-weight:700;color:#e65100}
 .cfxbar{display:flex;align-items:center;gap:6px;margin:8px 0;padding:8px;border:2px solid #e53935;border-radius:10px;background:#e5393514}
 .cfxbar span{flex:1;font-weight:800;font-size:13px;color:#e53935}
 .cfxbar button{width:auto!important;margin:0!important;padding:8px 10px!important;font-size:13px!important;min-height:0!important}
