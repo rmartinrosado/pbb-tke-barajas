@@ -23,13 +23,28 @@ const repuesto=c=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
  const s=String(c.av||"").match(/AL SUSTITUIR:?\s*([^]*)$/i);if(s)f.push(["Al sustituir",s[1].trim()]);
  const r=(c.esp||[]).find(x=>/^repuesto$/i.test(x[0]));if(r)f.push(["Almacén",r[1]]);
  return f.length?`<div class="cnrep"><div class="cnrt">🔧 Repuesto</div><table>${f.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table></div>`:""};
+/* v574: pestaña «A IMPORTAR»: elementos de campo, dispositivos y borneros de los planos (window.COMP_PLANOS, comp-importar-datos.js)
+   que todavía no tienen ficha en Componentes de campo. Se calcula al vuelo: al incorporar un componente con su código, desaparece de la lista. */
+const IMP="__imp";
+const reTag=t=>new RegExp("(^|[^A-Z0-9.])"+String(t).replace(/[.*+?^${}()|[\]\\\/]/g,"\\$&")+"(?![0-9]|\\.[0-9])");
+function pendientes(){const P=window.COMP_PLANOS||[];if(!P.length)return[];
+ const txt=L().map(c=>String([c.id,c.t,c.claves].join(" ")).toUpperCase()).join(" \n ");
+ return P.filter(([t])=>!reTag(t.toUpperCase()).test(txt))}
+function listaImp(ws){const P=pendientes(),tot=(window.COMP_PLANOS||[]).length;
+ const F=P.filter(r=>!ws.length||ws.every(w=>nrm(r.join(" ")).includes(w)));
+ const g={};F.forEach(r=>(g[r[2]]=g[r[2]]||[]).push(r));const zs=Object.keys(g).sort((a,b)=>a.localeCompare(b,"es"));
+ return `<div class="cnimpc">📋 <b>${P.length}</b> de ${tot} elementos de los planos sin ficha (esquema general rev. J, 504/508, 507, AAA, HZ e hidráulica). Haz la foto en campo, lee el código y pulsa <b>📷</b>: al guardarlo sale de esta lista.</div>`+
+  `<div class="mu" style="font-size:12px;margin:6px 0">${F.length} pendiente${F.length==1?"":"s"}${ws.length?" encontrados":""}</div>`+
+  (F.length?zs.map(z=>`<details class="cnimpz"${ws.length||zs.length==1?" open":""}><summary>${E(z)} <small>${g[z].length}</small></summary>${g[z].map(([t,n,zz,f,pl])=>`<div class="cnimp"><span class="cmpid">${E(t)}</span><span class="cnimpn">${E(n)}<small>${f?`Folio ${f} · rev. J`:E(pl)}</small></span><button type="button" class="pri" data-imp="${E(t)}" aria-label="Incorporar ${E(t)}">📷</button></div>`).join("")}</details>`).join("")
+  :`<div class="cnvac">Nada pendiente${ws.length?" con esa búsqueda":""}.</div>`)}
 let capa=null,zSel="",abiertos=new Set(),solo=null;/* v563: solo = {k:Set de claves, t:rótulo} → lista acotada a los componentes de una alarma */
 function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).value||"").trim();
  const ws=q.split(/\s+/).filter(Boolean);
  const todos=L(),zs=[...new Set(todos.map(zona))].sort((a,b)=>(a=="Otros")-(b=="Otros")||a.localeCompare(b,"es"));/* v570: zonas en orden alfabético, «Otros» al final */
- const F=todos.filter(c=>(!solo||solo.k.has(String(c.baseId||c.db||c.id)))&&(!zSel||zona(c)==zSel)&&(!ws.length||ws.every(w=>texto(c).includes(w))));
- capa.querySelector("#cn_z").innerHTML=[["","Todos"]].concat(zs.map(z=>[z,z])).map(([v,t])=>`<button type="button" class="cnch${zSel==v?" on":""}" data-z="${E(v)}">${E(t)} <small>${v?todos.filter(c=>zona(c)==v).length:todos.length}</small></button>`).join("");
- const el=capa.querySelector("#cn_l");
+ const nImp=pendientes().length;
+ const F=zSel==IMP?[]:todos.filter(c=>(!solo||solo.k.has(String(c.baseId||c.db||c.id)))&&(!zSel||zona(c)==zSel)&&(!ws.length||ws.every(w=>texto(c).includes(w))));
+ capa.querySelector("#cn_z").innerHTML=(nImp?`<button type="button" class="cnch cnchimp${zSel==IMP?" on":""}" data-z="${IMP}">A IMPORTAR <small>${nImp}</small></button>`:"")+[["","Todos"]].concat(zs.map(z=>[z,z])).map(([v,t])=>`<button type="button" class="cnch${zSel==v?" on":""}" data-z="${E(v)}">${E(t)} <small>${v?todos.filter(c=>zona(c)==v).length:todos.length}</small></button>`).join("");
+ const el=capa.querySelector("#cn_l");if(zSel==IMP){el.innerHTML=listaImp(ws);return}
  el.innerHTML=(solo?`<div class="cnsolo"><span>🚨 ${E(solo.t)}</span><button type="button" class="sec" data-todos="1">Ver todos</button></div>`:"")+`<div class="mu" style="font-size:12px;margin:6px 0">${F.length} componente${F.length==1?"":"s"}${ws.length||zSel?(F.length==1?" encontrado":" encontrados"):""}</div>`+
   (F.length?F.map(c=>{const k=String(c.baseId||c.db||c.id);const bt=c.db?(c.baseId?"↩️<br>Restaurar":"🗑<br>Eliminar"):"🔒<br>De fábrica";
    return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${repuesto(c)}${typeof compFicha=="function"?compFicha(c):""}</details></div>`}).join("")
@@ -47,7 +62,10 @@ function abre(){
   capa.querySelector("#cn_go").onclick=()=>{q.blur();lista()};
   capa.querySelector("#cn_bo").onclick=()=>{q.value="";lista()};
   capa.querySelector("#cn_inc").onclick=incorpora;
-  capa.querySelector("#cn_l").addEventListener("click",e=>{if(e.target.closest("[data-todos]")){solo=null;lista()}});
+  capa.querySelector("#cn_l").addEventListener("click",e=>{if(e.target.closest("[data-todos]")){solo=null;lista()}
+   const bi=e.target.closest("[data-imp]");if(bi){const t=bi.dataset.imp,r=(window.COMP_PLANOS||[]).find(x=>x[0]==t)||[t,"",""];incorpora();
+    setTimeout(()=>{const pon=(id,v)=>{const i=document.getElementById(id);if(i&&!i.value){i.value=v;i.dispatchEvent(new Event("input",{bubbles:true}))}};
+     pon("ic_cod",t);pon("ic_donde",(r[2]||"")+(r[1]?" · "+r[1]:""))},60)}});
   capa.querySelector("#cn_z").addEventListener("click",e=>{const b=e.target.closest(".cnch");if(!b)return;zSel=b.dataset.z||"";lista()});
   capa.querySelector("#cn_l").addEventListener("toggle",e=>{const d=e.target;if(!d.classList||!d.classList.contains("cni"))return;d.open?abiertos.add(d.dataset.k):abiertos.delete(d.dataset.k);
   /* v560: al abrir una ficha cuyas fotos aún no han llegado, se piden ya */
@@ -138,6 +156,14 @@ html.cnInc #sheet{z-index:70!important}
 #compCapa .cnch{flex:none;width:auto!important;margin:0!important;padding:5px 10px!important;border-radius:16px!important;border:1px solid var(--bd,#2a2f38)!important;
  background:transparent!important;color:var(--tx,#e9ecf1)!important;font-size:12.5px!important;font-weight:600;white-space:nowrap;min-height:0!important}
 #compCapa .cnch small{opacity:.65;font-weight:700;margin-left:2px}
+#compCapa .cnchimp{border:1.5px dashed #ff7a1a!important;color:#ff7a1a!important;font-weight:800!important;letter-spacing:.4px}
+#compCapa .cnchimp.on{background:#ff7a1a!important;color:#111!important;border-style:solid!important}
+#compCapa .cnimpc{margin:8px 0 4px;padding:9px 11px;border-radius:10px;border:1px solid #ff7a1a66;background:color-mix(in srgb,#ff7a1a 10%,transparent);font-size:13px;line-height:1.4}
+#compCapa .cnimpz{margin:6px 0;border:1px solid var(--bd,#2a2f38);border-radius:10px;padding:2px 10px}
+#compCapa .cnimpz>summary{padding:9px 0;font-weight:800;cursor:pointer}#compCapa .cnimpz>summary small{opacity:.6;margin-left:4px}
+#compCapa .cnimp{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--bd,#2a2f38)}
+#compCapa .cnimp .cmpid{flex:none}#compCapa .cnimpn{flex:1;min-width:0;font-size:13.5px;line-height:1.25}#compCapa .cnimpn small{display:block;opacity:.6;font-size:11.5px;margin-top:2px}
+#compCapa .cnimp button{flex:none;width:46px!important;height:40px;margin:0!important;padding:0!important;font-size:19px!important;line-height:1}
 #compCapa .cnch.on{border-color:var(--ac,#ff7a1a)!important;color:var(--ac,#ff7a1a)!important;background:color-mix(in srgb,var(--ac,#ff7a1a) 12%,transparent)!important}
 #compCapa .cnl{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 #compCapa .cni{border:1px solid var(--bd,#2a2f38);border-radius:8px;padding:8px 10px;margin:6px 0;background:var(--card,#171a20)}
