@@ -26,6 +26,7 @@ function fichaOrden(c){let fh=typeof compFicha=="function"?compFicha(c):"";
  const V=t=>`<div class="cnverde">${t}</div>`;
  if(fh.includes('<div class="alpl">'))fh=fh.replace('<div class="alpl">',V("ALARMAS RELACIONADAS")+'<div class="alpl">');
  else fh=fh.replace(/(<div class="cmpfs"[^>]*>[\s\S]*?<\/figure><\/div>|<div class="cmpfs"[^>]*><\/div>)/,"$1"+V("SIN ALARMAS RELACIONADAS"));
+ fh=fh.replace(/<div class="cmpst">\s*Medir en campo\s*<\/div>/i,V("MEDIR EN CAMPO"));/* v579: «MEDIR EN CAMPO» también en caja verde y negra */
  if(fh.includes('<div class="cedb">'))fh=fh.replace('<div class="cedb">','<div class="cedb">'+V("DETALLES DE CAMPO"));
  else fh=fh.replace('<div class="cmpfs"',V("DETALLES DE CAMPO")+'<div class="cmpfs"');
  return {fh,spec:spec?`<div class="cnspec">${spec}</div>`:""}}
