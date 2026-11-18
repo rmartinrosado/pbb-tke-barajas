@@ -27,16 +27,29 @@ const repuesto=c=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
    que todavía no tienen ficha en Componentes de campo. Se calcula al vuelo: al incorporar un componente con su código, desaparece de la lista. */
 const IMP="__imp";
 const reTag=t=>new RegExp("(^|[^A-Z0-9.])"+String(t).replace(/[.*+?^${}()|[\]\\\/]/g,"\\$&")+"(?![0-9]|\\.[0-9])");
-function pendientes(){const P=window.COMP_PLANOS||[];if(!P.length)return[];
- const txt=L().map(c=>String([c.id,c.t,c.claves].join(" ")).toUpperCase()).join(" \n ");
- return P.filter(([t])=>!reTag(t.toUpperCase()).test(txt))}
-function listaImp(ws){const P=pendientes(),tot=(window.COMP_PLANOS||[]).length;
- const F=P.filter(r=>!ws.length||ws.every(w=>nrm(r.join(" ")).includes(w)));
- const g={};F.forEach(r=>(g[r[2]]=g[r[2]]||[]).push(r));const zs=Object.keys(g).sort((a,b)=>a.localeCompare(b,"es"));
- return `<div class="cnimpc">📋 <b>${P.length}</b> de ${tot} elementos de los planos sin ficha (esquema general rev. J, 504/508, 507, AAA, HZ e hidráulica). Haz la foto en campo, lee el código y pulsa <b>📷</b>: al guardarlo sale de esta lista.</div>`+
-  `<div class="mu" style="font-size:12px;margin:6px 0">${F.length} pendiente${F.length==1?"":"s"}${ws.length?" encontrados":""}</div>`+
-  (F.length?zs.map(z=>`<details class="cnimpz"${ws.length||zs.length==1?" open":""}><summary>${E(z)} <small>${g[z].length}</small></summary>${g[z].map(([t,n,zz,f,pl])=>`<div class="cnimp"><span class="cmpid">${E(t)}</span><span class="cnimpn">${E(n)}<small>${f?`Folio ${f} · rev. J`:E(pl)}</small></span><button type="button" class="pri" data-imp="${E(t)}" aria-label="Incorporar ${E(t)}">📷</button></div>`).join("")}</details>`).join("")
-  :`<div class="cnvac">Nada pendiente${ws.length?" con esa búsqueda":""}.</div>`)}
+/* v575: cada elemento puede estar PENDIENTE, IMPORTADO (tiene ficha: sale tachado con ✓) o QUITADO con la papelera
+   (p. ej. ya incorporado con otro código): tabla compartida comp_importar_quitados; abajo, «Quitados» para devolverlos. */
+const QK="comp_imp_quitados";let QUI=new Set((()=>{try{return JSON.parse(localStorage.getItem(QK)||"[]")}catch(e){return[]}})());
+const gQ=()=>{try{localStorage.setItem(QK,JSON.stringify([...QUI]))}catch(e){}};
+let qCarg=false;async function cargaQui(){if(qCarg||typeof sb=="undefined")return;qCarg=true;
+ try{const {data,error}=await sb.from("comp_importar_quitados").select("codigo");if(!error&&data){QUI=new Set(data.map(r=>r.codigo));gQ();if(capa&&zSel==IMP)lista()}}catch(e){}}
+async function quita(t,on){on?QUI.add(t):QUI.delete(t);gQ();lista();
+ try{if(on)await sb.from("comp_importar_quitados").upsert({codigo:t,por:(typeof user!="undefined"&&user&&user.email)||""});else await sb.from("comp_importar_quitados").delete().eq("codigo",t)}
+ catch(e){if(typeof msg=="function")msg("Sin conexión: el cambio queda en este móvil")}}
+function estados(){const P=window.COMP_PLANOS||[];const txt=L().map(c=>String([c.id,c.t,c.claves].join(" ")).toUpperCase()).join(" \n ");
+ return P.map(r=>({r,hecho:reTag(r[0].toUpperCase()).test(txt),quit:QUI.has(r[0])}))}
+function pendientes(){return estados().filter(x=>!x.hecho&&!x.quit).map(x=>x.r)}
+const gAb=new Set();
+function listaImp(ws){cargaQui();const S=estados(),tot=S.length;
+ const vis=S.filter(x=>!x.quit),pend=vis.filter(x=>!x.hecho).length,hech=vis.filter(x=>x.hecho).length,qs=S.filter(x=>x.quit);
+ const F=vis.filter(x=>!ws.length||ws.every(w=>nrm(x.r.join(" ")).includes(w)));
+ const g={};F.forEach(x=>(g[x.r[2]]=g[x.r[2]]||[]).push(x));const zs=Object.keys(g).sort((a,b)=>a.localeCompare(b,"es"));
+ const fila=x=>{const [t,n,zz,f,pl]=x.r;return `<div class="cnimp${x.hecho?" hecho":""}"><span class="cmpid">${E(t)}</span><span class="cnimpn">${x.hecho?"✓ ":""}${E(n)}<small>${f?`Folio ${f} · rev. J`:E(pl)}${x.hecho?" · importado":""}</small></span>`+
+  (x.hecho?"":`<button type="button" class="pri" data-imp="${E(t)}" aria-label="Incorporar ${E(t)}">📷</button><button type="button" class="sec cnimpq" data-qui="${E(t)}" aria-label="Quitar ${E(t)} de la lista">🗑️</button>`)+`</div>`};
+ return `<div class="cnimpc">📋 <b>${pend}</b> pendientes · <s>${hech} importados</s> de ${tot} elementos de los planos (esquema general rev. J, 504/508, 507, AAA, HZ e hidráulica). Haz la foto en campo y pulsa <b>📷</b>; al guardarlo queda <s>tachado</s>. 🗑️ lo quita de la lista (p. ej. si ya está incorporado con otro código).</div>`+
+  (F.length?zs.map(z=>{const n=g[z].filter(x=>!x.hecho).length,h=g[z].length-n;return `<details class="cnimpz" data-g="${E(z)}"${ws.length||gAb.has(z)?" open":""}><summary>${E(z)} <small>${n}${h?` · <s>${h}</s>`:""}</small></summary>${g[z].map(fila).join("")}</details>`}).join("")
+  :`<div class="cnvac">Nada${ws.length?" con esa búsqueda":""}.</div>`)+
+  (qs.length?`<details class="cnimpz cnimpqz"><summary>🗑️ Quitados de la lista <small>${qs.length}</small></summary>${qs.map(x=>`<div class="cnimp"><span class="cmpid">${E(x.r[0])}</span><span class="cnimpn">${E(x.r[1])}<small>${E(x.r[2])}</small></span><button type="button" class="sec" data-dev="${E(x.r[0])}" style="width:auto!important;padding:6px 10px!important;font-size:12px!important">↩️ Devolver</button></div>`).join("")}</details>`:"")}
 let capa=null,zSel="",abiertos=new Set(),solo=null;/* v563: solo = {k:Set de claves, t:rótulo} → lista acotada a los componentes de una alarma */
 function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).value||"").trim();
  const ws=q.split(/\s+/).filter(Boolean);
@@ -63,11 +76,13 @@ function abre(){
   capa.querySelector("#cn_bo").onclick=()=>{q.value="";lista()};
   capa.querySelector("#cn_inc").onclick=incorpora;
   capa.querySelector("#cn_l").addEventListener("click",e=>{if(e.target.closest("[data-todos]")){solo=null;lista()}
-   const bi=e.target.closest("[data-imp]");if(bi){const t=bi.dataset.imp,r=(window.COMP_PLANOS||[]).find(x=>x[0]==t)||[t,"",""];incorpora();
+   const bq=e.target.closest("[data-qui]");if(bq){const t=bq.dataset.qui;if(bq.classList.contains("sure"))quita(t,true);else{bq.classList.add("sure");bq.textContent="¿Quitar?";setTimeout(()=>{if(bq.isConnected){bq.classList.remove("sure");bq.textContent="🗑️"}},3500)}return}
+   const bd=e.target.closest("[data-dev]");if(bd){quita(bd.dataset.dev,false);return}
+   const bi=e.target.closest("[data-imp]");if(bi){const t=bi.dataset.imp,r=(window.COMP_PLANOS||[]).find(x=>x[0]==t)||[t,"",""];window.__impDesde=1;incorpora();
     setTimeout(()=>{const pon=(id,v)=>{const i=document.getElementById(id);if(i&&!i.value){i.value=v;i.dispatchEvent(new Event("input",{bubbles:true}))}};
      pon("ic_cod",t);pon("ic_donde",(r[2]||"")+(r[1]?" · "+r[1]:""))},60)}});
   capa.querySelector("#cn_z").addEventListener("click",e=>{const b=e.target.closest(".cnch");if(!b)return;zSel=b.dataset.z||"";lista()});
-  capa.querySelector("#cn_l").addEventListener("toggle",e=>{const d=e.target;if(!d.classList||!d.classList.contains("cni"))return;d.open?abiertos.add(d.dataset.k):abiertos.delete(d.dataset.k);
+  capa.querySelector("#cn_l").addEventListener("toggle",e=>{const d=e.target;if(d.classList&&d.classList.contains("cnimpz")&&d.dataset.g){d.open?gAb.add(d.dataset.g):gAb.delete(d.dataset.g);return}if(!d.classList||!d.classList.contains("cni"))return;d.open?abiertos.add(d.dataset.k):abiertos.delete(d.dataset.k);
   /* v560: al abrir una ficha cuyas fotos aún no han llegado, se piden ya */
   if(d.open){const c=L().find(x=>String(x.baseId||x.db||x.id)==d.dataset.k);if(c&&c._fp&&typeof compFotosAsegura=="function")compFotosAsegura(c).then(()=>{if(d.isConnected)lista()})}},true)}
  /* v562: al abrir Componentes de campo, SIEMPRE todas las fichas plegadas (no recuerda las abiertas la vez anterior) */
@@ -83,7 +98,7 @@ function finInc(){incOn=false;document.documentElement.classList.remove("cnInc")
 function envuelve(){if(envuelto)return;envuelto=true;
  const oc=window.compCatalogo;window.compCatalogo=function(q){if(!incOn)return oc.apply(this,arguments);
   finInc();try{closeSheet()}catch(e){const sh=document.getElementById("sheet");if(sh)sh.style.display="none"}
-  if(capa){const i=capa.querySelector("#cn_q");if(i&&q){i.value=q;zSel=""}lista()}};
+  if(capa){const i=capa.querySelector("#cn_q");if(window.__impDesde){window.__impDesde=0;zSel=IMP;if(i)i.value=""}else if(i&&q){i.value=q;zSel=""}lista()}};
  if(typeof window.closeSheet=="function"){const os=window.closeSheet;window.closeSheet=function(){if(incOn)finInc();return os.apply(this,arguments)}}}
 function incorpora(){if(typeof window.compIncorpora!="function"){if(typeof msg=="function")msg("Incorporar componente no disponible");return}
  envuelve();incOn=true;document.documentElement.classList.add("cnInc");
@@ -164,6 +179,9 @@ html.cnInc #sheet{z-index:70!important}
 #compCapa .cnimp{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--bd,#2a2f38)}
 #compCapa .cnimp .cmpid{flex:none}#compCapa .cnimpn{flex:1;min-width:0;font-size:13.5px;line-height:1.25}#compCapa .cnimpn small{display:block;opacity:.6;font-size:11.5px;margin-top:2px}
 #compCapa .cnimp button{flex:none;width:46px!important;height:40px;margin:0!important;padding:0!important;font-size:19px!important;line-height:1}
+#compCapa .cnimp .cnimpq{width:40px!important;font-size:17px!important}#compCapa .cnimp .cnimpq.sure{width:auto!important;padding:0 8px!important;font-size:12px!important;background:#c62828!important;color:#fff!important;border-color:#c62828!important}
+#compCapa .cnimp.hecho{opacity:.55}#compCapa .cnimp.hecho .cmpid,#compCapa .cnimp.hecho .cnimpn{text-decoration:line-through;text-decoration-thickness:2px}
+#compCapa .cnimp.hecho .cnimpn{color:#16a34a}
 #compCapa .cnch.on{border-color:var(--ac,#ff7a1a)!important;color:var(--ac,#ff7a1a)!important;background:color-mix(in srgb,var(--ac,#ff7a1a) 12%,transparent)!important}
 #compCapa .cnl{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 #compCapa .cni{border:1px solid var(--bd,#2a2f38);border-radius:8px;padding:8px 10px;margin:6px 0;background:var(--card,#171a20)}
