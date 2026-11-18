@@ -288,7 +288,7 @@ const ALIAS={"057":"medida analogica extension|laser extension","056":"medida an
  "010":"bumper traslacion|bordes ruedas","285":"manguera agua potable","263":"400 hz conectado","272":"manguera 400 hz desenrollada|manguera 400 hz extendida","256":"hombre muerto","294":"barrera rotonda|haz cortado|fotocelula rotonda|r-b1|r-b2|r-b3|r-b4"};
 const NO={"242":/sensor|c-?s9|enrollable/,"241":/fallo/};
 const CAT=TXT.split("\n").map(l=>{const [c,t]=l.split("|");const g=GR(c);return{c,t,f:FAM(c),g,n:nrm(t+" "+(ALIAS[c]||"").replace(/\|/g," "))}});
-window.RCS_AL=CAT;
+window.RCS_AL=CAT;window.RCS_G=G;/* v586: grupos (qué es · qué hacer) para la primera actuación integral */
 const porCod=c=>{c=String(c).toUpperCase();if(/^\d{1,3}$/.test(c))c=c.padStart(3,"0");return CAT.find(x=>x.c==c)};
 /* ---------- sinónimos del manual (solo para el análisis; no cambian lo escrito) ---------- */
 const SIN=[[/\blongitud\b/,"extension"],[/\bti\b/,"tunel interior"],[/\btm\b/,"tunel medio"],[/\boutriggers?\b/,"estabilizadores"],[/wrong docking/,"atraque incorrecto"],[/\brcc\b/,"puesto remoto"],[/\bpwc\b/,"manguera agua potable"]];
