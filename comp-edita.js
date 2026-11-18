@@ -44,7 +44,27 @@ window.compPideArmario=function(){return new Promise(ok=>{const ov=document.crea
 const base=window.compFicha;
 if(typeof base=="function")window.compFicha=function(c){const h=base(c);if(!c)return h;const k=key(c);K[k]=c;
  const bar=puede()?`<div class="cedb"><button type="button" class="sec" onclick="event.stopPropagation();compEdita('${E(k).replace(/'/g,"\\'")}')">✏️ Editar ficha</button><label class="sec" onclick="event.stopPropagation()">📷 Foto nueva<input type="file" accept="image/*" hidden onchange="compFotoNueva('${E(k).replace(/'/g,"\\'")}',this)"></label></div>`:"";
- return h.replace('<div class="cmpf">',`<div class="cmpf" data-ck="${E(k)}">${bar}`)};
+ let n=0;const hx=puede()?h.replace(/(<figure class="cmpfo"[^>]*>)/g,m=>m+`<button type="button" class="cfx" data-fi="${n++}" aria-label="Quitar esta foto" title="Quitar esta foto" onclick="event.stopPropagation();compFichaX(this)">✕</button>`):h;
+ return hx.replace('<div class="cmpf">',`<div class="cmpf" data-ck="${E(k)}">${bar}`)};
+
+/* ===== v581: ✕ en la esquina de cada foto de DETALLES DE CAMPO (18/11/2026) =====
+   Tocar la ✕ quita la foto de la vista (sin borrar aún); aparece una barra «N foto(s) quitada(s) · ↩️ Deshacer · 💾 Guardar».
+   Solo al pulsar Guardar se borran de la ficha en Supabase para todos los técnicos. Solo en modo Administrador. ===== */
+const fichaDe=b=>b&&b.closest(".cmpf[data-ck]");
+function barraX(f){const q=f.querySelectorAll(".cmpfs figure.cfxq").length;let b=f.querySelector(":scope>.cfxbar");
+ if(!q){if(b)b.remove();return}
+ if(!b){b=document.createElement("div");b.className="cfxbar";["click","dblclick","touchend"].forEach(t=>b.addEventListener(t,e=>e.stopPropagation()));
+  const fs=f.querySelector(".cmpfs");(fs?fs:f.lastElementChild).insertAdjacentElement("afterend",b)}
+ b.innerHTML=`<span>🗑 ${q} foto${q>1?"s":""} quitada${q>1?"s":""}</span><button type="button" class="sec" onclick="compFichaXDeshacer(this)">↩️ Deshacer</button><button type="button" class="pri" onclick="compFichaXGuarda(this)">💾 Guardar</button>`}
+window.compFichaX=function(btn){const f=fichaDe(btn);const fg=btn.closest("figure");if(!f||!fg)return;fg.classList.add("cfxq");barraX(f)};
+window.compFichaXDeshacer=function(btn){const f=fichaDe(btn);if(!f)return;f.querySelectorAll(".cmpfs figure.cfxq").forEach(x=>x.classList.remove("cfxq"));barraX(f)};
+window.compFichaXGuarda=async function(btn){const f=fichaDe(btn);if(!f)return;const k=f.dataset.ck;
+ const c=K[k]||(window.COMP_CAMPO||[]).find(x=>key(x)==k);if(!c){msg("Ficha no encontrada");return}
+ if(c._fp&&typeof compFotosAsegura=="function"){msg("⏳ Cargando las fotos de la ficha…");await compFotosAsegura(c);c._fp=false}
+ const qi=[...f.querySelectorAll(".cmpfs figure.cfxq .cfx")].map(x=>+x.dataset.fi).filter(i=>i>=0).sort((a,b)=>b-a);if(!qi.length)return;
+ cur=c;ED=desde(c);qi.forEach(i=>{if(ED.fotos[i])ED.fotos.splice(i,1)});sucio=false;
+ f.querySelectorAll(".cfxbar button").forEach(x=>x.disabled=true);await window.compEdGuarda();
+ if(cur===c){f.querySelectorAll(".cfxbar button").forEach(x=>x.disabled=false);cur=null;ED=null}};
 
 /* ---------- estado del editor ---------- */
 let cur=null,ED=null,capa=null,sucio=false;
@@ -170,7 +190,7 @@ window.compEdFoto=async function(inp,i){const fs=[...(inp.files||[])];inp.value=
  catch(e){msg(String(e.message||e))}};
 
 const limpia=a=>a.map(r=>r.map(x=>String(x||"").trim())).filter(r=>r.some(Boolean));
-window.compEdGuarda=async function(){if(!ED||!cur)return;const p=ED;const b=capa.querySelectorAll(".cedg,.cedl>.pri");b.forEach(x=>x.disabled=true);
+window.compEdGuarda=async function(){if(!ED||!cur)return;const p=ED;const b=capa?capa.querySelectorAll(".cedg,.cedl>.pri"):[];b.forEach(x=>x.disabled=true);
  const row={codigo:p.codigo.trim()||cur.id,titulo:p.titulo.trim()||cur.t,fab:p.fab.trim(),claves:p.claves.trim(),
   esp:limpia(p.esp),pin:limpia(p.pin),med:p.med.map(x=>String(x).trim()).filter(Boolean),av:p.av.trim(),
   fotos:p.fotos.map(f=>Object.assign({src:f.src,vista:(f.vista||"").trim()||"Vista"},f.o&&f.caja?{o:f.o,caja:f.caja}:{})),stock:p.stock};
@@ -201,6 +221,12 @@ function refresca(k,nc){
   if(sm&&s.classList.contains("icpi"))sm.innerHTML=`<span class="cmpid">${E(nc.id)}</span> ${E(nc.t)}`})}
 
 const st=document.createElement("style");st.textContent=`
+.cmpfo{position:relative}.cmpfo .cfx{position:absolute;top:3px;right:3px;z-index:2;width:26px!important;height:26px;min-height:0!important;margin:0!important;padding:0!important;border-radius:50%;border:2px solid #fff;background:#e53935;color:#fff;font:900 14px/1 system-ui;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px #0006;cursor:pointer}
+.cmpfo.cfxq{display:none!important}
+.cfxbar{display:flex;align-items:center;gap:6px;margin:8px 0;padding:8px;border:2px solid #e53935;border-radius:10px;background:#e5393514}
+.cfxbar span{flex:1;font-weight:800;font-size:13px;color:#e53935}
+.cfxbar button{width:auto!important;margin:0!important;padding:8px 10px!important;font-size:13px!important;min-height:0!important}
+html.compRO .cmpfo .cfx{display:none!important}
 .cedb{display:flex;gap:6px;justify-content:flex-end;margin:-2px 0 6px}
 .cedb .sec{width:auto!important;margin:0!important;padding:6px 10px!important;font-size:12.5px!important;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:pointer;min-height:0!important}
 #cedCapa{position:fixed;inset:0;z-index:100;background:var(--bg,#0e1014);color:var(--tx,#e9ecf1);display:none;flex-direction:column;

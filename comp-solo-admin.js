@@ -6,7 +6,7 @@
 const esAdm=()=>{try{return typeof admin!="undefined"&&!!admin}catch(e){return false}};
 const aviso=()=>{if(typeof msg=="function")msg("🔒 Solo el modo Administrador puede añadir o modificar componentes")};
 /* 1) las funciones de alta y edición no hacen nada fuera de Admin */
-["compIncorpora","compEdita","compFotoNueva","compGuarda","compEdGuarda","compEdBorra","compQuita"].forEach(n=>{
+["compIncorpora","compEdita","compFotoNueva","compGuarda","compEdGuarda","compEdBorra","compQuita","compFichaX","compFichaXGuarda"].forEach(n=>{
  const o=window[n];if(typeof o!="function")return;
  window[n]=function(){if(!esAdm()){aviso();const i=arguments[1];if(i&&i.tagName=="INPUT")i.value="";return}return o.apply(this,arguments)}});
 /* 2) los botones se ven desactivados */
