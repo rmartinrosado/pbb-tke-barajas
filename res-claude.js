@@ -28,6 +28,12 @@ El técnico ha comprobado en campo los «Datos que faltan» y aporta:
 ${pares.map(([t,v])=>"- "+t+"\n  → Observado en campo: "+v).join("\n")}
 
 AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, concreta la causa más probable, la primera actuación y la reparación, y actualiza las medidas. Mantén el mismo formato (empieza por «Primera actuación en campo») y deja en «Datos que faltan» solo lo que siga sin confirmar.`;
+  /* v599: las respuestas del técnico a «Datos que faltan» pasan al Comentario de la Resolución IA (amplía la consulta)
+     y a las Observaciones de la OT; se abre la Resolución IA con el comentario relleno y arranca otra vez el análisis */
+  try{const L=pares.map(([t,v])=>`Dato de campo: ${String(t).replace(/\*\*/g,"").trim()} → ${v}`).filter(l=>!String(i.com||"").includes(l));
+   if(L.length){i.com=(String(i.com||"").trim()?String(i.com).trim()+"\n":"")+L.join("\n");
+    const ob=L.filter(l=>!String(i.obs||"").includes(l));if(ob.length)i.obs=(String(i.obs||"").trim()?String(i.obs).trim()+"\n":"")+ob.join("\n");sv("pbb_inc",inc)}
+   if(typeof resTec=="function"){resTec(id);const c=document.getElementById("t_com");if(c)c.value=i.com||""}}catch(e){console.warn("rc ajusta com",e)}
   const ant=i.resClaude.ts;rcAjEnCurso=true;plegar(true);setTimeout(()=>{try{render()}catch(e){}},60);
   try{await rcConsulta(id,pr)}finally{rcAjEnCurso=false;plegar(false)}
   const o=inc.find(x=>x.id==id);if(o&&o.resClaude&&o.resClaude.ts!=ant){delete DF[id];try{localStorage.setItem("rc_df",JSON.stringify(DF))}catch(e){}o.resClaude.ajustada=(o.resClaude.ajustada||0)+1;sv("pbb_inc",inc);render()}};
