@@ -99,7 +99,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
  function bloque(i){const r=i.resClaude;if(!r||!(r.txt||"").trim())return"";
   const ed=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
   return `<details class="rcBox" ${ab.has(i.id)?"open":""} ontoggle="rcTog('${i.id}',this.open)" onclick="event.stopPropagation()">
-  <summary class="rcSum"><img src="claude-logo.png" alt=""><span class="rcSt"><b>Resolución Claude AI</b><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}${/Gemini/i.test(r.por||"")?" · generada por Gemini (reserva)":""}</small></span><button class="rcPdf" title="PDF A4 de la resolución" aria-label="PDF A4 de la resolución" onclick="event.preventDefault();event.stopPropagation();rcPdf('${i.id}')">PDF</button><span class="rcChev">▾</span></summary>
+  <summary class="rcSum"><span class="rcLg" aria-label="Resolución IA · Claude / Gemini"><img src="claude-logo.png" alt="Claude"><span class="rcLgG">${GEM}</span></span><span class="rcSt"><small>PBB ${E(i.pos)} · ${E(i.tipo)} · OT ${E(i.orden)}${r.ts?" · "+fch(r.ts):""}${r.por?(/Gemini/i.test(r.por)?" · Gemini":" · Claude"):""}</small></span><button class="rcPdf" title="PDF A4 de la resolución" aria-label="PDF A4 de la resolución" onclick="event.preventDefault();event.stopPropagation();rcPdf('${i.id}')">PDF</button><span class="rcChev">▾</span></summary>
   <div class="rcBody">${typeof rcAviso=="function"?rcAviso(i):""}${typeof pdfHTML=="function"?pdfHTML(i.id):""}${md(r.txt,i.id)}
   <div class="rcFoot"><span>Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar en campo.</span><span class="rcBts"><button class="sec rcDel rcWAr" title="Enviar Resolución Claude AI por WhatsApp" aria-label="Enviar Resolución Claude AI por WhatsApp" onclick="event.stopPropagation();rcWAres('${i.id}')">${WAI}</button>${ed?`<button class="sec rcDel" title="Borrar resolución Claude" aria-label="Borrar resolución Claude" onclick="event.stopPropagation();rcBorra('${i.id}')">🗑</button>`:""}</span></div></div></details>`}
  window.rcBorra=id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;if(!confirm(`¿Borrar la resolución Claude de la OT ${i.orden}?`))return;delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id);sv("pbb_inc",inc);render();msg("Resolución Claude borrada")};
@@ -318,6 +318,8 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
 .rcSum::-webkit-details-marker{display:none}
 .rcBox>summary.rcSum::after{content:none!important;display:none!important}
 .rcSum img{width:30px;height:30px;flex:0 0 30px;border-radius:7px}
+.rcLg{display:flex;gap:6px;flex:none}.rcLgG{width:30px;height:30px;border-radius:7px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px rgba(0,0,0,.08)}.rcLgG svg{width:22px;height:22px;display:block}
+.rcSt small{font-size:12px!important;opacity:.85!important;white-space:normal!important}
 .rcSt{display:flex;flex-direction:column;line-height:1.2;flex:1;min-width:0}
 .rcSt b{font-size:15px;letter-spacing:.3px;color:#d97757}
 .rcSt small{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
