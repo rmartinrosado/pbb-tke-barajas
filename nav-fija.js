@@ -33,5 +33,6 @@ html.nvkb #nav,html.nvkb #navtab,html.nvkb #navbg{visibility:hidden!important;po
  ["scroll","resize","orientationchange","pageshow","focusin","touchend"].forEach(ev=>addEventListener(ev,pide,{passive:true,capture:true}));
  addEventListener("focusout",()=>{pide();setTimeout(pide,120);setTimeout(pide,450)},true);
  document.addEventListener("visibilitychange",()=>{if(!document.hidden){pide();setTimeout(pide,300)}});
+ window.nvAjusta=ajusta;/* v623: flot-fija.js la llama en cada fotograma mientras se desplaza */
  setInterval(ajusta,700);ajusta();
 })();
