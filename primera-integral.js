@@ -54,6 +54,28 @@ function plan(i){if(!i)return null;const T=textoOT(i);const ck=i.id+"|"+T+"|"+JS
  CACHE.set(ck,r);if(CACHE.size>200)CACHE.delete(CACHE.keys().next().value);return r}
 window.pciPlan=plan;
 
+/* v594: FOTOS DEL COMPONENTE incrustadas en cada paso de la actuación guiada, para localizarlo rápido:
+   las vistas del componente (con su código en el pie) y su foto de ubicación; toque → pantalla completa.
+   En los pasos de alarma/evento, las del primer componente con ficha que cite el texto (➜ actuación o la pregunta). */
+const NC=t=>String(t||"").toUpperCase().replace(/\s+/g,"");
+const RX=/\b([A-Z]{1,3}\d?-[A-Z]{1,2}\d+(?:\.\d+)?)/g;
+const cods=id=>String(id||"").split(/\s*(?:\/|,|\+|\by\b)\s*/).map(NC).filter(Boolean);
+const fo=f=>Array.isArray(f)?{src:f[0],v:String(f[1]||"")}:{src:(f||{}).src,v:String((f||{}).vista||"")};
+const esUbi=f=>/^ubicaci/i.test(f.v);
+const PEND=new Set();
+function asegura(c){if(!c||!c._fp||typeof compFotosAsegura!="function"||PEND.has(c))return;PEND.add(c);
+ compFotosAsegura(c).then(()=>{PEND.delete(c);c._fp=false;pinta()}).catch(()=>PEND.delete(c))}
+function fichaDe(t){const L0=window.COMP_CAMPO||[];let m;RX.lastIndex=0;const vis=new Set();t=String(t||"");
+ while((m=RX.exec(t))){let cd=NC(m[1]);if(vis.has(cd))continue;vis.add(cd);
+  let r=[];for(const k of [cd,cd.replace(/\./g,""),cd.replace(/\.\d+$/,"")]){r=L0.filter(c=>cods(c.id).map(x=>x.replace(/\./g,"")).includes(k.replace(/\./g,"")));if(r.length)break}
+  r=r.filter(c=>c._fp||(c.fotos||[]).length);if(r.length)return r[0]}return null}
+function fotos(c){if(!c)return"";if(c._fp){asegura(c);return`<div class="pcifw">⏳ Cargando las fotos de ${E(c.id)}…</div>`}
+ const F=(c.fotos||[]).map((f,i)=>Object.assign(fo(f),{i})).filter(f=>f.src);if(!F.length)return"";
+ const cp=F.filter(f=>!esUbi(f)).slice(0,cods(c.id).length>1?4:2),ub=F.find(esUbi);const T=cp.concat(ub?[ub]:[]);
+ const all=E(JSON.stringify(T.map(f=>f.src)));
+ return`<div class="pcifs">${T.map(f=>{const u=esUbi(f);const cf=!u&&typeof compCodFoto=="function"?compCodFoto(c,f.i):"";
+  const pie=u?`📍 <b>Ubicación</b>`:`<b>${E(cf||c.id)}</b><small>${E(cf?"Vista componente":String(f.v).replace(/\s*·.*$/,"")||"Vista componente")}</small>`;
+  return`<figure class="pcifo${u?" pciub":""}" onclick="event.stopPropagation();if(typeof compVer=='function')compVer('${E(f.src)}',${all})"><img src="${E(f.src)}" alt="${E(c.id)}" loading="lazy"><figcaption>${pie}</figcaption></figure>`}).join("")}</div>`}
 /* ---------- caja ---------- */
 function html(i,P,segundo){const G=window.RCS_G||{};let n=0;const paso=(ic,tit,cuerpo,cls)=>`<div class="pcip${cls?" "+cls:""}"><div class="pcin">${++n}</div><div class="pcic"><div class="pcitt">${ic} ${tit}</div>${cuerpo||""}</div></div>`;
  const cot=[P.AL.length&&`${P.AL.length} alarma${P.AL.length>1?"s":""}/evento${P.AL.length>1?"s":""}`,P.CP.length&&`${P.CP.length} componente${P.CP.length>1?"s":""}`,P.RE.length&&`${P.RE.length} reincidencia${P.RE.length>1?"s":""}`,P.MD.length&&`${P.MD.length} medida${P.MD.length>1?"s":""}`].filter(Boolean).join(" · ");
@@ -62,11 +84,11 @@ function html(i,P,segundo){const G=window.RCS_G||{};let n=0;const paso=(ic,tit,c
  /* alarmas */
  if(!P.AL.length)h+=paso("📟","Leer la Magelis: ESTADO DE ALARMAS y eventos",`<div class="mu">Anota el código en la OT (Observaciones o foto de la Magelis): acota el componente y reordena esta lista.</div>`);
  P.AL.forEach(a=>{const x=a.x,g=G[x.g]||{};h+=paso((FN[x.f]||["⚪"])[0],`<b>${E(x.c)}</b> ${E(x.t)}${a.por=="num"?"":` <span class="pcitag">por el texto</span>`}`,
-  `${g.q?`<div class="pciq">${E(g.q)}</div>`:""}${g.a?`<div class="pcia">➜ ${E(g.a)}</div>`:""}`)});
+  `${g.q?`<div class="pciq">${E(g.q)}</div>`:""}${g.a?`<div class="pcia">➜ ${E(g.a)}</div>`:""}${fotos(fichaDe((g.a||"")+" "+(g.q||"")))}`)});
  /* componentes */
  P.CP.forEach((o,j)=>{const c=o.c;const u=typeof compUbiDe=="function"?compUbiDe(c):"";
   h+=paso("🔩",`<span class="cmpid">${E(c.id)}</span> ${E(c.t)}`,
-  `${u?`<div class="pciu">📍 ${E(u)}</div>`:""}<div class="pcipor">Relacionado por: ${o.por.map(E).join(" · ")}${o.ok?` · ${o.ok} medida${o.ok>1?"s":""} correcta${o.ok>1?"s":""}`:""}</div>
+  `${u?`<div class="pciu">📍 ${E(u)}</div>`:""}${fotos(c)}<div class="pcipor">Relacionado por: ${o.por.map(E).join(" · ")}${o.ok?` · ${o.ok} medida${o.ok>1?"s":""} correcta${o.ok>1?"s":""}`:""}</div>
    ${(c.med||[]).length?`<div class="pcimt">📏 Medir en campo</div><ol class="cmpo">${c.med.map(x=>`<li>${E(x)}</li>`).join("")}</ol>`:""}
    ${c.av?`<div class="gav">⚠️ ${E(c.av)}</div>`:""}
    <button type="button" class="sec pcib" onclick="event.stopPropagation();pciFicha('${E(key(c)).replace(/'/g,"\\'")}')">🔩 Ver ficha completa (fotos, conexionado)</button>`,j==0?"pci1":"")});
@@ -117,6 +139,15 @@ const st=document.createElement("style");st.textContent=`
 .pciu{font-weight:800;color:#e65100;font-size:13px;margin-top:3px}.pcipor{font-size:12px;opacity:.8;margin-top:2px}
 .pcimt{display:inline-block;margin-top:6px;padding:3px 8px;border-radius:6px;background:#facc15;color:#000;font-weight:900;font-size:12px;letter-spacing:.5px}
 .pcib{width:100%!important;margin:6px 0 0!important;padding:8px!important;font-size:13px!important}
-.pcire{font-size:13px;margin:3px 0}`;
+.pcire{font-size:13px;margin:3px 0}
+#gcomp .pcifs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:6px 0 4px}
+#gcomp .pcifo{margin:0;background:#fff;border:1px solid #d0d0d0;border-radius:8px;padding:4px;text-align:center;cursor:zoom-in;min-width:0}
+#gcomp .pcifo img{display:block;width:100%;height:120px;object-fit:contain;background:#fff;border-radius:5px}
+#gcomp .pcifo figcaption{font-size:12px;line-height:1.25;color:#111;margin-top:3px;overflow-wrap:anywhere}
+#gcomp .pcifo figcaption small{display:block;font-size:11px;color:#555}
+#gcomp .pcifo.pciub{border:2px solid #e08a00}
+#gcomp .pcifs>.pcifo:only-child,#gcomp .pcifs>.pcifo:last-child:nth-child(odd){grid-column:1/-1}
+#gcomp .pcifs>.pcifo:last-child:nth-child(odd) img{height:170px}
+#gcomp .pcifw{font-size:12.5px;opacity:.75;text-align:center;padding:8px}`;
 document.head.appendChild(st);
 })();
