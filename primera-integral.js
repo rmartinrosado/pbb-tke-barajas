@@ -43,10 +43,7 @@ function plan(i){if(!i)return null;const T=textoOT(i);const ck=i.id+"|"+T+"|"+JS
  const TU=String(T).toUpperCase();
  COMPS().forEach(c=>{if(idsDe(c).some(id=>reCod(id).test(TU)))suma(c,6,"código en el aviso")});
  AL.forEach(a=>{try{(typeof compDeAlarma=="function"?compDeAlarma(a.x):[]).forEach(c=>suma(c,a.por=="num"?5:3,"alarma "+a.x.c))}catch(e){}});
- /* v612: por el texto del aviso, si algún componente lo nombra en su TÍTULO (p. ej. «joystick» → CP-S0 Joystick / hombre muerto),
-    solo entran esos; los que casan únicamente por sus palabras clave (relés P-K80 / P-K82 que llevaban «joystick» en claves) se quedan fuera. */
- try{const TA=textoAveria(i),pw=new Set(pals(TA));const LT=typeof compCampo=="function"?compCampo(TA):[];
-  const enTit=LT.filter(c=>pals(c.t).some(w=>pw.has(w)));(enTit.length?enTit:LT).forEach(c=>suma(c,3,"texto del aviso"))}catch(e){}
+ try{(typeof compCampo=="function"?compCampo(textoAveria(i)):[]).forEach(c=>suma(c,3,"texto del aviso"))}catch(e){}
  /* 3) reincidencias de la PBB (90 días) */
  let RE=[];try{RE=typeof reincidencias=="function"?reincidencias(i.pos,i.desc,i.id,90):[]}catch(e){}
  RE.forEach(r=>{const tx=[r.act,r.desc,r.obs].filter(Boolean).join(" ");const TX=tx.toUpperCase();const pw=new Set(pals(tx));
@@ -94,13 +91,14 @@ function html(i,P,segundo){const G=window.RCS_G||{};let n=0;const paso=(ic,tit,c
  if(!P.AL.length)h+=paso("📟","Leer la Magelis: ESTADO DE ALARMAS y eventos",`<div class="mu">Anota el código en la OT (Observaciones o foto de la Magelis): acota el componente y reordena esta lista.</div>`);
  P.AL.forEach(a=>{const x=a.x,g=G[x.g]||{};h+=paso((FN[x.f]||["⚪"])[0],`<b>${E(x.c)}</b> ${E(x.t)}${a.por=="num"?"":` <span class="pcitag">por el texto</span>`}`,
   `${g.q?`<div class="pciq">${E(g.q)}</div>`:""}${g.a?`<div class="pcia">➜ ${E(g.a)}</div>`:""}${fotos(fichaDe((g.a||"")+" "+(g.q||"")))}`)});
- /* componentes */
- P.CP.forEach((o,j)=>{const c=o.c;const u=typeof compUbiDe=="function"?compUbiDe(c):"";
-  h+=paso("🔩",`<span class="cmpid">${E(c.id)}</span><span class="pcitx">${E(c.t)}</span>`,
-  `${u?`<div class="pciu">📍 ${E(u)}</div>`:""}${fotos(c)}<div class="pcipor">Relacionado por: ${o.por.map(E).join(" · ")}${o.ok?` · ${o.ok} medida${o.ok>1?"s":""} correcta${o.ok>1?"s":""}`:""}</div>
+ /* v613: los componentes ya no salen como pasos en primera vista: van todos en una caja plegada «Posibles componentes afectados»,
+    cada uno plegado con su ubicación, fotos, medidas y ficha (el orden sigue siendo el de prioridad). */
+ if(P.CP.length)h+=`<details class="pcicp" onclick="event.stopPropagation()"><summary>🔩 Posibles componentes afectados <small>${P.CP.length}</small></summary>`+P.CP.map(o=>{const c=o.c;const u=typeof compUbiDe=="function"?compUbiDe(c):"";
+  return `<details class="pcicx"><summary><span class="cmpid">${E(c.id)}</span> <span class="pcitx">${E(c.t)}</span><small class="pcipor">Relacionado por: ${o.por.map(E).join(" · ")}${o.ok?` · ${o.ok} medida${o.ok>1?"s":""} correcta${o.ok>1?"s":""}`:""}</small></summary>
+   ${u?`<div class="pciu">📍 ${E(u)}</div>`:""}${fotos(c)}
    ${(c.med||[]).length?`<div class="pcimt">📏 Medir en campo</div><ol class="cmpo">${c.med.map(x=>`<li>${E(x)}</li>`).join("")}</ol>`:""}
    ${c.av?`<div class="gav">⚠️ ${E(c.av)}</div>`:""}
-   <button type="button" class="sec pcib" onclick="event.stopPropagation();pciFicha('${E(key(c)).replace(/'/g,"\\'")}')">🔩 Ver ficha completa (fotos, conexionado)</button>`,j==0?"pci1":"")});
+   <button type="button" class="sec pcib" onclick="event.stopPropagation();pciFicha('${E(key(c)).replace(/'/g,"\\'")}')">🔩 Ver ficha completa (fotos, conexionado)</button></details>`}).join("")+`</details>`;
  /* reincidencias */
  if(P.RE.length)h+=paso("🔁","Reincidencias en esta PBB (90 días): lo que se hizo",P.RE.map(r=>`<div class="pcire"><b>${E(fh(r.fecha))}</b> · ${E(r.desc||"")}${r.act?`<div>✔ ${E(String(r.act).slice(0,240))}</div>`:""}</div>`).join("")+`<div class="mu">Si se repite, atacar la causa de fondo (ajuste, desgaste, cableado), no solo rearmar.</div>`);
  h+=paso("✅","Si todo da correcto",`<div class="mu">Seguir el ⭐ Análisis de OT y la Actuación más eficaz. Las medidas que metas se guardan en la OT y reordenan esta lista.</div>`);
@@ -165,12 +163,16 @@ window.pciVa=function(id){gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(vi
  setTimeout(()=>{const d=document.getElementById("gcomp");if(d)d.scrollIntoView({block:"start",behavior:"smooth"})},250)};
 if(typeof card=="function"){const o=card;card=function(i){let h=o(i);try{if(!i||i.estado!="abierta"||h.includes('class="pact"'))return h;
  const P=plan(i);if(!P||!P.CP.length&&!P.AL.some(a=>a.x.f=="A"))return h;
- const sub=[P.AL.slice(0,2).map(a=>a.x.c+" "+a.x.t).join(" / "),P.CP.slice(0,2).map(o=>o.c.id).join(" · ")].filter(Boolean).join(" · ");
+ const sub=P.AL.slice(0,2).map(a=>a.x.c+" "+a.x.t).join(" / ")||(P.CP.length?`${P.CP.length} posible${P.CP.length>1?"s":""} componente${P.CP.length>1?"s":""} afectado${P.CP.length>1?"s":""}`:"");
  const ban=`<div class="pact" role="button" tabindex="0" onclick="event.stopPropagation();pciVa('${i.id}')"><span class="pacti">🔎</span><span>PRIMERA ACTUACIÓN EN CAMPO · ACTUACIÓN GUIADA<small>${E(sub)}</small></span><span class="pactv">›</span></div>`;
  const re=/(<div class="mu">Inicio [\s\S]*?<\/div>)/;return re.test(h)?h.replace(re,"$1"+ban):h.replace(/(<p style="margin:6px 0">[\s\S]*?<\/p>)/,"$1"+ban)}catch(e){return h}}}
 
 const st=document.createElement("style");st.textContent=`
 #gcomp .pcisub{font-size:12.5px;font-weight:700;opacity:.8;margin:2px 0 8px}
+#gcomp .pcicp{margin:8px 0;border:1.5px solid #ef6c00;border-radius:10px;padding:2px 10px;background:color-mix(in srgb,var(--card,#fff) 94%,#ef6c00)}
+#gcomp .pcicp>summary{padding:10px 0;font-weight:800;cursor:pointer}#gcomp .pcicp>summary small{opacity:.7;margin-left:4px}
+#gcomp .pcicx{border-top:1px dashed var(--bd,#cfd8dc);padding:4px 0}#gcomp .pcicx>summary{padding:7px 0;cursor:pointer;line-height:1.3}
+#gcomp .pcicx>summary .pcipor{display:block;font-size:11.5px;opacity:.7;margin-top:2px}
 #gcomp.pcisec{border:2px solid #ef6c00}
 .pcip{display:flex;gap:8px;margin:8px 0;padding:8px;border:1px solid var(--bd,#cfd8dc);border-radius:10px;background:color-mix(in srgb,var(--card,#fff) 92%,#c62828)}
 .pcip.pci1{border:2px solid #c62828}
