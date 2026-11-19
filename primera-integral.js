@@ -107,7 +107,8 @@ function pinta(){try{if(typeof view=="undefined"||view!="tec")return;const i=(ty
  if(!ref)ref=document.getElementById("greset")||document.querySelector('#app details.gd[data-k="SEG"]')||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
  if(!ref){if(!d.isConnected){const a=document.getElementById("anag");if(a)a.before(d)}return}
  if(ref.nextElementSibling!==d)ref.insertAdjacentElement("afterend",d);ajusta(d)}catch(e){}}
-/* v595: en los pasos de componente, el texto va debajo del código (.pcitx), centrado y ajustado a dos líneas.
+/* v596: títulos de los pasos (código y textos) alineados a la izquierda de la caja.
+   v595: en los pasos de componente, el texto va debajo del código (.pcitx), centrado y ajustado a dos líneas.
    v593: títulos de cada paso centrados y en dos líneas como máximo: se reduce la letra hasta que quepan, sin salirse de los márgenes */
 function ajusta(d){try{if(!d||!d.isConnected)return;const w=String(d.clientWidth);if(!d.clientWidth||d.dataset.w===w)return;d.dataset.w=w;
  d.querySelectorAll(".pcitt").forEach(t0=>{const t=t0.querySelector(".pcitx")||t0;let fs=14.5;t.style.fontSize=fs+"px";while(fs>10.5&&t.scrollHeight>fs*1.3*2+6){fs-=.5;t.style.fontSize=fs+"px"}})}catch(e){}}
@@ -133,7 +134,7 @@ const st=document.createElement("style");st.textContent=`
 .pcip.pci1{border:2px solid #c62828}
 .pcin{flex:none;width:26px;height:26px;border-radius:50%;background:#c62828;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:14px}
 .pcic{flex:1;min-width:0}
-#gcomp .pcitt{display:block;font-weight:800;font-size:14.5px;line-height:1.3;text-align:center;max-width:100%;overflow-wrap:anywhere;word-break:normal;hyphens:auto;margin:0 0 2px}
+#gcomp .pcitt{display:block;font-weight:800;font-size:14.5px;line-height:1.3;text-align:left;max-width:100%;overflow-wrap:anywhere;word-break:normal;hyphens:auto;margin:0 0 2px}
 #gcomp .pcitt .cmpid{white-space:nowrap;vertical-align:baseline;margin:0 4px 0 2px}
 #gcomp .pcitt .pcitx{display:block;margin-top:4px}
 .pcitag{font-size:11px;font-weight:700;opacity:.7;border:1px solid currentColor;border-radius:5px;padding:0 4px}
