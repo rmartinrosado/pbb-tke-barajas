@@ -174,7 +174,9 @@ function cajaHTML(i){const cons=window.insCons(i.id);
  if(!(o&&o.tramos&&o.tramos.length))h+=`<div class="mu" style="font-size:12px;margin:8px 0">${o&&o.modo=="completa"?"La IA no ha devuelto tramos del lado de los equipos.":"Los tramos del lado de los equipos (dentro del CBTH, AAA y HZ) los da la IA con los planos elegidos en «📐 Cotejo entre planos»."}</div>`;
  h+=`<div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="event.stopPropagation();insConsMarca(false)">↩ Solo la actuación más eficaz</button>
   <button class="sec" style="flex:1" onclick="event.stopPropagation();insCopia()">Pasar a la OT</button></div>
-  <button class="pri" style="width:100%;margin-top:8px" onclick="event.stopPropagation();pcCompleta&&pcCompleta()">🔄 RECALCULAR IA completa <small>(Gemini · gratis)</small></button>`;
+  <div class="mu" style="font-size:12px;margin:10px 0 4px;text-align:center;font-weight:700">🔄 RECALCULAR IA COMPLETA · elige el motor</div>
+  <div class="row icmot" style="gap:8px;flex-wrap:nowrap"><button class="pri" style="flex:1" onclick="event.stopPropagation();pcCompleta&&pcCompleta(false,'gemini')">Gemini<small>gratis</small></button>
+  <button class="pri icmc" style="flex:1" onclick="event.stopPropagation();pcCompleta&&pcCompleta(false,'claude')">Claude<small>con coste</small></button></div>`;
  return h}
 function botonHTML(i){return window.insCons(i.id)?"":`<button class="sec icbtn" onclick="event.preventDefault();event.stopPropagation();insConsMarca(true)">✅ Actuación más eficaz consultada · sacar la inspección completa cable a cable (origen → destino)</button>`}
 
@@ -236,6 +238,9 @@ const st=document.createElement("style");st.textContent=`
 .icar{color:var(--ac,#ff6a13);font-weight:900}
 .icsep{border-top:2px dashed var(--bd);margin:8px 0 4px 10px}
 .icn{font-size:11.5px;margin:6px 0 0 10px}
-.icbw{margin-top:8px}.icbtn{width:100%;white-space:normal;line-height:1.3;border:1.5px solid #2e7d32!important}`;document.head.appendChild(st);
+.icbw{margin-top:8px}.icbtn{width:100%;white-space:normal;line-height:1.3;border:1.5px solid #2e7d32!important}
+.icmot button{display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0!important;padding:10px 6px!important;font-weight:900;letter-spacing:.5px}
+.icmot button small{font-size:11px;font-weight:700;opacity:.85;letter-spacing:0}
+.icmot .icmc{background:#d97757!important;border-color:#d97757!important;color:#fff!important}`;document.head.appendChild(st);
 setTimeout(()=>{try{pintaGuia()}catch(e){}},300);
 })();

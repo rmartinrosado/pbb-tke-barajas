@@ -164,13 +164,14 @@ window.pcRehace=async function(motor){if(ST.iaRun||ST.prog||!ST.docs.length)retu
  if(!ST.res){const ok=await leer();if(!ok)return}
  ia(motor)};
 /* v525: actuación más eficaz consultada → recalcular TODO con la inspección completa (o volver con quitar=true) */
-window.pcCompleta=async function(quitar){const i=otAct();if(!i||typeof view=="undefined"||view!="tec")return;
+/* v598: segundo parámetro = motor elegido por el técnico ("gemini" gratis o "claude" con coste) */
+window.pcCompleta=async function(quitar,motor){const i=otAct();if(!i||typeof view=="undefined"||view!="tec")return;
  if(!quitar&&window.insEsBloqueo&&window.insEsBloqueo(i)){try{const l=await gLista();const s=selDe(i.id)||sugeridos(i,l);const add=id=>{if(id&&!s.includes(id))s.push(id)};
   ["PAS","AAA","HZ"].forEach(k=>{try{add(gDocId(k,l))}catch(e){}});
   const pos=String(i.pos||"");const c=l.filter(x=>/CBTH/i.test(x.name));add((c.find(x=>new RegExp("(^|\\D)"+pos+"(\\D|$)").test(x.name))||c[0]||{}).id);
   guardaSel(i.id,s);const w=$q("#gpcsel");if(w)w.remove()}catch(e){}}
  try{ANA_C={k:"",r:null}}catch(e){}ST.k="";await calcula();await pinta();
- if(!quitar&&!ST.ia&&!ST.iaRun&&!ST.prog&&ST.docs.length)pcRehace("gemini");
+ if(!quitar&&!ST.iaRun&&!ST.prog&&ST.docs.length&&(motor||!ST.ia))pcRehace(motor||"gemini");
  try{window.dispatchEvent(new CustomEvent("pc-ia",{detail:{id:i.id}}))}catch(e){}};
 window.pcEstado=()=>{try{if(!ST||!ST.cons)return "";if(ST.prog)return "⏳ "+ST.prog;if(ST.iaRun)return txIA();if(ST.iaEst)return ST.iaEst;return ""}catch(e){return ""}};
 window.pcCopia=function(){const i=otAct(),o=ST.ia;if(!i||!o){msg("Todavía no hay resultado del cotejo");return}
