@@ -65,7 +65,7 @@ let verTodo=false;window.anaCanTodo=v=>{verTodo=v;filtra(true)};
 const asunto=t=>{const k=t.search(/:\s/);return k>0&&k<110?t.slice(0,k):t.slice(0,90)};
 function filtra(forzar){const N=nomOT();
  document.querySelectorAll("#app details.gd").forEach(d=>{const sm=d.querySelector(":scope>summary");if(!sm||!/Medidas anal/i.test(sm.textContent))return;
-  const key=N?N.i.id+"|"+N.n.join(",")+"|"+verTodo:"";if(!forzar&&d.dataset.canf===key&&d.querySelector(".acnav"))return;d.dataset.canf=key;
+  const key=N?N.i.id+"|"+N.n.join(",")+"|"+verTodo:"";if(!forzar&&d.dataset.canf===key&&(!N||d.querySelector(".acnav")))return;d.dataset.canf=key;
   const labs=[...d.querySelectorAll(".gst>label.gpaso")];
   labs.forEach(l=>{l.style.display="";l.querySelectorAll(".bcol>[data-canh]").forEach(e=>{e.style.display="";delete e.dataset.canh})});
   let av=d.querySelector(".acnav");if(!N){if(av)av.remove();renum(labs);return}
@@ -80,7 +80,7 @@ function filtra(forzar){const N=nomOT();
      if(a.classList.contains("bck")&&cs[k+1]){const b=cs[k+1];const c=chans(a.textContent+" "+b.textContent);if(c.size&&!cruza(c,N.n)){[a,b].forEach(e=>{e.style.display="none";e.dataset.canh=1})}k+=2}
      else{const c=chans(a.textContent);if(c.size&&!cruza(c,N.n)){a.style.display="none";a.dataset.canh=1}k++}}})});
   renum(labs)})}
-function renum(labs){let n=0;labs.forEach(l=>{if(l.style.display=="none")return;const b=[...l.querySelectorAll(":scope>span b")].find(x=>/^\d+\.$/.test(x.textContent.trim()));if(b)b.textContent=(++n)+"."})}
+function renum(labs){let n=0;labs.forEach(l=>{if(l.style.display=="none")return;const b=[...l.querySelectorAll(":scope>span b")].find(x=>/^\d+\.$/.test(x.textContent.trim()));if(b){const t=(++n)+".";if(b.textContent!==t)b.textContent=t}})} /* v600: solo si cambia (si no, bucle de repintado = temblor) */
 (function(){const st=document.createElement("style");st.textContent=`.acnav{margin:6px 0 8px;padding:7px 10px;border-radius:8px;font-size:13px;background:color-mix(in srgb,#ef6c00 10%,transparent);border:1px solid color-mix(in srgb,#ef6c00 45%,transparent)}.acnav button{width:auto;margin:0 0 0 6px;padding:4px 10px;font-size:12px}.anaver{width:100%;margin-top:6px}`;document.head.appendChild(st)})();
 window.anaCanFiltra=filtra;let tf=0;const app=document.getElementById("app");
 if(app)new MutationObserver(()=>{if(tf)return;tf=setTimeout(()=>{tf=0;try{filtra(false)}catch(e){}},150)}).observe(app,{childList:true,subtree:true});

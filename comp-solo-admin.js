@@ -12,7 +12,7 @@ const aviso=()=>{if(typeof msg=="function")msg("🔒 Solo el modo Administrador 
 /* 2) los botones se ven desactivados */
 const SEL=".cedb button,.cedb label,#cn_inc,.cninc,#compCapa .cnsx,button[onclick^='compIncorpora']";
 const marca=()=>{const ro=!esAdm();document.documentElement.classList.toggle("compRO",ro);
- document.querySelectorAll(SEL).forEach(b=>{if(b.tagName=="BUTTON")b.disabled=ro;b.setAttribute("aria-disabled",ro?"true":"false")})};
+ document.querySelectorAll(SEL).forEach(b=>{if(b.tagName=="BUTTON"&&b.disabled!==ro)b.disabled=ro;{const v=ro?"true":"false";if(b.getAttribute("aria-disabled")!==v)b.setAttribute("aria-disabled",v)}})};
 /* 3) por si algún botón no se ha marcado aún: se corta el toque antes de que llegue a su acción */
 ["click","touchstart"].forEach(t=>document.addEventListener(t,e=>{if(esAdm())return;const b=e.target.closest&&e.target.closest(SEL);if(!b)return;
  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(t=="click")aviso()},{capture:true,passive:false}));

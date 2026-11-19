@@ -102,7 +102,7 @@ function pinta(){try{if(typeof view=="undefined"||view!="tec")return;const i=(ty
  const old=document.getElementById("gcomp");if(!i||i.estado=="cerrada"){if(old)old.remove();return}
  const P=plan(i);if(!P||(!P.AL.length&&!P.CP.length)){if(old)old.remove();return}
  const seg=hayPuente();const h=html(i,P,seg);
- const d=old||document.createElement("div");d.id="gcomp";const cl="card "+(seg?"pcisec":"pucard");if(d.className!==cl)d.className=cl;if(d.dataset.h!==h){d.innerHTML=h;d.dataset.h=h;d.dataset.w=""}
+ const d=old||document.createElement("div");if(d.id!=="gcomp")d.id="gcomp";const cl="card "+(seg?"pcisec":"pucard");if(d.className!==cl)d.className=cl;if(d.dataset.h!==h){d.innerHTML=h;d.dataset.h=h;d.dataset.w=""}
  let ref=null;if(seg)ref=PUENTE.map(id=>document.getElementById(id)).filter(Boolean).sort((x,y)=>x.compareDocumentPosition(y)&4?-1:1).pop();
  if(!ref)ref=document.getElementById("greset")||document.querySelector('#app details.gd[data-k="SEG"]')||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
  if(!ref){if(!d.isConnected){const a=document.getElementById("anag");if(a)a.before(d)}return}
