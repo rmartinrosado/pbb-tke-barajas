@@ -169,7 +169,7 @@ Responde SOLO con JSON: {"codigo":"","titulo":"","fab":"","esp":[["",""]],"pin":
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.mensaje||j.error||("error "+r.status));
   PROP=jsonIA(j.txt);PROP.lector=j.lector;if(PROP._cortado){delete PROP._cortado;PROP.justificacion=(PROP.justificacion||"")+" ⚠️ La respuesta de la IA llegó cortada: revisa que no falten datos."}
   /* v557: cotejo con las alarmas / eventos del PLC: lo de la IA (validado) + el cotejo local; va a la ficha y a sus averías */
-  if(typeof compAlarmasDe=="function"){const L=compAlarmasJunta(PROP.alarmas,compAlarmasDe(PROP));const r=compAlarmasEnFicha(PROP.esp,PROP.claves||v.claves,L);PROP.esp=r.esp;PROP.claves=r.claves;PROP._al=L}
+  if(typeof compAlarmasDe=="function"){let L=compAlarmasJunta(PROP.alarmas,compAlarmasDe(PROP));if(typeof compAlarmasPlano=="function")L=compAlarmasPlano(PROP.codigo||v.cod,L);/* v614 */const r=compAlarmasEnFicha(PROP.esp,PROP.claves||v.claves,L);PROP.esp=r.esp;PROP.claves=r.claves;PROP._al=L}
   /* v568: bornero identificado por manguitos: cotejo local con el índice de hilos y fila en la ficha */
   if(Array.isArray(PROP.manguitos)&&PROP.manguitos.filter(Boolean).length){const M=porManguitos(PROP.manguitos,IH);
    if(M){PROP.esp=(PROP.esp||[]).filter(r=>!/^manguitos/i.test(Array.isArray(r)?r[0]:""));PROP.esp.push(["Manguitos leídos",M.leidos.join(" · ")]);

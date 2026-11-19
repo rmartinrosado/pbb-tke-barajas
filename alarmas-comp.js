@@ -1,4 +1,5 @@
-/* ===== v592: ALARMAS / EVENTOS RCS ↔ COMPONENTES DE CAMPO · TABLA REVISADA (18/11/2026) =====
+/* ===== v614: revisión completa frente al cableado de los planos (rev. J y 507), 19/11/2026: ver notas v614.
+   ===== v592: ALARMAS / EVENTOS RCS ↔ COMPONENTES DE CAMPO · TABLA REVISADA (18/11/2026) =====
    Revisión una a una de las 211 alarmas, advertencias y eventos del manual RCS frente a todos los componentes de campo.
    Antes la relación salía de un cotejo por palabras (y del texto de la alarma), y metía componentes ajenos: el relé de
    iluminación E-K10 en «058 Fallo medida analógica: Cabina», el zumbador P-H9 en «137 Fallo sirena», la Magelis en «089
@@ -15,13 +16,14 @@ const T={
  /* --- cadena de medida analógica (E-A4) --- */
  "ET-B9":["057","114","250","251","339","340"],
  "C-R10":["058","246","247"],"ACOPL.C-R10":["058","246","247"],"E-R10":["058","246","247"],
- "E-X62":["057","056"],
+ "E-X62":["057","056","059"], /* v614: AI01 altura (341), AI02 extensión (312), AI04 rotonda (316) */
  /* --- seguridades --- */
  "R-B1/R-B3":["294","022","139"],
  "E-U5/E1-U8":["010"],
- "P-U5":["072","073","075","096","097","098","099","011","065"],"P-K85":["072","073","075","096","097","098","099"],
- "E-K0":["006","007","008","012","014","028","011","013","065"],"E-K0.1":["006","007","008","012","014","028","011","013","065"],
- "E-K90":["136"],"CONECTOR-3":["011","013","065"],
+ "P-U5":["072","073","075","096","097","098","099","011","065"],"P-K85":[],
+ /* v614: las setas (006-014, 028) las da la seta (H-S3/H-S4, CP-S5 en E-A8 4.1), no el contactor */
+ "E-K0":["011","013","065"],"E-K0.1":["011","013","065"],
+ "E-K90":["136"],"CONECTOR-3":[], /* v614: conector sin código de plano: no se puede cotejar */
  /* --- 24 VDC y PLC --- */
  "E1-U3":["120"],"E-Q22":["120"],"E-Q30":["120"],"E-S0/E-S0.1":["120"],
  "E-Q30.0":["127","120"],"E-Q30.1":["127","089","120"],"E-Q30.2":["127","117","120"],"E-Q30.3":["127","120"],
@@ -31,20 +33,24 @@ const T={
  "E-F19":["076"],"E-F20":["076"],"E-F21":["076"],
  /* --- traslación: variadores y frenos --- */
  "E-U1":["083","055","079"],"E-U2":["084","055","079"],"E-K1":["129","130","055"],"E-Q1":["055","083","084"],
- "E-K24":["105","106","079","087","088"],"E-Q24":["087","088","079","105","106"],
- "E-K26":["349","343","351"],"E-Q26":["349","343","351"],
+ "E-K24":["105","106","079","087","088"],"E-Q24":["087","088","079"], /* v614: la bobina de E-K24 sale de E-A6 DOS02, no de E-Q24 */
+ "E-K26":["349"],"E-Q26":["349"], /* v614: 343/351 prioridad de retorno = pulsador CP-S21 (P-A4 2.1), otro circuito */
  /* --- motores --- */
  "E-K3":["054","066","103","104"],"E-Q3":["054","066"],
  "E-Q8":["049"],"E-K81/E-K82":["049"],
  "E-Q4":["053","260"],"E-Q4.1":["053","260"],"E-K41/E-K42":["053","260"],
  "E-Q40":["050","051","052"],"P-K71/P-K72":["050"],
- "P-Q6":["051","135"],"P-K61/P-K62":["135","051"],
+ "P-Q6":["051"], /* v614: 135 es el inversor P-K6, no el guardamotor */"P-K61/P-K62":["135","051"],
  "P-Q5":["052","067","077","063","064"],"P-K51/P-K52":["052","077","063","064","067"],
  /* --- pupitre: joystick y presencia --- */
- "CP-S0":["100","101","256"],"P-K80":["256","102"],"P-K81":["102","256"],"P-K82":["102","256"],
+ /* v614: P-K80…P-K85 son SALIDAS del PLC (P-A2) con señales al CBTH: ninguna alarma del joystick ni de la zapata los trae */
+ "CP-S0":["100","101","256"],"P-K80":[],"P-K81":[],"P-K82":[],
  /* --- señalización --- */
- "E-K60.1":["143"],"P-K69":["143"],"P-H9":["346"],"E-K14":["131","132"],
- "E-X55":["283","285","275","276","277","278","279","280"],
+ "E-K60.1":["143"],"P-K69":[], /* v614: P-K69 = luz azul intermitente C-H5; el flash es E-K60.1 (E-A1 5.4) */"P-H9":["346"],"E-K14":["131","132"],
+ /* v614: antes llevaba 275-285 por error: son NÚMEROS DE HILO, no alarmas. Por E-X55 (manguera EH-W1 → H-X51) van bajada rápida H-Y3 (275),
+    frenos T-S5…T-S8 (276-280), setas traslación (278) y H-S3/H-S4 (624), límites de giro H-B3/H-B4 (281/282), contaje H-B1/H-B2 (283/284),
+    FC traslación H-S1 (285/625), bordes de ruedas (260) y válvulas H-Y1/H-Y2 (301/302) */
+ "E-X55":["005","254","255","116","087","088","085","086","006","007","012","010","074"],
  /* --- revisados SIN alarma propia (ninguna alarma los trae) --- */
  "E-K10":[],"E-K15":[],"E-K17":[],"E-K85":[],"E-K86":[],"E-K87":[],"E-K88":[],"E-K60":[],"E-K61":[],"E-K62":[],
  "MAGELIS-DISPLAY":[],"SINCÓDIGO":[],"E-Q10":[],"E-Q10.1":[],"E-Q12":[],"E-Q13":[],"E-Q14":[],"E-Q15.1":[],"E-Q17.1":[],"E-Q18":[],"E-Q25":[],

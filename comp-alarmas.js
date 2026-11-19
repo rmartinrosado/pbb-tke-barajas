@@ -80,3 +80,22 @@ window.addEventListener("resize",()=>document.querySelectorAll("#sheetc .icpr te
 window.compAlarmasHTML=function(L,titulo){if(!L||!L.length)return"";const E=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
  return `<div class="alpl">🚨 <b>${E(titulo||"Alarmas / eventos del PLC (Magelis · manual RCS)")}</b><div>${L.map(a=>`<span class="alc ${/^R/.test(a.c)?"rc":+a.c>=241?"ad":""}" title="${E(a.por||"")}">${E(a.c)} ${E(a.t)}</span>`).join("")}</div><small>🔴 alarma · 🟠 advertencia/evento · 🔵 puesto remoto. Se guardan en la ficha y en sus averías («alarma ${E(L[0].c.replace(/^0+(?=\d)/,""))}») para identificar rápido la avería.</small></div>`};
 })();
+/* ===== v614: FILTRO POR PLANO al incorporar (19/11/2026) =====
+   Revisión de todo el catálogo frente al cableado (rev. J y 507): la IA metía alarmas que el plano no respalda.
+   · Borneros (X…): los números que se leen en sus bornas son NÚMEROS DE HILO, no alarmas (E-X55 llevaba 275-285 por error):
+     solo valen las alarmas que citen literalmente el bornero.
+   · Relés/contactores que en el plano SOLO son bobina de una SALIDA del PLC (DON/DOS) y no llevan contacto a ninguna
+     ENTRADA (P-K80…P-K85 → señales al CBTH): no traen alarmas de entradas (joystick, zapata, presencia…); solo las que
+     los citen (E-K14, E-K1…) o las del propio actuador (fallo de activación, sirena, flash). */
+(function(){
+const N=s=>String(s||"").toUpperCase().replace(/^\+/,"").trim();
+const usos=cod=>{const r={sal:0,ent:0};[window.CABLEADO,window.CABLEADO507].forEach(C=>{if(!C)return;Object.keys(C).forEach(k=>{const e=C[k];
+  const esta=(e.n||[]).some(n=>N(n.t).split("/")[0]===cod||N(n.t)===cod);if(!esta)return;
+  if(/^DO/.test(e.c||""))r.sal++;else r.ent++})});return r};
+window.compAlarmasPlano=function(codigo,L){L=L||[];const cods=String(codigo||"").toUpperCase().split(/\s*[\/,]\s*/).map(N).filter(Boolean);if(!cods.length)return L;
+ const cita=a=>/^cita /.test(a.por||"")||cods.some(c=>a.t.toUpperCase().includes(c));
+ if(cods.some(c=>/^[A-Z0-9]*-?X\d/.test(c)))return L.filter(cita);
+ const u=cods.map(usos);if(u.every(x=>x.sal>0&&x.ent==0)){const A=window.RCS_AL||[];
+  return L.filter(a=>{if(cita(a))return true;const g=(A.find(x=>x.c==a.c)||{}).g;return g=="con"||g=="sir"})}
+ return L};
+})();
