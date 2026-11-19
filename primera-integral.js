@@ -19,7 +19,8 @@ const fh=f=>{const m=String(f||"").match(/^(\d{4})-(\d\d)-(\d\d)/);return m?`${m
 const PUENTE=["gpte","gsegl","ghidr","gm400"];
 const hayPuente=()=>PUENTE.some(id=>document.getElementById(id));
 const FN={A:["🔴",0],W:["🟡",1],R:["🔵",2]};
-const textoOT=i=>[i.desc,i.def,i.com,i.obs,i.alarma,i.alarmas&&(typeof i.alarmas=="string"?i.alarmas:JSON.stringify(i.alarmas).replace(/[{}\[\]"]/g," "))].filter(Boolean).join(" · ");
+const LIMP=t=>typeof window.segLimpia=="function"?window.segLimpia(t):t; /* v608: sin las frases que descartan elementos */
+const textoOT=i=>[i.desc,i.def,LIMP(i.com),LIMP(i.obs),i.alarma,i.alarmas&&(typeof i.alarmas=="string"?i.alarmas:JSON.stringify(i.alarmas).replace(/[{}\[\]"]/g," "))].filter(Boolean).join(" · ");
 const idsDe=c=>String(c.id||"").split(/\s*(?:\/|,|\+|\by\b)\s*/).map(x=>x.replace(/^ACOPL\.?\s*/i,"").trim()).filter(x=>/[A-Z]-?[A-Z]*\d/i.test(x));
 const reCod=id=>new RegExp("(^|[^A-Z0-9])"+String(id).toUpperCase().replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/-/g,"-?")+"(?![0-9]|\\.[0-9])");
 const PAL_VAC=new Set("para pero como esta este desde hasta sobre entre cuando donde porque tiene hace solo otra otro cada todo muy mas menos tambien pbb pasarela posicion activado activada fallo falla aviso del con sin por una uno que los las".split(" "));
@@ -102,11 +103,17 @@ function pinta(){try{if(typeof view=="undefined"||view!="tec")return;const i=(ty
  const old=document.getElementById("gcomp");if(!i||i.estado=="cerrada"){if(old)old.remove();return}
  const P=plan(i);if(!P||(!P.AL.length&&!P.CP.length)){if(old)old.remove();return}
  const seg=hayPuente();const h=html(i,P,seg);
- const d=old||document.createElement("div");if(d.id!=="gcomp")d.id="gcomp";const cl="card "+(seg?"pcisec":"pucard");if(d.className!==cl)d.className=cl;if(d.dataset.h!==h){d.innerHTML=h;d.dataset.h=h;d.dataset.w=""}
+ /* v608: ANTITEMBLOR · si la caja se reescribe o se recoloca más de 3 veces en 5 s (dos cajas peleando por el sitio,
+    datos que van y vuelven), se congela 15 s tal como está; al reescribirla se conserva la posición de la pantalla */
+ const now=Date.now();if(old&&old.isConnected&&now<FRZ)return;
+ const d=old||document.createElement("div");if(d.id!=="gcomp")d.id="gcomp";const cl="card "+(seg?"pcisec":"pucard");if(d.className!==cl)d.className=cl;
+ if(d.dataset.h!==h){const r0=d.isConnected?d.getBoundingClientRect():null;d.innerHTML=h;d.dataset.h=h;d.dataset.w="";cuenta(now);
+  if(r0&&r0.bottom<0){const r1=d.getBoundingClientRect();const dy=r1.bottom-r0.bottom;if(Math.abs(dy)>1)scrollBy(0,dy)}}
  let ref=null;if(seg)ref=PUENTE.map(id=>document.getElementById(id)).filter(Boolean).sort((x,y)=>x.compareDocumentPosition(y)&4?-1:1).pop();
  if(!ref)ref=document.getElementById("greset")||document.querySelector('#app details.gd[data-k="SEG"]')||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
  if(!ref){if(!d.isConnected){const a=document.getElementById("anag");if(a)a.before(d)}return}
- if(ref.nextElementSibling!==d)ref.insertAdjacentElement("afterend",d);ajusta(d)}catch(e){}}
+ if(ref.nextElementSibling!==d){if(d.isConnected)cuenta(Date.now());ref.insertAdjacentElement("afterend",d)}ajusta(d)}catch(e){}}
+let FRZ=0;const HIS=[];function cuenta(t){HIS.push(t);while(HIS.length&&t-HIS[0]>5000)HIS.shift();if(HIS.length>3){FRZ=t+15000;HIS.length=0}}
 /* v596: títulos de los pasos (código y textos) alineados a la izquierda de la caja.
    v595: en los pasos de componente, el texto va debajo del código (.pcitx), centrado y ajustado a dos líneas.
    v593: títulos de cada paso centrados y en dos líneas como máximo: se reduce la letra hasta que quepan, sin salirse de los márgenes */
