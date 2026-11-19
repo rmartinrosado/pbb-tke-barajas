@@ -112,7 +112,19 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
   const g=$("#t_gui");if(g){g.style.display="none";const lb=g.previousElementSibling;if(lb&&lb.tagName=="LABEL")lb.style.display="none"}
   document.querySelectorAll('#sheetc button[onclick^="pegaGui"]').forEach(b=>b.style.display="none");document.querySelectorAll("#sheetc .gprint,#sheetc .rcEd").forEach(b=>b.style.display="none") /* v354: solo queda el botón Claude */;
   /* v355: botón Claude con el logotipo «Claude» (estrella + palabra) */
-  const cb=document.querySelector('#sheetc button[aria-label="Instrucciones IA"]');if(cb&&!cb.dataset.v355){cb.dataset.v355="1";cb.classList.add("rcBtn");cb.innerHTML='<span class="rcBtnW"><img src="claude-wordmark-ia.png" alt="Claude"></span>'}}catch(e){}return r};
+  const cb=document.querySelector('#sheetc button[aria-label="Instrucciones IA"]');if(cb&&!cb.dataset.v355){cb.dataset.v355="1";cb.classList.add("rcBtn");cb.innerHTML='<span class="rcBtnW"><img src="claude-wordmark-ia.png" alt="Claude"></span>'}
+  /* v601: «Selecciona el motor de búsqueda (IA)»: Gemini IA (gratis) o Claude IA (con coste); el botón Claude queda oculto y lo dispara la elección */
+  if(cb&&document.getElementById("rcMot"))cb.style.setProperty("display","none","important");
+  if(cb&&!document.getElementById("rcMot")){cb.style.setProperty("display","none","important");const m=document.createElement("div");m.id="rcMot";m.className="rcMot";
+   m.innerHTML=`<div class="rcMotT">Selecciona el motor de búsqueda (IA)</div><div class="rcMotG">
+    <button type="button" class="rcMotB" data-m="gemini" onclick="rcMotor('gemini')">${GEM}<b>Gemini IA</b><i></i></button>
+    <button type="button" class="rcMotB" data-m="claude" onclick="rcMotor('claude')"><img src="claude-logo.png" alt=""><b>Claude IA</b><i></i></button></div>`;
+   cb.insertAdjacentElement("beforebegin",m)}}catch(e){}return r};
+ const GEM=`<svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><defs><linearGradient id="rcGg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".45" stop-color="#9b72cb"/><stop offset=".75" stop-color="#d96570"/><stop offset="1" stop-color="#f2a93b"/></linearGradient></defs><path fill="url(#rcGg)" d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5z"/></svg>`;
+ let MOT=null,MOTt=0;
+ window.rcMotor=m=>{if(JOB&&!JOB.fin&&!JOB.err){msg("Ya hay una consulta a la IA en marcha");return}
+  if(m=="claude"&&!confirm("⚠️ CONSUMO DE CLAUDE\n\nEsta consulta se hace con Claude (API de Anthropic) y tiene coste por uso.\n\n¿Aceptas lanzar la Resolución IA con Claude?"))return;
+  document.querySelectorAll("#rcMot .rcMotB").forEach(b=>b.classList.toggle("on",b.dataset.m==m));MOT=m;MOTt=Date.now();guardaTec()};
  window.rcPega=async()=>{try{const t=await navigator.clipboard.readText();if(t)$("#rc_txt").value=t;else msg("Portapapeles vacío")}catch(e){msg("No se pudo leer el portapapeles: pega con pulsación larga")}};
  window.rcGuarda=()=>{const s=$("#t_sel"),t=$("#rc_txt");if(!s||!t)return;const i=inc.find(x=>x.id==s.value);if(!i)return;const v=t.value.trim();
   if(v)i.resClaude={txt:v,ts:Date.now(),por:(typeof tecNombre!="undefined"&&tecNombre)||"Claude"};else{delete i.resClaude;window.rcBorrar&&rcBorrar.add(i.id)}
@@ -175,10 +187,10 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
  window.rcEnGemini=()=>{if(JOB&&JOB.pr)iaGeminiStudio(JOB.pr)};
  window.rcCancela=()=>{if(JOB&&JOB.ac)JOB.ac.abort()};
  window.rcEnClaude=()=>{if(JOB&&JOB.pr)ab0(JOB.pr)};
- window.rcReintenta=()=>{if(JOB&&JOB.pr)rcConsulta(JOB.id,JOB.pr)};
+ window.rcReintenta=()=>{if(JOB&&JOB.pr){MOT=JOB.mot||null;MOTt=Date.now();rcConsulta(JOB.id,JOB.pr)}};
  async function rcConsulta(id,pr){const i=inc.find(x=>x.id==id);if(!i)return;
   if(JOB&&!JOB.fin&&!JOB.err){msg("Ya hay una consulta a Claude en marcha");return}
-  const J=JOB={id,pr,ini:Date.now(),pct:1,fase:"Preparando la consulta…",ac:new AbortController()};ponBarra();
+  const J=JOB={id,pr,mot:(MOT&&Date.now()-MOTt<8000)?MOT:null,ini:Date.now(),pct:1,fase:"Preparando la consulta…",ac:new AbortController()};MOT=null;ponBarra();
   const tic=setInterval(()=>{if(JOB!==J||J.fin||J.err){clearInterval(tic);return}if(J.esperando)J.pct=Math.min(J.pct+.3,24);pbar()},1000);
   const av=(f,p)=>{if(f)J.fase=f;if(p!=null)J.pct=Math.max(J.pct,Math.min(99,p));pbar()};
   let wl=null;try{if(navigator.wakeLock)wl=await navigator.wakeLock.request("screen")}catch(e){}
@@ -189,11 +201,11 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
    av("Cotejando planos…",9);const pl=X.planosCtx?await X.planosCtx(String(i.pos),tipo,busca,(f,x)=>av(f,9+9*(x||0))):{txt:""};
    if(J.ac.signal.aborted)throw new DOMException("x","AbortError");
    const contexto=[g,pa,ca,pl.txt].filter(Boolean).join("\n\n");
-   av("Enviando a la IA · Gemini primero ("+Math.round(contexto.length/1024)+" KB de documentación)…",19);
+   av("Enviando a la IA · "+(J.mot=="claude"?"Claude":J.mot=="gemini"?"Gemini":"Gemini primero")+" ("+Math.round(contexto.length/1024)+" KB de documentación)…",19);
    const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;
    if(!tok)throw new Error("Inicia sesión en la app para consultar a Claude.");
    J.esperando=true;
-   let r=null;for(let k=0;;k++){try{r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:J.ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({pregunta:pr,contexto})});break}
+   let r=null;for(let k=0;;k++){try{r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:J.ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify(Object.assign({pregunta:pr,contexto},J.mot?{motor:J.mot}:{}))});break}
     catch(e){if(e&&e.name=="AbortError"||k>=2)throw (e&&/load failed|failed to fetch|network/i.test(e.message||"")?new Error("Sin conexión con el servidor (corte de red). Comprueba la cobertura y pulsa Reintentar."):e);av(`Corte de red · reintentando (${k+1}/2)…`,19);await new Promise(z=>setTimeout(z,2500))}}
    if(!r.ok){let m="",jj={};try{jj=await r.json();m=jj.mensaje||jj.msg||jj.error||""}catch(e){}if(window.iaErrCorto&&(jj.sinCupo||/quota|exceeded|RESOURCE_EXHAUSTED|rate.?limit/i.test(m)))throw new Error(iaErrCorto(m,jj.claude));throw new Error([504,546].includes(r.status)?`El servidor de IA no respondió a tiempo (${r.status}). Pulsa Reintentar.`:`La consulta ha fallado (${r.status}) ${m}`)}
    J.motor=(r.headers.get("x-motor")||"Claude").replace(" - "," · ");J.esperando=false;av((/Gemini/.test(J.motor)?"Gemini":"Claude")+" está redactando la resolución…",25);
@@ -350,6 +362,15 @@ input.rcDf{display:block;width:100%;margin:5px 0 2px;padding:7px 9px!important;f
 .rcPoT{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:14px}.rcPoT img{width:26px;height:26px;border-radius:6px}
 .rcPoN{display:none;margin-top:6px;text-align:center;font-size:12px;opacity:.75}
 .rcPoA{display:none;margin-top:8px;text-align:center;font-weight:800;letter-spacing:1px;font-size:14px;color:#e65100}.rcPoA.on{display:block;animation:rcParp 1s steps(2,start) infinite}@keyframes rcParp{to{visibility:hidden}}
+.rcMot{margin-top:12px;padding:10px;border-radius:14px;background:#c8602a}
+.rcMotT{color:#fff;font-weight:800;text-align:center;font-size:15px;margin:0 0 8px}
+.rcMotG{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#sheetc button.rcMotB{display:flex!important;align-items:center;gap:6px;margin:0!important;padding:10px 8px!important;background:#fff!important;color:#111!important;border:2px solid #fff!important;border-radius:12px!important;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.rcMotB svg,.rcMotB img{width:30px;height:30px;flex:none;object-fit:contain}
+.rcMotB b{flex:1;min-width:0;font-size:clamp(13px,4vw,17px);font-weight:900;text-align:left;white-space:nowrap}
+.rcMotB i{flex:none;width:18px;height:18px;border-radius:50%;border:2.5px solid #c8602a}
+.rcMotB[data-m=claude] i{border-color:#9aa0a6}
+#sheetc button.rcMotB.on{border-color:#1b5e20!important}.rcMotB.on i{background:radial-gradient(circle,#1b5e20 45%,transparent 50%);border-color:#1b5e20!important}
 #sheetc button.rcBtn{display:flex!important;align-items:center;justify-content:center;width:100%;padding:12px!important}
 .rcBtnW{display:flex;align-items:center;justify-content:center;background:#fff;border-radius:14px;padding:12px 22px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .rcBtnW img{height:40px;width:auto;display:block}
