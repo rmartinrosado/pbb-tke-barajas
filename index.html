@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=602;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=603;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -4209,7 +4209,7 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
 (function(){
  const o=card;card=function(i){const h=o.apply(this,arguments);
   if(!i||i.estado!="abierta"||!(i.guiada||"").trim()||!(tecnico||admin))return h;
-  const b=`<button class="otcl" aria-label="Resolución IA con Claude" title="Resolución IA con Claude" onclick="event.stopPropagation();otClaude('${i.id}')"><img src="claude-logo.png" alt="Claude"><span>Resolución IA</span></button>`;
+  const b=`<button class="otcl" aria-label="Resolución IA con Claude o Gemini" title="Resolución IA con Claude o Gemini" onclick="event.stopPropagation();otClaude('${i.id}')"><span class="otlg"><img src="claude-logo.png" alt="Claude"><span class="otgm"><svg class="gmS" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmG2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".45" stop-color="#9b72cb"/><stop offset=".75" stop-color="#d96570"/><stop offset="1" stop-color="#f2a93b"/></linearGradient></defs><path fill="url(#gmG2)" d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5z"/></svg></span></span><span>Resolución IA</span></button>`;
   return h.replace(/<\/div>\s*$/,b+"</div>")};
  window.otClaude=id=>{const i=inc.find(x=>x.id==id);if(!i)return;resTec(id);
   const g=$("#t_gui");if(!g)return;g.value=(i.guiada||"").trim();
@@ -4225,7 +4225,7 @@ Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, gu�
   try{localStorage.setItem("pbb_ret",JSON.stringify({t:turno,n:tecNombre,id:i.id,def:i.def,com:i.com,gui:i.guiada,ts:Date.now()}))}catch(e){}
   render();abreClaude(pr)};
  const st=document.createElement("style");st.textContent=`.otcl{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:10px 0 0;padding:8px 12px;border:0;border-radius:12px;background:#d32f2f;color:#fff;font-weight:800;font-size:15px;cursor:pointer}
-.otcl img{width:40px;height:40px;border-radius:9px;background:#fff;padding:3px;display:block}.otcl:active{filter:brightness(.9)}`;document.head.appendChild(st)})();
+.otcl img{width:40px;height:40px;border-radius:9px;background:#fff;padding:3px;display:block}.otlg{display:flex;gap:6px;flex:none}.otgm{width:40px;height:40px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center}.otgm svg{width:30px;height:30px;display:block}.otcl:active{filter:brightness(.9)}`;document.head.appendChild(st)})();
 /* ===== v167: botón «Limpiar foto» en la caja «Cotejar PLC (Estado en Reposo)». Quita la foto PLC de la OT
    (con confirmación, también en Supabase) y deja el cotejo sin LED marcados, listo para una foto nueva ===== */
 (function(){
@@ -4590,7 +4590,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||602;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||603;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5182,8 +5182,9 @@ html.p230ns,html.p230ns body{overflow:hidden!important;overscroll-behavior:none;
   a.querySelectorAll(".kpi:not(.sosk)").forEach(k=>{const l=k.querySelector(".tkled");if(!l)return;const n=num(k),ce=/cerrad/i.test(k.textContent);
    const es=k.classList.contains("kesp");l.classList.add("l232");l.classList.toggle("am",!ce&&!es&&n>0);l.classList.toggle("ro",ce&&n>0);l.classList.toggle("az",es&&n>0)});
   a.querySelectorAll("button.btn").forEach(b=>{if(!/resTec\(\)/.test(b.getAttribute("onclick")||"")||b.closest(".card:not(.btn)"))return;
-   if(b.dataset.v232)return;b.dataset.v232="1";b.classList.add("cl232");b.setAttribute("aria-label","Claude · Resolución IA");
-   b.innerHTML=`<img class="cl232i" src="claude-logo-ia.png" alt="Claude"><span class="cl232t">Resolución IA</span>`})}catch(e){}};
+   if(b.dataset.v232)return;b.dataset.v232="1";b.classList.add("cl232");b.setAttribute("aria-label","Resolución IA · Claude o Gemini");
+   /* v603: solo los logotipos de Claude y Gemini */
+   b.innerHTML=`<img class="cl232i" src="claude-logo-ia.png" alt="Claude"><span class="gmW"><svg class="gmS" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".45" stop-color="#9b72cb"/><stop offset=".75" stop-color="#d96570"/><stop offset="1" stop-color="#f2a93b"/></linearGradient></defs><path fill="url(#gmG)" d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5z"/></svg><b>Gemini</b></span>`})}catch(e){}};
  const o=vDash;vDash=function(){const r=o.apply(this,arguments);aplica();return r};
  new MutationObserver(()=>{clearTimeout(window.__p232);window.__p232=setTimeout(aplica,20)}).observe(document.getElementById("app"),{childList:true,subtree:true,characterData:true});
  setInterval(aplica,1000);aplica();
@@ -5791,6 +5792,9 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 (function(){const st=document.createElement("style");st.textContent=`#app button.cl232{gap:8px!important;padding:6px!important}
 #app button.cl232 .s286{display:none!important}
 #app button.cl232 img.cl232i{height:34px!important;max-width:92%!important;object-fit:contain}
+#app button.cl232 .gmW{display:flex!important;align-items:center;justify-content:center;gap:5px;line-height:1}
+#app button.cl232 .gmW svg{width:20px;height:20px;flex:none;display:block}
+#app button.cl232 .gmW b{font-family:"Google Sans","Product Sans",system-ui,-apple-system,sans-serif;font-weight:500;font-size:21px;letter-spacing:-.3px;background:linear-gradient(90deg,#4285f4,#9b72cb 55%,#d96570);-webkit-background-clip:text;background-clip:text;color:transparent}
 #app button.cl232 .cl232t{font-size:15px!important;line-height:1.15!important}`;document.head.appendChild(st)})();
 </script>
 <script>
