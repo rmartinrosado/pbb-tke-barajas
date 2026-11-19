@@ -106,13 +106,36 @@ function normPasos(o){if(!o||!Array.isArray(o.pasos)||!o.pasos.length)return o;
  o.pasos=o.pasos.filter(p=>p&&(p.accion||p.medida)).map(p=>{const m=p.medida&&typeof p.medida=="object"&&(p.medida.punto||p.medida.roja||p.medida.esperado)?p.medida:null;return {accion:String(p.accion||""),medida:m,bien:String(p.bien||""),mal:String(p.mal||""),plano:String(p.plano||"")}});
  o.eficaz=o.pasos.map(p=>p.accion).filter(Boolean);
  o.medir=o.pasos.filter(p=>p.medida).map(p=>({punto:p.medida.punto||p.accion,roja:p.medida.roja||"",negra:p.medida.negra||"",esperado:p.medida.esperado||"",si_no:p.mal||""}));return o}
+/* v620: fotos y ubicación de cada componente que cita el paso (identificación rápida en campo) */
+const PNC=t=>String(t||"").toUpperCase().replace(/\s+/g,"").replace(/^\+/,"");
+const PRX=/\+?\b([A-Z]{1,3}\d?-[A-Z]{1,2}\d+(?:\.\d+)?)/g;
+const pcods=id=>String(id||"").split(/\s*(?:\/|,|\+|\by\b)\s*/).map(PNC).filter(Boolean);
+const pfo=f=>Array.isArray(f)?{src:f[0],v:String(f[1]||"")}:{src:(f||{}).src,v:String((f||{}).vista||"")};
+const PPEND=new Set();
+function pcComps(t){const L0=window.COMP_CAMPO||[];const out=[];const vis=new Set();let m;PRX.lastIndex=0;t=String(t||"");
+ while((m=PRX.exec(t))&&out.length<3){const cd=PNC(m[1]);if(vis.has(cd))continue;vis.add(cd);
+  let r=[];for(const k of [cd,cd.replace(/\.\d+$/,"")]){r=L0.filter(c=>pcods(c.id).map(x=>x.replace(/\./g,"")).includes(k.replace(/\./g,"")));if(r.length)break}
+  r=r.filter(c=>c._fp||(c.fotos||[]).length);const c=r[0];if(c&&!out.includes(c))out.push(c)}
+ return out}
+function pcFotos(c){const ubi=typeof compUbiDe=="function"?compUbiDe(c):"";
+ const cab=`<div class="pcfc"><b class="cmpid">${esc(c.id)}</b> ${esc(c.t||"")}${ubi?`<div class="pcfu">📍 ${esc(ubi)}</div>`:""}</div>`;
+ if(c._fp){if(typeof compFotosAsegura=="function"&&!PPEND.has(c)){PPEND.add(c);compFotosAsegura(c).then(()=>{PPEND.delete(c);c._fp=false;try{pintaCaja()}catch(e){}}).catch(()=>PPEND.delete(c))}
+  return cab+`<div class="pcifw">⏳ Cargando las fotos de ${esc(c.id)}…</div>`}
+ const F=(c.fotos||[]).map((f,i)=>Object.assign(pfo(f),{i})).filter(f=>f.src);if(!F.length)return cab;
+ const esU=f=>/^ubicaci/i.test(f.v);const cp=F.filter(f=>!esU(f)).slice(0,pcods(c.id).length>1?4:2),ub=F.find(esU);const T=cp.concat(ub?[ub]:[]);
+ const all=esc(JSON.stringify(T.map(f=>f.src)));
+ return cab+`<div class="pcifs">${T.map(f=>{const u=esU(f);const cf=!u&&typeof compCodFoto=="function"?compCodFoto(c,f.i):"";
+  const pie=u?`📍 <b>Ubicación</b>`:`<b>${esc(cf||c.id)}</b><small>${esc(cf?"Vista componente":String(f.v).replace(/\s*·.*$/,"")||"Vista componente")}</small>`;
+  return`<figure class="pcifo${u?" pciub":""}" onclick="event.stopPropagation();if(typeof compVer=='function')compVer('${esc(f.src)}',${all})"><img src="${esc(f.src)}" alt="${esc(c.id)}" loading="lazy"><figcaption>${pie}</figcaption></figure>`}).join("")}</div>`}
+window.pcFotosPaso=function(p){const m=p.medida||{};const L=pcComps([p.accion,m.punto,m.roja,m.negra].join(" "));
+ return L.length?`<div class="pcfw">${L.map(pcFotos).join("")}</div>`:""};
 /* pintado común de la secuencia (cotejo y análisis IA) */
 window.pcPasosHTML=function(o,tit){const P=(o&&o.pasos)||[];if(!P.length)return "";
  return `<div class="anal">${tit||"🛠️ Actuación en campo según los planos"}</div><div class="gst pcpas">`+P.map((p,n)=>{const m=p.medida;
   return `<div class="pcpaso"><label class="gpaso"><input type="checkbox"><span><b>${n+1}.</b> ${esc(p.accion)}${p.plano?` <small class="mu">· ${esc(p.plano)}</small>`:""}</span></label>`+
    (m?`<div class="pcm">📏 <b>${esc(m.punto||"Medir")}</b><div>Polímetro: punta <b class="pcro">ROJA</b> en <b>${esc(m.roja)}</b> · punta <b>NEGRA</b> en <b>${esc(m.negra)}</b></div><div>Debe marcar <b>${esc(m.esperado)}</b></div></div>`:"")+
-   (p.bien?`<div class="pcok">✅ <b>Bien →</b> ${esc(p.bien)}</div>`:"")+(p.mal?`<div class="pcko">❌ <b>Mal →</b> ${esc(p.mal)}</div>`:"")+`</div>`}).join("")+`</div>`};
-if(!document.getElementById("pcpas-css")){const st=document.createElement("style");st.id="pcpas-css";st.textContent=`.pcpaso{border-left:3px solid var(--pr,#f60);padding:4px 0 6px 8px;margin:8px 0}.pcpaso .pcm{margin:4px 0 4px 26px}.pcok,.pcko{margin:3px 0 0 26px;font-size:13px;line-height:1.35}.pcok b{color:#22a559}.pcko b{color:#e5484d}`;document.head.appendChild(st)}
+   window.pcFotosPaso(p)+(p.bien?`<div class="pcok">✅ <b>Bien →</b> ${esc(p.bien)}</div>`:"")+(p.mal?`<div class="pcko">❌ <b>Mal →</b> ${esc(p.mal)}</div>`:"")+`</div>`}).join("")+`</div>`};
+if(!document.getElementById("pcpas-css")){const st=document.createElement("style");st.id="pcpas-css";st.textContent=`.pcpaso{border-left:3px solid var(--pr,#f60);padding:4px 0 6px 8px;margin:8px 0}.pcpaso .pcm{margin:4px 0 4px 26px}.pcok,.pcko{margin:3px 0 0 26px;font-size:13px;line-height:1.35}.pcok b{color:#22a559}.pcko b{color:#e5484d}.pcfw{margin:6px 0 2px 26px}.pcfc{font-size:13px;margin-top:6px}.pcfu{font-size:12px;opacity:.85;margin-top:2px}.pcfw .pcifs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0 4px}.pcfw .pcifo{margin:0;background:#fff;border:1px solid #d0d0d0;border-radius:8px;padding:3px;text-align:center;cursor:zoom-in;min-width:0}.pcfw .pcifo img{display:block;width:100%;height:90px;object-fit:contain;background:#fff;border-radius:5px}.pcfw .pcifo figcaption{font-size:10.5px;color:#222;line-height:1.2}.pcfw .pcifo figcaption small{display:block;opacity:.7}.pcfw .pciub{border:2px solid #e08a00}`;document.head.appendChild(st)}
 
 /* ---------- Claude: cruce de los planos ---------- */
 function paginas(p,D,cupo){if(!p.P)return "";
