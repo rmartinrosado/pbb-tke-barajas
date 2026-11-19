@@ -216,6 +216,13 @@ const st=document.createElement("style");st.textContent=`
 #gcomp .pcifs>.pcifo:last-child:nth-child(odd) img{height:170px}
 #gcomp.pcifade{opacity:0}#gcomp{transition:opacity .35s}#gcomp.pciwait{padding:10px 12px}
 #gcomp .pcifw{font-size:12.5px;opacity:.75;text-align:center;padding:8px}
+/* v624: el parpadeo de la caja roja ya no repinta la caja entera (fondo y sombra en cada fotograma, con todas sus fotos
+   dentro, hacía que la caja y las fotos temblaran y parpadearan al desplazar). Ahora el destello va en una capa encima
+   del borde que solo cambia de opacidad (lo mueve la tarjeta gráfica): mismo ritmo de 2 s, sin repintar el contenido. */
+#gcomp.card.pucard{animation:none!important;position:relative;border-color:#c62828!important}
+#gcomp.card.pucard::after{content:"";position:absolute;inset:0;border-radius:inherit;border:2px solid #ff5252;
+ box-shadow:0 0 0 4px #c6282866,inset 0 0 0 2px #ff525255;opacity:0;pointer-events:none;will-change:opacity;animation:pciopa 2s ease-in-out infinite}
+@keyframes pciopa{0%,100%{opacity:0}50%{opacity:1}}
 #gcomp .pcifo.pcifalta{border:2px dashed #9aa0a6;background:#f4f4f4;cursor:pointer}
 #gcomp .pcifalta .pcifx{height:70px;display:flex;align-items:center;justify-content:center;font-size:30px;opacity:.45}
 #gcomp .pcifalta .pcifm{display:block;margin-top:4px;padding:3px 6px;border-radius:5px;background:#facc15;color:#000;font-weight:800;font-size:11.5px}`;
