@@ -209,12 +209,14 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
       se borra la actuación guiada de la descripción anterior y se lanza la consulta a la IA en segundo plano.
     · Mientras tanto (o si la IA no responde) la caja avisa de que la resolución es de la descripción anterior, con botón para actualizarla. */
  const baseDe=i=>[i.desc,i.def,i.com].map(x=>String(x||"").trim()).join(" | ");
- const prDe=i=>{const gu=i.guiada&&!/^Contexto: pasarela de embarque/.test(i.guiada)?`\nActuación guiada (guía de campo):\n${i.guiada}`:"";
+ /* v597: si la actuación guiada ya está copiada en el Comentario, no se envía dos veces */
+ const prDe=i=>{const gu=i.guiada&&!/^Contexto: pasarela de embarque/.test(i.guiada)&&!String(i.com||"").includes(String(i.guiada).trim())?`\nActuación guiada (guía de campo):\n${i.guiada}`:"";
   return `Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden}.
 Descripción del aviso: ${i.desc||"(sin descripción)"}
 Definición de la avería: ${i.def||i.desc||"(sin definir)"}
 Comentario: ${i.com||"(sin comentario)"}${gu}
 Analiza todo lo descrito con la documentación del proyecto PBB TKE (planos, guía de averías y procedimientos). Ajusta el diagnóstico EXACTAMENTE a lo que dice la descripción (sentido superior / inferior, izquierda / derecha, elemento concreto). Necesito diagnóstico y pasos a seguir de comprobaciones en campo. Empieza la respuesta con un apartado titulado "Primera actuación en campo" con pasos numerados, breves y claros.`};
+ window.rcPrDe=prDe;
  window.rcActualiza=id=>{const i=inc.find(x=>x.id==id);if(!i)return;ab.add(id);setTimeout(()=>{try{render()}catch(e){}},60);rcConsulta(id,prDe(i))};
  window.rcAviso=i=>{const r=i.resClaude;if(!r)return"";const enMarcha=JOB&&JOB.id==i.id&&(!JOB.fin||Date.now()-JOB.fin<60000);
   const viejo=r.desfase||(r.base&&r.base!==baseDe(i));
