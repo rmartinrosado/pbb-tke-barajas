@@ -43,7 +43,10 @@ function plan(i){if(!i)return null;const T=textoOT(i);const ck=i.id+"|"+T+"|"+JS
  const TU=String(T).toUpperCase();
  COMPS().forEach(c=>{if(idsDe(c).some(id=>reCod(id).test(TU)))suma(c,6,"código en el aviso")});
  AL.forEach(a=>{try{(typeof compDeAlarma=="function"?compDeAlarma(a.x):[]).forEach(c=>suma(c,a.por=="num"?5:3,"alarma "+a.x.c))}catch(e){}});
- try{(typeof compCampo=="function"?compCampo(textoAveria(i)):[]).forEach(c=>suma(c,3,"texto del aviso"))}catch(e){}
+ /* v612: por el texto del aviso, si algún componente lo nombra en su TÍTULO (p. ej. «joystick» → CP-S0 Joystick / hombre muerto),
+    solo entran esos; los que casan únicamente por sus palabras clave (relés P-K80 / P-K82 que llevaban «joystick» en claves) se quedan fuera. */
+ try{const TA=textoAveria(i),pw=new Set(pals(TA));const LT=typeof compCampo=="function"?compCampo(TA):[];
+  const enTit=LT.filter(c=>pals(c.t).some(w=>pw.has(w)));(enTit.length?enTit:LT).forEach(c=>suma(c,3,"texto del aviso"))}catch(e){}
  /* 3) reincidencias de la PBB (90 días) */
  let RE=[];try{RE=typeof reincidencias=="function"?reincidencias(i.pos,i.desc,i.id,90):[]}catch(e){}
  RE.forEach(r=>{const tx=[r.act,r.desc,r.obs].filter(Boolean).join(" ");const TX=tx.toUpperCase();const pw=new Set(pals(tx));
