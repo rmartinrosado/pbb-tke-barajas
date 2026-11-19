@@ -118,13 +118,15 @@ function incorpora(){if(typeof window.compIncorpora!="function"){if(typeof msg==
 /* ===== v559: deslizar una ficha a la izquierda → botón rojo «Eliminar» (con confirmación) para quitar repetidos o volver a
    incorporarla. Las fichas de fábrica modificadas se «Restauran»; las de fábrica sin cambios no se pueden borrar. ===== */
 (function(){const st=document.createElement("style");st.textContent=`#compCapa .cnsw{position:relative;overflow:hidden;border-radius:8px;margin:6px 0}
-#compCapa .cnsw>details{position:relative;z-index:1;margin:0!important;transition:transform .18s ease;will-change:transform}
+#compCapa .cnsw>details{position:relative;z-index:1;margin:0!important;transition:transform .18s ease}
+#compCapa .cnsx{visibility:hidden}#compCapa .cnsw.sw .cnsx{visibility:visible}#compCapa .cnsw.sw>details{will-change:transform}
 #compCapa .cnsw.mov>details{transition:none}
 #compCapa .cnsx{position:absolute;right:0;top:0;bottom:0;width:104px;z-index:0;border:0;border-radius:0 8px 8px 0;background:#d32f2f;color:#fff;font:800 14px/1.25 system-ui,sans-serif;display:flex;align-items:center;justify-content:center;text-align:center}
 #compCapa .cnsw.fab .cnsx{background:#78909c}`;document.head.appendChild(st)})();
 let SW=null,abiertoSw=null;
 const swEl=t=>t&&t.closest&&t.closest("#compCapa .cnsw");
-const swPon=(w,x)=>{const d=w.querySelector(":scope>details");if(d)d.style.transform=x?`translateX(${x}px)`:""};
+/* v611: el botón rojo de eliminar solo existe mientras se desliza o queda abierto (al hacer scroll en iPhone se veía por debajo de las fichas) */
+const swPon=(w,x)=>{const d=w.querySelector(":scope>details");if(x){w.classList.add("sw");clearTimeout(w._swt)}else w._swt=setTimeout(()=>{if(!w.classList.contains("mov"))w.classList.remove("sw")},220);if(d)d.style.transform=x?`translateX(${x}px)`:""};
 const cierraSw=()=>{if(abiertoSw){swPon(abiertoSw,0);abiertoSw=null}};
 document.addEventListener("touchstart",e=>{const w=swEl(e.target);if(e.target.closest&&e.target.closest(".cnsx"))return;if(!w){cierraSw();return}
  if(abiertoSw&&abiertoSw!==w)cierraSw();const t=e.touches[0];SW={w,x:t.clientX,y:t.clientY,dx:0,h:null,base:abiertoSw===w?-104:0}},{passive:true});
