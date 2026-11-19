@@ -90,7 +90,7 @@ function senales(i){const C=CAB(i),t=textoOT(i),out=[],vis=new Set();
   EST.forEach(d=>add(d,busca(C,d.m,d.b),false))}
  /* resto de OT (y además en bloqueos): todas las señales relacionadas con la OT y las que cita la IA */
  try{if(typeof otRelSig=="function"){const A=otRelSig(i);(A&&A.rel||[]).forEach(x=>{const b=x.S&&(x.S.led||x.S.b);if(b)add({g:"OT",eq:x.S.t||""},busca(C,x.mod,b),true)})}}catch(e){}
- const o=iaDe(i.id);if(o){const T=JSON.stringify([o.resumen,o.eficaz,o.medir,o.tramos]).toUpperCase();
+ const o=iaDe(i.id);if(o){const T=JSON.stringify([o.resumen,o.eficaz,o.medir,o.tramos,o.pasos]).toUpperCase();
   const cod=[...new Set((T.match(/\b[A-Z]{1,4}\d?-[A-Z]{1,3}\d+(?:\.\d+)?\b/g)||[]).filter(c=>!/^[EP]-A\d+$/.test(c)&&!/-X\d/.test(c)&&!/-W\d/.test(c)))];
   cod.forEach(c=>{const k=Object.keys(C).find(x=>JSON.stringify(C[x].n).indexOf('"+'+c+'"')>=0);if(k)add({g:"OT",eq:""},{k,e:C[k]},true)})}
  return out.slice(0,16)}

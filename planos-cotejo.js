@@ -101,6 +101,19 @@ function leeJSON(txt){const t=String(txt||"").replace(/```(?:json)?/g,"");const 
  try{const o=JSON.parse(cierra(b));o.cortado=1;return o}catch(e){}
  const o=JSON.parse(cierra(a.slice(0,ult)));o.cortado=1;return o}
 
+/* v619: «pasos» (acción + medida + bien/mal) → también eficaz / medir para lo que ya los usa (análisis IA, inspección completa) */
+function normPasos(o){if(!o||!Array.isArray(o.pasos)||!o.pasos.length)return o;
+ o.pasos=o.pasos.filter(p=>p&&(p.accion||p.medida)).map(p=>{const m=p.medida&&typeof p.medida=="object"&&(p.medida.punto||p.medida.roja||p.medida.esperado)?p.medida:null;return {accion:String(p.accion||""),medida:m,bien:String(p.bien||""),mal:String(p.mal||""),plano:String(p.plano||"")}});
+ o.eficaz=o.pasos.map(p=>p.accion).filter(Boolean);
+ o.medir=o.pasos.filter(p=>p.medida).map(p=>({punto:p.medida.punto||p.accion,roja:p.medida.roja||"",negra:p.medida.negra||"",esperado:p.medida.esperado||"",si_no:p.mal||""}));return o}
+/* pintado común de la secuencia (cotejo y análisis IA) */
+window.pcPasosHTML=function(o,tit){const P=(o&&o.pasos)||[];if(!P.length)return "";
+ return `<div class="anal">${tit||"🛠️ Actuación en campo según los planos"}</div><div class="gst pcpas">`+P.map((p,n)=>{const m=p.medida;
+  return `<div class="pcpaso"><label class="gpaso"><input type="checkbox"><span><b>${n+1}.</b> ${esc(p.accion)}${p.plano?` <small class="mu">· ${esc(p.plano)}</small>`:""}</span></label>`+
+   (m?`<div class="pcm">📏 <b>${esc(m.punto||"Medir")}</b><div>Polímetro: punta <b class="pcro">ROJA</b> en <b>${esc(m.roja)}</b> · punta <b>NEGRA</b> en <b>${esc(m.negra)}</b></div><div>Debe marcar <b>${esc(m.esperado)}</b></div></div>`:"")+
+   (p.bien?`<div class="pcok">✅ <b>Bien →</b> ${esc(p.bien)}</div>`:"")+(p.mal?`<div class="pcko">❌ <b>Mal →</b> ${esc(p.mal)}</div>`:"")+`</div>`}).join("")+`</div>`};
+if(!document.getElementById("pcpas-css")){const st=document.createElement("style");st.id="pcpas-css";st.textContent=`.pcpaso{border-left:3px solid var(--pr,#f60);padding:4px 0 6px 8px;margin:8px 0}.pcpaso .pcm{margin:4px 0 4px 26px}.pcok,.pcko{margin:3px 0 0 26px;font-size:13px;line-height:1.35}.pcok b{color:#22a559}.pcko b{color:#e5484d}`;document.head.appendChild(st)}
+
 /* ---------- Claude: cruce de los planos ---------- */
 function paginas(p,D,cupo){if(!p.P)return "";
  const sc=p.P.map(g=>({g,s:D.cod.filter(c=>g.tags.has(c)).length*3+D.pal.filter(w=>g.n.includes(w)).length})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
@@ -118,9 +131,9 @@ ES UN BLOQUEO: despliega el interbloqueo entero desde el armario CBTH hasta los 
 Recorridos del lado de la PBB que ya tiene la app (esquema rev. J; complétalos con el lado de los equipos según los planos):
 ${cad||"(ninguno)"}`:"";
  const LIM=cons?`LÍMITES (obligatorios, la respuesta no puede pasar de 2500 palabras): "eficaz" máx. 4 pasos · "medir" máx. 4 puntos · "tramos" máx. 10 · "discrepancias" máx. 4 · "planos" máx. 4 · cada texto máx. 200 caracteres.`:
-  `LÍMITES (obligatorios, la respuesta no puede pasar de 2500 palabras): "eficaz" máx. 8 pasos · "medir" máx. 6 puntos · "discrepancias" máx. 5 · "planos" máx. 5 · cada texto máx. 220 caracteres. Céntrate en la señal de la avería, no en todos los códigos.`;
+  `LÍMITES (obligatorios, la respuesta no puede pasar de 2500 palabras): "pasos" máx. 8 · "discrepancias" máx. 5 · "planos" máx. 5 · cada texto máx. 220 caracteres. Céntrate en la señal de la avería, no en todos los códigos.`;
  const JS=cons?`{"resumen":"causa más probable en 1-2 frases","eficaz":["paso 1"],"medir":[{"punto":"","roja":"","negra":"","esperado":"","si_no":""}],"tramos":[{"senal":"","equipo":"","origen":"","destino":"","recorrido":"A → B → C","roja":"","negra":"","esperado":"","si_no":"","plano":"plano y página"}],"discrepancias":["…"],"planos":[{"plano":"","folios":"","aporta":""}]}`:
-  `{"resumen":"causa más probable en 1-2 frases","eficaz":["paso 1","paso 2"],"medir":[{"punto":"","roja":"","negra":"","esperado":"","si_no":""}],"discrepancias":["…"],"planos":[{"plano":"","folios":"","aporta":""}]}`;
+  `{"resumen":"causa más probable en 1-2 frases","pasos":[{"accion":"qué hacer o mirar","medida":{"punto":"","roja":"","negra":"","esperado":""},"bien":"qué indica y a qué paso seguir","mal":"dónde está el fallo y qué reparar","plano":"plano y folio"}],"discrepancias":["…"],"planos":[{"plano":"","folios":"","aporta":""}]}`;/* v619: actuación y medidas en una sola secuencia */
  const prompt=`Eres técnico experto en mantenimiento de pasarelas de embarque (PBB) TKE del aeropuerto Madrid-Barajas (puesto remoto RCS, PLC con módulos E-A… en el armario eléctrico y P-A… en el armario del pupitre, equipos AAA aire acondicionado, HZ convertidor 400 Hz, armario CBTH de interfaz con los equipos).
 Tienes que COTEJAR VARIOS PLANOS entre sí para una OT y dar con la actuación más eficaz en campo y los puntos a medir.
 OT ${i.orden||"-"} · PBB ${i.pos} · tipo ${i.tipo||"PAS"}${(i.equipos||[]).length?" · equipos "+i.equipos.join(", "):""}
@@ -133,8 +146,9 @@ ${COMP}
 
 Tareas:
 1) Sigue la señal de la avería de un plano a otro (bornas, hilos, mangueras, contactos libres de potencial, entradas/salidas del PLC) y cruza los datos entre planos.
-2) Da la actuación MÁS EFICAZ en campo, en pasos cortos y ordenados (lo más rápido primero; nunca puentear salidas de seguridad).
-3) Pasos de MEDIDA en campo con polímetro: punto, dónde va la punta roja y la negra, valor esperado y qué indica si no lo da.
+${cons?`2) Da la actuación MÁS EFICAZ en campo, en pasos cortos y ordenados (lo más rápido primero; nunca puentear salidas de seguridad).
+3) Pasos de MEDIDA en campo con polímetro: punto, dónde va la punta roja y la negra, valor esperado y qué indica si no lo da.`:`2) Da la ACTUACIÓN EN CAMPO como UNA SOLA secuencia ordenada («pasos»), de lo más rápido y probable a lo más lento; nunca puentear salidas de seguridad. Cada paso: «accion» (qué hacer o mirar); «medida» solo si hay que medir (punto, dónde va la punta roja y la negra, valor esperado; si no hay medida, null); «bien» = qué indica si da lo esperado y a qué paso seguir (o avería localizada); «mal» = dónde está el fallo y qué reparar o a qué paso ir.
+3) Las medidas van DENTRO de su paso, en el momento en que se hacen: no las des en otra lista.`}
 4) Lo que NO cuadra entre los planos (bornas, hilos o nombres distintos) o datos que faltan.
 Conocimiento de campo validado (úsalo, no lo cuentes como discrepancia): Selector del pupitre CP-S16, 4 posiciones de izquierda a derecha: REMOTO (izquierda del todo) · 0 = PBB apagada, alimentación de mando sin tensión · 1 = LOCAL / MANUAL (en las OT «selector en ON», «modo ON» o «PBB activada») · 2 = AUTO (autonivelación). Entradas del módulo de seguridad E-A10 (folio 70): DIS05 «Modo auto» (5.1/5.2, hilos 684/685, contactos 1-2) · DIS06 «Modo manual» (6.1/6.2, hilos 686/687, contactos 3-4) · DIS07 «Modo local/remoto» (7.1/7.2, hilos 688/689, contactos 5-6).
 No inventes: si un dato no está en el texto de los planos, dilo. Cita plano y página o folio de cada dato. Castellano técnico, MUY conciso.
@@ -145,7 +159,7 @@ ${JS}`;
   const ac=new AbortController(),to=setTimeout(()=>ac.abort(),70000);
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({prompt,motor})});clearTimeout(to);
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
-  const o=leeJSON(j.txt);if(!o.resumen&&!(o.eficaz||[]).length&&!(o.medir||[]).length)throw new Error("respuesta incompleta");o.lector=j.lector||"IA";o.t=Date.now();if(ST.cons)o.modo="completa";
+  const o=normPasos(leeJSON(j.txt));if(!o.resumen&&!(o.eficaz||[]).length&&!(o.medir||[]).length&&!(o.pasos||[]).length)throw new Error("respuesta incompleta");o.lector=j.lector||"IA";o.t=Date.now();if(ST.cons)o.modo="completa";
   {const b=$q("#gpcot .pcbar>i");if(b){b.style.width="100%";await new Promise(r=>setTimeout(r,350))}}
   ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ST.sigC=false;ls.s(ST.iaK,JSON.stringify(o));try{window.dispatchEvent(new CustomEvent("pc-ia",{detail:{id:i.id}}))}catch(e){}}
  catch(e){ST.iaRun=false;if(ST.k!==k)return;if(motor=="gemini")ST.sigC=true;ST.iaEst=(motor=="gemini"?"Gemini (gratis) no ha dado resultado: ":"Claude no ha dado resultado: ")+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+(motor=="gemini"?". Puedes lanzarlo con Claude (tiene coste) con el botón de abajo, o reintentar con Gemini.":". Puedes volver a lanzarlo.")}
@@ -177,7 +191,8 @@ window.pcCompleta=async function(quitar,motor){const i=otAct();if(!i||typeof vie
 window.pcEstado=()=>{try{if(!ST||!ST.cons)return "";if(ST.prog)return "⏳ "+ST.prog;if(ST.iaRun)return txIA();if(ST.iaEst)return ST.iaEst;return ""}catch(e){return ""}};
 window.pcCopia=function(){const i=otAct(),o=ST.ia;if(!i||!o){msg("Todavía no hay resultado del cotejo");return}
  const t=`[Cotejo entre planos · ${ST.docs.map(d=>corto(d.name)).join(" + ")}]\n`+(o.resumen?"Causa probable: "+o.resumen+"\n":"")+
-  (o.eficaz||[]).map((p,n)=>`${n+1}. ${p}`).join("\n")+((o.medir||[]).length?"\nMEDIR:\n"+(o.medir||[]).map(m=>`· ${m.punto}: roja en ${m.roja}, negra en ${m.negra} → debe marcar ${m.esperado}${m.si_no?". Si no → "+m.si_no:""}`).join("\n"):"");
+  ((o.pasos||[]).length?o.pasos.map((p,n)=>`${n+1}. ${p.accion}`+(p.medida?`\n   Medir ${p.medida.punto||""}: roja en ${p.medida.roja}, negra en ${p.medida.negra} → debe marcar ${p.medida.esperado}`:"")+(p.bien?`\n   Bien → ${p.bien}`:"")+(p.mal?`\n   Mal → ${p.mal}`:"")).join("\n"):
+  (o.eficaz||[]).map((p,n)=>`${n+1}. ${p}`).join("\n")+((o.medir||[]).length?"\nMEDIR:\n"+(o.medir||[]).map(m=>`· ${m.punto}: roja en ${m.roja}, negra en ${m.negra} → debe marcar ${m.esperado}${m.si_no?". Si no → "+m.si_no:""}`).join("\n"):""));
  i.guiada=(i.guiada?i.guiada+"\n\n":"")+t;sv("pbb_inc",inc);msg(`Cotejo añadido a la Actuación guiada de la OT ${i.orden}`)};
 function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre planos · diagnóstico de la OT</b> <span class="mu" style="font-weight:400">(${ST.docs.length} plano${ST.docs.length==1?"":"s"})</span></summary>`;
  if(!ST.docs.length)return h+`<div class="mu" style="margin:8px 0">Marca en «📐 Planos a cotejar» (arriba) los planos que intervienen en la avería.</div>`;
@@ -192,8 +207,9 @@ function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre 
  if(ST.iaRun)h+=`<div class="pcbar pcbia"><i style="width:${pctIA()}%"></i></div><div class="pcst pcbt">${esc(txIA())}</div>`;
  else if(ST.iaEst)h+=`<div class="pcst">${esc(ST.iaEst)}</div>`;
  if(o){h+=(o.resumen?`<div class="gav pcres">🎯 <b>Causa más probable:</b> ${esc(o.resumen)}</div>`:"")+
-  ((o.medir||[]).length?`<div class="anal">📏 Pasos de campo a medir</div>${o.medir.map((m,n)=>`<div class="pcm"><b>${n+1}. ${esc(m.punto)}</b><div>Polímetro: punta <b class="pcro">ROJA</b> en <b>${esc(m.roja)}</b> · punta <b>NEGRA</b> en <b>${esc(m.negra)}</b></div><div>Debe marcar <b>${esc(m.esperado)}</b></div>${m.si_no?`<div class="mu">Si no: ${esc(m.si_no)}</div>`:""}</div>`).join("")}`:"")+
-  ((o.eficaz||[]).length?`<div class="anal">⭐ Actuación más eficaz según los planos</div><div class="gst">${o.eficaz.map((p,n)=>`<label class="gpaso"><input type="checkbox"><span><b>${n+1}.</b> ${esc(p)}</span></label>`).join("")}</div>`:"")+
+  ((o.pasos||[]).length?window.pcPasosHTML(o):"")+
+  (!(o.pasos||[]).length&&(o.medir||[]).length?`<div class="anal">📏 Pasos de campo a medir</div>${o.medir.map((m,n)=>`<div class="pcm"><b>${n+1}. ${esc(m.punto)}</b><div>Polímetro: punta <b class="pcro">ROJA</b> en <b>${esc(m.roja)}</b> · punta <b>NEGRA</b> en <b>${esc(m.negra)}</b></div><div>Debe marcar <b>${esc(m.esperado)}</b></div>${m.si_no?`<div class="mu">Si no: ${esc(m.si_no)}</div>`:""}</div>`).join("")}`:"")+
+  (!(o.pasos||[]).length&&(o.eficaz||[]).length?`<div class="anal">⭐ Actuación más eficaz según los planos</div><div class="gst">${o.eficaz.map((p,n)=>`<label class="gpaso"><input type="checkbox"><span><b>${n+1}.</b> ${esc(p)}</span></label>`).join("")}</div>`:"")+
   ((o.discrepancias||[]).length?`<details class="pccod pcdis"><summary>⚠️ No cuadra entre planos · ${o.discrepancias.length}</summary><ul class="pcul">${o.discrepancias.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`:"")/* v618: plegado */+
   ((o.planos||[]).length?`<details class="pccod"><summary>📄 Qué aporta cada plano</summary><ul class="pcul">${o.planos.map(p=>`<li><b>${esc(p.plano)}</b>${p.folios?" · "+esc(p.folios):""}: ${esc(p.aporta)}</li>`).join("")}</ul></details>`:"")+
   ((o.tramos||[]).length?`<div class="icav" style="margin-top:8px">🔌 Inspección completa: ${o.tramos.length} tramo${o.tramos.length==1?"":"s"} del lado de los equipos → <a href="#" onclick="event.preventDefault();event.stopPropagation();const x=document.getElementById('ginsc');if(x){x.open=true;x.scrollIntoView({block:'start',behavior:'smooth'})}">ver «Inspección cable a cable completa»</a></div>`:"")+

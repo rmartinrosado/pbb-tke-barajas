@@ -81,8 +81,9 @@ function iaHTML(R){const A=R._ia,o=A.o;const med=o.medir||[],ef=o.eficaz||[];
  const oc=A.oc,n=oc.s+oc.e+oc.g;
  return `<div class="aibox"><div class="ait">🤖 Actuación en campo cable a cable <span class="mu">· según ${esc(o.lector||"IA")}</span></div>
   ${o.resumen?`<div class="aires">🎯 ${esc(o.resumen)}</div>`:""}
-  ${med.length?`<div class="anal">📏 Mediciones en campo, en orden</div>${med.map((m,k)=>pasoHTML(m,k+1)).join("")}`:""}
-  ${ef.length?`<div class="anal">⭐ Pasos de la actuación</div><div class="gst">${ef.map((p,k)=>`<label class="gpaso"><input type="checkbox"><span><b>${k+1}.</b> ${esc(p)}</span></label>`).join("")}</div>`:""}
+  ${(o.pasos||[]).length&&window.pcPasosHTML?window.pcPasosHTML(o,"🛠️ Actuación en campo"):""}
+  ${!(o.pasos||[]).length&&med.length?`<div class="anal">📏 Mediciones en campo, en orden</div>${med.map((m,k)=>pasoHTML(m,k+1)).join("")}`:""}
+  ${!(o.pasos||[]).length&&ef.length?`<div class="anal">⭐ Pasos de la actuación</div><div class="gst">${ef.map((p,k)=>`<label class="gpaso"><input type="checkbox"><span><b>${k+1}.</b> ${esc(p)}</span></label>`).join("")}</div>`:""}
   <div class="aiof">${A.sinCita?"La IA no cita una señal del PLC: se deja la más probable. ":""}${n?`Oculto lo que no implica a esta OT (${[oc.s&&oc.s+" señal(es)",oc.e&&oc.e+" elemento(s)",oc.g&&oc.g+" avería(s) de la guía"].filter(Boolean).join(", ")}). `:""}<a href="#" onclick="event.preventDefault();event.stopPropagation();anaIATodo(true)">Ver todo</a></div></div>`}
 (function(){const o=anaHTML;window.anaHTML=anaHTML=function(i,R,dentro){
  if(todo){let h=o.apply(this,arguments);if(i&&iaDe(i.id))h=h.replace(/(<details class="anap"[^>]*>\s*<summary>[\s\S]*?<\/summary>)/,`$1<div class="aiof">Se ve todo el análisis general. <a href="#" onclick="event.preventDefault();event.stopPropagation();anaIATodo(false)">Solo lo de la OT (IA)</a></div>`);return h}
