@@ -12,7 +12,7 @@
  const dfGet=(id,k)=>(DF[id]&&DF[id][k])||"";
  window.rcDfSet=(id,k,v)=>{(DF[id]=DF[id]||{})[k]=v;try{localStorage.setItem("rc_df",JSON.stringify(DF))}catch(e){}};
  window.rcAjPre=()=>{rcAjEnCurso=true;setTimeout(()=>{if(!(JOB&&!JOB.fin&&!JOB.err)){rcAjEnCurso=false;const a=document.activeElement;if(!(a&&a.classList&&a.classList.contains("rcDf")))plegar(false)}},1500)};
- window.rcAjusta=async id=>{const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;const it=DFI[id]||[],c=DF[id]||{};
+ window.rcAjusta=async id=>{try{const a=document.activeElement;if(a&&a.blur)a.blur()}catch(e){}const i=inc.find(x=>x.id==id);if(!i||!i.resClaude)return;const it=DFI[id]||[],c=DF[id]||{};
   const pares=it.map((t,k)=>[t,(c[k]||"").trim()]).filter(x=>x[1]);
   if(!pares.length){msg("Escribe al menos un comentario en «Datos que faltan»");return}
   if(JOB&&!JOB.fin&&!JOB.err){msg("Ya hay una consulta a Claude en marcha");return}

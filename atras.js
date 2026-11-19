@@ -38,6 +38,9 @@
  const fabMenu=()=>{const m=document.getElementById("fabm");return m&&m.classList.contains("on")?m:null};
  const hayAlgo=()=>{try{if(fabMenu()||sheetAbierta()||capaArriba())return true;return H.length>0||(typeof view!="undefined"&&view!="dash")}catch(e){return false}};
  const atras=()=>{try{
+  /* v602: si hay un campo con el teclado abierto (p. ej. «Datos que faltan» de la Resolución Claude AI) se suelta primero:
+     mientras está enfocado la ficha no se repinta y la flecha parecía no hacer nada */
+  try{const a=document.activeElement;if(a&&a!==document.body&&a.matches&&a.matches("input,textarea,select,[contenteditable]")){a.blur();if(a.classList&&a.classList.contains("rcDf")&&typeof render=="function")setTimeout(()=>{try{render()}catch(e){}},0)}}catch(e){}
   const m=fabMenu();if(m){const v=document.getElementById("fabv");if(v)v.click();return}
   const c=capaArriba();
   if(c&&(!sheetAbierta()||(parseInt(getComputedStyle(c).zIndex)||0)>9)){
@@ -47,7 +50,9 @@
    try{if(typeof c.pbbAtras=="function"&&c.pbbAtras())return}catch(e){}
    const x=botonCerrar(c);if(x)x.click();else c.remove();return}
   if(sheetAbierta()){if(typeof closeSheet=="function")closeSheet();return}
-  const p=H.pop()||(view!="dash"?{v:"dash",f:null,y:0}:null);if(!p)return;
+  const p=H.pop()||(view!="dash"?{v:"dash",f:null,y:0}:null);
+  /* v602: en Inicio sin nada detrás → arriba del todo (si ya está arriba, no hace nada) */
+  if(!p){if(scrollY>40)scrollTo({top:0,behavior:"smooth"});const w=document.getElementById("otsc");if(w&&w.scrollTop>40)w.scrollTo({top:0,behavior:"smooth"});return}
   volviendo=true;try{if(p.f!=null&&typeof filtro!="undefined")filtro=p.f;go(p.v)}finally{volviendo=false}
   ult={v:view,f:p.f,y:p.y};if(p.y)requestAnimationFrame(()=>scrollTo(0,p.y));
  }catch(e){try{go("dash")}catch(x){}}};
