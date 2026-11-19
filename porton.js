@@ -15,14 +15,15 @@
 const nrm=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const RE=/trasla|bloque|no traslad|no se mueve|recuperar la pasarela|mover la pasarela|sacar|retir|desatrac|retorno|servicios? auxiliar|\b400\b|\bhz\b|pc ?air|\ba\/a\b|carr(o|ito)|manguera|conector|\baaa\b|seguridad|bumper|borde|zapata|antiatrap|limite|final de carrera/;
 const otAct=()=>{try{return typeof gOT!="undefined"&&gOT&&typeof inc!="undefined"?inc.find(x=>x.id==gOT):null}catch(e){return null}};
-const otTxt=i=>i?nrm([i.desc,i.def,i.obs,i.com].filter(Boolean).join(" ")):"";
+const LIMP=t=>typeof window.segLimpia=="function"?window.segLimpia(t):t;
+const otTxt=i=>i?nrm([i.desc,i.def,LIMP(i.obs),LIMP(i.com)].filter(Boolean).join(" ")):""; /* v610: sin las frases que descartan */
 const remota=i=>i&&/^(538|539|580|581|582)$/.test(String(i.pos));
 const CUERPO=`<div class="ptn-t">⚠️ BAJAR PORTÓN de CABINA</div>
 <div class="ptn-s">Permite la <b>traslación HACIA ATRÁS</b> de la PBB con los servicios auxiliares <b>AAA</b> y <b>HZ</b> conectados al avión.</div>`;
 /* v530: de momento solo «BAJAR PORTÓN de CABINA» (sin la anulación del inductivo C-S9 ni su croquis) */
 function recuadro(){return `<div class="ptn ptnb">${CUERPO}</div>`}
 /* recuadro tras el punto 1 de cada caja roja de primera actuación */
-function aplica(box,i){if(remota(i))return false;const t=nrm(box.textContent)+" "+otTxt(i);return RE.test(t)}
+function aplica(box,i){if(remota(i))return false;if(typeof window.otSoloAlum=="function"&&window.otSoloAlum(i))return false; /* v610: no en OT de alumbrado (gálibo, luces, caldeo) */const t=nrm(box.textContent)+" "+otTxt(i);return RE.test(t)}
 function inserta(){const cabs=document.querySelectorAll(".pucab");let nuevo=null;
  cabs.forEach(cab=>{if(!/PRIMERA ACTUACI|1ª ACTUACI/i.test(cab.textContent))return;const box=cab.parentElement;if(!box||box.querySelector(":scope .ptnb"))return;
   const i=otAct();if(!aplica(box,i))return;

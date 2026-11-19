@@ -14,6 +14,7 @@
  window.segLimpia=limpia;
  const copia=i=>{if(!i||typeof i!="object")return i;const c=Object.assign({},i);c.com=limpia(i.com);c.obs=limpia(i.obs);return c};
  const soloAlum=i=>{const t=N([i.desc,i.def].filter(Boolean).join(" "));return ALUM.test(t)&&!MOV.test(t)};
+ window.otSoloAlum=i=>!!i&&soloAlum(i)&&!(i.segEl&&[].concat(i.segEl).length); /* v610: también lo usa el aviso BAJAR PORTÓN */
  if(typeof segOT=="function"){const o=segOT;window.segOT=segOT=function(i){if(!i)return o.apply(this,arguments);if(soloAlum(i)&&!(i.segEl&&[].concat(i.segEl).length))return null;return o.call(this,copia(i))}}
  try{if(typeof render=="function")render()}catch(e){}
 })();

@@ -75,7 +75,7 @@ function fichaDe(t){const L0=window.COMP_CAMPO||[];let m;RX.lastIndex=0;const vi
  while((m=RX.exec(t))){let cd=NC(m[1]);if(vis.has(cd))continue;vis.add(cd);
   let r=[];for(const k of [cd,cd.replace(/\./g,""),cd.replace(/\.\d+$/,"")]){r=L0.filter(c=>cods(c.id).map(x=>x.replace(/\./g,"")).includes(k.replace(/\./g,"")));if(r.length)break}
   r=r.filter(c=>c._fp||(c.fotos||[]).length);if(r.length)return r[0]}return null}
-function fotos(c){if(!c)return"";if(c._fp){asegura(c);return`<div class="pcifw">⏳ Cargando las fotos de ${E(c.id)}…</div>`}
+function fotos(c){if(!c)return"";if(c._fp){CARGA=true;asegura(c);return`<div class="pcifw">⏳ Cargando las fotos de ${E(c.id)}…</div>`}
  const F=(c.fotos||[]).map((f,i)=>Object.assign(fo(f),{i})).filter(f=>f.src);if(!F.length)return"";
  const cp=F.filter(f=>!esUbi(f)).slice(0,cods(c.id).length>1?4:2),ub=F.find(esUbi);const T=cp.concat(ub?[ub]:[]);
  const all=E(JSON.stringify(T.map(f=>f.src)));
@@ -107,17 +107,44 @@ window.pciFicha=function(k){if(typeof abreCompClaves=="function")abreCompClaves(
 function pinta(){try{if(typeof view=="undefined"||view!="tec")return;const i=(typeof gOT!="undefined"&&gOT&&Array.isArray(inc))?inc.find(x=>x.id==gOT):null;
  const old=document.getElementById("gcomp");if(!i||i.estado=="cerrada"){if(old)old.remove();return}
  const P=plan(i);if(!P||(!P.AL.length&&!P.CP.length)){if(old)old.remove();return}
- const seg=hayPuente();const h=html(i,P,seg);
+ const seg=hayPuente();CARGA=false;const h=html(i,P,seg);
+ /* v610: REVISAR ANTES DE PRESENTAR · la actuación guiada no se enseña mientras se está calculando: espera a que estén
+    cargados los componentes y sus fotos y a que el resultado no cambie en 0,9 s (máx. 10 s). Mientras, una sola línea
+    «Revisando la actuación guiada…». Así sale una vez, completa y quieta, sin ventanas que parpadean al recalcular. */
+ const t0=Date.now(),ot=String(i.id);if(EST.ot!==ot){EST={ot,h:"",t:t0,ini:t0}}
+ if(EST.h!==h){EST.h=h;EST.t=t0}
+ const listo=(t0-EST.t>=900&&!CARGA&&(window.COMP_CAMPO||[]).length)||t0-EST.ini>10000;
+ if(!listo){clearTimeout(EST.tm);EST.tm=setTimeout(pinta,350);
+  if(!old||old.dataset.ot!==ot){const ph=old||document.createElement("div");ph.id="gcomp";ph.className="card pucard pciwait";ph.dataset.ot=ot;ph.dataset.h="";
+   const w=`<div class="pcifw">⏳ Revisando la actuación guiada: alarmas, componentes, medidas y fotos…</div>`;if(ph.innerHTML!==w)ph.innerHTML=w;colocar(ph,seg)}
+  return}
  /* v608: ANTITEMBLOR · si la caja se reescribe o se recoloca más de 3 veces en 5 s (dos cajas peleando por el sitio,
     datos que van y vuelven), se congela 15 s tal como está; al reescribirla se conserva la posición de la pantalla */
  const now=Date.now();if(old&&old.isConnected&&now<FRZ)return;
- const d=old||document.createElement("div");if(d.id!=="gcomp")d.id="gcomp";const cl="card "+(seg?"pcisec":"pucard");if(d.className!==cl)d.className=cl;
- if(d.dataset.h!==h){const r0=d.isConnected?d.getBoundingClientRect():null;d.innerHTML=h;d.dataset.h=h;d.dataset.w="";cuenta(now);
-  if(r0&&r0.bottom<0){const r1=d.getBoundingClientRect();const dy=r1.bottom-r0.bottom;if(Math.abs(dy)>1)scrollBy(0,dy)}}
+ const d=old||document.createElement("div");if(d.id!=="gcomp")d.id="gcomp";const cl="card "+(seg?"pcisec":"pucard");if(d.className!==cl)d.className=cl;d.dataset.ot=ot;
+ if(d.dataset.h!==h){
+  /* v610: se monta FUERA DE PANTALLA y se deja que el resto de la app la complete (casillas de medida, portón, nombres…);
+     cuando deja de cambiar 0,4 s se pone en su sitio de una vez, ya terminada */
+  if(ST&&ST.h===h)return;if(ST){clearInterval(ST.iv);ST.el.remove();ST=null}
+  const app=document.getElementById("app")||document.body;const st=document.createElement("div");st.id="gcompst";st.className=cl;
+  st.style.cssText=`position:absolute;left:-10000px;top:0;width:${(d.isConnected&&d.offsetWidth)||app.clientWidth||360}px;visibility:hidden;pointer-events:none`;
+  st.innerHTML=h;app.appendChild(st);const T=Date.now();ST={h,el:st,last:st.innerHTML,t:T,t0:T};
+  ST.iv=setInterval(()=>{const S=ST;if(!S||S.el!==st){clearInterval(S&&S.iv);return}const n=Date.now();if(st.innerHTML!==S.last){S.last=st.innerHTML;S.t=n}
+   if(n-S.t<400&&n-S.t0<3000)return;clearInterval(S.iv);ST=null;
+   const cur=document.getElementById("gcomp");const r0=cur&&cur.isConnected?cur.getBoundingClientRect():null;
+   st.removeAttribute("style");st.id="gcomp";st.dataset.h=h;st.dataset.ot=ot;st.dataset.w="";cuenta(n);
+   if(cur&&cur.isConnected)cur.replaceWith(st);else{st.remove();colocar(st,seg)}
+   if(r0&&r0.bottom<0){const r1=st.getBoundingClientRect();const dy=r1.bottom-r0.bottom;if(Math.abs(dy)>1)scrollBy(0,dy)}
+   if(!cur||!cur.dataset.h){st.classList.add("pcifade");requestAnimationFrame(()=>requestAnimationFrame(()=>st.classList.remove("pcifade")))}
+   colocar(st,seg)},100);
+  return}
+ colocar(d,seg)}catch(e){}}
+function colocar(d,seg){
  let ref=null;if(seg)ref=PUENTE.map(id=>document.getElementById(id)).filter(Boolean).sort((x,y)=>x.compareDocumentPosition(y)&4?-1:1).pop();
  if(!ref)ref=document.getElementById("greset")||document.querySelector('#app details.gd[data-k="SEG"]')||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
  if(!ref){if(!d.isConnected){const a=document.getElementById("anag");if(a)a.before(d)}return}
- if(ref.nextElementSibling!==d){if(d.isConnected)cuenta(Date.now());ref.insertAdjacentElement("afterend",d)}ajusta(d)}catch(e){}}
+ if(ref.nextElementSibling!==d){if(d.isConnected)cuenta(Date.now());ref.insertAdjacentElement("afterend",d)}ajusta(d)}
+let EST={ot:"",h:"",t:0,ini:0},CARGA=false,ST=null;
 let FRZ=0;const HIS=[];function cuenta(t){HIS.push(t);while(HIS.length&&t-HIS[0]>5000)HIS.shift();if(HIS.length>3){FRZ=t+15000;HIS.length=0}}
 /* v596: títulos de los pasos (código y textos) alineados a la izquierda de la caja.
    v595: en los pasos de componente, el texto va debajo del código (.pcitx), centrado y ajustado a dos líneas.
@@ -163,6 +190,7 @@ const st=document.createElement("style");st.textContent=`
 #gcomp .pcifo.pciub{border:2px solid #e08a00}
 #gcomp .pcifs>.pcifo:only-child,#gcomp .pcifs>.pcifo:last-child:nth-child(odd){grid-column:1/-1}
 #gcomp .pcifs>.pcifo:last-child:nth-child(odd) img{height:170px}
+#gcomp.pcifade{opacity:0}#gcomp{transition:opacity .35s}#gcomp.pciwait{padding:10px 12px}
 #gcomp .pcifw{font-size:12.5px;opacity:.75;text-align:center;padding:8px}`;
 document.head.appendChild(st);
 })();

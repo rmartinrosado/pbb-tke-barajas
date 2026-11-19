@@ -16,7 +16,7 @@ const C=()=>window.COMP_CAMPO||[];
    alguna palabra propia; y las palabras se comparan desde su inicio (no «rele» dentro de «relevante»). */
 const GEN=new Set("cabina tunel rotonda pupitre brazo rele reles contactor bornero borneros regleta borna bornas borne cableado mazo tierra pe manguera mangueras conexion senal senales 24 24v vdc 230 400 v vac alimentacion tension seguridad seguridades proteccion armario mando luz luces analogica potenciometro convertidor sensor motor subir bajar plc fuente bobina contacto mantenimiento retorno interconexion circuito auxiliar falso salida entrada digital de del la el los las en y o a e ae p".split(" "));
 const reDe=cl=>{const ws=String(cl||"").split(/[,;\n]+/).map(w=>nrm(w).trim().split(/[^a-z0-9.\-]+/).filter(Boolean)).filter(ps=>ps.length&&ps.some(p=>!GEN.has(p)&&!/^alarma$/.test(p)));if(!ws.length)return()=>false;
- const R=ws.map(ps=>ps.map(p=>new RegExp("(^|[^a-z0-9])"+(/^\d+$/.test(p)?"0*"+p+"(?![0-9])":p.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")))));
+ const R=ws.map(ps=>ps.map(p=>new RegExp("(^|[^a-z0-9])"+(/^\d+$/.test(p)?"0*"+p+"(?![0-9])":p.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+(/^[a-z]{1,3}\d?-[a-z]{1,3}\d/.test(p)?"(?![0-9]|\\.[0-9])":"")))));
  return t=>R.some(rs=>rs.every(r=>r.test(t)))};
 /* ===== v560: las fotos (≈51 MB en base64) ya NO se descargan con la lista: se perdían los componentes porque la consulta
    con todas las fotos fallaba y solo quedaban las fichas de fábrica. La lista llega sin fotos y estas se cargan después,
@@ -34,7 +34,7 @@ async function fondo(){if(fondoOn)return;fondoOn=true;try{
  for(let i=0;i<ids.length;i+=3){const lote=ids.slice(i,i+3).filter(id=>!FC[id]);if(!lote.length)continue;
   try{const {data,error}=await sb.from("componentes_campo").select("id,fotos").in("id",lote);if(!error&&data)data.forEach(r=>compFotosPon(r.id,r.fotos||[]))}catch(e){}}
  if(typeof compNavLista=="function")compNavLista()}finally{fondoOn=false}}
-function aComp(r){if(Array.isArray(r.fotos))FC[r.id]=r.fotos;const fs=Array.isArray(r.fotos)?r.fotos:FC[r.id];return{_fp:!fs,id:r.codigo,t:r.titulo,fab:r.fab||"",db:r.id,claves:r.claves||"",re:(()=>{const f=reDe(r.claves),c=nrm(r.codigo).replace(/\s/g,"");return t=>f(t)||(c.length>=4&&t.replace(/\s/g,"").includes(c))})(),
+function aComp(r){if(Array.isArray(r.fotos))FC[r.id]=r.fotos;const fs=Array.isArray(r.fotos)?r.fotos:FC[r.id];return{_fp:!fs,id:r.codigo,t:r.titulo,fab:r.fab||"",db:r.id,claves:r.claves||"",re:(()=>{const f=reDe(r.claves),c=nrm(r.codigo).replace(/\s/g,"");const rc=c.length>=4?new RegExp("(^|[^a-z0-9])"+c.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(?![0-9]|\\.[0-9])"):null;return t=>f(t)||(!!rc&&rc.test(t.replace(/\s*-\s*/g,"-")))})(), /* v610: el código casa entero (E-Q1 ya no casa dentro de E-Q12) */
  fotos:mapF(fs),esp:(r.esp||[]).concat(r.stock&&Object.values(r.stock).some(Boolean)?[["Repuesto",[r.stock.ref&&"Ref. "+r.stock.ref,r.stock.sust&&"Sustituto: "+r.stock.sust,r.stock.ubi&&"Almacén: "+r.stock.ubi,r.stock.uds!=null&&r.stock.uds!==""&&r.stock.uds+" uds."].filter(Boolean).join(" · ")]]:[]),
  pin:r.pin||[],pint:"Conexionado",med:r.med||[],av:r.av||"",raw:r}}
 /* v534: fichas de fábrica (componentes.js) editadas desde la PWA → fila con base = código original; sustituye a la ficha
