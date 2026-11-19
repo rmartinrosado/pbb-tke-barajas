@@ -21,6 +21,11 @@ const hayPuente=()=>PUENTE.some(id=>document.getElementById(id));
 const FN={A:["🔴",0],W:["🟡",1],R:["🔵",2]};
 const LIMP=t=>typeof window.segLimpia=="function"?window.segLimpia(t):t; /* v608: sin las frases que descartan elementos */
 const textoOT=i=>[i.desc,i.def,LIMP(i.com),LIMP(i.obs),i.alarma,i.alarmas&&(typeof i.alarmas=="string"?i.alarmas:JSON.stringify(i.alarmas).replace(/[{}\[\]"]/g," "))].filter(Boolean).join(" · ");
+/* v609: para relacionar componentes POR EL TEXTO solo cuenta la avería descrita: fuera la cabecera de la guía «[Guía de campo · …]»,
+   las referencias a planos («Planos: folio 21 (gálibos, caldeos…)»), lo que va entre paréntesis y las preguntas «Dato de campo».
+   Así una OT de gálibo no trae termostatos de caldeo por citar el folio o el magnetotérmico común. Por código siguen entrando. */
+const quita=t=>String(LIMP(t)||"").replace(/\[[^\]]*\]/g," ").replace(/Planos?:[^→]*?(?=Dato de campo|→|$)/gi," ").replace(/\([^)]*\)/g," ").replace(/Dato de campo:/gi," ");
+const textoAveria=i=>[i.desc,i.def,quita(i.com),quita(i.obs),i.alarma].filter(Boolean).join(" · ");
 const idsDe=c=>String(c.id||"").split(/\s*(?:\/|,|\+|\by\b)\s*/).map(x=>x.replace(/^ACOPL\.?\s*/i,"").trim()).filter(x=>/[A-Z]-?[A-Z]*\d/i.test(x));
 const reCod=id=>new RegExp("(^|[^A-Z0-9])"+String(id).toUpperCase().replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/-/g,"-?")+"(?![0-9]|\\.[0-9])");
 const PAL_VAC=new Set("para pero como esta este desde hasta sobre entre cuando donde porque tiene hace solo otra otro cada todo muy mas menos tambien pbb pasarela posicion activado activada fallo falla aviso del con sin por una uno que los las".split(" "));
@@ -38,7 +43,7 @@ function plan(i){if(!i)return null;const T=textoOT(i);const ck=i.id+"|"+T+"|"+JS
  const TU=String(T).toUpperCase();
  COMPS().forEach(c=>{if(idsDe(c).some(id=>reCod(id).test(TU)))suma(c,6,"código en el aviso")});
  AL.forEach(a=>{try{(typeof compDeAlarma=="function"?compDeAlarma(a.x):[]).forEach(c=>suma(c,a.por=="num"?5:3,"alarma "+a.x.c))}catch(e){}});
- try{(typeof compCampo=="function"?compCampo(T):[]).forEach(c=>suma(c,3,"texto del aviso"))}catch(e){}
+ try{(typeof compCampo=="function"?compCampo(textoAveria(i)):[]).forEach(c=>suma(c,3,"texto del aviso"))}catch(e){}
  /* 3) reincidencias de la PBB (90 días) */
  let RE=[];try{RE=typeof reincidencias=="function"?reincidencias(i.pos,i.desc,i.id,90):[]}catch(e){}
  RE.forEach(r=>{const tx=[r.act,r.desc,r.obs].filter(Boolean).join(" ");const TX=tx.toUpperCase();const pw=new Set(pals(tx));
