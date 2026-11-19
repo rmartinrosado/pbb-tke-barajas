@@ -82,6 +82,24 @@ function fotos(c){if(!c)return"";if(c._fp){CARGA=true;asegura(c);return`<div cla
  return`<div class="pcifs">${T.map(f=>{const u=esUbi(f);const cf=!u&&typeof compCodFoto=="function"?compCodFoto(c,f.i):"";
   const pie=u?`📍 <b>Ubicación</b>`:`<b>${E(cf||c.id)}</b><small>${E(cf?"Vista componente":String(f.v).replace(/\s*·.*$/,"")||"Vista componente")}</small>`;
   return`<figure class="pcifo${u?" pciub":""}" onclick="event.stopPropagation();if(typeof compVer=='function')compVer('${E(f.src)}',${all})"><img src="${E(f.src)}" alt="${E(c.id)}" loading="lazy"><figcaption>${pie}</figcaption></figure>`}).join("")}</div>`}
+/* v622: en cada alarma, fotos de TODOS los componentes que cita su actuación, en el orden del recorrido
+   (p. ej. 056: C-B14 → P-X62 → E-X62 → E-A4), no solo del primero con fotos. Al que no tenga fotos se le pone
+   su recuadro con «Falta foto · por incorporar» en la base (toque → Incorporar con el código ya puesto). */
+const NEGA=/(no pasa|no va|no llega|no entra|sin pasar|no se puentea|nunca)[^.;]{0,30}$/i;
+function fichaCod(cd){const L0=window.COMP_CAMPO||[];cd=NC(cd).replace(/\./g,"");
+ const r=L0.filter(c=>cods(c.id).map(x=>x.replace(/\./g,"")).includes(cd));return r.find(c=>c._fp||(c.fotos||[]).length)||null}
+function citados(t){t=String(t||"");const out=[];let m;RX.lastIndex=0;
+ while((m=RX.exec(t))){const cd=NC(m[1]);if(out.includes(cd))continue;if(NEGA.test(t.slice(Math.max(0,m.index-45),m.index)))continue;out.push(cd)}return out}
+function falta(cd){const r=(window.COMP_PLANOS||[]).find(z=>NC(z[0])==cd);const nom=r?r[1]:"";
+ return`<div class="pcifs"><figure class="pcifo pcifalta" onclick="event.stopPropagation();pciIncorpora('${E(cd)}')"><div class="pcifx">📷</div>
+ <figcaption><b>${E(cd)}</b>${nom?`<small>${E(nom)}</small>`:""}<span class="pcifm">Falta foto · por incorporar</span></figcaption></figure></div>`}
+window.pciIncorpora=function(cd){const r=(window.COMP_PLANOS||[]).find(z=>NC(z[0])==NC(cd))||[cd,"",""];
+ const f=window.compIncorpora;if(typeof f!="function")return;window.__impDesde=1;f();
+ setTimeout(()=>{const pon=(id,v)=>{const i=document.getElementById(id);if(i&&!i.value){i.value=v;i.dispatchEvent(new Event("input",{bubbles:true}))}};
+  pon("ic_cod",cd);pon("ic_donde",(r[2]||"")+(r[1]?" · "+r[1]:""))},60)};
+function fotosAlarma(x,ga){const T=window.ALARMA_COMP||{};const C=citados(ga).filter(cd=>!T[cd]||T[cd].includes(x.c));
+ if(!C.length){let fc=null;try{fc=(typeof compDeAlarma=="function"?compDeAlarma(x):[]).find(c=>c._fp||(c.fotos||[]).length)||null}catch(e){}return fotos(fc)}
+ const vis=new Set();return C.map(cd=>{const c=fichaCod(cd);if(c){const k=c.db||c.id;if(vis.has(k))return"";vis.add(k);return fotos(c)}return falta(cd)}).join("")}
 /* ---------- caja ---------- */
 function html(i,P,segundo){const G=window.RCS_G||{};let n=0;const paso=(ic,tit,cuerpo,cls)=>`<div class="pcip${cls?" "+cls:""}"><div class="pcin">${++n}</div><div class="pcic"><div class="pcitt">${ic} ${tit}</div>${cuerpo||""}</div></div>`;
  const cot=[P.AL.length&&`${P.AL.length} alarma${P.AL.length>1?"s":""}/evento${P.AL.length>1?"s":""}`,P.CP.length&&`${P.CP.length} componente${P.CP.length>1?"s":""}`,P.RE.length&&`${P.RE.length} reincidencia${P.RE.length>1?"s":""}`,P.MD.length&&`${P.MD.length} medida${P.MD.length>1?"s":""}`].filter(Boolean).join(" · ");
@@ -91,9 +109,7 @@ function html(i,P,segundo){const G=window.RCS_G||{};let n=0;const paso=(ic,tit,c
  if(!P.AL.length)h+=paso("📟","Leer la Magelis: ESTADO DE ALARMAS y eventos",`<div class="mu">Anota el código en la OT (Observaciones o foto de la Magelis): acota el componente y reordena esta lista.</div>`);
  P.AL.forEach(a=>{const x=a.x,g=G[x.g]||{};h+=paso((FN[x.f]||["⚪"])[0],`<b>${E(x.c)}</b> ${E(x.t)}${a.por=="num"?"":` <span class="pcitag">por el texto</span>`}`,
   `${g.q?`<div class="pciq">${E(g.q)}</div>`:""}${(()=>{const ga=(window.RCS_AA||{})[x.c]||g.a;/* v621: fotos del componente de ESA alarma (tabla revisada), no del primero que cite el texto del grupo */
-   let fc=null;try{fc=(typeof compDeAlarma=="function"?compDeAlarma(x):[]).find(c=>c._fp||(c.fotos||[]).length)||null}catch(e){}
-   if(!fc){const f2=fichaDe(ga);const T=window.ALARMA_COMP||{};const k=f2&&String(f2.baseId||f2.id).toUpperCase().replace(/\s+/g,"");fc=f2&&(!T[k]||T[k].includes(x.c))?f2:null}
-   return (ga?`<div class="pcia">➜ ${E(ga)}</div>`:"")+fotos(fc)})()}`)});
+   return (ga?`<div class="pcia">➜ ${E(ga)}</div>`:"")+fotosAlarma(x,ga)})()}`)});
  /* v613: los componentes ya no salen como pasos en primera vista: van todos en una caja plegada «Posibles componentes afectados»,
     cada uno plegado con su ubicación, fotos, medidas y ficha (el orden sigue siendo el de prioridad). */
  if(P.CP.length)h+=`<details class="pcicp" onclick="event.stopPropagation()"><summary>🔩 Posibles componentes afectados <small>${P.CP.length}</small></summary>`+P.CP.map(o=>{const c=o.c;const u=typeof compUbiDe=="function"?compUbiDe(c):"";
@@ -199,6 +215,9 @@ const st=document.createElement("style");st.textContent=`
 #gcomp .pcifs>.pcifo:only-child,#gcomp .pcifs>.pcifo:last-child:nth-child(odd){grid-column:1/-1}
 #gcomp .pcifs>.pcifo:last-child:nth-child(odd) img{height:170px}
 #gcomp.pcifade{opacity:0}#gcomp{transition:opacity .35s}#gcomp.pciwait{padding:10px 12px}
-#gcomp .pcifw{font-size:12.5px;opacity:.75;text-align:center;padding:8px}`;
+#gcomp .pcifw{font-size:12.5px;opacity:.75;text-align:center;padding:8px}
+#gcomp .pcifo.pcifalta{border:2px dashed #9aa0a6;background:#f4f4f4;cursor:pointer}
+#gcomp .pcifalta .pcifx{height:70px;display:flex;align-items:center;justify-content:center;font-size:30px;opacity:.45}
+#gcomp .pcifalta .pcifm{display:block;margin-top:4px;padding:3px 6px;border-radius:5px;background:#facc15;color:#000;font-weight:800;font-size:11.5px}`;
 document.head.appendChild(st);
 })();
