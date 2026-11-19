@@ -55,7 +55,7 @@ function plan(i){if(!i)return null;const T=textoOT(i);const ck=i.id+"|"+T+"|"+JS
 window.pciPlan=plan;
 
 /* ---------- caja ---------- */
-function html(i,P,segundo){const G=window.RCS_G||{};let n=0;const paso=(ic,tit,cuerpo,cls)=>`<div class="pcip${cls?" "+cls:""}"><div class="pcin">${++n}</div><div class="pcic"><div class="pcit">${ic} ${tit}</div>${cuerpo||""}</div></div>`;
+function html(i,P,segundo){const G=window.RCS_G||{};let n=0;const paso=(ic,tit,cuerpo,cls)=>`<div class="pcip${cls?" "+cls:""}"><div class="pcin">${++n}</div><div class="pcic"><div class="pcitt">${ic} ${tit}</div>${cuerpo||""}</div></div>`;
  const cot=[P.AL.length&&`${P.AL.length} alarma${P.AL.length>1?"s":""}/evento${P.AL.length>1?"s":""}`,P.CP.length&&`${P.CP.length} componente${P.CP.length>1?"s":""}`,P.RE.length&&`${P.RE.length} reincidencia${P.RE.length>1?"s":""}`,P.MD.length&&`${P.MD.length} medida${P.MD.length>1?"s":""}`].filter(Boolean).join(" · ");
  let h=`<div class="pucab">🔎 ${segundo?"2 · ACTUACIÓN GUIADA · tras el puente provisional (1)":"1 · PRIMERA ACTUACIÓN EN CAMPO · ACTUACIÓN GUIADA"}</div>
  <div class="pcisub">Por orden de prioridad para atajar la avería${cot?` · cotejo: ${cot}`:""}</div>`;
@@ -80,11 +80,15 @@ function pinta(){try{if(typeof view=="undefined"||view!="tec")return;const i=(ty
  const old=document.getElementById("gcomp");if(!i||i.estado=="cerrada"){if(old)old.remove();return}
  const P=plan(i);if(!P||(!P.AL.length&&!P.CP.length)){if(old)old.remove();return}
  const seg=hayPuente();const h=html(i,P,seg);
- const d=old||document.createElement("div");d.id="gcomp";const cl="card "+(seg?"pcisec":"pucard");if(d.className!==cl)d.className=cl;if(d.dataset.h!==h){d.innerHTML=h;d.dataset.h=h}
+ const d=old||document.createElement("div");d.id="gcomp";const cl="card "+(seg?"pcisec":"pucard");if(d.className!==cl)d.className=cl;if(d.dataset.h!==h){d.innerHTML=h;d.dataset.h=h;d.dataset.w=""}
  let ref=null;if(seg)ref=PUENTE.map(id=>document.getElementById(id)).filter(Boolean).sort((x,y)=>x.compareDocumentPosition(y)&4?-1:1).pop();
  if(!ref)ref=document.getElementById("greset")||document.querySelector('#app details.gd[data-k="SEG"]')||[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
  if(!ref){if(!d.isConnected){const a=document.getElementById("anag");if(a)a.before(d)}return}
- if(ref.nextElementSibling!==d)ref.insertAdjacentElement("afterend",d)}catch(e){}}
+ if(ref.nextElementSibling!==d)ref.insertAdjacentElement("afterend",d);ajusta(d)}catch(e){}}
+/* v593: títulos de cada paso centrados y en dos líneas como máximo: se reduce la letra hasta que quepan, sin salirse de los márgenes */
+function ajusta(d){try{if(!d||!d.isConnected)return;const w=String(d.clientWidth);if(!d.clientWidth||d.dataset.w===w)return;d.dataset.w=w;
+ d.querySelectorAll(".pcitt").forEach(t=>{let fs=14.5;t.style.fontSize=fs+"px";while(fs>10.5&&t.scrollHeight>fs*1.3*2+6){fs-=.5;t.style.fontSize=fs+"px"}})}catch(e){}}
+addEventListener("resize",()=>{const d=document.getElementById("gcomp");if(d){d.dataset.w="";ajusta(d)}});
 if(typeof vTec=="function"){const o=vTec;vTec=function(){const r=o.apply(this,arguments);pinta();setTimeout(pinta,150);setTimeout(pinta,600);return r}}
 /* v587: orden fijo · 1 el puente provisional (si existe) y 2 la actuación guiada justo debajo: si el puente se pinta más tarde
    (o lo mueve otra caja), se recoloca y pasa a «2 · ACTUACIÓN GUIADA» */
@@ -105,7 +109,9 @@ const st=document.createElement("style");st.textContent=`
 .pcip{display:flex;gap:8px;margin:8px 0;padding:8px;border:1px solid var(--bd,#cfd8dc);border-radius:10px;background:color-mix(in srgb,var(--card,#fff) 92%,#c62828)}
 .pcip.pci1{border:2px solid #c62828}
 .pcin{flex:none;width:26px;height:26px;border-radius:50%;background:#c62828;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:14px}
-.pcic{flex:1;min-width:0}.pcit{font-weight:800;font-size:14.5px;line-height:1.3}
+.pcic{flex:1;min-width:0}
+#gcomp .pcitt{display:block;font-weight:800;font-size:14.5px;line-height:1.3;text-align:center;max-width:100%;overflow-wrap:anywhere;word-break:normal;hyphens:auto;margin:0 0 2px}
+#gcomp .pcitt .cmpid{white-space:nowrap;vertical-align:baseline;margin:0 4px 0 2px}
 .pcitag{font-size:11px;font-weight:700;opacity:.7;border:1px solid currentColor;border-radius:5px;padding:0 4px}
 .pciq{font-size:13px;margin-top:3px}.pcia{font-size:13px;font-weight:700;margin-top:3px}
 .pciu{font-weight:800;color:#e65100;font-size:13px;margin-top:3px}.pcipor{font-size:12px;opacity:.8;margin-top:2px}
