@@ -1,3 +1,10 @@
+/* v621: actuación propia de cada medida analógica según el plano rev. J folio 62 (E-A4). Antes las cuatro alarmas sacaban el mismo texto
+   con los cuatro sensores y la primera actuación ponía las fotos del primero con ficha (ET-B9) también en «056 Altura». */
+window.RCS_AA={
+ "056":"Altura: medir los mA del ultrasonido de altura C-B14 (cabina) → P-X62 → E-X62 (hilo 341) → E-A4 AI01 (folio 62). Debe dar 4-20 mA proporcional a la altura; fuera de rango → sensor C-B14, su alimentación o el cable P-X62 → E-X62.",
+ "057":"Longitud / extensión: medir los mA del láser de extensión ET-B9 → E-X62 (hilo 312) → E-A4 AI02 (folio 62). Debe dar 4-20 mA proporcional a la extensión; fuera de rango → láser ET-B9 (ópticas, reflector, alineación), su alimentación o el cable.",
+ "058":"Cabina: medir los mA del convertidor E-R10 (hilo 315) → E-A4 AI03 y el potenciómetro de giro de cabina C-R10 (cables 1-2-3, 10 kΩ) y su acoplamiento (folios 61-62).",
+ "059":"Rotonda: medir los mA del potenciómetro de giro de rotonda R-R1 → IT-X62 → E-X62 (hilo 316) → E-A4 AI04 (folio 62)."};
 /* v580: añadido el evento 294 (barrera de rotonda) fuera de la lista del manual (salta de 288 a 337); texto provisional,
    pendiente de revisar los eventos 289-336 de la Magelis. */
 /* ===== v501-v504: ALARMAS Y ADVERTENCIAS DEL MANUAL RCS (MAX Automate, F8-690.0312-51 rev. Ø, págs. 104-110) · 16/11/2026 =====
@@ -316,7 +323,7 @@ const textoOT=i=>[i.desc,i.def,i.com,i.alarmas&&(typeof i.alarmas=="string"?i.al
 const caja=(o,compacta)=>{const x=o.x,g=G[x.g],[ic,fam,fs]=FN[x.f];
  return`<div class="rcsb rcs${x.f}"><div class="rcsh"><span class="rcsf">${ic} ${fam}</span><b>${E(x.c)}</b> ${E(x.t)}</div>
  <div class="rcsg">${E(g.n)} · <span class="mu">${E(fs)}</span></div>
- ${compacta?"":`<div class="rcsq">${E(g.q)}</div>`}<div class="rcsa">➜ ${E(g.a)}</div>${x.f=="A"&&!compacta?`<div class="rcsr">${E(REARME)}</div>`:""}${enlaces(x)}</div>`};
+ ${compacta?"":`<div class="rcsq">${E(g.q)}</div>`}<div class="rcsa">➜ ${E((window.RCS_AA||{})[x.c]||g.a)}</div>${x.f=="A"&&!compacta?`<div class="rcsr">${E(REARME)}</div>`:""}${enlaces(x)}</div>`};
 window.rcsCaja=caja;
 /* ---------- v502: enlace a la página del manual RCS subido a Planos ---------- */
 const PEXP={fc:34,lim:34,len:107,ope:84,eme:44,acc:24,pro:106,aux:106,byp:106,avi:107,col:107,pre:86,inf:106,est:106,rem:108};

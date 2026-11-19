@@ -90,7 +90,10 @@ function html(i,P,segundo){const G=window.RCS_G||{};let n=0;const paso=(ic,tit,c
  /* alarmas */
  if(!P.AL.length)h+=paso("📟","Leer la Magelis: ESTADO DE ALARMAS y eventos",`<div class="mu">Anota el código en la OT (Observaciones o foto de la Magelis): acota el componente y reordena esta lista.</div>`);
  P.AL.forEach(a=>{const x=a.x,g=G[x.g]||{};h+=paso((FN[x.f]||["⚪"])[0],`<b>${E(x.c)}</b> ${E(x.t)}${a.por=="num"?"":` <span class="pcitag">por el texto</span>`}`,
-  `${g.q?`<div class="pciq">${E(g.q)}</div>`:""}${g.a?`<div class="pcia">➜ ${E(g.a)}</div>`:""}${fotos(fichaDe((g.a||"")+" "+(g.q||"")))}`)});
+  `${g.q?`<div class="pciq">${E(g.q)}</div>`:""}${(()=>{const ga=(window.RCS_AA||{})[x.c]||g.a;/* v621: fotos del componente de ESA alarma (tabla revisada), no del primero que cite el texto del grupo */
+   let fc=null;try{fc=(typeof compDeAlarma=="function"?compDeAlarma(x):[]).find(c=>c._fp||(c.fotos||[]).length)||null}catch(e){}
+   if(!fc){const f2=fichaDe(ga);const T=window.ALARMA_COMP||{};const k=f2&&String(f2.baseId||f2.id).toUpperCase().replace(/\s+/g,"");fc=f2&&(!T[k]||T[k].includes(x.c))?f2:null}
+   return (ga?`<div class="pcia">➜ ${E(ga)}</div>`:"")+fotos(fc)})()}`)});
  /* v613: los componentes ya no salen como pasos en primera vista: van todos en una caja plegada «Posibles componentes afectados»,
     cada uno plegado con su ubicación, fotos, medidas y ficha (el orden sigue siendo el de prioridad). */
  if(P.CP.length)h+=`<details class="pcicp" onclick="event.stopPropagation()"><summary>🔩 Posibles componentes afectados <small>${P.CP.length}</small></summary>`+P.CP.map(o=>{const c=o.c;const u=typeof compUbiDe=="function"?compUbiDe(c):"";
