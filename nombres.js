@@ -34,7 +34,7 @@ const N={
  /* ---- Panel de mandos del pupitre ---- */
  "CP-H1":"Piloto estado","CP-H2":"Piloto alarma","CP-S0":"Joystick / hombre muerto","CP-S5":"Seta pupitre","CP-S7":"Pulsador desplegar capota",
  "CP-S8":"Pulsador recoger capota","CP-S9":"Pulsador cabina izda","CP-S10":"Pulsador cabina dcha","CP-S11":"Pulsador PBB subir","CP-S12":"Pulsador PBB bajar",
- "CP-S14":"Pulsador subir suelo","CP-S15":"Pulsador bajar suelo","CP-S16":"Selector Auto/Manual","CP-S17":"Pulsador iluminación interior",
+ "CP-S14":"Pulsador subir suelo","CP-S15":"Pulsador bajar suelo","CP-S16":"Selector de modo (Remoto · 0 · Local/Manual · Auto)","CP-S17":"Pulsador iluminación interior",
  "CP-S18":"Pulsador iluminación exterior","CP-S21":"Pulsador prioridad retorno","CP-S27":"Pulsador retorno autónomo","CP-S29":"Pulsador subir portón",
  "CP-S30":"Pulsador bajar portón","CP-S31":"Pulsador lunetas","CP-S33":"Llave bypass seguridades","CP-S40":"Pulsador abandono operador",
  "CP-S41":"Pulsador presencia desconexión","CP-S42":"Pulsador presencia conexión","CP-S43":"Pulsador OK Handling","CP-S45":"Pulsador iluminación exterior",

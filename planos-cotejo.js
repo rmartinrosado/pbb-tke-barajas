@@ -136,6 +136,7 @@ Tareas:
 2) Da la actuación MÁS EFICAZ en campo, en pasos cortos y ordenados (lo más rápido primero; nunca puentear salidas de seguridad).
 3) Pasos de MEDIDA en campo con polímetro: punto, dónde va la punta roja y la negra, valor esperado y qué indica si no lo da.
 4) Lo que NO cuadra entre los planos (bornas, hilos o nombres distintos) o datos que faltan.
+Conocimiento de campo validado (úsalo, no lo cuentes como discrepancia): Selector del pupitre CP-S16, 4 posiciones de izquierda a derecha: REMOTO (izquierda del todo) · 0 = PBB apagada, alimentación de mando sin tensión · 1 = LOCAL / MANUAL (en las OT «selector en ON», «modo ON» o «PBB activada») · 2 = AUTO (autonivelación). Entradas del módulo de seguridad E-A10 (folio 70): DIS05 «Modo auto» (5.1/5.2, hilos 684/685, contactos 1-2) · DIS06 «Modo manual» (6.1/6.2, hilos 686/687, contactos 3-4) · DIS07 «Modo local/remoto» (7.1/7.2, hilos 688/689, contactos 5-6).
 No inventes: si un dato no está en el texto de los planos, dilo. Cita plano y página o folio de cada dato. Castellano técnico, MUY conciso.
 ${LIM}
 Responde SOLO con JSON, sin nada más:

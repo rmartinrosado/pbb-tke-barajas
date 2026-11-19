@@ -131,7 +131,7 @@ PAS:[
  {s:"Mandos del pupitre",f:[50,81,82,83,84],c:[
   "Joystick CP-S0 con hombre muerto: P-A3 mód. 1 LED 2 al pulsar; adelante, atrás, izquierda, derecha, X1, X2, Y1 e Y2 en P-A3 mód. 1-3.",
   "Pulsadores: subir/bajar suelo, PBB subir/bajar, cabina izq./dcha. (P-A3 mód. 3-4) · iluminación, lunetas, capota, portón, retorno autónomo (P-A4).",
-  "Selector CP-S16: modo AUTO / MANUAL / LOCAL-REMOTO → E-A10 mód. 3 y 4.",
+  "Selector CP-S16 (4 posiciones: REMOTO · 0 apagado, mando sin tensión · 1 LOCAL/MANUAL = «ON» · 2 AUTO autonivelación) → E-A10 DIS05 auto / DIS06 manual / DIS07 local-remoto (folio 70).",
   "Bypass de seguridades CP-S33 → E-A8 mód. 2 LED 1 (○). Solo para maniobra controlada de mantenimiento."]},
  {s:"Iluminación, enchufes, caldeos y lunetas",f:[19,20,21,22,23,24,28],c:[
   "Iluminación interior: E-Q10 + relés E-K10 / E-K18 · cabina y túneles: E-Q10.1 · focos 300 W: E-Q15.1 + E-K15.",
