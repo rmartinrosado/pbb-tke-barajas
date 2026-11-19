@@ -6,7 +6,9 @@
 (function(){
 "use strict";
 const AL=[[/\b(bumpers?|parachoques?)\s+(?:del?\s+)?(?:la\s+|las\s+|los\s+)?(tra(?:n)?sla(?:ci|c)\S*|ruedas?|bogie|carro(?:\s+de\s+ruedas)?|tren\s+de\s+ruedas)/gi,"borde de seguridad de ruedas ($2)"],
- [/\b(tra(?:n)?sla(?:ci|c)\S*|ruedas?|bogie)\s+(?:con\s+)?(bumpers?|parachoques?)/gi,"borde de seguridad de ruedas ($1)"]];
+ [/\b(tra(?:n)?sla(?:ci|c)\S*|ruedas?|bogie)\s+(?:con\s+)?(bumpers?|parachoques?)/gi,"borde de seguridad de ruedas ($1)"],
+ /* v616: en las OT, «selector (del pupitre) en ON» = selector CP-S16 en LOCAL (E-A10 DIS07 «Modo local/remoto») */
+ [/\b(selector|llave)(\s+(?:del?\s+)?pupitre)?\s+(?:en\s+|a\s+)?(?:posici[oó]n\s+)?on\b/gi,"$1$2 en LOCAL"]];
 /* v480: + alias aprendidos (tabla alias_avisos, los asigna el admin en «Avisos sin reconocer»: avisos-aprende.js) */
 const fix=t=>{let s=String(t==null?"":t);AL.forEach(([re,r])=>{s=s.replace(re,r)});(window.__alAp||[]).forEach(a=>{try{a.re.lastIndex=0;s=s.replace(a.re,a.sus)}catch(e){}});return s};
 window.aliasCampo=fix;
