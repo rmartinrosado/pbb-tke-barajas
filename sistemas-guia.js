@@ -150,7 +150,19 @@ const C=[
    "Al mover el joystick debe encenderse el LED de esa dirección. No se enciende → contacto del joystick o su hilo en P-X54 (342-350). Se enciende y la PBB no mueve → seguir en la caja de esa función (traslación, elevación, cabina).",
    "Pulsadores: subir / bajar suelo → P-A3 mód. 3 LED 3 / LED 4 · PBB subir / bajar → mód. 4 LED 1 / LED 2 · cabina izq. / dcha. → mód. 4 LED 3 / LED 4. Iluminación interior / exterior, lunetas y capota → P-A4 mód. 1-2 · portón → P-A4 mód. 3 LED 1 / mód. 4 LED 4.",
    "Seta del pupitre CP-S5 → P-A3 mód. 1 LED 1 (apagado en reposo)."],
-  r:"folio 50 (joystick) · 81-82 (P-A3) · 83-84 (P-A4)"}
+  r:"folio 50 (joystick) · 81-82 (P-A3) · 83-84 (P-A4)"},
+ /* v615: selector del pupitre en ON y no se activa nada (OT 611699, PBB 586). Antes «selector» se corregía a «detector» y salía la rotonda */
+ {k:"selector",re:/((selector|llave).{0,40}(pupitre|\bon\b|enciend|activa|arranc|respond|funciona))|(no (enciende|se activa|arranca|responde) nada)|((pupitre).{0,30}no (enciende|se activa|arranca|responde))/,aux:0,
+  no:/\bao\b|armario ao|400 ?hz|conector|manguera|carro|a\/a|\baaa\b|pca/,
+  sig:/modo (auto|manual|local)|^(auto|manual|remoto)$/i,el:["CP-S16","E-A10","EP-W4","E-X68.1","P-X92.1","P-X59","E-Q30","EP-W1","P-X51","P-Q30.0","E-A11","P-A0"],
+  t:"Pupitre · selector CP-S16 en ON y no se activa nada",g:[28,68,70,70,71],
+  a:"El selector del pupitre CP-S16 no da tensión: lo lee el módulo de seguridad E-A10 por tres entradas. Con el selector en ON y nada activo, el fallo es de 24 V del pupitre, de la orden remota (OFF remoto), de la línea de seguridades, del propio selector o de la comunicación Interbus con el pupitre.",
+  p:["¿Enciende la Magelis del pupitre? Apagada y sin pilotos → falta 24 VDC al pupitre: E-S0.1 (mando SAI) → E-Q22 (3 A) → fuente E-V3 → E-Q30 (10 A) → E-X59:1/2 (hilos 204 RD / 205 WH) → manguera EP-W1 (24×1,5) → P-X51:1/2 → P-Q30.0…P-Q30.3. Medir 24 VDC entre 204 y 205 en P-X51 (folio 28).",
+   "Magelis encendida: mirar si indica «Off remoto activado» / 307 Máquina off remoto → la PBB está apagada desde el puesto remoto (CGA/RCS): pedir el ON remoto. Si hay seta pulsada o «Línea de seguridades activada» (008, 011, 028) → rearmar la seta (CP-S5, H-S3/H-S4) antes de buscar más.",
+   "Selector CP-S16 → módulo de seguridad E-A10 (folio 70): DIS05 «Modo auto» (5.1 IN05S hilo 684 / 5.2 UT1 hilo 685, contactos 1-2) · DIS06 «Modo manual» (6.1 hilo 686 / 6.2 hilo 687, contactos 3-4) · DIS07 «Modo local/remoto» (7.1 hilo 688 / 7.2 hilo 689, contactos 5-6). Girar el selector: el LED de la entrada de su posición debe encender.",
+   "Ningún LED de E-A10 5.1 / 6.1 / 7.1 cambia al girar → recorrido E-A10 → E-X68.1:16-21 → manguera EP-W4 (27×1,5) → P-X92.1:16-21 → P-X59 → CP-S16. Con el selector en una posición, medir continuidad del contacto de esa posición (1-2, 3-4 o 5-6). Son entradas de seguridad con pulso de test (UT1/UT2): no se puentean.",
+   "Los LED de E-A10 cambian bien y sigue sin activarse nada → comunicación del pupitre: Interbus E-A11 ↔ P-A0 por EP-W3 (folio 71). LED de bus de P-A0 apagados o en fallo → conector y cable EP-W3, alimentación de P-A0 (P-Q30.1). Comprobar en la Magelis 118 «Fallo en tarjetas STB P» o 089 «Fallo PLC»."],
+  r:"folio 28 (24 VDC armario E → pupitre por EP-W1) · 70 (E-A10: CP-S16 modo auto / manual / local-remoto) · 71 (Interbus E-A11 → P-A0) · 9 (señales con el CBTH)"},
 ];
 C.forEach(c=>{if(S.findIndex(x=>x.t==c.t)<0){const o={t:c.t,g:c.g,p:c.p,r:c.r};if(c.a)o.a=c.a;S.push(o)}});
 const six=c=>S.findIndex(x=>x.t==c.t); /* otros módulos añaden cajas después: el índice se busca siempre por título */
@@ -160,7 +172,7 @@ const nrm=t=>(typeof gNorm=="function"?gNorm(t):String(t||"").toLowerCase().norm
 const MOV=/trasla|avanz|retroce|no gira|gira mal|se mueve|no mueve|movimiento de la pbb|limite|almena|variador|freno|banda|borde|inductiv|contaje|no anda|no va|bloque|para sola|se para/;
 const MOVSEC=/traslaci|ruedas|almena|bordes de ruedas|portón|sin tensión/i;
 const FLASH=/flash|destell|baliza|rotativ/;
-const ruta=t=>C.filter(c=>c.re.test(t));
+const ruta=t=>C.filter(c=>c.re.test(t)&&!(c.no&&c.no.test(t)));
 const o=anaOT;anaOT=function(i){const r=o(i);if(!r||!i||r._sis)return r;r._sis=1;if(r.tipo&&r.tipo!="PAS")return r;
  const t=nrm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
  let hit=ruta(t);if(FLASH.test(t))hit=hit.filter(c=>!/^(tunint|cabext|focos)$/.test(c.k)); /* el flash ya tiene su caja (v333) */
@@ -184,4 +196,15 @@ const o=anaOT;anaOT=function(i){const r=o(i);if(!r||!i||r._sis)return r;r._sis=1
  r.elem=el.concat(aux&&!mov?[]:(r.elem||[]).filter(e=>!el.includes(e)));
  return r};
 try{ANA_C={k:"",r:null}}catch(e){}
+})();
+
+/* ===== v615: corrector de erratas del análisis más prudente =====
+   «selector» no estaba en el vocabulario y se corregía a «detector» (2 letras distintas): la OT «Selector en On y no enciende
+   nada» acababa en detectores de rotonda y extensión. Ahora: una corrección de 2 letras exige la misma primera letra y la
+   misma longitud aproximada; y las palabras de mando del pupitre son vocabulario propio. */
+(function(){
+try{ANA_SIN.push(["selector","selectores","llave","modo","local","remoto"]);ANA_SIN.push(["enciende","encender","encendido","arranca","arranque","activa","activar"]);ANA_VOC=null;ANA_C={k:"",r:null}}catch(e){}
+try{const V=()=>anaVoc();anaCorr=function(w){if(w.length<4||/\d/.test(w))return w;const S=V();if(S.has(w))return w;
+ let best=w,bd=(w.length>=7?2:1)+1;for(const v of S){if(v[0]!=w[0])continue;const d=anaLev(w,v);if(d<bd||(d==bd&&v.length==w.length&&best.length!=w.length)){bd=d;best=v}}
+ return best}}catch(e){}
 })();
