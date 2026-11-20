@@ -8,19 +8,21 @@
    · en REMOTO manda el RCS: pasar a local en caliente no cambia el modo hasta «Off remoto» o apagar.
    Al apagar se borra el enclavamiento y al arrancar con bypass + local el PLC entra en maniobra de rescate; es un mando de
    hombre muerto (hold-to-run): al soltar la llave se para.
+   v635: antes del recuadro «BAJAR PORTÓN de CABINA» si lo hay; título en dos líneas a la izquierda.
    Se añade, plegado, AL FINAL de la caja del puente provisional (el puente siempre primero) y del bloque 1 del SOS. ===== */
 (function(){
 "use strict";
 const st=document.createElement("style");st.textContent=`
 details.rbyp{margin:10px 0 2px;border:2px solid #f59e0b;border-radius:10px;background:color-mix(in srgb,#f59e0b 10%,var(--card,#fff));overflow:hidden}
-details.rbyp>summary{list-style:none;cursor:pointer;padding:9px 12px;font-weight:800;font-size:14.5px;line-height:1.3;display:flex;gap:8px;align-items:flex-start}
+details.rbyp>summary{list-style:none;cursor:pointer;padding:9px 12px;font-weight:800;font-size:14.5px;line-height:1.3;display:flex;gap:8px;align-items:flex-start;text-align:left}
+details.rbyp>summary .rbt{flex:1;min-width:0;display:block;text-align:left}details.rbyp>summary .rbt>span{display:block}details.rbyp>summary .rbt>span+span{font-weight:700;opacity:.85;margin-top:2px}
 details.rbyp>summary::-webkit-details-marker{display:none}
 details.rbyp>summary::after{content:"▾";margin-left:auto;opacity:.7}details.rbyp[open]>summary::after{content:"▴"}
 .rbyp .rbb{padding:0 12px 10px;font-size:13.5px;line-height:1.4}
 .rbyp ol{margin:6px 0 8px;padding-left:22px}.rbyp ol li{margin:3px 0}
 .rbyp .rbn{margin-top:6px;padding:6px 8px;border-radius:7px;background:color-mix(in srgb,#ef4444 14%,transparent);font-weight:700}
 .rbyp .rbq{margin-top:6px;opacity:.9}.rbyp h4{margin:8px 0 2px;font-size:13.5px}`;document.head.appendChild(st);
-const HTML=`<details class="rbyp"><summary>🔑 Si con la PBB encendida el bypass CP-S33 no deja trasladar · rescate arrancando con bypass</summary><div class="rbb">
+const HTML=`<details class="rbyp"><summary><span class="rbt"><span>🔑 Si con la PBB encendida el bypass CP-S33 no deja trasladar</span><span>Rescate arrancando con bypass</span></span></summary><div class="rbb">
 <ol>
 <li>Selector de la PBB en <b>OFF</b>: pasarela <b>apagada</b> (se borra el disparo de seguridades enclavado).</li>
 <li>Girar y <b>mantener</b> la llave <b>CP-S33 «BYPASS SEGURIDADES»</b> del pupitre.</li>
@@ -41,13 +43,15 @@ const HTML=`<details class="rbyp"><summary>🔑 Si con la PBB encendida el bypas
 </div></details>`;
 window.rescateBypassHTML=()=>HTML;
 const RX=/puente provisional|bypass|recuperar la pasarela|sacar en servicio|seguridades|antiatrap|final de carrera|bumper|borde/i;
-function pone(caja){if(!caja||caja.querySelector(":scope>details.rbyp"))return;if(!RX.test(caja.textContent||""))return;
+function pone(caja){if(!caja||caja.querySelector("details.rbyp"))return;if(!RX.test(caja.textContent||""))return;
  caja.insertAdjacentHTML("beforeend",HTML)}
 function pinta(){try{
  ["gsegl","gpte"].forEach(id=>pone(document.getElementById(id)));
  const u=document.querySelector("#sr_res .ubb1");if(u&&/puente|bypass|recuperar/i.test(u.textContent||""))pone(u);
- /* que siga siendo lo último de la caja (el puente siempre por delante) */
- document.querySelectorAll("details.rbyp").forEach(d=>{const p=d.parentElement;if(p&&p.lastElementChild!==d&&!p.lastElementChild.classList.contains("pbbcu"))p.appendChild(d)});
+ /* v635: si la caja lleva «BAJAR PORTÓN de CABINA», va justo ANTES de ese recuadro amarillo; si no, lo último de la caja */
+ document.querySelectorAll("details.rbyp").forEach(d=>{const caja=d.closest("#gsegl,#gpte,.ubb1")||d.parentElement;const pt=caja&&caja.querySelector(".ptnb");
+  if(pt){if(d.nextElementSibling!==pt)pt.before(d);return}
+  const p=d.parentElement;if(p&&p.lastElementChild!==d&&!p.lastElementChild.classList.contains("pbbcu"))p.appendChild(d)});
 }catch(e){}}
 let t=0;new MutationObserver(()=>{if(t)return;t=setTimeout(()=>{t=0;pinta()},250)}).observe(document.body,{childList:true,subtree:true});
 setTimeout(pinta,800);
