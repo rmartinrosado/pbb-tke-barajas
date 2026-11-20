@@ -70,7 +70,7 @@ function pintaSOS(){try{const res=document.getElementById("sr_res");if(!res)retu
  const viejo=res.querySelector(".pbbcu");
  if(!caja||!ES_AA.test(txt(i))){if(viejo)viejo.remove();res.querySelectorAll(".pbbcuoc").forEach(e=>e.classList.remove("pbbcuoc"));return}
  if(!i.pos){i.pos="—"}
- const h=banner(i);if(!viejo||viejo.dataset.h!==h||viejo.parentNode!==caja){if(viejo)viejo.remove();const w=document.createElement("div");w.innerHTML=h;const b=w.firstElementChild;b.dataset.h=h;caja.prepend(b)}
+ const h=banner(i);if(!viejo||viejo.dataset.h!==h||viejo.parentNode!==caja){if(viejo)viejo.remove();const w=document.createElement("div");w.innerHTML=h;const b=w.firstElementChild;b.dataset.h=h;caja.appendChild(b)}
  oculta(i,"#sr_res","div,li,details,p,tr,figure,.puit,.lpap")}catch(e){}}
 function pinta(){pintaSOS();try{if(typeof view=="undefined"||view!="tec")return;const i=otAct();
  document.querySelectorAll(".pbbcu").forEach(b=>{if(!i||!ES_AA.test(txt(i)))b.remove()});
@@ -78,9 +78,15 @@ function pinta(){pintaSOS();try{if(typeof view=="undefined"||view!="tec")return;
  const cajas=["gpte","gsegl","gcomp"].map(id=>document.getElementById(id)).filter(x=>x&&x.isConnected)
   .sort((a,b)=>a.compareDocumentPosition(b)&4?-1:1);
  const prim=cajas[0];const h=banner(i);
- cajas.forEach(c=>{const b=c.querySelector(":scope>.pbbcu");if(c!==prim&&b)b.remove()});
- if(prim){let b=prim.querySelector(":scope>.pbbcu");if(!b||b.dataset.h!==h){if(b)b.remove();const w=document.createElement("div");w.innerHTML=h;b=w.firstElementChild;b.dataset.h=h;
-  const cab=prim.querySelector(":scope>.pucab");if(cab)cab.insertAdjacentElement("afterend",b);else prim.prepend(b)}}
+ const dest=(prim&&(prim.id=="gpte"||prim.id=="gsegl")&&document.getElementById("gcomp"))||prim;
+ cajas.forEach(c=>{const b=c.querySelector(":scope>.pbbcu");if(c!==dest&&b)b.remove()});
+ if(prim){let b=dest.querySelector(":scope>.pbbcu");if(!b||b.dataset.h!==h){if(b)b.remove();const w=document.createElement("div");w.innerHTML=h;b=w.firstElementChild;b.dataset.h=h;
+  /* v631: el puente provisional va SIEMPRE primero: si la primera caja es la del puente, la franja va a la primera
+     actuación (#gcomp) o, si no hay, al final de la caja del puente */
+  const esPte=prim.id=="gpte"||prim.id=="gsegl",gc=document.getElementById("gcomp");
+  if(esPte&&gc&&gc.isConnected){const cab=gc.querySelector(":scope>.pucab");if(cab)cab.insertAdjacentElement("afterend",b);else gc.prepend(b)}
+  else if(esPte)prim.appendChild(b);
+  else{const cab=prim.querySelector(":scope>.pucab");if(cab)cab.insertAdjacentElement("afterend",b);else prim.prepend(b)}}}
  oculta(i)}catch(e){}}
 let tm=null;new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=null;pinta()},200)}).observe(document.documentElement,{childList:true,subtree:true});
 if(typeof vTec=="function"){const o=vTec;vTec=function(){const r=o.apply(this,arguments);setTimeout(pinta,0);return r}}

@@ -29,7 +29,8 @@ function inserta(){const cabs=document.querySelectorAll(".pucab");let nuevo=null
   const i=otAct();if(!aplica(box,i))return;
   const p1=[...box.querySelectorAll(".puac")].find(x=>/^\s*1[.)]\s/.test(x.textContent)&&/recuperar la pasarela|maniobra|trasla|bypass|cerrar|carro|manual|mover|selector|enrollar/i.test(x.textContent))
    ||[...box.querySelectorAll(".puac")].find(x=>/^\s*1[.)]\s/.test(x.textContent));
-  const ref=p1||cab;ref.insertAdjacentHTML("afterend",recuadro());nuevo=nuevo||i||{id:"sos"}});
+  /* v631: si hay puente provisional va SIEMPRE primero: sin punto 1 reconocible, el recuadro va al final de la caja (tras el puente), nunca delante */
+  if(p1)p1.insertAdjacentHTML("afterend",recuadro());else box.insertAdjacentHTML("beforeend",recuadro());nuevo=nuevo||i||{id:"sos"}});
  if(nuevo)emergente(nuevo)}
 function emergente(i){const k="ptn_pop_"+(i.id||"x");try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1")}catch(e){}
  if(document.getElementById("ptnpop"))return;const d=document.createElement("div");d.id="ptnpop";d.className="ptnpop";d.setAttribute("role","alertdialog");
