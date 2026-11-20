@@ -15,13 +15,17 @@ html.nvkb #nav,html.nvkb #navtab,html.nvkb #navbg{visibility:hidden!important;po
  pr.style.cssText="position:fixed;left:0;bottom:0;width:1px;height:0;pointer-events:none;visibility:hidden";
  (document.body||R).appendChild(pr);
  const esTexto=el=>!!el&&(el.isContentEditable||/^(TEXTAREA|SELECT)$/.test(el.tagName)||(el.tagName=="INPUT"&&!/^(button|submit|checkbox|radio|range|file|color|reset|image)$/i.test(el.type||"")));
- let uDy=null,uT=null,uH=null,uK=null;
+ let uDy=null,uT=null,uH=null,uK=null;const MX={};
  function ajusta(){try{
   const vv=window.visualViewport;
   const H=pr.getBoundingClientRect().top||R.clientHeight||innerHeight;
   let t=0,h=H,dy=0;
   if(vv){t=Math.round(vv.offsetTop);h=Math.round(vv.height);dy=Math.round(H-(vv.offsetTop+vv.height))}
-  const kb=!!vv&&esTexto(document.activeElement)&&(H-vv.height)>120;
+  /* v629: el teclado se detecta comparando la altura visible con la MÁXIMA visible en esa orientación (no con la
+     «pantalla de diseño», que en iPhone se descoloca 100-200 px sin teclado y dejaba la barra oculta con el foco
+     puesto en una caja como «Medido»). Sin teclado abierto la barra se ve siempre. */
+  const ori=(innerWidth>innerHeight)?"h":"v";if(vv){if(!MX[ori]||vv.height>MX[ori])MX[ori]=vv.height}
+  const kb=!!vv&&esTexto(document.activeElement)&&MX[ori]&&(MX[ori]-vv.height)>150;
   if(kb!==uK){R.classList.toggle("nvkb",kb);uK=kb}
   if(Math.abs(dy)<2)dy=0;
   if(dy!==uDy){R.style.setProperty("--nvdy",dy+"px");uDy=dy}
