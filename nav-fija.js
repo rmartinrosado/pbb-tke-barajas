@@ -6,7 +6,9 @@
 (function(){
  const st=document.createElement("style");st.textContent=`
 html,body{overscroll-behavior-y:none}
-#nav,#navtab{bottom:calc(24px + env(safe-area-inset-bottom,0px) + var(--nvdy,0px))!important}
+/* v630: colocada desde ARRIBA con el borde inferior real (visualViewport.offsetTop + height): no depende de la «pantalla
+   de diseño», que en iPhone se descoloca y dejaba la pestaña ☰ a media pantalla (p. ej. en Seguimiento) */
+#nav,#navtab{bottom:auto!important;top:calc(var(--nvb,100vh) - 72px - 24px - env(safe-area-inset-bottom,0px))!important}
 #navbg{inset:auto!important;left:0!important;right:0!important;top:var(--nvt,0px)!important;height:var(--nvh,100%)!important}
 html.nvkb #nav,html.nvkb #navtab,html.nvkb #navbg{visibility:hidden!important;pointer-events:none!important}`;
  document.head.appendChild(st);
@@ -15,7 +17,7 @@ html.nvkb #nav,html.nvkb #navtab,html.nvkb #navbg{visibility:hidden!important;po
  pr.style.cssText="position:fixed;left:0;bottom:0;width:1px;height:0;pointer-events:none;visibility:hidden";
  (document.body||R).appendChild(pr);
  const esTexto=el=>!!el&&(el.isContentEditable||/^(TEXTAREA|SELECT)$/.test(el.tagName)||(el.tagName=="INPUT"&&!/^(button|submit|checkbox|radio|range|file|color|reset|image)$/i.test(el.type||"")));
- let uDy=null,uT=null,uH=null,uK=null;const MX={};
+ let uDy=null,uT=null,uH=null,uK=null;const MX={};let uB=null;
  function ajusta(){try{
   const vv=window.visualViewport;
   const H=pr.getBoundingClientRect().top||R.clientHeight||innerHeight;
@@ -29,6 +31,7 @@ html.nvkb #nav,html.nvkb #navtab,html.nvkb #navbg{visibility:hidden!important;po
   if(kb!==uK){R.classList.toggle("nvkb",kb);uK=kb}
   if(Math.abs(dy)<2)dy=0;
   if(dy!==uDy){R.style.setProperty("--nvdy",dy+"px");uDy=dy}
+  const b=vv?Math.round(vv.offsetTop+vv.height):Math.round(innerHeight);if(b!==uB){R.style.setProperty("--nvb",b+"px");uB=b}
   if(t!==uT){R.style.setProperty("--nvt",t+"px");uT=t}
   if(h!==uH){R.style.setProperty("--nvh",h+"px");uH=h}
  }catch(e){}}
