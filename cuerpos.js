@@ -48,7 +48,7 @@ const st=document.createElement("style");st.textContent=`
 .pbbcu .cuw{display:block;margin-top:4px;color:#c62828;font-weight:800}
 .pbbcuoc{display:none!important}`;document.head.appendChild(st);
 const banner=i=>{const tu=pbbAATuneles(i),nc=tu.nc;
- if(!nc)return`<div class="pbbcu sin"><b class="cun">${i.pos&&i.pos!="—"?"PBB "+i.pos+" · modelo":"PBB sin indicar · modelo"} sin definir</b>Antiatrapamiento: se muestran túnel interior (2 cuerpos) y túnel medio (3 cuerpos). Comprueba en campo si la PBB tiene 2 o 3 cuerpos y avisa al administrador para dejarlo fijado.</div>`;
+ if(!nc)return`<div class="pbbcu sin"><b class="cun">${i.pos&&i.pos!="—"?"PBB "+i.pos+" · modelo":"PBB sin indicar · modelo"} sin definir</b>Antiatrapamiento: se muestran túnel interior (2 cuerpos) y túnel medio (3 cuerpos). Comprueba en campo si la PBB tiene 2 o 3 túneles y fíjalo en «+ PBB» (administrador): toca la PBB → Nº de túneles.</div>`;
  const q=nc==2?"Túneles A-B: solo antiatrapamiento del túnel INTERIOR (IT-S3 · E-A9 5.1 / 6.1).":
   `Túneles A-B-C: ${tu.int&&tu.med?"túnel INTERIOR (E-A9 5.1 / 6.1) y túnel MEDIO (MT-S3 · E-A9 2.1 / 8.1)":tu.med?"solo túnel MEDIO (MT-S3 · E-A9 2.1 / 8.1), el que dice el aviso":"solo túnel INTERIOR (E-A9 5.1 / 6.1), el que dice el aviso"}.`;
  return`<div class="pbbcu"><b class="cun">PBB ${i.pos} · ${nc} cuerpos</b>${q}${tu.incoh?`<span class="cuw">⚠️ El aviso habla del túnel medio y esta PBB es de 2 cuerpos: no tiene túnel medio. Es el antiatrapamiento del túnel interior.</span>`:""}</div>`};

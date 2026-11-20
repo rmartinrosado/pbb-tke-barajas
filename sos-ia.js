@@ -179,7 +179,7 @@ window.sosObClaude=async function(){const t=document.getElementById("sr_ob"),ob=
  /* v627: solo la OT abierta de esa PBB que sea de la misma avería (sos-otrel.js) */
  const ot=(typeof inc!="undefined"&&Array.isArray(inc)&&pos)?(typeof otRelacionada=="function"?otRelacionada(pos,[ob,al,am].filter(Boolean).join(" · ")):inc.find(x=>String(x.pos).toUpperCase()==pos&&x.estado=="abierta")):null;
  const tipo=(ot&&ot.tipo)||"PAS";
- const pregunta=`Contexto: pasarela de embarque PBB ${pos||"(sin indicar)"} del Aeropuerto de Madrid Barajas (TK Elevator). Actuación directa SOS.
+ const pregunta=`Contexto: pasarela de embarque PBB ${pos||"(sin indicar)"}${typeof pbbModeloTxt=="function"?pbbModeloTxt(pos):""} del Aeropuerto de Madrid Barajas (TK Elevator). Actuación directa SOS.
 ${ot?`OT abierta: tipo ${ot.tipo||"-"} · Nº de orden CGA ${ot.orden||"-"} · descripción: ${ot.desc||"(sin descripción)"}\n`:""}Alarma activada en la Magelis: ${al||"(no elegida)"}${am?`\nAlarma escrita a mano: ${am}`:""}
 MENSAJE DEL TÉCNICO (te habla directamente, como en una conversación con Claude AI; analiza exhaustivamente cada frase y responde a TODO lo que pide: listas, relaciones de cables, explicaciones, medidas, procedimientos…):
 ${ob}

@@ -229,7 +229,7 @@ AJUSTA LA RESOLUCIÓN con estos datos: descarta lo que ya queda comprobado, conc
  const baseDe=i=>[i.desc,i.def,i.com].map(x=>String(x||"").trim()).join(" | ");
  /* v597: si la actuación guiada ya está copiada en el Comentario, no se envía dos veces */
  const prDe=i=>{const gu=i.guiada&&!/^Contexto: pasarela de embarque/.test(i.guiada)&&!String(i.com||"").includes(String(i.guiada).trim())?`\nActuación guiada (guía de campo):\n${i.guiada}`:"";
-  return `Contexto: pasarela de embarque PBB ${i.pos} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden}.
+  return `Contexto: pasarela de embarque PBB ${i.pos}${typeof pbbModeloTxt=="function"?pbbModeloTxt(i.pos):""} del Aeropuerto de Madrid Barajas. Tipo de aviso: ${i.tipo}. Nº de orden: ${i.orden}.
 Descripción del aviso: ${i.desc||"(sin descripción)"}
 Definición de la avería: ${i.def||i.desc||"(sin definir)"}
 Comentario: ${i.com||"(sin comentario)"}${gu}
