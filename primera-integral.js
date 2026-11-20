@@ -193,10 +193,12 @@ const st=document.createElement("style");st.textContent=`
 #gcomp .pcicx{border-top:1px dashed var(--bd,#cfd8dc);padding:4px 0}#gcomp .pcicx>summary{padding:7px 0;cursor:pointer;line-height:1.3}
 #gcomp .pcicx>summary .pcipor{display:block;font-size:11.5px;opacity:.7;margin-top:2px}
 #gcomp.pcisec{border:2px solid #ef6c00}
-.pcip{display:flex;gap:8px;margin:8px 0;padding:8px;border:1px solid var(--bd,#cfd8dc);border-radius:10px;background:color-mix(in srgb,var(--card,#fff) 92%,#c62828)}
+/* v625: numeración de cada paso en una barra verde a lo ancho de la caja con el número en blanco;
+   el contenido (textos y fotos) ocupa debajo todo el ancho, centrado en la caja roja */
+.pcip{display:flex;flex-direction:column;gap:0;margin:8px 0;padding:0;overflow:hidden;border:1px solid var(--bd,#cfd8dc);border-radius:10px;background:color-mix(in srgb,var(--card,#fff) 92%,#c62828)}
 .pcip.pci1{border:2px solid #c62828}
-.pcin{flex:none;width:26px;height:26px;border-radius:50%;background:#c62828;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:14px}
-.pcic{flex:1;min-width:0}
+.pcin{flex:none;width:100%;height:28px;border-radius:0;background:#2e9e44;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:17px;letter-spacing:.5px;box-sizing:border-box}
+.pcic{flex:1;min-width:0;width:100%;padding:8px 10px;box-sizing:border-box}
 #gcomp .pcitt{display:block;font-weight:800;font-size:14.5px;line-height:1.3;text-align:left;max-width:100%;overflow-wrap:anywhere;word-break:normal;hyphens:auto;margin:0 0 2px}
 #gcomp .pcitt .cmpid{white-space:nowrap;vertical-align:baseline;margin:0 4px 0 2px}
 #gcomp .pcitt .pcitx{display:block;margin-top:4px}
