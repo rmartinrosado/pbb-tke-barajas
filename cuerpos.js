@@ -48,20 +48,31 @@ const st=document.createElement("style");st.textContent=`
 .pbbcu .cuw{display:block;margin-top:4px;color:#c62828;font-weight:800}
 .pbbcuoc{display:none!important}`;document.head.appendChild(st);
 const banner=i=>{const tu=pbbAATuneles(i),nc=tu.nc;
- if(!nc)return`<div class="pbbcu sin"><b class="cun">PBB ${i.pos} · modelo sin definir</b>Antiatrapamiento: se muestran túnel interior (2 cuerpos) y túnel medio (3 cuerpos). Comprueba en campo si la PBB tiene 2 o 3 cuerpos y avisa al administrador para dejarlo fijado.</div>`;
+ if(!nc)return`<div class="pbbcu sin"><b class="cun">${i.pos&&i.pos!="—"?"PBB "+i.pos+" · modelo":"PBB sin indicar · modelo"} sin definir</b>Antiatrapamiento: se muestran túnel interior (2 cuerpos) y túnel medio (3 cuerpos). Comprueba en campo si la PBB tiene 2 o 3 cuerpos y avisa al administrador para dejarlo fijado.</div>`;
  const q=nc==2?"Túneles A-B: solo antiatrapamiento del túnel INTERIOR (IT-S3 · E-A9 5.1 / 6.1).":
   `Túneles A-B-C: ${tu.int&&tu.med?"túnel INTERIOR (E-A9 5.1 / 6.1) y túnel MEDIO (MT-S3 · E-A9 2.1 / 8.1)":tu.med?"solo túnel MEDIO (MT-S3 · E-A9 2.1 / 8.1), el que dice el aviso":"solo túnel INTERIOR (E-A9 5.1 / 6.1), el que dice el aviso"}.`;
  return`<div class="pbbcu"><b class="cun">PBB ${i.pos} · ${nc} cuerpos</b>${q}${tu.incoh?`<span class="cuw">⚠️ El aviso habla del túnel medio y esta PBB es de 2 cuerpos: no tiene túnel medio. Es el antiatrapamiento del túnel interior.</span>`:""}</div>`};
 const RXMED=/tunel medio|3 tuneles|tres tuneles|\bmt-?s3|\bmt-?b[123]\b|\(b-?c\)/;
 const RXINT=/tunel interior|\bit-?s3|\bit-?b[125]\b|\(a-?b\)/;
 const SEL="details,li,.puit,.pcip,.pcicx,.pcifo,.pcifs,tr,.gst,.gpaso,.anass>button,.chkb,option";
-function oculta(i){const tu=pbbAATuneles(i);if(!tu.nc)return;const quitaMed=!tu.med,quitaInt=!tu.int;if(!quitaMed&&!quitaInt)return;
- document.querySelectorAll("#app "+SEL.split(",").join(",#app ")).forEach(el=>{if(el.classList.contains("pbbcuoc"))return;
+function oculta(i,raiz,sel){const tu=pbbAATuneles(i);if(!tu.nc)return;const quitaMed=!tu.med,quitaInt=!tu.int;if(!quitaMed&&!quitaInt)return;
+ raiz=raiz||"#app";sel=sel||SEL;
+ document.querySelectorAll(sel.split(",").map(x=>raiz+" "+x).join(",")).forEach(el=>{if(el.classList.contains("pbbcuoc"))return;
   const s=el.tagName=="DETAILS"?((el.querySelector(":scope>summary")||{}).textContent||""):(el.textContent||"");if(s.length>700)return;
   const n=nrm(s);if(!/antiatrap|atrapamiento|barrera|tunel|mt-|it-|e-a9/.test(n))return;
   const m=RXMED.test(n),k=RXINT.test(n);
   if((quitaMed&&m&&!k)||(quitaInt&&k&&!m))el.classList.add("pbbcuoc")})}
-function pinta(){try{if(typeof view=="undefined"||view!="tec")return;const i=otAct();
+/* v628: también en el SOS (hoja con #sr_res): franja en «1 · SACAR EN SERVICIO YA» con la posición de #sr_p */
+function pintaSOS(){try{const res=document.getElementById("sr_res");if(!res)return;
+ const g=id=>((document.getElementById(id)||{}).value||"");const sa=document.getElementById("sr_a");
+ const i={pos:g("sr_p").trim().toUpperCase(),desc:[g("sr_ob"),sa&&sa.value?sa.options[sa.selectedIndex].text:"",g("sr_t")].filter(Boolean).join(" · ")};
+ const caja=res.querySelector(".ubb1")||(res.firstElementChild&&res.children.length>1?res:null);
+ const viejo=res.querySelector(".pbbcu");
+ if(!caja||!ES_AA.test(txt(i))){if(viejo)viejo.remove();res.querySelectorAll(".pbbcuoc").forEach(e=>e.classList.remove("pbbcuoc"));return}
+ if(!i.pos){i.pos="—"}
+ const h=banner(i);if(!viejo||viejo.dataset.h!==h||viejo.parentNode!==caja){if(viejo)viejo.remove();const w=document.createElement("div");w.innerHTML=h;const b=w.firstElementChild;b.dataset.h=h;caja.prepend(b)}
+ oculta(i,"#sr_res","div,li,details,p,tr,figure,.puit,.lpap")}catch(e){}}
+function pinta(){pintaSOS();try{if(typeof view=="undefined"||view!="tec")return;const i=otAct();
  document.querySelectorAll(".pbbcu").forEach(b=>{if(!i||!ES_AA.test(txt(i)))b.remove()});
  if(!i||i.estado=="cerrada"||!ES_AA.test(txt(i))){document.querySelectorAll(".pbbcuoc").forEach(e=>e.classList.remove("pbbcuoc"));return}
  const cajas=["gpte","gsegl","gcomp"].map(id=>document.getElementById(id)).filter(x=>x&&x.isConnected)
