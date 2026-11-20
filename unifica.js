@@ -195,11 +195,11 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 function registra(t,el){const C=CTX||{};const hh=new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
  const src=el.closest(".lpaef")?"actuación más eficaz":"primera actuación";
  const rec={k:clave(t),t:t.replace(/^\d+[.)]\s*/,"").slice(0,300),desc:C.ob||C.al||"",al:C.al||"",src,ts:Date.now()};
- let ot=null;try{ot=(typeof inc!="undefined"?inc:[]).filter(x=>String(x.pos).toUpperCase()==C.pos&&x.estado=="abierta").sort((a,b)=>(b.ts||0)-(a.ts||0)||String(b.id).localeCompare(String(a.id)))[0]||null}catch(e){}
+ let ot=null;try{ot=typeof otRelacionada=="function"?otRelacionada(C.pos,[C.ob,C.al].filter(Boolean).join(" · ")):(typeof inc!="undefined"?inc:[]).filter(x=>String(x.pos).toUpperCase()==C.pos&&x.estado=="abierta").sort((a,b)=>(b.ts||0)-(a.ts||0)||String(b.id).localeCompare(String(a.id)))[0]||null}catch(e){}
  if(ot){ot.act=((ot.act||"").trim()?ot.act.trim()+"\n":"")+`✔ ${hh} · Resuelto (${src}): ${rec.t}`;(ot.resueltoCon=ot.resueltoCon||[]).push(rec);
   try{sv("pbb_inc",inc)}catch(e){}try{render()}catch(e){}msg(`Anotado en la Actuación de la OT ${ot.orden||""} (PBB ${C.pos})`)}
  else{const L=locales();L.push(Object.assign({pos:C.pos,tipo:C.T},rec));try{localStorage.setItem(LK,JSON.stringify(L.slice(-300)))}catch(e){}
-  msg(C.pos?`Sin OT abierta en la PBB ${C.pos}: guardado como caso resuelto en este móvil`:"Guardado como caso resuelto en este móvil")}
+  msg(C.pos?`Sin OT abierta de esta avería en la PBB ${C.pos}: guardado como caso resuelto en este móvil`:"Guardado como caso resuelto en este móvil")}
  el.insertAdjacentHTML("beforeend",`<div class="fbst">✔ Registrado ${hh}${ot?` en la OT ${E(ot.orden||"")}`:""}</div>`)}
 
 /* ---------- 5 · dictado por voz ---------- */

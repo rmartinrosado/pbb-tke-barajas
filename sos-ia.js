@@ -176,7 +176,8 @@ window.sosObClaude=async function(){const t=document.getElementById("sr_ob"),ob=
  /* v372: si no se ha puesto la posición, se toma la que se nombra en las observaciones (p. ej. «en la 546») */
  if(!pos){const PS=new Set((typeof POS!="undefined"?POS:[]).map(x=>String(x).toUpperCase()));const m=(ob.toUpperCase().match(/\bT?\d{3}\b/g)||[]).find(x=>PS.has(x));if(m){pos=m;const pe=$("#sr_p");if(pe)pe.value=m}}
  const pideOT=OTRE.test(ob);
- const ot=(typeof inc!="undefined"&&Array.isArray(inc)&&pos)?inc.find(x=>String(x.pos).toUpperCase()==pos&&x.estado=="abierta"):null;
+ /* v627: solo la OT abierta de esa PBB que sea de la misma avería (sos-otrel.js) */
+ const ot=(typeof inc!="undefined"&&Array.isArray(inc)&&pos)?(typeof otRelacionada=="function"?otRelacionada(pos,[ob,al,am].filter(Boolean).join(" · ")):inc.find(x=>String(x.pos).toUpperCase()==pos&&x.estado=="abierta")):null;
  const tipo=(ot&&ot.tipo)||"PAS";
  const pregunta=`Contexto: pasarela de embarque PBB ${pos||"(sin indicar)"} del Aeropuerto de Madrid Barajas (TK Elevator). Actuación directa SOS.
 ${ot?`OT abierta: tipo ${ot.tipo||"-"} · Nº de orden CGA ${ot.orden||"-"} · descripción: ${ot.desc||"(sin descripción)"}\n`:""}Alarma activada en la Magelis: ${al||"(no elegida)"}${am?`\nAlarma escrita a mano: ${am}`:""}

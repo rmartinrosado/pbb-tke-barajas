@@ -22,7 +22,9 @@ const G=()=>{try{return JSON.parse(localStorage.getItem("pbb_med")||"{}")}catch(
 const guardaLocal=(k,v)=>{try{const o=G();o[k]=v;localStorage.setItem("pbb_med",JSON.stringify(o))}catch(e){}};
 function otAct(){try{const p=((document.getElementById("sr_p")||{}).value||"").trim().toUpperCase();if(typeof inc=="undefined")return null;
  if(typeof gOT!="undefined"&&gOT&&!document.getElementById("sr_p")){const o=inc.find(x=>x.id==gOT);if(o)return o}
- return p?inc.find(x=>String(x.pos).toUpperCase()==p&&x.estado=="abierta"):null}catch(e){return null}}
+ if(!p)return null;const g=id=>((document.getElementById(id)||{}).value||"");const sa=document.getElementById("sr_a");
+ const tx=[g("sr_ob"),sa&&sa.value?sa.options[sa.selectedIndex].text:"",g("sr_t")].filter(Boolean).join(" · ");
+ return typeof otRelacionada=="function"?otRelacionada(p,tx):inc.find(x=>String(x.pos).toUpperCase()==p&&x.estado=="abierta")}catch(e){return null}}
 window.medComprueba=function(id){const w=document.getElementById(id);if(!w)return;const E=JSON.parse(w.dataset.e),i=w.querySelector("input"),r=w.querySelector(".medr");
  const v0=num(i.value);if(isNaN(v0)){r.textContent="";w.className="medw";return}
  const v=v0*(E.u=="Ω"&&/k/i.test(w.querySelector("select")?w.querySelector("select").value:"")?1000:1);
