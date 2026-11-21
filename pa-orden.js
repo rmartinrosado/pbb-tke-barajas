@@ -47,7 +47,7 @@ function resIA(){const app=document.getElementById("app");if(!app)return;const r
 /* v672: el croquis del puente en el PLC lleva el título «PRIMERA ACTUACIÓN EN CAMPO · <avería>», amarillo si el puente
    visible es de un módulo de seguridad (safety, amarillo) y verde si es de entradas normales (límite de trabajo); al
    deslizar entre las opciones, cambia de color */
-function croq(){const c=document.getElementById("gcroq");if(!c)return;const g=document.getElementById("gsegl")||document.getElementById("gpte");
+function croq(){const c=document.getElementById("gcroq");if(!c){document.querySelectorAll("#gsegl>.pucab.pahid,#gpte>.pucab.pahid").forEach(x=>x.classList.remove("pahid"));return}const g=document.getElementById("gsegl")||document.getElementById("gpte");
  /* v673: sin barra de color aparte: el título va como texto ROJO en la propia cabecera del croquis (la del enchufe 🔌) */
  const old=c.querySelector(":scope>.paph");if(old)old.remove();
  const h=c.querySelector(".gcrh");if(!h)return;let t=h.querySelector(".pacrt");
@@ -55,7 +55,9 @@ function croq(){const c=document.getElementById("gcroq");if(!c)return;const g=do
  if(!t){/* el «🔌» se queda delante del título; el texto original («Croquis del puente provisional…») pasa a la línea de debajo */
   const fn=h.firstChild;if(fn&&fn.nodeType==3)fn.nodeValue=fn.nodeValue.replace(/^\s*🔌\s*/,"");
   t=document.createElement("div");t.className="pacrt";h.prepend(t)}
- const want="🔌 "+tit;if(t.textContent!==want)t.textContent=want}
+ const want="🔌 "+tit;if(t.textContent!==want)t.textContent=want;
+ /* v676: el título rojo ya va en el croquis: se quita el repetido de la caja de abajo (el que va antes de la llave) */
+ const pc=g&&g.querySelector(":scope>.pucab");if(pc)pc.classList.add("pahid")}
 let tm=0;const pasa=()=>{clearTimeout(tm);tm=setTimeout(()=>{try{sai()}catch(e){}try{resIA()}catch(e){}try{croq()}catch(e){}document.querySelectorAll("#gsegl,.gsegl").forEach(arregla)},120)};
 const app=()=>document.getElementById("app");
 const ini=()=>{const a=app();if(!a)return setTimeout(ini,300);new MutationObserver(pasa).observe(a,{childList:true,subtree:true});pasa()};ini();
