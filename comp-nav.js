@@ -58,9 +58,15 @@ const reTag=t=>new RegExp("(^|[^A-Z0-9.])"+String(t).replace(/[.*+?^${}()|[\]\\\
 /* v575: cada elemento puede estar PENDIENTE, IMPORTADO (tiene ficha: sale tachado con ✓) o QUITADO con la papelera
    (p. ej. ya incorporado con otro código): tabla compartida comp_importar_quitados; abajo, «Quitados» para devolverlos. */
 const QK="comp_imp_quitados";let QUI=new Set((()=>{try{return JSON.parse(localStorage.getItem(QK)||"[]")}catch(e){return[]}})());
-const gQ=()=>{try{localStorage.setItem(QK,JSON.stringify([...QUI]))}catch(e){}};
+/* v650: «Eliminados» = quitados que además se han borrado con la 🗑️ de «Quitados de la lista»: ya no salen en ningún sitio */
+const EK="comp_imp_elim";let ELI=new Set((()=>{try{return JSON.parse(localStorage.getItem(EK)||"[]")}catch(e){return[]}})());
+const gQ=()=>{try{localStorage.setItem(QK,JSON.stringify([...QUI]));localStorage.setItem(EK,JSON.stringify([...ELI]))}catch(e){}};
+async function elimina(t){if(!confirm("¿Eliminar "+t+" de la lista de elementos a importar?\nYa no saldrá en A IMPORTAR ni en Quitados."))return;
+ QUI.add(t);ELI.add(t);gQ();lista();
+ try{const {error}=await sb.from("comp_importar_quitados").upsert({codigo:t,eliminado:true,por:(typeof user!="undefined"&&user&&user.email)||""});if(error)throw error}
+ catch(e){if(typeof msg=="function")msg("Sin conexión: el cambio queda en este móvil")}}
 let qCarg=false;async function cargaQui(){if(qCarg||typeof sb=="undefined")return;qCarg=true;
- try{const {data,error}=await sb.from("comp_importar_quitados").select("codigo");if(!error&&data){QUI=new Set(data.map(r=>r.codigo));gQ();if(capa&&zSel==IMP)lista()}}catch(e){}}
+ try{const {data,error}=await sb.from("comp_importar_quitados").select("codigo,eliminado");if(!error&&data){QUI=new Set(data.map(r=>r.codigo));ELI=new Set(data.filter(r=>r.eliminado).map(r=>r.codigo));gQ();if(capa&&zSel==IMP)lista()}}catch(e){}}
 async function quita(t,on){on?QUI.add(t):QUI.delete(t);gQ();lista();
  try{if(on)await sb.from("comp_importar_quitados").upsert({codigo:t,por:(typeof user!="undefined"&&user&&user.email)||""});else await sb.from("comp_importar_quitados").delete().eq("codigo",t)}
  catch(e){if(typeof msg=="function")msg("Sin conexión: el cambio queda en este móvil")}}
@@ -72,7 +78,7 @@ function cubre(t){const re=reTag(String(t).toUpperCase());return L().filter(c=>r
 const cmp=t=>nrm(t).replace(/[\s\-_.+\/:]/g,"").replace(/o/g,"0");
 function casa(txt,w){const t=nrm(txt);if(t.includes(w))return true;const k=cmp(w);return k.length>1&&cmp(t).includes(k)}
 function estados(){const P=window.COMP_PLANOS||[];
- return P.map(r=>{const fc=cubre(r[0]);return {r,hecho:fc.length>0,fc,quit:QUI.has(r[0])}})}
+ return P.filter(r=>!ELI.has(r[0])).map(r=>{const fc=cubre(r[0]);return {r,hecho:fc.length>0,fc,quit:QUI.has(r[0])}})}
 function pendientes(){return estados().filter(x=>!x.hecho&&!x.quit).map(x=>x.r)}
 const gAb=new Set();
 function filaImp(x){const [t,n,zz,f,pl]=x.r;return `<div class="cnimp${x.hecho?" hecho":""}"${x.hecho?` data-ver="${E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id))}"`:""}><span class="cmpid">${E(t)}</span><span class="cnimpn">${x.hecho?"✓ ":""}${E(n)}<small>${f?`Folio ${f} · rev. J`:E(pl)}${x.hecho?` · importado${x.fc[0].id!=t?` en ${E(x.fc[0].id)}`:""}`:""}</small></span>`+
@@ -86,7 +92,7 @@ function listaImp(ws){cargaQui();const S=estados(),tot=S.length;
  return `<div class="cnimpc">📋 <b>${pend}</b> pendientes · <s>${hech} importados</s> de ${tot} elementos de los planos (esquema general rev. J, 504/508, 507, AAA, HZ e hidráulica). Haz la foto en campo y pulsa <b>📷</b>; al guardarlo queda <s>tachado</s>. 🗑️ lo quita de la lista (p. ej. si ya está incorporado con otro código).</div>`+
   (F.length?zs.map(z=>{const n=g[z].filter(x=>!x.hecho).length,h=g[z].length-n;return `<details class="cnimpz" data-g="${E(z)}"${ws.length||gAb.has(z)?" open":""}><summary>${E(z)} <small>${n}${h?` · <s>${h}</s>`:""}</small></summary>${g[z].map(fila).join("")}</details>`}).join("")
   :`<div class="cnvac">Nada${ws.length?" con esa búsqueda":""}.</div>`)+
-  (qs.length?`<details class="cnimpz cnimpqz"><summary>🗑️ Quitados de la lista <small>${qs.length}</small></summary>${qs.map(x=>`<div class="cnimp"><span class="cmpid">${E(x.r[0])}</span><span class="cnimpn">${E(x.r[1])}<small>${E(x.r[2])}</small></span><button type="button" class="sec" data-dev="${E(x.r[0])}" style="width:auto!important;padding:6px 10px!important;font-size:12px!important">↩️ Devolver</button></div>`).join("")}</details>`:"")}
+  (qs.length?`<details class="cnimpz cnimpqz"><summary>🗑️ Quitados de la lista <small>${qs.length}</small></summary>${qs.map(x=>`<div class="cnimp"><span class="cmpid">${E(x.r[0])}</span><span class="cnimpn">${E(x.r[1])}<small>${E(x.r[2])}</small></span><button type="button" class="sec" data-dev="${E(x.r[0])}" style="width:auto!important;padding:6px 10px!important;font-size:12px!important">↩️ Devolver</button><button type="button" class="sec" data-eli="${E(x.r[0])}" title="Eliminar" style="width:auto!important;padding:6px 10px!important;font-size:15px!important;margin-left:6px!important">🗑️</button></div>`).join("")}</details>`:"")}
 let capa=null,zSel="",abiertos=new Set(),solo=null,foco=null,focoY=0;/* v649: foco = ficha seleccionada que se ve sola *//* v563: solo = {k:Set de claves, t:rótulo} → lista acotada a los componentes de una alarma */
 let qAnt=null,zAnt=null;
 function lista(){if(capa){const q=(capa.querySelector("#cn_q")||{}).value||"";if(foco&&(q!==qAnt||zSel!==zAnt)){abiertos.delete(foco);foco=null;try{if(history.state&&history.state.ficha)history.back()}catch(e){}}qAnt=q;zAnt=zSel}
@@ -137,6 +143,7 @@ function abre(){
   capa.querySelector("#cn_l").addEventListener("click",e=>{if(e.target.closest("[data-todos]")){solo=null;lista()}
    const bq=e.target.closest("[data-qui]");if(bq){const t=bq.dataset.qui;if(bq.classList.contains("sure"))quita(t,true);else{bq.classList.add("sure");bq.textContent="¿Quitar?";setTimeout(()=>{if(bq.isConnected){bq.classList.remove("sure");bq.textContent="🗑️"}},3500)}return}
    const bd=e.target.closest("[data-dev]");if(bd){quita(bd.dataset.dev,false);return}
+   const bx=e.target.closest("[data-eli]");if(bx){elimina(bx.dataset.eli);return}
    const be=e.target.closest("[data-edi]");if(be){if(typeof window.compEdita=="function")window.compEdita(be.dataset.edi);return}
    const bv=!e.target.closest("button[data-imp],button[data-qui]")&&e.target.closest("[data-ver]");if(bv){const k=bv.dataset.ver;const c=L().find(x=>String(x.baseId||x.db||x.id)==k);
     if(c){const i=capa.querySelector("#cn_q");if(i)i.value=c.id;zSel="";abiertos.add(k);lista();setTimeout(()=>{const d=capa.querySelector(`details.cni[data-k="${CSS.escape(k)}"]`);if(d){d.open=true;d.scrollIntoView({block:"start"})}},60)}return}
