@@ -8,7 +8,7 @@
 const st=document.createElement("style");st.textContent=`details.paf{margin:8px 0;border:1.5px dashed color-mix(in srgb,var(--mu,#888) 55%,transparent);border-radius:10px;padding:0 10px}
 details.paf>summary{list-style:none;cursor:pointer;padding:9px 0;font-weight:800;font-size:14px;display:flex;gap:8px;align-items:center}
 details.paf>summary::-webkit-details-marker{display:none}details.paf>summary::after{content:"▾";margin-left:auto;opacity:.7}details.paf[open]>summary::after{content:"▴"}
-details.paf>summary .paft{flex:1;min-width:0;text-align:left;line-height:1.3}details.paf>summary small{display:block;font-weight:600;opacity:.7;font-size:12.5px;margin-top:1px}details.paf[open]{padding-bottom:8px}.pahid{display:none!important}`;document.head.appendChild(st);
+details.paf>summary .paft{flex:1;min-width:0;text-align:left;line-height:1.3}details.paf>summary small{display:block;font-weight:600;opacity:.7;font-size:12.5px;margin-top:1px}details.paf[open]{padding-bottom:8px}.pahid{display:none!important}#gcroq>.paph{margin:-2px -2px 10px;transition:background .25s,color .25s}#gcroq>.paph.paam{background:#f2c200!important;color:#111!important}#gcroq>.paph.pave{background:#2e9e4f!important;color:#fff!important}`;document.head.appendChild(st);
 const T=el=>(el&&el.textContent||"").replace(/\s+/g," ").trim();
 function plegar(nodos,tit,sub,cls){nodos=nodos.filter(Boolean);if(!nodos.length)return null;const d=document.createElement("details");d.className="paf"+(cls?" "+cls:"");
  d.innerHTML=`<summary><span class="paft">${tit}${sub?`<small>${sub}</small>`:""}</span></summary>`;nodos[0].parentNode.insertBefore(d,nodos[0]);nodos.forEach(n=>d.appendChild(n));return d}
@@ -44,7 +44,19 @@ function sai(){document.querySelectorAll("#app .gotdesc").forEach(dsc=>{const ca
 function resIA(){const app=document.getElementById("app");if(!app)return;const r=[...app.querySelectorAll(":scope>.card")].find(c=>/^Resolución IA$/.test(T(c.querySelector("h3"))));if(!r)return;
  const ai=document.getElementById("aiguia");const head=[...app.querySelectorAll(":scope>.card")].find(c=>/Guía de campo/.test(T(c.querySelector("h3"))));
  const ref=ai&&ai.parentNode===app?ai:head;if(ref&&ref.nextElementSibling!==r)ref.after(r)}
-let tm=0;const pasa=()=>{clearTimeout(tm);tm=setTimeout(()=>{try{sai()}catch(e){}try{resIA()}catch(e){}document.querySelectorAll("#gsegl,.gsegl").forEach(arregla)},120)};
+/* v672: el croquis del puente en el PLC lleva el título «PRIMERA ACTUACIÓN EN CAMPO · <avería>», amarillo si el puente
+   visible es de un módulo de seguridad (safety, amarillo) y verde si es de entradas normales (límite de trabajo); al
+   deslizar entre las opciones, cambia de color */
+const tipoMod=id=>{try{const m=PLC.find(x=>x.id==id);return m?m.t:""}catch(e){return ""}};
+function croq(){const c=document.getElementById("gcroq");if(!c)return;const g=document.getElementById("gsegl")||document.getElementById("gpte");
+ let h=c.querySelector(":scope>.paph");const tit=g&&g.querySelector(".pucab")?T(g.querySelector(".pucab")):"🔌 PRIMERA ACTUACIÓN EN CAMPO";
+ if(!h){h=document.createElement("div");h.className="pucab paph";c.prepend(h)}if(h.textContent!==tit)h.textContent=tit;
+ const rs=c.querySelector(".gcrs"),sl=rs?[...rs.querySelectorAll(":scope>.gcri")]:[];
+ const pon=()=>{let k=0;if(rs&&sl.length>1){const w=rs.clientWidth||1;k=Math.max(0,Math.min(sl.length-1,Math.round(rs.scrollLeft/w)))}
+  const t=sl[k]?T(sl[k].querySelector("svg text")):"";const id=(t.match(/^([A-Z]+\d?-A\d+)/)||[])[1]||"";const sd=/SDI/.test(tipoMod(id));
+  h.classList.toggle("paam",!!id&&sd);h.classList.toggle("pave",!!id&&!sd)};
+ pon();if(rs&&!rs.__paS){rs.__paS=1;rs.addEventListener("scroll",()=>requestAnimationFrame(pon),{passive:true})}}
+let tm=0;const pasa=()=>{clearTimeout(tm);tm=setTimeout(()=>{try{sai()}catch(e){}try{resIA()}catch(e){}try{croq()}catch(e){}document.querySelectorAll("#gsegl,.gsegl").forEach(arregla)},120)};
 const app=()=>document.getElementById("app");
 const ini=()=>{const a=app();if(!a)return setTimeout(ini,300);new MutationObserver(pasa).observe(a,{childList:true,subtree:true});pasa()};ini();
 })();
