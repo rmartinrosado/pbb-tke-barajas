@@ -45,7 +45,7 @@ const COMP=[
   med:["Con la PBB parada: sujetar el eje del giro y mover el acoplamiento con la mano. No debe haber holgura ni patinar ningún buje.","Comprobar el apriete de los dos tornillos allen y que el fuelle no tiene grietas ni ondas aplastadas.","Girar la cabina despacio mirando el eje del potenciómetro: debe girar a la vez, sin saltos. Si el eje no sigue, el fallo está en el acoplamiento.","Al apretar o cambiar el acoplamiento, dejar el potenciómetro en la MISMA posición que tenía (marcar antes) y comprobar en la Magelis que la medida de giro de cabina es correcta."],
   av:"Si la medida de giro de cabina falla con el potenciómetro bien medido (1-3 ≈ 10 kΩ y 1-2 / 2-3 variando suave), revisar SIEMPRE el acoplamiento antes de cambiar el convertidor E-R10."},
  /* v464: barrera de seguridad de rotonda · emisor SICK L29S (R-B1 / R-B3); receptores R-B2 / R-B4 */
- {id:"R-B1 / R-B3",t:"Emisor de la barrera de seguridad de rotonda",fab:"SICK L29S-3D3430 · P/N 2075831 · lote AB 2420",
+ {id:"R-B1",/* v642: antes «R-B1 / R-B3»; R-B3 tiene ficha propia */t:"Emisor de la barrera de seguridad de rotonda",fab:"SICK L29S-3D3430 · P/N 2075831 · lote AB 2420",
   re:t=>/barrera (de )?(seguridad )?(de )?(la )?rotonda|r-?b[1-4]\b|\b294\b|\bl29s?\b|fotocelula.{0,20}rotonda/.test(t),
   fotos:[["componentes/rb-l29s-frontal.jpg","Vista frontal · placa (modelo, 24 V, pines) y cable con conector"],["componentes/rb-l29s-trasera.jpg","Vista trasera · normas de seguridad (Type 2, Cat. 2)"],["componentes/rb-l29s-conector.jpg","Vista conector · M12 macho, 4 pines"]],
   esp:[["Función","Emisor de la barrera fotoeléctrica de seguridad que vigila la rotonda; su receptor (R-B2 / R-B4) avisa al PLC de seguridad si se corta el haz (evento 294)"],
