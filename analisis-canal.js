@@ -47,8 +47,11 @@ let SIGSEL=null;
    const R2=Object.assign({},R,{elem:el});let h;try{h=o(i,R2,dentro)}finally{SIGSEL=null}
    const nm=`${sel.mod} ${sel.S.led?"IN "+sel.S.led:""} · ${sel.S.t}`;
    h=h.replace(/(<div class="anal">)(③ )?Elementos de campo a revisar(<\/div>)(<div class="anah">)[^<]*(<\/div>)/,(m,a,n,c,d,e)=>`${a}${n||""}Elementos de campo de la señal elegida${c}${d}Señal elegida: <b>${esc(nm)}</b>. Al cambiar de señal cambian los elementos y sus recorridos.${e}`);
-   if(porDef){const v=sel.mod+"¦"+sel.S.id;h=h.replace(`<option value="${esc(v)}">`,`<option value="${esc(v)}" selected>`);
-    if(!dentro)h=h.replace(/(<select class="anasel"[\s\S]*?<\/select>)/,`$1<button class="sec anaver" onclick="anaSelSig(this.previousElementSibling.value)">📏 Ver la ruta cable a cable de esta señal</button>`)}
+   if(porDef){const v=sel.mod+"¦"+sel.S.id;const ev=esc(v).replace(/'/g,"&#39;");
+    /* v666: lista de señales línea a línea (antes un desplegable estrecho del iPhone); la elegida por defecto, marcada */
+    h=h.replace(`class="anaso" onclick="anaSelSig('${ev}')"`,`class="anaso on" onclick="anaSelSig('${ev}')"`);
+    h=h.replace(`<option value="${esc(v)}">`,`<option value="${esc(v)}" selected>`);
+    if(!dentro)h=h.replace(/(<div class="anasl"[\s\S]*?<\/button><\/div>)/,`$1<button class="sec anaver" onclick="anaSelSig('${ev}')">📏 Ver la ruta cable a cable de esta señal</button>`)}
    return h}}}
  return o(i,R,dentro)}})();
 /* 3. v418: en la guía de una OT de medida analógica solo se ven los pasos y filas de SU canal */
