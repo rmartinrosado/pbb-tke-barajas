@@ -51,6 +51,10 @@ async function quita(t,on){on?QUI.add(t):QUI.delete(t);gQ();lista();
 /* v638: «importado» = hay una ficha con ese código (o en su título); una simple mención en las palabras clave de otra ficha
    (p. ej. CP-S31 en las de E-K17) ya no lo tacha. Se guarda qué ficha lo cubre para poder abrirla y editarla. */
 function cubre(t){const re=reTag(String(t).toUpperCase());return L().filter(c=>re.test(String(c.id||"").toUpperCase())||re.test(String(c.t||"").toUpperCase()))}
+/* v643: búsqueda tolerante: mayúsculas o minúsculas, con o sin guiones, puntos o espacios, y la letra O igual al cero
+   («ea0», «EA0», «E-AO», «e a 0» → E-A0; «eq301» → E-Q30.1) */
+const cmp=t=>nrm(t).replace(/[\s\-_.+\/:]/g,"").replace(/o/g,"0");
+function casa(txt,w){const t=nrm(txt);if(t.includes(w))return true;const k=cmp(w);return k.length>1&&cmp(t).includes(k)}
 function estados(){const P=window.COMP_PLANOS||[];
  return P.map(r=>{const fc=cubre(r[0]);return {r,hecho:fc.length>0,fc,quit:QUI.has(r[0])}})}
 function pendientes(){return estados().filter(x=>!x.hecho&&!x.quit).map(x=>x.r)}
@@ -59,7 +63,7 @@ function filaImp(x){const [t,n,zz,f,pl]=x.r;return `<div class="cnimp${x.hecho?"
   (x.hecho?(()=>{const k=E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id));return `<button type="button" class="sec cnimpv" data-ver="${k}" aria-label="Ver ficha de ${E(t)}">📄</button><button type="button" class="sec cnimpe" data-edi="${k}" aria-label="Editar ficha de ${E(t)}">✏️</button>`})():`<button type="button" class="pri" data-imp="${E(t)}" aria-label="Incorporar ${E(t)}">📷</button><button type="button" class="sec cnimpq" data-qui="${E(t)}" aria-label="Quitar ${E(t)} de la lista">🗑️</button>`)+`</div>`}
 function listaImp(ws){cargaQui();const S=estados(),tot=S.length;
  const vis=S.filter(x=>!x.quit),pend=vis.filter(x=>!x.hecho).length,hech=vis.filter(x=>x.hecho).length,qs=S.filter(x=>x.quit);
- const F=vis.filter(x=>!ws.length||ws.every(w=>nrm(x.r.join(" ")).includes(w)));
+ const F=vis.filter(x=>!ws.length||ws.every(w=>casa(x.r.join(" "),w)));
  const g={};F.forEach(x=>(g[x.r[2]]=g[x.r[2]]||[]).push(x));const zs=Object.keys(g).sort((a,b)=>a.localeCompare(b,"es"));
  const fila=filaImp;const _f=x=>{const [t,n,zz,f,pl]=x.r;return `<div class="cnimp${x.hecho?" hecho":""}"${x.hecho?` data-ver="${E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id))}"`:""}><span class="cmpid">${E(t)}</span><span class="cnimpn">${x.hecho?"✓ ":""}${E(n)}<small>${f?`Folio ${f} · rev. J`:E(pl)}${x.hecho?" · importado":""}</small></span>`+
   (x.hecho?(()=>{const k=E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id));return `<button type="button" class="sec cnimpv" data-ver="${k}" aria-label="Ver ficha de ${E(t)}">📄</button><button type="button" class="sec cnimpe" data-edi="${k}" aria-label="Editar ficha de ${E(t)}">✏️</button>`})():`<button type="button" class="pri" data-imp="${E(t)}" aria-label="Incorporar ${E(t)}">📷</button><button type="button" class="sec cnimpq" data-qui="${E(t)}" aria-label="Quitar ${E(t)} de la lista">🗑️</button>`)+`</div>`};
@@ -72,14 +76,15 @@ function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).v
  const ws=q.split(/\s+/).filter(Boolean);
  const todos=L(),zs=[...new Set(todos.map(zona))].sort((a,b)=>(a=="Otros")-(b=="Otros")||a.localeCompare(b,"es"));/* v570: zonas en orden alfabético, «Otros» al final */
  const nImp=pendientes().length;
- const F=zSel==IMP?[]:todos.filter(c=>(!solo||solo.k.has(String(c.baseId||c.db||c.id)))&&(!zSel||ws.length||zona(c)==zSel)&&/* v638: con búsqueda, en todas las zonas */(!ws.length||ws.every(w=>texto(c).includes(w))));
+ const F=zSel==IMP?[]:todos.filter(c=>(!solo||solo.k.has(String(c.baseId||c.db||c.id)))&&(!zSel||ws.length||zona(c)==zSel)&&/* v638: con búsqueda, en todas las zonas */(!ws.length||ws.every(w=>casa(texto(c),w))));
+ if(ws.length){const K=cmp(q),r=c=>{const i=String(c.id||"").split(/\s*\/\s*/).map(cmp);return i.includes(K)?0:i.some(x=>x.startsWith(K))?1:2};F.sort((a,b)=>r(a)-r(b))}/* v643: el código buscado, primero */
  capa.querySelector("#cn_z").innerHTML=(nImp?`<button type="button" class="cnch cnchimp${zSel==IMP?" on":""}" data-z="${IMP}">A IMPORTAR <small>${nImp}</small></button>`:"")+[["","Todos"]].concat(zs.map(z=>[z,z])).map(([v,t])=>`<button type="button" class="cnch${zSel==v?" on":""}" data-z="${E(v)}">${E(t)} <small>${v?todos.filter(c=>zona(c)==v).length:todos.length}</small></button>`).join("");
  const el=capa.querySelector("#cn_l");if(zSel==IMP){el.innerHTML=listaImp(ws);return}
  el.innerHTML=(solo?`<div class="cnsolo"><span>🚨 ${E(solo.t)}</span><button type="button" class="sec" data-todos="1">Ver todos</button></div>`:"")+`<div class="mu" style="font-size:12px;margin:6px 0">${F.length} componente${F.length==1?"":"s"}${ws.length||zSel?(F.length==1?" encontrado":" encontrados"):""}</div>`+
   (F.length?F.map(c=>{const k=String(c.baseId||c.db||c.id);const bt=c.db?(c.baseId?"↩️<br>Restaurar":"🗑<br>Eliminar"):"🔒<br>De fábrica";
    return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${(()=>{const o=fichaOrden(c);return repuesto(c,o.spec)+o.fh})()}</details></div>`}).join("")
   :`<div class="cnvac">Sin componentes para «${E(q)}».<br>Prueba con el código (p. ej. E-Q24), el nombre o el modelo.</div>`)+
-  (ws.length?(()=>{/* v638: también los elementos de los planos (pendientes y ya incorporados) */cargaQui();const S=estados().filter(x=>!x.quit&&ws.every(w=>nrm(x.r.join(" ")).includes(w)));
+  (ws.length?(()=>{/* v638: también los elementos de los planos (pendientes y ya incorporados) */cargaQui();const S=estados().filter(x=>!x.quit&&ws.every(w=>casa(x.r.join(" "),w)));
    return S.length?`<div class="cnverde" style="margin-top:12px">EN LOS PLANOS · A IMPORTAR</div>`+S.slice(0,30).map(filaImp).join(""):""})():"")}
 function abre(){
  if(!capa){capa=document.createElement("div");capa.id="compCapa";
