@@ -27,7 +27,10 @@ const CUERPO=`<div class="ptn-t">⚠️ BAJAR PORTÓN de CABINA</div>
 /* v530: de momento solo «BAJAR PORTÓN de CABINA» (sin la anulación del inductivo C-S9 ni su croquis) */
 function recuadro(){return `<div class="ptn ptnb">${CUERPO}</div>`}
 /* recuadro tras el punto 1 de cada caja roja de primera actuación */
-function aplica(box,i){if(remota(i))return false;if(typeof window.otSoloAlum=="function"&&window.otSoloAlum(i))return false; /* v610: no en OT de alumbrado (gálibo, luces, caldeo) */const t=i?otTxt(i):nrm((box.querySelector(".pucab")||box).textContent);if(!RE.test(t))return false;
+/* v663: nunca en averías de HZ (convertidor 400 Hz): tipo HZ, equipo HZ o el aviso habla de 400 Hz / HZ / GPU */
+const esHZ=i=>{if(!i)return false;if(String(i.tipo||"").toUpperCase()=="HZ")return true;if((i.equipos||[]).some(e=>String(e).toUpperCase()=="HZ"))return true;
+ return /\b400 ?hz\b|\bhz\b|\bgpu\b|convertidor de frecuencia|convertidor 400/.test(otTxt(i))};
+function aplica(box,i){if(remota(i))return false;if(esHZ(i))return false;if(typeof window.otSoloAlum=="function"&&window.otSoloAlum(i))return false; /* v610: no en OT de alumbrado (gálibo, luces, caldeo) */const t=i?otTxt(i):nrm((box.querySelector(".pucab")||box).textContent);if(!RE.test(t))return false;
  /* cámaras / RCS: solo si además hay bloqueo o falta de movimiento explícitos */
  if(CAM.test(t)&&!/bloquead|bloqueo|no (se )?(trasla|mueve|maniobra)|sin movimiento/.test(t))return false;return true}
 function inserta(){const cabs=document.querySelectorAll(".pucab");let nuevo=null;
