@@ -27,9 +27,17 @@ function fichaOrden(c){let fh=typeof compFicha=="function"?compFicha(c):"";
  if(fh.includes('<div class="alpl">'))fh=fh.replace('<div class="alpl">',V("ALARMAS RELACIONADAS")+'<div class="alpl">');
  else fh=fh.replace(/(<div class="cmpfs"[^>]*>[\s\S]*?<\/figure><\/div>|<div class="cmpfs"[^>]*><\/div>)/,"$1"+V("SIN ALARMAS RELACIONADAS"));
  fh=fh.replace(/<div class="cmpst">\s*Medir en campo\s*<\/div>/i,`<div class="cnverde cnmedir">MEDIR EN CAMPO</div>`);/* v585: amarilla, letras negras y parpadeando *//* v579: «MEDIR EN CAMPO» también en caja verde y negra */
- if(fh.includes('<div class="cedb">'))fh=fh.replace('<div class="cedb">','<div class="cedb">'+V("DETALLES DE CAMPO"));
- else fh=fh.replace('<div class="cmpfs"',V("DETALLES DE CAMPO")+'<div class="cmpfs"');
- return {fh,spec:spec?`<div class="cnspec">${spec}</div>`:""}}
+ /* v646: la ficha técnica (fotos del repuesto) sale desplegada; ESPECIFICACIONES, DETALLES DE CAMPO y MEDIR EN CAMPO, plegados.
+    Se recuerda en este móvil lo que el técnico despliega mientras la capa está abierta. */
+ const id=String(c&&(c.baseId||c.db||c.id)||"");
+ const F=(t,tit,h,cl)=>`<details class="cnfold${cl?" "+cl:""}" data-fk="${E(t+"|"+id)}"${ABRE.has(t+"|"+id)?" open":""}><summary>${tit}</summary>${h}</details>`;
+ const mf=fh.match(/<div class="cmpfs"[^>]*>[\s\S]*?<\/figure><\/div>|<div class="cmpfs"[^>]*><\/div>/);
+ if(mf){const nf=(mf[0].match(/<figure/g)||[]).length;fh=fh.replace(mf[0],F("det",V("DETALLES DE CAMPO")+(nf?` <small class="cnfn">📷 ${nf} foto${nf>1?"s":""}</small>`:""),mf[0]))}
+ const mm=fh.match(/<div class="cnverde cnmedir">MEDIR EN CAMPO<\/div>(<ol class="cmpo">[\s\S]*?<\/ol>)((?:<div class="gav">[\s\S]*?<\/div>)?)/);
+ if(mm)fh=fh.replace(mm[0],F("med",`<div class="cnverde cnmedir">MEDIR EN CAMPO</div> <small class="cnfn">${(mm[1].match(/<li/g)||[]).length} pasos</small>`,mm[1]+mm[2]));
+ return {fh,spec:spec?F("esp",V("ESPECIFICACIONES"),`<div class="cnspec">${spec}</div>`,"cnfesp"):""}}
+const ABRE=new Set();
+document.addEventListener("toggle",ev=>{const d=ev.target;if(!d||!d.matches||!d.matches("details.cnfold[data-fk]"))return;d.open?ABRE.add(d.dataset.fk):ABRE.delete(d.dataset.fk)},true);
 const repuesto=(c,spec)=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
  const s=String(c.av||"").match(/AL SUSTITUIR:?\s*([^]*)$/i);if(s)f.push(["Al sustituir",s[1].trim()]);
  const r=(c.esp||[]).find(x=>/^repuesto$/i.test(x[0]));if(r)f.push(["Almacén",r[1]]);
@@ -200,6 +208,9 @@ html.cnInc #sheet{z-index:70!important}
 #compCapa .cnch{flex:none;width:auto!important;margin:0!important;padding:5px 10px!important;border-radius:16px!important;border:1px solid var(--bd,#2a2f38)!important;
  background:transparent!important;color:var(--tx,#e9ecf1)!important;font-size:12.5px!important;font-weight:600;white-space:nowrap;min-height:0!important}
 #compCapa .cnch small{opacity:.65;font-weight:700;margin-left:2px}
+#compCapa details.cnfold{margin:6px 0}#compCapa details.cnfold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap}#compCapa details.cnfold>summary::-webkit-details-marker{display:none}
+#compCapa details.cnfold>summary .cnverde{margin:2px 0}#compCapa details.cnfold>summary::after{content:"▼";font-size:12px;opacity:.6}#compCapa details.cnfold[open]>summary::after{content:"▲"}
+#compCapa .cnfn{font-size:12px;opacity:.75;font-weight:700}#compCapa details.cnfesp{margin-top:10px}
 #compCapa .cnverde.cnmedir{background:#facc15;color:#000;animation:cnmedirP 1s ease-in-out infinite}
 @keyframes cnmedirP{0%,100%{background:#facc15;box-shadow:0 0 0 0 #facc1599}50%{background:#fde68a;box-shadow:0 0 0 6px #facc1500}}
 #compCapa .cnverde{display:inline-flex;align-items:center;padding:6px 12px;border-radius:8px;background:#22c55e;color:#000;font-weight:900;font-size:13.5px;letter-spacing:.8px;text-transform:uppercase;margin:8px 0 6px}
