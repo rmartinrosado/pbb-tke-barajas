@@ -40,7 +40,11 @@ function arregla(box){if(!box||box.__paBusy)return;box.__paBusy=1;try{
 }finally{box.__paBusy=0}}
 /* v670: la caja verde «CT de SAI» justo debajo de «AVERÍA:» en la cabecera de la guía */
 function sai(){document.querySelectorAll("#app .gotdesc").forEach(dsc=>{const card=dsc.closest(".card");const g=card&&card.querySelector(":scope .gsai:not(.gsaix)");if(g&&dsc.nextElementSibling!==g)dsc.after(g)})}
-let tm=0;const pasa=()=>{clearTimeout(tm);tm=setTimeout(()=>{try{sai()}catch(e){}document.querySelectorAll("#gsegl,.gsegl").forEach(arregla)},120)};
+/* v671: la caja «Resolución IA» (INSTRUCCIONES) va después de la caja azul de la guía filtrada; si no hay filtro, tras la cabecera de la guía */
+function resIA(){const app=document.getElementById("app");if(!app)return;const r=[...app.querySelectorAll(":scope>.card")].find(c=>/^Resolución IA$/.test(T(c.querySelector("h3"))));if(!r)return;
+ const ai=document.getElementById("aiguia");const head=[...app.querySelectorAll(":scope>.card")].find(c=>/Guía de campo/.test(T(c.querySelector("h3"))));
+ const ref=ai&&ai.parentNode===app?ai:head;if(ref&&ref.nextElementSibling!==r)ref.after(r)}
+let tm=0;const pasa=()=>{clearTimeout(tm);tm=setTimeout(()=>{try{sai()}catch(e){}try{resIA()}catch(e){}document.querySelectorAll("#gsegl,.gsegl").forEach(arregla)},120)};
 const app=()=>document.getElementById("app");
 const ini=()=>{const a=app();if(!a)return setTimeout(ini,300);new MutationObserver(pasa).observe(a,{childList:true,subtree:true});pasa()};ini();
 })();
