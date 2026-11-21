@@ -121,7 +121,12 @@ function claveIA(){try{if(typeof gOT=="undefined"||!gOT||typeof inc=="undefined"
  /* fuertes: dispositivos de campo, bornas concretas y señales (módulo + entrada); los borneros y mangueras sueltos
     (p. ej. E-X1 de 0 V) salen en casi toda la guía y solo cuentan si la IA no nombra nada más concreto */
  const re=t=>new RegExp("(^|[^A-Z0-9-])\\+?"+reE(t)+"(?![0-9A-Z.])");
- const dis=cod.filter(t=>!esBor(t)&&!esMang(t));
+ let dis=cod.filter(t=>!esBor(t)&&!esMang(t));
+ /* v659: los mandos del pupitre (selector CP-S16, pulsadores, setas, display CP-A1…) los cita la IA para MANIOBRAR («selector en 0»,
+    «ver la alarma en el display»), no porque estén averiados; salen en casi todos los casos de la guía (Antiatrapamiento, Sirena…).
+    Solo cuentan si la OT habla del pupitre o si la IA no nombra nada más. */
+ const OPER=/^CP-[A-Z]{1,2}\d/;const otT=String([i.desc,i.def,i.obs].filter(Boolean).join(" ")).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+ if(!/pupitre|selector|pulsador|\bseta|display|magelis|pantalla|joystick|mando/.test(otT)){const d2=dis.filter(t=>!OPER.test(t));if(d2.length)dis=d2}
  const res=dis.map(t=>{const r=re(t);r.lab=t;return r});
  bornas(iaTexto(o)).forEach(b=>{const [x,n]=b.split(":");res.push(Object.assign(new RegExp("(^|[^A-Z0-9-])\\+?"+reE(x)+"\\s*(?::|BORNA|BORNE)\\s*"+reE(n)+"(?![0-9])"),{lab:b}))});
  (R.rel||[]).forEach(x=>{const led=String(x.S&&(x.S.led||x.S.b)||"").trim();if(led)res.push(Object.assign(new RegExp(reE(x.mod)+"[^\\n;]{0,45}?(?<![\\d.])"+reE(led)+"(?![\\d])"),{lab:x.mod+" "+led}))});
@@ -140,7 +145,7 @@ const porDe=(el,K)=>{const t=txt(el);return (K.resU||K.res).filter(r=>r.test(t))
 const toca=(el,K)=>porDe(el,K).length>0;
 function depura(K,cands){if(K.resU)return;const n=cands.length;if(!n){K.resU=K.res;return}
  const tx=cands.map(txt);const f=K.res.map(r=>tx.filter(t=>r.test(t)).length);
- const lim=Math.max(3,Math.ceil(n*0.15));const U=K.res.filter((r,k)=>f[k]<=lim);K.resU=U.length?U:K.res}
+ const lim=Math.max(3,Math.ceil(n*0.10));const U=K.res.filter((r,k)=>f[k]<=lim);K.resU=U.length?U:K.res}
 function marca(d,K){if(d.querySelector(":scope>summary .aipor"))return;const p=porDe(d,K).map(r=>r.lab).filter(Boolean);if(!p.length)return;
  const sm=d.querySelector(":scope>summary");if(sm)sm.insertAdjacentHTML("beforeend",` <span class="aipor" title="Se muestra porque la IA nombra este componente">🔎 ${[...new Set(p)].slice(0,3).map(esc).join(", ")}</span>`)}
 function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=document.getElementById("app");if(!app)return;
