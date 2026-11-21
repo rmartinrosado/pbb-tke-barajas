@@ -38,7 +38,9 @@ function arregla(box){if(!box||box.__paBusy)return;box.__paBusy=1;try{
   const des=g.querySelector(":scope>.mu.lmd");const rec=[...g.querySelectorAll(":scope>.puac")].find(x=>/^Para (recuperarla|liberarlo)/i.test(T(x)));
   plegar([des,val?rec:null],"ℹ️ Qué ha pasado y cómo se libera","","painf")});
 }finally{box.__paBusy=0}}
-let tm=0;const pasa=()=>{clearTimeout(tm);tm=setTimeout(()=>document.querySelectorAll("#gsegl,.gsegl").forEach(arregla),120)};
+/* v670: la caja verde «CT de SAI» justo debajo de «AVERÍA:» en la cabecera de la guía */
+function sai(){document.querySelectorAll("#app .gotdesc").forEach(dsc=>{const card=dsc.closest(".card");const g=card&&card.querySelector(":scope .gsai:not(.gsaix)");if(g&&dsc.nextElementSibling!==g)dsc.after(g)})}
+let tm=0;const pasa=()=>{clearTimeout(tm);tm=setTimeout(()=>{try{sai()}catch(e){}document.querySelectorAll("#gsegl,.gsegl").forEach(arregla)},120)};
 const app=()=>document.getElementById("app");
 const ini=()=>{const a=app();if(!a)return setTimeout(ini,300);new MutationObserver(pasa).observe(a,{childList:true,subtree:true});pasa()};ini();
 })();
