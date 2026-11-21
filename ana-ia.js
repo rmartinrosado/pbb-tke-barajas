@@ -120,7 +120,9 @@ function claveIA(){try{if(typeof gOT=="undefined"||!gOT||typeof inc=="undefined"
  /* v657: OT sin códigos ni alarmas (p. ej. «Cámara rcs»): el análisis general no sale, pero la guía se filtra igual con los
     componentes que nombra la IA en el cotejo (antes no se filtraba nada) */
  /* v660: además de lo guardado, lo que se ve en la caja del cotejo (por si la respuesta trae los pasos en otro formato) */
- let vis="";try{const g=document.getElementById("gpcot");if(g){const c=g.cloneNode(true);c.querySelectorAll("details,button,.pcdoc,.pcpl,.mu").forEach(x=>x.remove());vis=c.textContent||""}}catch(e){}
+ let vis="";try{const g=document.getElementById("gpcot");if(g){/* v662: sin clonar la caja (con sus fotos) en cada pasada: se lee el texto saltando desplegables, botones y notas */
+  const w=document.createTreeWalker(g,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;return p&&p.closest("details:not(#gpcot),button,.pcdoc,.pcpl,.mu")?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});
+  const a=[];while(w.nextNode())a.push(w.currentNode.nodeValue);vis=a.join(" ")}}catch(e){}
  const C0=[...new Set([...(R&&R._ia?R._ia.C:[]),...codigos((iaTexto(o)+" \n "+vis).toUpperCase()),...afe])];if(!R||!R._ia)R={rel:[],guia:[],tipo:i.tipo||"PAS"};
  const cod=C0.filter(t=>!esMod(t)&&!/^E-Q30/.test(t));
  /* fuertes: dispositivos de campo, bornas concretas y señales (módulo + entrada); los borneros y mangueras sueltos
@@ -145,7 +147,8 @@ const fija=(d,K)=>{const k=d.dataset.k||"";if(FIJAS.test(k))return true;if(k=="C
 /* v658: un caso solo se queda si nombra un componente de la IA en su texto propio (no en los nombres que añade la app ni en
    «Elementos y referencias»). Los códigos que salen en casi toda la guía (display CP-A1, 0 V, protecciones comunes…) no deciden
    solos si hay otros más concretos. Cada caso que se queda lleva la etiqueta «🔎 por …» con el código que lo ha traído. */
-const txt=el=>{const c=el.cloneNode(true);c.querySelectorAll(".aipor").forEach(x=>x.remove());return (c.textContent||"").toUpperCase()};
+/* v662: sin clonar (antes cada pasada clonaba ~90 cajas dos veces y el tacto iba a tirones); las etiquetas 🔎 se quitan antes de leer */
+const txt=el=>{const m=TXC.get(el);if(m!==undefined)return m;const t=(el.textContent||"").toUpperCase();TXC.set(el,t);return t};let TXC=new WeakMap();
 const porDe=(el,K)=>{const t=txt(el);return (K.resU||K.res).filter(r=>r.test(t))};
 const toca=(el,K)=>porDe(el,K).length>0;
 function depura(K,cands){if(K.resU)return;const n=cands.length;if(!n){K.resU=K.res;return}
@@ -155,10 +158,14 @@ function marca(d,K){if(d.querySelector(":scope>summary .aipor"))return;const p=p
  const sm=d.querySelector(":scope>summary");if(sm)sm.insertAdjacentHTML("beforeend",` <span class="aipor" title="Se muestra porque la IA nombra este componente">🔎 ${[...new Set(p)].slice(0,3).map(esc).join(", ")}</span>`)}
 function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=document.getElementById("app");if(!app)return;
  let K=todo?null:claveIA();if(K&&!K.res.length){K=null;const a0=document.getElementById("aiguia");if(a0)a0.remove()} /* v655: la IA no nombra ningún componente → no se oculta nada (antes la guía quedaba vacía) */
+ /* v662: si ya está aplicado este mismo filtro a estas mismas cajas, no se repite (se llamaba en cada repintado y en cada cambio) */
+ const sig=K?[gOT,(K.resU||K.res).map(r=>r.lab).join(","),K.res.map(r=>r.lab).join(",")].join("|"):(todo?"todo":"");
+ const cands=[...app.querySelectorAll(":scope > details.gd, :scope > details.ggrp, :scope > details.ggrp details.gd, details.sisd")];
+ if(sig&&cands.length&&cands.every(d=>d.__ai===sig)&&document.getElementById("aiguia"))return;
  app.querySelectorAll(".aiox").forEach(e=>e.classList.remove("aiox"));
+ app.querySelectorAll(".aipor").forEach(e=>e.remove());TXC=new WeakMap();
  let av=document.getElementById("aiguia");
- if(!K)app.querySelectorAll(".aipor").forEach(e=>e.remove());
- if(!K&&!todo){if(av)av.remove();return}
+ if(!K&&!todo){if(av)av.remove();cands.forEach(d=>d.__ai="");return}
  if(K){let oc=0;
   depura(K,[...app.querySelectorAll(":scope > details.gd, :scope > details.ggrp details.gd, details.sisd")].filter(d=>fija(d,K)===null&&!d.classList.contains("gef")&&d.id!="gpcot"&&d.id!="anag"));
   const caso=d=>{const k=d.dataset.k||"";const f=fija(d,K);if(f!==null)return f;if(d.classList.contains("gef")||d.id=="gpcot"||d.id=="anag")return true;if(K.keys.has(k))return true;const v=toca(d,K);if(v)marca(d,K);return v};
@@ -170,7 +177,7 @@ function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=
   /* comprobaciones por sistema */
   const sis=app.querySelector('details.gd[data-k="SIS"]');if(sis){const ds=[...sis.querySelectorAll("details.sisd")];let v=0;
    ds.forEach(d=>{if(toca(d,K)){v++;marca(d,K)}else{d.classList.add("aiox");oc++}});if(ds.length&&!v)sis.classList.add("aiox")}
-  K.oc=oc}
+  K.oc=oc;cands.forEach(d=>d.__ai=sig)}
  const cab=[...app.querySelectorAll(":scope > .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));if(!cab)return;
  if(!av){av=document.createElement("div");av.id="aiguia";av.className="aiof aigv"}
  if(cab.nextElementSibling!==av)cab.insertAdjacentElement("afterend",av);
