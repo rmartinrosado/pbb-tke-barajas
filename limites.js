@@ -24,6 +24,9 @@ window.segOT=segOT=function(i){const S=o.apply(this,arguments);if(!S||!S.lim)ret
  /* v383: si la OT NO habla de final de carrera / seguridad y hay límite de trabajo, NO se muestra nada del módulo de seguridad
     (ni puente en E-A8, ni «F.C.», ni 2ª opción amarilla): solo el límite de trabajo (módulo verde) */
  if(S.limT=="nor"&&!S.limMix&&S.itNor.length&&!RSEG.test(t)){S.itSeg=[];S.zs=S.zs.map(z=>({...z,it:z.it.filter(it=>!esSeg(it))})).filter(z=>z.it.length);S.soloTrabajo=true}
+ /* v677: si la OT habla de FINAL DE CARRERA (FC) activado/pisado o de FRENO, el límite de trabajo (módulo verde) no se presenta:
+    ni como grupo, ni como «2ª opción», ni en los croquis de puente. Solo el final de carrera de seguridad (módulo amarillo). */
+ if(/fin(al)?(es)? de carrera|\bf\.? ?c\.?\b|\bfc\b|\bfren/.test(t)&&S.itSeg.length){S.itNor=[];S.zs=S.zs.map(z=>({...z,it:z.it.filter(it=>esSeg(it))})).filter(z=>z.it.length);S.limT="seg";S.limMix=false;S.soloSeg=true}
  return S};
 const GRP={
  seg:{c:"lmseg",t:"Final de carrera de SEGURIDAD · módulo safety (amarillo)",
