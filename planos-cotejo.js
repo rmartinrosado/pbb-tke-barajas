@@ -70,7 +70,7 @@ window.pcIAOT=id=>ST&&ST.ia&&ST.iaK&&ST.iaK.indexOf("pc_ia_"+id+"_")===0?ST.ia:n
    La lectura de los planos y la consulta empiezan con «RECALCULAR IA»: primero Gemini (gratis); si no da resultado,
    el botón pasa a Claude, que tiene coste y hay que aceptarlo antes. */
 async function calcula(){const i=otAct();if(!i||typeof view=="undefined"||view!="tec")return;
- const l=await gLista();let sel=selDe(i.id);if(!sel){sel=sugeridos(i,l);guardaSel(i.id,sel)}
+ const l=await gLista();let sel=selDe(i.id);if(!sel){sel=sugeridos(i,l);if(l.length)guardaSel(i.id,sel)}
  const docs=sel.map(id=>l.find(x=>x.id==id)).filter(Boolean);const D=datosOT(i);
  const cons=!!(window.insCons&&window.insCons(i.id));/* v525: actuación más eficaz consultada → cotejo completo (otra clave) */
  const k=hash(i.id+"|"+docs.map(d=>d.id).join(",")+"|"+[i.desc,i.def,i.obs,i.com].join("|")+"|"+D.cod.join(",")+(cons?"|C":""));
@@ -212,7 +212,7 @@ ${JS}`;
 function selHTML(i,l){const sel=selDe(i.id)||[];
  return `<details class="pcsel"${sel.length?"":" open"}><summary>📐 Planos a cotejar · <b>${sel.length}</b> elegido${sel.length==1?"":"s"}</summary>
  <div class="mu" style="font-size:11.5px;margin:4px 0 6px">Marca todos los planos que intervienen (PBB, CBTH, AAA, HZ…): la guía cruza sus datos y rehace el diagnóstico de esta OT.</div>
- ${l.map(x=>`<label class="pcit"><input type="checkbox" value="${esc(x.id)}" ${sel.includes(x.id)?"checked":""} onchange="pcMarca(this)"><span>${esc(corto(x.name))}</span></label>`).join("")||`<div class="mu">No hay planos cargados (pestaña Planos).</div>`}</details>`}
+ ${l.map(x=>`<label class="pcit"><input type="checkbox" value="${esc(x.id)}" ${sel.includes(x.id)?"checked":""} onchange="pcMarca(this)"><span>${esc(corto(x.name))}</span></label>`).join("")||`<div class="mu">No se han podido leer los planos del servidor (sin cobertura o sesión caducada). <a href="#" onclick="event.preventDefault();try{gDocs=null}catch(e){};vTec()">Reintentar</a></div>`}</details>`}
 window.pcMarca=function(cb){const i=otAct();if(!i)return;let s=selDe(i.id)||[];s=s.filter(x=>x!==cb.value);if(cb.checked)s.push(cb.value);guardaSel(i.id,s);
  const sm=cb.closest(".pcsel").querySelector("summary b");if(sm)sm.textContent=s.length;try{ANA_C={k:"",r:null}}catch(e){}calcula()};
 window.pcAbre=async function(id,np){try{gPagIni=np;await ver(id)}catch(e){}};
@@ -280,7 +280,7 @@ function pintaCaja(){if(typeof view=="undefined"||view!="tec")return;const i=otA
  if(cab){if(cab.nextElementSibling!==b)cab.insertAdjacentElement("afterend",b)}else{const ref=seg||ef;if(ref&&b.nextElementSibling!==ref)ref.insertAdjacentElement("beforebegin",b)}
  const op=b.open;const sc=b.querySelector(".pccod[open]")?1:0;b.innerHTML=cajaHTML();b.open=op;if(sc){const c=b.querySelector(".pccod");if(c)c.open=true}}
 async function pinta(forzar){try{if(typeof view=="undefined"||view!="tec")return;const i=otAct();const s=$q("#g_doc");if(!s)return;
- if(i&&!$q("#gpcsel")){const l=await gLista();if(!$q("#gpcsel")&&$q("#g_doc")){if(!selDe(i.id))guardaSel(i.id,sugeridos(i,l));
+ if(i&&!$q("#gpcsel")){const l=await gLista();if(!$q("#gpcsel")&&$q("#g_doc")){if(!selDe(i.id)&&l.length)guardaSel(i.id,sugeridos(i,l));
   const w=document.createElement("div");w.id="gpcsel";w.innerHTML=selHTML(i,l);$q("#g_doc").insertAdjacentElement("afterend",w)}}
  pintaCaja();calcula()}catch(e){}}
 if(typeof vTec=="function"){const o=vTec;window.vTec=vTec=function(){const r=o.apply(this,arguments);setTimeout(()=>pinta(),0);return r}}
