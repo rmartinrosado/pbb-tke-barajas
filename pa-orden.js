@@ -8,7 +8,7 @@
 const st=document.createElement("style");st.textContent=`details.paf{margin:8px 0;border:1.5px dashed color-mix(in srgb,var(--mu,#888) 55%,transparent);border-radius:10px;padding:0 10px}
 details.paf>summary{list-style:none;cursor:pointer;padding:9px 0;font-weight:800;font-size:14px;display:flex;gap:8px;align-items:center}
 details.paf>summary::-webkit-details-marker{display:none}details.paf>summary::after{content:"▾";margin-left:auto;opacity:.7}details.paf[open]>summary::after{content:"▴"}
-details.paf>summary .paft{flex:1;min-width:0;text-align:left;line-height:1.3}details.paf>summary small{display:block;font-weight:600;opacity:.7;font-size:12.5px;margin-top:1px}details.paf[open]{padding-bottom:8px}.pahid{display:none!important}#gcroq .pacrt{color:#e53935;font-weight:900;font-size:15px;line-height:1.3;margin-bottom:4px;text-transform:none}`;document.head.appendChild(st);
+details.paf>summary .paft{flex:1;min-width:0;text-align:left;line-height:1.3}details.paf>summary small{display:block;font-weight:600;opacity:.7;font-size:12.5px;margin-top:1px}details.paf[open]{padding-bottom:8px}.pahid{display:none!important}#gcroq .pacrt{color:#fff;background:#c62828;border-radius:8px;padding:8px 12px;font-weight:800;font-size:15px;line-height:1.3;margin:0 0 8px;text-transform:none}`;document.head.appendChild(st);
 const T=el=>(el&&el.textContent||"").replace(/\s+/g," ").trim();
 function plegar(nodos,tit,sub,cls){nodos=nodos.filter(Boolean);if(!nodos.length)return null;const d=document.createElement("details");d.className="paf"+(cls?" "+cls:"");
  d.innerHTML=`<summary><span class="paft">${tit}${sub?`<small>${sub}</small>`:""}</span></summary>`;nodos[0].parentNode.insertBefore(d,nodos[0]);nodos.forEach(n=>d.appendChild(n));return d}
