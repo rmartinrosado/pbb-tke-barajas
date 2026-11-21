@@ -122,24 +122,36 @@ function claveIA(){try{if(typeof gOT=="undefined"||!gOT||typeof inc=="undefined"
     (p. ej. E-X1 de 0 V) salen en casi toda la guía y solo cuentan si la IA no nombra nada más concreto */
  const re=t=>new RegExp("(^|[^A-Z0-9-])\\+?"+reE(t)+"(?![0-9A-Z.])");
  const dis=cod.filter(t=>!esBor(t)&&!esMang(t));
- const res=dis.map(re);
- bornas(iaTexto(o)).forEach(b=>{const [x,n]=b.split(":");res.push(new RegExp("(^|[^A-Z0-9-])\\+?"+reE(x)+"\\s*(?::|BORNA|BORNE)\\s*"+reE(n)+"(?![0-9])"))});
- (R.rel||[]).forEach(x=>{const led=String(x.S&&(x.S.led||x.S.b)||"").trim();if(led)res.push(new RegExp(reE(x.mod)+"[^\\n;]{0,45}?(?<![\\d.])"+reE(led)+"(?![\\d])"))});
- if(!res.length)cod.forEach(t=>res.push(re(t)));
+ const res=dis.map(t=>{const r=re(t);r.lab=t;return r});
+ bornas(iaTexto(o)).forEach(b=>{const [x,n]=b.split(":");res.push(Object.assign(new RegExp("(^|[^A-Z0-9-])\\+?"+reE(x)+"\\s*(?::|BORNA|BORNE)\\s*"+reE(n)+"(?![0-9])"),{lab:b}))});
+ (R.rel||[]).forEach(x=>{const led=String(x.S&&(x.S.led||x.S.b)||"").trim();if(led)res.push(Object.assign(new RegExp(reE(x.mod)+"[^\\n;]{0,45}?(?<![\\d.])"+reE(led)+"(?![\\d])"),{lab:x.mod+" "+led}))});
+ if(!res.length)cod.forEach(t=>res.push(Object.assign(re(t),{lab:t})));
  const keys=new Set((R.guia||[]).map(g=>(R.tipo||"PAS")+g.si));return {i,R,res,keys,o}}catch(e){return null}}
 /* v654: con el cotejo de la IA solo quedan fijas la primera actuación (SEG), Componentes (CMP) y Cierre (CIE).
    Cotejar PLC e Inspección cable a cable solo si la avería pasa por señales del PLC; Mapa de alimentaciones solo si nombra lo de la IA. */
 const FIJAS=/^(SEG|CMP|CIE)$/;
 const plcOK=K=>!!(K.R&&K.R.rel&&K.R.rel.length);
 const fija=(d,K)=>{const k=d.dataset.k||"";if(FIJAS.test(k))return true;if(k=="COT"||k=="INS")return plcOK(K);if(k=="SIS")return true;return null};
-const toca=(el,K)=>{const t=(el.textContent||"").toUpperCase();return K.res.some(r=>r.test(t))};
+/* v658: un caso solo se queda si nombra un componente de la IA en su texto propio (no en los nombres que añade la app ni en
+   «Elementos y referencias»). Los códigos que salen en casi toda la guía (display CP-A1, 0 V, protecciones comunes…) no deciden
+   solos si hay otros más concretos. Cada caso que se queda lleva la etiqueta «🔎 por …» con el código que lo ha traído. */
+const txt=el=>{const c=el.cloneNode(true);c.querySelectorAll(".aipor").forEach(x=>x.remove());return (c.textContent||"").toUpperCase()};
+const porDe=(el,K)=>{const t=txt(el);return (K.resU||K.res).filter(r=>r.test(t))};
+const toca=(el,K)=>porDe(el,K).length>0;
+function depura(K,cands){if(K.resU)return;const n=cands.length;if(!n){K.resU=K.res;return}
+ const tx=cands.map(txt);const f=K.res.map(r=>tx.filter(t=>r.test(t)).length);
+ const lim=Math.max(3,Math.ceil(n*0.15));const U=K.res.filter((r,k)=>f[k]<=lim);K.resU=U.length?U:K.res}
+function marca(d,K){if(d.querySelector(":scope>summary .aipor"))return;const p=porDe(d,K).map(r=>r.lab).filter(Boolean);if(!p.length)return;
+ const sm=d.querySelector(":scope>summary");if(sm)sm.insertAdjacentHTML("beforeend",` <span class="aipor" title="Se muestra porque la IA nombra este componente">🔎 ${[...new Set(p)].slice(0,3).map(esc).join(", ")}</span>`)}
 function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=document.getElementById("app");if(!app)return;
  let K=todo?null:claveIA();if(K&&!K.res.length)K=null; /* v655: la IA no nombra ningún componente → no se oculta nada (antes la guía quedaba vacía) */
  app.querySelectorAll(".aiox").forEach(e=>e.classList.remove("aiox"));
  let av=document.getElementById("aiguia");
+ if(!K)app.querySelectorAll(".aipor").forEach(e=>e.remove());
  if(!K&&!todo){if(av)av.remove();return}
  if(K){let oc=0;
-  const caso=d=>{const k=d.dataset.k||"";const f=fija(d,K);if(f!==null)return f;if(d.classList.contains("gef")||d.id=="gpcot"||d.id=="anag")return true;if(K.keys.has(k))return true;return toca(d,K)};
+  depura(K,[...app.querySelectorAll(":scope > details.gd, :scope > details.ggrp details.gd, details.sisd")].filter(d=>fija(d,K)===null&&!d.classList.contains("gef")&&d.id!="gpcot"&&d.id!="anag"));
+  const caso=d=>{const k=d.dataset.k||"";const f=fija(d,K);if(f!==null)return f;if(d.classList.contains("gef")||d.id=="gpcot"||d.id=="anag")return true;if(K.keys.has(k))return true;const v=toca(d,K);if(v)marca(d,K);return v};
   /* cajas sueltas de avería */
   [...app.children].forEach(c=>{if(c.matches("details.gd")&&!caso(c)){c.classList.add("aiox");oc++}});
   /* grupos de casos */
@@ -147,7 +159,7 @@ function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=
    cs.forEach(d=>{if(caso(d))vis++;else{d.classList.add("aiox");oc++}});if(!vis&&(cs.length||!toca(g,K)))g.classList.add("aiox")});
   /* comprobaciones por sistema */
   const sis=app.querySelector('details.gd[data-k="SIS"]');if(sis){const ds=[...sis.querySelectorAll("details.sisd")];let v=0;
-   ds.forEach(d=>{if(toca(d,K))v++;else{d.classList.add("aiox");oc++}});if(ds.length&&!v)sis.classList.add("aiox")}
+   ds.forEach(d=>{if(toca(d,K)){v++;marca(d,K)}else{d.classList.add("aiox");oc++}});if(ds.length&&!v)sis.classList.add("aiox")}
   K.oc=oc}
  const cab=[...app.querySelectorAll(":scope > .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));if(!cab)return;
  if(!av){av=document.createElement("div");av.id="aiguia";av.className="aiof aigv"}
@@ -166,7 +178,7 @@ if(typeof window.otRelSig=="function"){const os=window.otRelSig;window.otRelSig=
 if(typeof gInsHTML=="function"){const oi=gInsHTML;window.gInsHTML=gInsHTML=function(){let h=oi.apply(this,arguments);try{if(todo)return h;
  const i=inc.find(x=>x.id==gOT);if(i&&window.insCons&&window.insCons(i.id))return h;/* v525: consultada → todos los módulos */const R=i&&anaOT(i);if(!R||!R._ia||!R.mods.length)return h;
  h=h.replace(/<button class="([^"]*)"( onclick="gISel\('([^']+)'\)")/g,(m,c,on,k)=>R.mods.includes(k)||k==gIMod?m:`<button class="${c} aiox"${on}`)}catch(e){}return h}}
-const st2=document.createElement("style");st2.textContent=`.aiox{display:none!important}.aigv{margin:0 0 10px;padding:7px 10px;border:1.5px solid #1565c0;border-radius:8px;background:color-mix(in srgb,#1565c0 7%,transparent);opacity:1;font-size:12.5px}`;document.head.appendChild(st2);
+const st2=document.createElement("style");st2.textContent=`.aipor{display:inline-block;font-size:11px;font-weight:700;color:#1565c0;background:#1565c014;border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:middle}.aiox{display:none!important}.aigv{margin:0 0 10px;padding:7px 10px;border:1.5px solid #1565c0;border-radius:8px;background:color-mix(in srgb,#1565c0 7%,transparent);opacity:1;font-size:12.5px}`;document.head.appendChild(st2);
 
 const st=document.createElement("style");st.textContent=`
 .aibox{margin:8px 0 10px;padding:8px 10px;border:2px solid #1565c0;border-radius:10px;background:color-mix(in srgb,#1565c0 6%,transparent)}
