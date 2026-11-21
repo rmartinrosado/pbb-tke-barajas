@@ -130,12 +130,31 @@ function pcFotos(c){const ubi=typeof compUbiDe=="function"?compUbiDe(c):"";
 window.pcFotosPaso=function(p){const m=p.medida||{};const L=pcComps([p.accion,m.punto,m.roja,m.negra].join(" "));
  return L.length?`<div class="pcfw">${L.map(pcFotos).join("")}</div>`:""};
 /* pintado común de la secuencia (cotejo y análisis IA) */
+/* v653: cuando un paso cita varios componentes («(IT-P2, ET-P3, C-P4…)» o «E-Q14, E-Q18 y E-K14»), cada uno sale en su propia línea */
+const RCOD=/\b[A-Z]{1,3}\d?-[A-Z]{1,3}\d+(?:\.\d+)?\b/;
+const trozos=t=>String(t).split(/\s*,\s*|\s+y\s+|\s+o\s+|\s*;\s*/).map(x=>x.trim()).filter(Boolean);
+const lis=it=>`<ul class="pclst">${it.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+function accHTML(a){a=String(a||"");
+ const m=a.match(/^([\s\S]*?)\(([^()]*)\)([\s\S]*)$/);
+ if(m){const it=trozos(m[2]);if(it.length>=2&&it.filter(x=>RCOD.test(x)).length>=2)return esc(m[1].trim()).replace(/[:,]?$/,":")+lis(it)+(m[3].trim().replace(/^[.,;]\s*$/,"")?`<div class="pclsd">${esc(m[3].trim().replace(/^[.,;]\s*/,""))}</div>`:"")}
+ /* sin paréntesis: «Comprobar el magnetotérmico E-Q14 / E-Q18 y el relé de vídeo E-K14 con tensión» (no en medidas entre dos puntos) */
+ if(/\bentre\b|\bmedir\b|polímetro|[A-Z]\d*-[A-Z]{1,3}\d+(?:\.\d+)?:/i.test(a))return esc(a);
+ const RG=new RegExp(RCOD.source,"g");const cs=[...a.matchAll(RG)];if(cs.length<2)return esc(a);
+ const ini=cs[0].index,fin=cs[cs.length-1].index+cs[cs.length-1][0].length;
+ const antes=a.slice(0,ini);const art=antes.match(/^(.*?\b(?:el|la|los|las|del|de los|de las)\s)(?!.*\b(?:el|la|los|las)\s)/i);
+ const cab=(art&&art[1].split(/\s+/).length<=6?art[1]:antes.split(/\s+/).length<=4?antes:"");if(cab===""&&antes.trim().split(/\s+/).length>4)return esc(a);
+ const zona=a.slice(cab.length,fin);const it=zona.split(/\s*,\s*|\s*\/\s*|\s+y\s+(?:el\s|la\s|los\s|las\s)?|\s+o\s+|\s*;\s*/).map(x=>x.trim()).filter(Boolean);
+ if(it.length<2||it.some(x=>x.split(/\s+/).length>7))return esc(a);
+ const tail=a.slice(fin).trim().replace(/^[.,;]\s*/,"");
+ return (cab.trim()?esc(cab.trim().replace(/\s+(el|la|los|las|del|de los|de las)$/i,""))+":":"")+lis(it)+(tail?`<div class="pclsd">${esc(tail)}</div>`:"")}
+
+window.pcAccHTML=accHTML;
 window.pcPasosHTML=function(o,tit){const P=(o&&o.pasos)||[];if(!P.length)return "";
  return `<div class="anal">${tit||"🛠️ Actuación en campo según los planos"}</div><div class="gst pcpas">`+P.map((p,n)=>{const m=p.medida;
-  return `<div class="pcpaso"><label class="gpaso"><input type="checkbox"><span><b>${n+1}.</b> ${esc(p.accion)}${p.plano?` <small class="mu">· ${esc(p.plano)}</small>`:""}</span></label>`+
+  return `<div class="pcpaso"><label class="gpaso"><input type="checkbox"><span><b>${n+1}.</b> ${accHTML(p.accion)}${p.plano?` <small class="mu">· ${esc(p.plano)}</small>`:""}</span></label>`+
    (m?`<div class="pcm">📏 <b>${esc(m.punto||"Medir")}</b><div>Polímetro: punta <b class="pcro">ROJA</b> en <b>${esc(m.roja)}</b> · punta <b>NEGRA</b> en <b>${esc(m.negra)}</b></div><div>Debe marcar <b>${esc(m.esperado)}</b></div></div>`:"")+
    window.pcFotosPaso(p)+(p.bien?`<div class="pcok">✅ <b>Bien →</b> ${esc(p.bien)}</div>`:"")+(p.mal?`<div class="pcko">❌ <b>Mal →</b> ${esc(p.mal)}</div>`:"")+`</div>`}).join("")+`</div>`};
-if(!document.getElementById("pcpas-css")){const st=document.createElement("style");st.id="pcpas-css";st.textContent=`.pcpaso{border-left:3px solid var(--pr,#f60);padding:4px 0 6px 8px;margin:8px 0}.pcpaso .pcm{margin:4px 0 4px 26px}.pcok,.pcko{margin:3px 0 0 26px;font-size:13px;line-height:1.35}.pcok b{color:#22a559}.pcko b{color:#e5484d}.pcfw{margin:6px 0 2px 26px}.pcfc{font-size:13px;margin-top:6px}.pcfu{font-size:12px;opacity:.85;margin-top:2px}.pcfw .pcifs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0 4px}.pcfw .pcifo{margin:0;background:#fff;border:1px solid #d0d0d0;border-radius:8px;padding:3px;text-align:center;cursor:zoom-in;min-width:0}.pcfw .pcifo img{display:block;width:100%;height:90px;object-fit:contain;background:#fff;border-radius:5px}.pcfw .pcifo figcaption{font-size:10.5px;color:#222;line-height:1.2}.pcfw .pcifo figcaption small{display:block;opacity:.7}.pcfw .pciub{border:2px solid #e08a00}`;document.head.appendChild(st)}
+if(!document.getElementById("pcpas-css")){const st=document.createElement("style");st.id="pcpas-css";st.textContent=`.pclst{margin:4px 0 2px;padding-left:18px}.pclst li{margin:2px 0;line-height:1.3}.pclsd{margin-top:3px}.pcpaso{border-left:3px solid var(--pr,#f60);padding:4px 0 6px 8px;margin:8px 0}.pcpaso .pcm{margin:4px 0 4px 26px}.pcok,.pcko{margin:3px 0 0 26px;font-size:13px;line-height:1.35}.pcok b{color:#22a559}.pcko b{color:#e5484d}.pcfw{margin:6px 0 2px 26px}.pcfc{font-size:13px;margin-top:6px}.pcfu{font-size:12px;opacity:.85;margin-top:2px}.pcfw .pcifs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0 4px}.pcfw .pcifo{margin:0;background:#fff;border:1px solid #d0d0d0;border-radius:8px;padding:3px;text-align:center;cursor:zoom-in;min-width:0}.pcfw .pcifo img{display:block;width:100%;height:90px;object-fit:contain;background:#fff;border-radius:5px}.pcfw .pcifo figcaption{font-size:10.5px;color:#222;line-height:1.2}.pcfw .pcifo figcaption small{display:block;opacity:.7}.pcfw .pciub{border:2px solid #e08a00}`;document.head.appendChild(st)}
 
 /* ---------- Claude: cruce de los planos ---------- */
 function paginas(p,D,cupo){if(!p.P)return "";
