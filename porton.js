@@ -30,7 +30,9 @@ function recuadro(){return `<div class="ptn ptnb">${CUERPO}</div>`}
 /* v663: nunca en averías de HZ (convertidor 400 Hz): tipo HZ, equipo HZ o el aviso habla de 400 Hz / HZ / GPU */
 const esHZ=i=>{if(!i)return false;if(String(i.tipo||"").toUpperCase()=="HZ")return true;if((i.equipos||[]).some(e=>String(e).toUpperCase()=="HZ"))return true;
  return /\b400 ?hz\b|\bhz\b|\bgpu\b|convertidor de frecuencia|convertidor 400/.test(otTxt(i))};
-function aplica(box,i){if(remota(i))return false;if(esHZ(i))return false;if(typeof window.otSoloAlum=="function"&&window.otSoloAlum(i))return false; /* v610: no en OT de alumbrado (gálibo, luces, caldeo) */const t=i?otTxt(i):nrm((box.querySelector(".pucab")||box).textContent);if(!RE.test(t))return false;
+/* v674: caja «BAJAR PORTÓN de CABINA» (y su aviso emergente) DESACTIVADA de momento. Para volver a mostrarla: PORTON_ON=true */
+const PORTON_ON=false;
+function aplica(box,i){if(!PORTON_ON)return false;if(remota(i))return false;if(esHZ(i))return false;if(typeof window.otSoloAlum=="function"&&window.otSoloAlum(i))return false; /* v610: no en OT de alumbrado (gálibo, luces, caldeo) */const t=i?otTxt(i):nrm((box.querySelector(".pucab")||box).textContent);if(!RE.test(t))return false;
  /* cámaras / RCS: solo si además hay bloqueo o falta de movimiento explícitos */
  if(CAM.test(t)&&!/bloquead|bloqueo|no (se )?(trasla|mueve|maniobra)|sin movimiento/.test(t))return false;return true}
 function inserta(){const cabs=document.querySelectorAll(".pucab");let nuevo=null;
