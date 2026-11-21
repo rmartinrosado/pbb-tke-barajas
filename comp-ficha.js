@@ -69,6 +69,11 @@ function mezcla(c,P){const act=((c.raw?c.raw.esp:c.esp)||[]).filter(r=>Array.isA
 
 /* ---- guardar en componentes_campo ---- */
 async function guarda(c,ficha,M){const row={ficha};if(M){row.esp=M.esp;row.fab=M.fab;row.pin=M.pin;row.av=M.av}
+ /* v644: pasar fotos a la ficha técnica solo AÑADE: las fotos de campo y de ubicación no se tocan, y se conservan las
+    especificaciones y fotos de ficha que haya en el servidor aunque este móvil tuviera una copia anterior */
+ if(c.db){try{const {data:sv}=await sb.from("componentes_campo").select("esp,ficha").eq("id",c.db).single();
+  if(sv){const fs=new Set(row.ficha.map(f=>f.src));(Array.isArray(sv.ficha)?sv.ficha:[]).forEach(f=>{if(f&&f.src&&!fs.has(f.src)){row.ficha.push(f);fs.add(f.src)}});
+   if(row.esp){const ks=new Set(row.esp.map(r=>nrm(r[0])));(sv.esp||[]).forEach(r=>{if(Array.isArray(r)&&!ks.has(nrm(r[0]))){row.esp.push(r);ks.add(nrm(r[0]))}})}}}catch(e){}}
  let r;if(c.db)r=await sb.from("componentes_campo").update(row).eq("id",c.db).select().single();
  else{const fotos=typeof compSubeFotos=="function"?await compSubeFotos((c.fotos||[]).map(f=>{const g=fo(f);return Object.assign({src:g.src,vista:g.vista||"Vista"},g.x&&g.x.o&&g.x.caja?{o:g.x.o,caja:g.x.caja}:{})})):(c.fotos||[]).map(fo);
   Object.assign(row,{base:c.id,codigo:c.id,titulo:c.t,fab:row.fab!=null?row.fab:(c.fab||""),claves:c.claves||"",esp:row.esp||(c.esp||[]),pin:row.pin||(c.pin||[]),med:c.med||[],av:row.av!=null?row.av:(c.av||""),fotos,

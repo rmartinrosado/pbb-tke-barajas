@@ -84,7 +84,8 @@ const sinRep=a=>(a||[]).filter(r=>!/^repuesto$/i.test(r[0]||""));
 function desde(c){const r=c.raw||{};const st=r.stock||{};
  return{codigo:c.id||"",titulo:c.t||"",fab:c.fab||"",claves:c.claves||r.claves||"",
   esp:(r.esp?r.esp:sinRep(c.esp)).map(x=>[x[0]||"",x[1]||""]),pin:(c.pin||[]).map(x=>x.slice(0,4)),med:(c.med||[]).slice(),av:c.av||"",
-  fotos:(c.fotos||[]).map(([src,vista,m])=>m&&m.o?{src,vista,o:m.o,caja:m.caja}:{src,vista}),stock:{ref:st.ref||"",sust:st.sust||"",ubi:st.ubi||"",uds:st.uds==null?"":st.uds}}}
+  fotos:(c.fotos||[]).map(([src,vista,m])=>m&&m.o?{src,vista,o:m.o,caja:m.caja}:{src,vista}),stock:{ref:st.ref||"",sust:st.sust||"",ubi:st.ubi||"",uds:st.uds==null?"":st.uds},
+  _ini:new Set((c.fotos||[]).map(f=>Array.isArray(f)?f[0]:(f||{}).src))}}
 async function foto(f){const im=await window.compLeeImg(f);const cv=window.compAJpg(im,1400);return cv.toDataURL("image/jpeg",.85)}
 
 window.compEdita=function(k,nuevas){const c=K[k]||(window.COMP_CAMPO||[]).find(x=>key(x)==k);if(!c){msg("Ficha no encontrada");return}
@@ -209,7 +210,11 @@ window.compEdGuarda=async function(){if(!ED||!cur)return;const p=ED;const b=capa
   fotos:p.fotos.map(f=>Object.assign({src:f.src,vista:(f.vista||"").trim()||"Vista"},f.o&&f.caja?{o:f.o,caja:f.caja}:{})),stock:p.stock};
  if(!cur.raw&&!cur.db)row.base=cur.id;
  try{let r;if(typeof compSubeFotos=="function")row.fotos=await compSubeFotos(row.fotos);
-  if(cur.db){r=await sb.from("componentes_campo").update(row).eq("id",cur.db).select().single()}
+  if(cur.db){/* v644: nunca se pierden fotos que no se han quitado aquí: las que hay en el servidor y no estaban al abrir el editor
+     (añadidas desde otro móvil, al incorporar o al unir fichas) se conservan, también las de campo y de ubicación */
+   try{const {data:sv}=await sb.from("componentes_campo").select("fotos").eq("id",cur.db).single();const ini=p._ini||new Set();
+    const ya=new Set(row.fotos.map(f=>f.src));(sv&&Array.isArray(sv.fotos)?sv.fotos:[]).forEach(f=>{if(f&&f.src&&!ini.has(f.src)&&!ya.has(f.src)){row.fotos.push(f);ya.add(f.src)}})}catch(e){}
+   r=await sb.from("componentes_campo").update(row).eq("id",cur.db).select().single()}
   else{row.creado_por=(typeof user!="undefined"&&user&&user.email)||"";r=await sb.from("componentes_campo").insert(row).select().single()}
   if(r.error)throw r.error;if(!r.data)throw new Error("Sin permiso para guardar");
   const k=key(cur);sucio=false;if(typeof compFotosPon=="function")compFotosPon(r.data.id,r.data.fotos||[]);
