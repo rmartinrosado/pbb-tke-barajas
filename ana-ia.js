@@ -116,7 +116,9 @@ function claveIA(){try{if(typeof gOT=="undefined"||!gOT||typeof inc=="undefined"
  const o=iaDe(i.id);if(!o)return null;const was=todo;todo=false;let R=null;try{R=anaOT(i)}catch(e){R=null}finally{todo=was}
  /* v657: OT sin códigos ni alarmas (p. ej. «Cámara rcs»): el análisis general no sale, pero la guía se filtra igual con los
     componentes que nombra la IA en el cotejo (antes no se filtraba nada) */
- const C0=R&&R._ia?R._ia.C:codigos(iaTexto(o).toUpperCase());if(!R||!R._ia)R={rel:[],guia:[],tipo:i.tipo||"PAS"};
+ /* v660: además de lo guardado, lo que se ve en la caja del cotejo (por si la respuesta trae los pasos en otro formato) */
+ let vis="";try{const g=document.getElementById("gpcot");if(g){const c=g.cloneNode(true);c.querySelectorAll("details,button,.pcdoc,.pcpl,.mu").forEach(x=>x.remove());vis=c.textContent||""}}catch(e){}
+ const C0=[...new Set([...(R&&R._ia?R._ia.C:[]),...codigos((iaTexto(o)+" \n "+vis).toUpperCase())])];if(!R||!R._ia)R={rel:[],guia:[],tipo:i.tipo||"PAS"};
  const cod=C0.filter(t=>!esMod(t)&&!/^E-Q30/.test(t));
  /* fuertes: dispositivos de campo, bornas concretas y señales (módulo + entrada); los borneros y mangueras sueltos
     (p. ej. E-X1 de 0 V) salen en casi toda la guía y solo cuentan si la IA no nombra nada más concreto */
@@ -126,11 +128,11 @@ function claveIA(){try{if(typeof gOT=="undefined"||!gOT||typeof inc=="undefined"
     «ver la alarma en el display»), no porque estén averiados; salen en casi todos los casos de la guía (Antiatrapamiento, Sirena…).
     Solo cuentan si la OT habla del pupitre o si la IA no nombra nada más. */
  const OPER=/^CP-[A-Z]{1,2}\d/;const otT=String([i.desc,i.def,i.obs].filter(Boolean).join(" ")).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
- if(!/pupitre|selector|pulsador|\bseta|display|magelis|pantalla|joystick|mando/.test(otT)){const d2=dis.filter(t=>!OPER.test(t));if(d2.length)dis=d2}
+ if(!/pupitre|selector|pulsador|\bseta|display|magelis|pantalla|joystick|mando/.test(otT))dis=dis.filter(t=>!OPER.test(t)); /* v660: siempre fuera, aunque no quede otro */
  const res=dis.map(t=>{const r=re(t);r.lab=t;return r});
  bornas(iaTexto(o)).forEach(b=>{const [x,n]=b.split(":");res.push(Object.assign(new RegExp("(^|[^A-Z0-9-])\\+?"+reE(x)+"\\s*(?::|BORNA|BORNE)\\s*"+reE(n)+"(?![0-9])"),{lab:b}))});
  (R.rel||[]).forEach(x=>{const led=String(x.S&&(x.S.led||x.S.b)||"").trim();if(led)res.push(Object.assign(new RegExp(reE(x.mod)+"[^\\n;]{0,45}?(?<![\\d.])"+reE(led)+"(?![\\d])"),{lab:x.mod+" "+led}))});
- if(!res.length)cod.forEach(t=>res.push(Object.assign(re(t),{lab:t})));
+ if(!res.length)cod.filter(t=>dis.includes(t)||!OPER.test(t)).forEach(t=>res.push(Object.assign(re(t),{lab:t})));
  const keys=new Set((R.guia||[]).map(g=>(R.tipo||"PAS")+g.si));return {i,R,res,keys,o}}catch(e){return null}}
 /* v654: con el cotejo de la IA solo quedan fijas la primera actuación (SEG), Componentes (CMP) y Cierre (CIE).
    Cotejar PLC e Inspección cable a cable solo si la avería pasa por señales del PLC; Mapa de alimentaciones solo si nombra lo de la IA. */
@@ -170,7 +172,8 @@ function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=
  if(!av){av=document.createElement("div");av.id="aiguia";av.className="aiof aigv"}
  if(cab.nextElementSibling!==av)cab.insertAdjacentElement("afterend",av);
  const h=todo?`Se ve toda la guía. <a href="#" onclick="event.preventDefault();anaIATodo(false)">Solo lo de la OT (IA)</a>`:
-  `🤖 Guía filtrada con la IA (${esc(K.o.lector||"IA")}): solo lo de la OT${K.oc?` · ${K.oc} apartado(s) ocultos`:""}. <a href="#" onclick="event.preventDefault();anaIATodo(true)">Ver todo</a>`;
+  `🤖 Guía filtrada con la IA (${esc(K.o.lector||"IA")}): solo lo de la OT${K.oc?` · ${K.oc} apartado(s) ocultos`:""}. <a href="#" onclick="event.preventDefault();anaIATodo(true)">Ver todo</a>`+
+  `<div style="font-size:11.5px;margin-top:3px;opacity:.85">Componentes que filtran: ${[...new Set((K.resU||K.res).map(r=>r.lab).filter(Boolean))].map(esc).join(", ")||"—"}</div>`;
  if(av.innerHTML!==h)av.innerHTML=h}
 let tg=0;const app0=document.getElementById("app");
 if(app0)new MutationObserver(()=>{if(tg)return;tg=setTimeout(()=>{tg=0;try{filtraGuia()}catch(e){console.warn("ana-ia guía",e)}},120)}).observe(app0,{childList:true});
