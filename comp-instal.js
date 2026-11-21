@@ -85,7 +85,7 @@ function mapaModulo(c,cs){const C=window.CABLEADO||{};
 window.compInstalHTML=function(c){if(!c)return "";const cs=new Set(cods(c.id));
  const mm=mapaModulo(c,cs);
  if(mm){const CL=circuitos(c),C=window.CABLEADO||{};const D=Object.values(C).filter(e=>cs.has(String(e.m).toUpperCase())&&(e.n||[]).length).sort((a,b)=>String(a.b).localeCompare(String(b.b),"es",{numeric:true}));
-  return `<details class="cinst"><summary><span class="cnverde">INSTALACIÓN · ORIGEN → DESTINO</span> <small>croquis del módulo</small></summary>
+  return `<details class="cinst"><summary><span class="cnverde">INSTALACIÓN · ORIGEN → DESTINO</span> <small class="cimod">CROQUIS DEL MÓDULO</small></summary>
   <div class="cimu">Esquema rev. J (504/508 y 507: mismos elementos, puede cambiar el hilo). Origen = módulo; destino = elemento de campo; en medio, borneros (bornero:borna) y mangueras (🧵 · c. = conductor). Bandas 📍 = ubicación en campo.</div>${mm}
   <details class="cic"><summary><b>Detalle canal a canal (ida y retorno)</b> <small>${D.length} canales cableados</small></summary>${D.map(e=>`<details class="cic"><summary><b>${E(e.d||e.b)}</b> <small>${E(e.m+" "+e.b)} · folio ${E(e.f)}</small></summary><div class="cicr">${croquis(e,cs)}</div></details>`).join("")}</details></details>`}
  const L=circuitos(c);
@@ -104,6 +104,7 @@ const st=document.createElement("style");st.textContent=`
 details.cinst{margin:12px 0 4px;border:1px solid var(--line,#ccc);border-radius:10px;padding:6px 8px;background:var(--card,transparent)}
 details.cinst>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap}details.cinst>summary::-webkit-details-marker{display:none}
 details.cinst>summary .cnverde{display:inline-block;margin:0}
+.cimod{font-weight:800;letter-spacing:.4px}
 .cimu{font-size:12px;opacity:.8;margin:6px 2px}
 details.cic{margin:8px 0;border-left:3px solid #2e9e44;padding-left:8px}details.cic>summary{cursor:pointer;font-size:13.5px;line-height:1.3}details.cic>summary small{display:block;opacity:.75}
 .cicr{margin:6px 0 4px}
