@@ -113,8 +113,11 @@ window.addEventListener("pc-ia",()=>{todo=false;repinta()});
    Inspección, Mapa de alimentaciones, Componentes y Cierre.
    Aviso arriba de la guía con «Ver todo» / «Solo lo de la OT». ===== */
 function claveIA(){try{if(typeof gOT=="undefined"||!gOT||typeof inc=="undefined")return null;const i=inc.find(x=>x.id==gOT);if(!i)return null;
- const o=iaDe(i.id);if(!o)return null;const was=todo;todo=false;let R=null;try{R=anaOT(i)}finally{todo=was}if(!R||!R._ia)return null;
- const cod=R._ia.C.filter(t=>!esMod(t)&&!/^E-Q30/.test(t));
+ const o=iaDe(i.id);if(!o)return null;const was=todo;todo=false;let R=null;try{R=anaOT(i)}catch(e){R=null}finally{todo=was}
+ /* v657: OT sin códigos ni alarmas (p. ej. «Cámara rcs»): el análisis general no sale, pero la guía se filtra igual con los
+    componentes que nombra la IA en el cotejo (antes no se filtraba nada) */
+ const C0=R&&R._ia?R._ia.C:codigos(iaTexto(o).toUpperCase());if(!R||!R._ia)R={rel:[],guia:[],tipo:i.tipo||"PAS"};
+ const cod=C0.filter(t=>!esMod(t)&&!/^E-Q30/.test(t));
  /* fuertes: dispositivos de campo, bornas concretas y señales (módulo + entrada); los borneros y mangueras sueltos
     (p. ej. E-X1 de 0 V) salen en casi toda la guía y solo cuentan si la IA no nombra nada más concreto */
  const re=t=>new RegExp("(^|[^A-Z0-9-])\\+?"+reE(t)+"(?![0-9A-Z.])");
