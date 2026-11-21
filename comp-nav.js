@@ -35,14 +35,22 @@ function fichaOrden(c){let fh=typeof compFicha=="function"?compFicha(c):"";
  if(mf){const nf=(mf[0].match(/<figure/g)||[]).length;fh=fh.replace(mf[0],F("det",V("DETALLES DE CAMPO")+(nf?` <small class="cnfn">📷 ${nf} foto${nf>1?"s":""}</small>`:""),mf[0]))}
  const mm=fh.match(/<div class="cnverde cnmedir">MEDIR EN CAMPO<\/div>(<ol class="cmpo">[\s\S]*?<\/ol>)((?:<div class="gav">[\s\S]*?<\/div>)?)/);
  if(mm)fh=fh.replace(mm[0],F("med",`<div class="cnverde cnmedir">MEDIR EN CAMPO</div> <small class="cnfn">${(mm[1].match(/<li/g)||[]).length} pasos</small>`,mm[1]+mm[2]));
- return {fh,spec:spec?F("esp",V("ESPECIFICACIONES"),`<div class="cnspec">${spec}</div>`,"cnfesp"):""}}
+ /* v647: dentro de la caja «Repuesto» van también DETALLES DE CAMPO, ALARMAS RELACIONADAS, MEDICIÓN EN CAMPO (verde) e
+    INSTALACIÓN · ORIGEN → DESTINO (amarilla); fuera de la caja solo quedan «Editar ficha» y «Foto nueva». */
+ const saca=re=>{const m=fh.match(re);if(!m)return"";fh=fh.replace(m[0],"");return m[0]};
+ const inst=saca(/<details class="cinst">[\s\S]*$/);
+ const det=saca(/<details class="cnfold" data-fk="det\|[\s\S]*?<\/details>/);
+ const ala=saca(/<div class="cnverde">(?:SIN )?ALARMAS RELACIONADAS<\/div>(?:<div class="alpl">[\s\S]*?<\/small><\/div>)?/);
+ const med=saca(/<details class="cnfold" data-fk="med\|[\s\S]*?<\/details>/).replace("MEDIR EN CAMPO</div>","MEDICIÓN EN CAMPO</div>").replace("cnverde cnmedir","cnverde");
+ const esp=spec?F("esp",V("ESPECIFICACIONES"),`<div class="cnspec">${spec}</div>`,"cnfesp"):"";
+ return {fh,spec:esp,mas:det+ala+med+inst}}
 const ABRE=new Set();
 document.addEventListener("toggle",ev=>{const d=ev.target;if(!d||!d.matches||!d.matches("details.cnfold[data-fk]"))return;d.open?ABRE.add(d.dataset.fk):ABRE.delete(d.dataset.fk)},true);
-const repuesto=(c,spec)=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
+const repuesto=(c,spec,mas)=>{const f=[];if(c.fab)f.push(["Modelo",c.fab]);
  const s=String(c.av||"").match(/AL SUSTITUIR:?\s*([^]*)$/i);if(s)f.push(["Al sustituir",s[1].trim()]);
  const r=(c.esp||[]).find(x=>/^repuesto$/i.test(x[0]));if(r)f.push(["Almacén",r[1]]);
  const ft=typeof compFichaTec=="function"?compFichaTec(c):"";/* v576: botón «Ficha técnica» del repuesto */
- return f.length||ft||spec?`<div class="cnrep"><div class="cnrt">🔧 Repuesto</div>${f.length?`<table>${f.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table>`:""}${ft}${spec||""}</div>`:""};
+ return f.length||ft||spec||mas?`<div class="cnrep"><div class="cnrt">🔧 Repuesto</div>${f.length?`<table>${f.map(([k,v])=>`<tr><th>${E(k)}</th><td>${E(v)}</td></tr>`).join("")}</table>`:""}${ft}${spec||""}${mas||""}</div>`:""};
 /* v574: pestaña «A IMPORTAR»: elementos de campo, dispositivos y borneros de los planos (window.COMP_PLANOS, comp-importar-datos.js)
    que todavía no tienen ficha en Componentes de campo. Se calcula al vuelo: al incorporar un componente con su código, desaparece de la lista. */
 const IMP="__imp";
@@ -90,7 +98,7 @@ function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).v
  const el=capa.querySelector("#cn_l");if(zSel==IMP){el.innerHTML=listaImp(ws);return}
  el.innerHTML=(solo?`<div class="cnsolo"><span>🚨 ${E(solo.t)}</span><button type="button" class="sec" data-todos="1">Ver todos</button></div>`:"")+`<div class="mu" style="font-size:12px;margin:6px 0">${F.length} componente${F.length==1?"":"s"}${ws.length||zSel?(F.length==1?" encontrado":" encontrados"):""}</div>`+
   (F.length?F.map(c=>{const k=String(c.baseId||c.db||c.id);const bt=c.db?(c.baseId?"↩️<br>Restaurar":"🗑<br>Eliminar"):"🔒<br>De fábrica";
-   return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${(()=>{const o=fichaOrden(c);return repuesto(c,o.spec)+o.fh})()}</details></div>`}).join("")
+   return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${(()=>{const o=fichaOrden(c);return (()=>{const bx=repuesto(c,o.spec,o.mas);const i=o.fh.indexOf(">",o.fh.indexOf('<div class="cmpf"'))+1;return i>0?o.fh.slice(0,i)+bx+o.fh.slice(i):bx+o.fh})()})()}</details></div>`}).join("")
   :`<div class="cnvac">Sin componentes para «${E(q)}».<br>Prueba con el código (p. ej. E-Q24), el nombre o el modelo.</div>`)+
   (ws.length?(()=>{/* v638: también los elementos de los planos (pendientes y ya incorporados) */cargaQui();const S=estados().filter(x=>!x.quit&&ws.every(w=>casa(x.r.join(" "),w)));
    return S.length?`<div class="cnverde" style="margin-top:12px">EN LOS PLANOS · A IMPORTAR</div>`+S.slice(0,30).map(filaImp).join(""):""})():"")}
@@ -210,7 +218,7 @@ html.cnInc #sheet{z-index:70!important}
 #compCapa .cnch small{opacity:.65;font-weight:700;margin-left:2px}
 #compCapa details.cnfold{margin:6px 0}#compCapa details.cnfold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap}#compCapa details.cnfold>summary::-webkit-details-marker{display:none}
 #compCapa details.cnfold>summary .cnverde{margin:2px 0}#compCapa details.cnfold>summary::after{content:"▼";font-size:12px;opacity:.6}#compCapa details.cnfold[open]>summary::after{content:"▲"}
-#compCapa .cnfn{font-size:12px;opacity:.75;font-weight:700}#compCapa details.cnfesp{margin-top:10px}
+#compCapa .cnfn{font-size:12px;opacity:.75;font-weight:700}#compCapa details.cnfesp{margin-top:10px}#compCapa .cnrep details.cinst{background:transparent}#compCapa details.cinst>summary .cnverde{background:#facc15;color:#000}#compCapa .cnrep .cedb{margin-top:6px}
 #compCapa .cnverde.cnmedir{background:#facc15;color:#000;animation:cnmedirP 1s ease-in-out infinite}
 @keyframes cnmedirP{0%,100%{background:#facc15;box-shadow:0 0 0 0 #facc1599}50%{background:#fde68a;box-shadow:0 0 0 6px #facc1500}}
 #compCapa .cnverde{display:inline-flex;align-items:center;padding:6px 12px;border-radius:8px;background:#22c55e;color:#000;font-weight:900;font-size:13.5px;letter-spacing:.8px;text-transform:uppercase;margin:8px 0 6px}
