@@ -27,7 +27,9 @@ function iaDe(id){if(!id)return null;
  try{let best=null;const pre="pc_ia_"+id+"_";for(let k=0;k<localStorage.length;k++){const n=localStorage.key(k);if(!n||n.indexOf(pre)!==0)continue;
    try{const o=JSON.parse(localStorage.getItem(n));if(o&&(!best||(o.t||0)>(best.t||0)))best=o}catch(e){}}
   return best}catch(e){return null}}
-function iaTexto(o){return [o.resumen,...(o.eficaz||[]),...(o.medir||[]).map(m=>[m.punto,m.roja,m.negra,m.esperado,m.si_no].join(" "))].filter(Boolean)/* «planos» no cuenta: solo lo que la IA aplica a la avería */.join(" \n ")}
+/* v654: también los «pasos» del cotejo nuevo (acción, medida, bien/mal), donde la IA nombra los componentes y lo que les afecta */
+function iaTexto(o){return [o.resumen,...(o.eficaz||[]),...(o.medir||[]).map(m=>[m.punto,m.roja,m.negra,m.esperado,m.si_no].join(" ")),
+  ...(o.pasos||[]).map(p=>[p.accion,p.medida&&[p.medida.punto,p.medida.roja,p.medida.negra,p.medida.esperado].join(" "),p.bien,p.mal].filter(Boolean).join(" "))].filter(Boolean)/* «planos» no cuenta: solo lo que la IA aplica a la avería */.join(" \n ")}
 function codigos(txt){const out=[];const T=String(txt||"").toUpperCase();let m;TAG.lastIndex=0;
  while((m=TAG.exec(T))){const c=m[1].replace(/'+$/,"");if(!out.includes(c))out.push(c)}
  /* fuera los pegados a otra palabra («E-A2E») si existe el corto */
@@ -122,7 +124,11 @@ function claveIA(){try{if(typeof gOT=="undefined"||!gOT||typeof inc=="undefined"
  (R.rel||[]).forEach(x=>{const led=String(x.S&&(x.S.led||x.S.b)||"").trim();if(led)res.push(new RegExp(reE(x.mod)+"[^\\n;]{0,45}?(?<![\\d.])"+reE(led)+"(?![\\d])"))});
  if(!res.length)cod.forEach(t=>res.push(re(t)));
  const keys=new Set((R.guia||[]).map(g=>(R.tipo||"PAS")+g.si));return {i,R,res,keys,o}}catch(e){return null}}
-const FIJAS=/^(SEG|COT|INS|SIS|ALIM|CMP|CIE|SIS.*)$/;
+/* v654: con el cotejo de la IA solo quedan fijas la primera actuación (SEG), Componentes (CMP) y Cierre (CIE).
+   Cotejar PLC e Inspección cable a cable solo si la avería pasa por señales del PLC; Mapa de alimentaciones solo si nombra lo de la IA. */
+const FIJAS=/^(SEG|CMP|CIE)$/;
+const plcOK=K=>!!(K.R&&K.R.rel&&K.R.rel.length);
+const fija=(d,K)=>{const k=d.dataset.k||"";if(FIJAS.test(k))return true;if(k=="COT"||k=="INS")return plcOK(K);if(k=="SIS")return true;return null};
 const toca=(el,K)=>{const t=(el.textContent||"").toUpperCase();return K.res.some(r=>r.test(t))};
 function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=document.getElementById("app");if(!app)return;
  const K=todo?null:claveIA();
@@ -130,7 +136,7 @@ function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=
  let av=document.getElementById("aiguia");
  if(!K&&!todo){if(av)av.remove();return}
  if(K){let oc=0;
-  const caso=d=>{const k=d.dataset.k||"";if(FIJAS.test(k)||d.classList.contains("gef")||d.id=="gpcot"||d.id=="anag")return true;if(K.keys.has(k))return true;return toca(d,K)};
+  const caso=d=>{const k=d.dataset.k||"";const f=fija(d,K);if(f!==null)return f;if(d.classList.contains("gef")||d.id=="gpcot"||d.id=="anag")return true;if(K.keys.has(k))return true;return toca(d,K)};
   /* cajas sueltas de avería */
   [...app.children].forEach(c=>{if(c.matches("details.gd")&&!caso(c)){c.classList.add("aiox");oc++}});
   /* grupos de casos */
