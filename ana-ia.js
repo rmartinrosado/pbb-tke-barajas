@@ -113,12 +113,15 @@ window.addEventListener("pc-ia",()=>{todo=false;repinta()});
    Inspección, Mapa de alimentaciones, Componentes y Cierre.
    Aviso arriba de la guía con «Ver todo» / «Solo lo de la OT». ===== */
 function claveIA(){try{if(typeof gOT=="undefined"||!gOT||typeof inc=="undefined")return null;const i=inc.find(x=>x.id==gOT);if(!i)return null;
- const o=iaDe(i.id);if(!o)return null;const was=todo;todo=false;let R=null;try{R=anaOT(i)}catch(e){R=null}finally{todo=was}
+ /* v661: también filtra si el cotejo de esta OT está elegido aunque la IA haya fallado («Load failed»): entonces con los
+    «Posibles componentes afectados» de la primera actuación (los que se ven en pantalla) */
+ let o=iaDe(i.id);const sel=typeof window.pcSelOT=="function"?window.pcSelOT(i.id):0;if(!o&&!sel)return null;o=o||{lector:"componentes afectados"};
+ let afe=[];try{afe=[...document.querySelectorAll("#gcomp .cmpid")].map(x=>String(x.textContent||"").trim().toUpperCase().replace(/[\u2010-\u2015\u2212]/g,"-")).filter(Boolean)}catch(e){}const was=todo;todo=false;let R=null;try{R=anaOT(i)}catch(e){R=null}finally{todo=was}
  /* v657: OT sin códigos ni alarmas (p. ej. «Cámara rcs»): el análisis general no sale, pero la guía se filtra igual con los
     componentes que nombra la IA en el cotejo (antes no se filtraba nada) */
  /* v660: además de lo guardado, lo que se ve en la caja del cotejo (por si la respuesta trae los pasos en otro formato) */
  let vis="";try{const g=document.getElementById("gpcot");if(g){const c=g.cloneNode(true);c.querySelectorAll("details,button,.pcdoc,.pcpl,.mu").forEach(x=>x.remove());vis=c.textContent||""}}catch(e){}
- const C0=[...new Set([...(R&&R._ia?R._ia.C:[]),...codigos((iaTexto(o)+" \n "+vis).toUpperCase())])];if(!R||!R._ia)R={rel:[],guia:[],tipo:i.tipo||"PAS"};
+ const C0=[...new Set([...(R&&R._ia?R._ia.C:[]),...codigos((iaTexto(o)+" \n "+vis).toUpperCase()),...afe])];if(!R||!R._ia)R={rel:[],guia:[],tipo:i.tipo||"PAS"};
  const cod=C0.filter(t=>!esMod(t)&&!/^E-Q30/.test(t));
  /* fuertes: dispositivos de campo, bornas concretas y señales (módulo + entrada); los borneros y mangueras sueltos
     (p. ej. E-X1 de 0 V) salen en casi toda la guía y solo cuentan si la IA no nombra nada más concreto */
@@ -151,7 +154,7 @@ function depura(K,cands){if(K.resU)return;const n=cands.length;if(!n){K.resU=K.r
 function marca(d,K){if(d.querySelector(":scope>summary .aipor"))return;const p=porDe(d,K).map(r=>r.lab).filter(Boolean);if(!p.length)return;
  const sm=d.querySelector(":scope>summary");if(sm)sm.insertAdjacentHTML("beforeend",` <span class="aipor" title="Se muestra porque la IA nombra este componente">🔎 ${[...new Set(p)].slice(0,3).map(esc).join(", ")}</span>`)}
 function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=document.getElementById("app");if(!app)return;
- let K=todo?null:claveIA();if(K&&!K.res.length)K=null; /* v655: la IA no nombra ningún componente → no se oculta nada (antes la guía quedaba vacía) */
+ let K=todo?null:claveIA();if(K&&!K.res.length){K=null;const a0=document.getElementById("aiguia");if(a0)a0.remove()} /* v655: la IA no nombra ningún componente → no se oculta nada (antes la guía quedaba vacía) */
  app.querySelectorAll(".aiox").forEach(e=>e.classList.remove("aiox"));
  let av=document.getElementById("aiguia");
  if(!K)app.querySelectorAll(".aipor").forEach(e=>e.remove());
@@ -172,7 +175,7 @@ function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=
  if(!av){av=document.createElement("div");av.id="aiguia";av.className="aiof aigv"}
  if(cab.nextElementSibling!==av)cab.insertAdjacentElement("afterend",av);
  const h=todo?`Se ve toda la guía. <a href="#" onclick="event.preventDefault();anaIATodo(false)">Solo lo de la OT (IA)</a>`:
-  `🤖 Guía filtrada con la IA (${esc(K.o.lector||"IA")}): solo lo de la OT${K.oc?` · ${K.oc} apartado(s) ocultos`:""}. <a href="#" onclick="event.preventDefault();anaIATodo(true)">Ver todo</a>`+
+  (K.o.lector=="componentes afectados"?`🔩 Guía filtrada con los posibles componentes afectados (sin resultado de la IA)`:`🤖 Guía filtrada con la IA (${esc(K.o.lector||"IA")})`)+`: solo lo de la OT${K.oc?` · ${K.oc} apartado(s) ocultos`:""}. <a href="#" onclick="event.preventDefault();anaIATodo(true)">Ver todo</a>`+
   `<div style="font-size:11.5px;margin-top:3px;opacity:.85">Componentes que filtran: ${[...new Set((K.resU||K.res).map(r=>r.lab).filter(Boolean))].map(esc).join(", ")||"—"}</div>`;
  if(av.innerHTML!==h)av.innerHTML=h}
 let tg=0;const app0=document.getElementById("app");

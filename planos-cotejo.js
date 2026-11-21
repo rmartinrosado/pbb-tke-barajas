@@ -27,6 +27,7 @@ try{const oS=gSetDoc;gSetDoc=function(v){oS(v);try{if(gOT){ls.s("g_doc_ot_"+gOT+
  try{ANA_C={k:"",r:null}}catch(e){}const w=$q("#gpcsel");if(w)w.remove();pinta()}}catch(e){}
 
 /* ---------- selección de planos por OT ---------- */
+window.pcSelOT=id=>{try{return (selDe(id)||[]).length}catch(e){return 0}}; /* v661: la OT tiene planos elegidos para cotejar */
 function selDe(id){try{const v=JSON.parse(ls.g("pc_docs_"+id)||"null");return Array.isArray(v)?v:null}catch(e){return null}}
 function guardaSel(id,a){ls.s("pc_docs_"+id,JSON.stringify([...new Set(a)]))}
 function sugeridos(i,l){const out=[];const add=id=>{if(id&&!out.includes(id))out.push(id)};
