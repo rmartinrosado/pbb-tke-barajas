@@ -87,8 +87,11 @@ function listaImp(ws){cargaQui();const S=estados(),tot=S.length;
   (F.length?zs.map(z=>{const n=g[z].filter(x=>!x.hecho).length,h=g[z].length-n;return `<details class="cnimpz" data-g="${E(z)}"${ws.length||gAb.has(z)?" open":""}><summary>${E(z)} <small>${n}${h?` · <s>${h}</s>`:""}</small></summary>${g[z].map(fila).join("")}</details>`}).join("")
   :`<div class="cnvac">Nada${ws.length?" con esa búsqueda":""}.</div>`)+
   (qs.length?`<details class="cnimpz cnimpqz"><summary>🗑️ Quitados de la lista <small>${qs.length}</small></summary>${qs.map(x=>`<div class="cnimp"><span class="cmpid">${E(x.r[0])}</span><span class="cnimpn">${E(x.r[1])}<small>${E(x.r[2])}</small></span><button type="button" class="sec" data-dev="${E(x.r[0])}" style="width:auto!important;padding:6px 10px!important;font-size:12px!important">↩️ Devolver</button></div>`).join("")}</details>`:"")}
-let capa=null,zSel="",abiertos=new Set(),solo=null;/* v563: solo = {k:Set de claves, t:rótulo} → lista acotada a los componentes de una alarma */
-function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).value||"").trim();
+let capa=null,zSel="",abiertos=new Set(),solo=null,foco=null,focoY=0;/* v649: foco = ficha seleccionada que se ve sola *//* v563: solo = {k:Set de claves, t:rótulo} → lista acotada a los componentes de una alarma */
+let qAnt=null,zAnt=null;
+function lista(){if(capa){const q=(capa.querySelector("#cn_q")||{}).value||"";if(foco&&(q!==qAnt||zSel!==zAnt)){abiertos.delete(foco);foco=null;try{if(history.state&&history.state.ficha)history.back()}catch(e){}}qAnt=q;zAnt=zSel}
+ listaBase();aplicaFoco()}
+function listaBase(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).value||"").trim();
  const ws=q.split(/\s+/).filter(Boolean);
  const todos=L(),zs=[...new Set(todos.map(zona))].sort((a,b)=>(a=="Otros")-(b=="Otros")||a.localeCompare(b,"es"));/* v570: zonas en orden alfabético, «Otros» al final */
  const nImp=pendientes().length;
@@ -102,6 +105,22 @@ function lista(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).v
   :`<div class="cnvac">Sin componentes para «${E(q)}».<br>Prueba con el código (p. ej. E-Q24), el nombre o el modelo.</div>`)+
   (ws.length?(()=>{/* v638: también los elementos de los planos (pendientes y ya incorporados) */cargaQui();const S=estados().filter(x=>!x.quit&&ws.every(w=>casa(x.r.join(" "),w)));
    return S.length?`<div class="cnverde" style="margin-top:12px">EN LOS PLANOS · A IMPORTAR</div>`+S.slice(0,30).map(filaImp).join(""):""})():"")}
+/* ===== v649: al seleccionar un componente se ve SOLO esa ficha (la lista general no corre por debajo);
+   se vuelve al listado con la flecha flotante, el atrás del móvil o plegando la ficha. ===== */
+function aplicaFoco(){if(!capa)return;const el=capa.querySelector("#cn_l");if(!el)return;
+ el.querySelectorAll(".cnfoc").forEach(x=>x.classList.remove("cnfoc"));
+ const w=foco&&el.querySelector(`.cnsw[data-k="${CSS.escape(foco)}"]`);
+ if(!w){el.classList.remove("cnSolo");return}w.classList.add("cnfoc");el.classList.add("cnSolo")}
+function enfoca(k){if(!capa)return;const el=capa.querySelector("#cn_l");if(foco!=k)focoY=el?el.scrollTop:0;
+ const nuevo=!foco;foco=k;abiertos.clear();abiertos.add(k);
+ el.querySelectorAll("details.cni[open]").forEach(d=>{if(d.dataset.k!=k)d.open=false});
+ aplicaFoco();if(el)el.scrollTop=0;if(nuevo){try{history.pushState({comp:1,ficha:1},"")}catch(e){}}}
+function desenfoca(){if(!foco||!capa)return false;const k=foco;foco=null;abiertos.delete(k);const el=capa.querySelector("#cn_l");
+ const d=el&&el.querySelector(`details.cni[data-k="${CSS.escape(k)}"]`);if(d)d.open=false;aplicaFoco();if(el)el.scrollTop=focoY;return true}
+window.compNavDesenfoca=desenfoca;
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#fabb");if(!b||!foco||!capa||capa.style.display=="none")return;
+ e.preventDefault();e.stopImmediatePropagation();desenfoca();try{if(history.state&&history.state.ficha)history.back()}catch(_){}},true);
+addEventListener("popstate",()=>{if(foco){let st=null;try{st=history.state}catch(e){}if(!(st&&st.ficha))desenfoca()}});
 function abre(){
  if(!capa){capa=document.createElement("div");capa.id="compCapa";
   capa.innerHTML=`<div class="cnfix"><div class="cnh"><button type="button" class="sec cnb" aria-label="Volver" onclick="cierraComp()">←</button><div class="cnti"><b>🔩 Componentes de campo</b><small>Consulta de repuestos · sin OT asociada</small></div></div>
@@ -125,14 +144,16 @@ function abre(){
     setTimeout(()=>{const pon=(id,v)=>{const i=document.getElementById(id);if(i&&!i.value){i.value=v;i.dispatchEvent(new Event("input",{bubbles:true}))}};
      pon("ic_cod",t);pon("ic_donde",(r[2]||"")+(r[1]?" · "+r[1]:""))},60)}});
   capa.querySelector("#cn_z").addEventListener("click",e=>{const b=e.target.closest(".cnch");if(!b)return;zSel=b.dataset.z||"";lista()});
+  capa.querySelector("#cn_l").addEventListener("click",e=>{const sm=e.target.closest&&e.target.closest("details.cni>summary");if(!sm)return;const d=sm.parentElement;
+   if(!d.open)setTimeout(()=>enfoca(d.dataset.k),0);else if(foco==d.dataset.k){e.preventDefault();desenfoca();try{if(history.state&&history.state.ficha)history.back()}catch(_){}}});
   capa.querySelector("#cn_l").addEventListener("toggle",e=>{const d=e.target;if(d.classList&&d.classList.contains("cnimpz")&&d.dataset.g){d.open?gAb.add(d.dataset.g):gAb.delete(d.dataset.g);return}if(!d.classList||!d.classList.contains("cni"))return;d.open?abiertos.add(d.dataset.k):abiertos.delete(d.dataset.k);
   /* v560: al abrir una ficha cuyas fotos aún no han llegado, se piden ya */
   if(d.open){const c=L().find(x=>String(x.baseId||x.db||x.id)==d.dataset.k);if(c&&c._fp&&typeof compFotosAsegura=="function")compFotosAsegura(c).then(()=>{if(d.isConnected)lista()})}},true)}
  /* v562: al abrir Componentes de campo, SIEMPRE todas las fichas plegadas (no recuerda las abiertas la vez anterior) */
- abiertos.clear();solo=null;lista();{const l=capa.querySelector("#cn_l");if(l)l.scrollTop=0}capa.style.display="flex";document.documentElement.style.overflow="hidden";
+ abiertos.clear();solo=null;foco=null;lista();{const l=capa.querySelector("#cn_l");if(l)l.scrollTop=0}capa.style.display="flex";document.documentElement.style.overflow="hidden";
  try{history.pushState({comp:1},"")}catch(e){}}
-function cierra(desdeHist){if(!capa||capa.style.display=="none")return;capa.style.display="none";document.documentElement.style.overflow="";
- if(!desdeHist){try{if(history.state&&history.state.comp)history.back()}catch(e){}}}
+function cierra(desdeHist){if(!capa||capa.style.display=="none")return;capa.style.display="none";document.documentElement.style.overflow="";foco=null;
+ if(!desdeHist){try{const st=history.state;if(st&&st.ficha)history.go(-2);else if(st&&st.comp)history.back()}catch(e){}}}
 /* v533: botón «Incorporar componente» en la consulta de repuestos del menú de abajo. Abre el mismo formulario de
    incorporar (fotos + IA) por encima de la capa; al guardar, o al cerrarlo con ✕, se vuelve a esta lista (ya buscada por
    el código guardado). */
@@ -216,7 +237,7 @@ html.cnInc #sheet{z-index:70!important}
 #compCapa .cnch{flex:none;width:auto!important;margin:0!important;padding:5px 10px!important;border-radius:16px!important;border:1px solid var(--bd,#2a2f38)!important;
  background:transparent!important;color:var(--tx,#e9ecf1)!important;font-size:12.5px!important;font-weight:600;white-space:nowrap;min-height:0!important}
 #compCapa .cnch small{opacity:.65;font-weight:700;margin-left:2px}
-#compCapa details.cnfold{margin:6px 0}#compCapa details.cnfold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap}#compCapa details.cnfold>summary::-webkit-details-marker{display:none}
+#compCapa #cn_l.cnSolo>*:not(.cnfoc){display:none!important}#compCapa #cn_l.cnSolo .cnfoc{margin-top:0}#compCapa details.cnfold{margin:6px 0}#compCapa details.cnfold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap}#compCapa details.cnfold>summary::-webkit-details-marker{display:none}
 #compCapa details.cnfold>summary .cnverde{margin:2px 0}#compCapa details.cnfold>summary::after{content:"▼";font-size:12px;opacity:.6}#compCapa details.cnfold[open]>summary::after{content:"▲"}
 #compCapa .cnfn{font-size:12px;opacity:.75;font-weight:700}#compCapa details.cnfesp{margin-top:10px}#compCapa .cnrep details.cinst{background:transparent}#compCapa details.cinst>summary .cnverde{background:#facc15;color:#000}#compCapa .cnrep .cedb{margin-top:6px}
 #compCapa .cnverde.cnmedir{background:#facc15;color:#000;animation:cnmedirP 1s ease-in-out infinite}
