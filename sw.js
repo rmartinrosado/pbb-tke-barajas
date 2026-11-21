@@ -8,6 +8,8 @@
 const C="pbb-tke-v537"; /* v537: caché nueva → se borra la copia de «index.html» que en realidad era el simulador */
 self.addEventListener("install", e => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)));await self.clients.claim()})()));
+/* v656: sin red y sin copia guardada, en vez de una pantalla en blanco (Response.error) se muestra un aviso con «Reintentar» */
+const ERR=()=>new Response('<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PBB TKE</title></head><body style="margin:0;background:#0e1014;color:#fff;font:16px -apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:14px;text-align:center;padding:24px"><b style="font-size:19px">PBB TKE Maintenance</b><div>Sin conexión con el servidor de la app.</div><button onclick="location.replace(location.pathname.replace(/[^/]*$/,\'\')+\'?v=\'+Date.now())" style="font-size:17px;padding:12px 22px;border-radius:10px;border:0;background:#f60;color:#fff;font-weight:800">Reintentar</button></body></html>',{status:200,headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
 const CDN=/^(cdn\.jsdelivr\.net|unpkg\.com)$/;
 self.addEventListener("fetch", e => {
   const q=e.request;if(q.method!=="GET")return;let u;try{u=new URL(q.url)}catch(x){return}
@@ -28,7 +30,7 @@ self.addEventListener("fetch", e => {
         /* versión nueva publicada → se vacía la caché de scripts (por si algún archivo cambió sin cambiar su ?v=) */
         try{const v=await vj;if(v){const a=await c.match("./__ver");const va=a?await a.text():"";if(va!==v){const ks=await c.keys();await Promise.all(ks.map(k=>c.delete(k)));await c.put("./__ver",new Response(v))}}}catch(x){}
         if(r&&r.ok&&r.type!=="opaqueredirect")c.put("./index.html",r.clone());return r}
-      catch(x){const m=await c.match("./index.html");return m||Response.error()}})());return}
+      catch(x){const m=await c.match("./index.html");return m||ERR()}})());return}
   if(mismo&&(f==="version.json"||f==="sw.js"))return;
   const verU=mismo?/[?&]v=\d/.test(u.search):/@\d/.test(u.pathname);
   if(verU){
