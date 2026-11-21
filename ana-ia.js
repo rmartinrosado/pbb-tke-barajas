@@ -131,7 +131,7 @@ const plcOK=K=>!!(K.R&&K.R.rel&&K.R.rel.length);
 const fija=(d,K)=>{const k=d.dataset.k||"";if(FIJAS.test(k))return true;if(k=="COT"||k=="INS")return plcOK(K);if(k=="SIS")return true;return null};
 const toca=(el,K)=>{const t=(el.textContent||"").toUpperCase();return K.res.some(r=>r.test(t))};
 function filtraGuia(){if(typeof view=="undefined"||view!="tec")return;const app=document.getElementById("app");if(!app)return;
- const K=todo?null:claveIA();
+ let K=todo?null:claveIA();if(K&&!K.res.length)K=null; /* v655: la IA no nombra ningún componente → no se oculta nada (antes la guía quedaba vacía) */
  app.querySelectorAll(".aiox").forEach(e=>e.classList.remove("aiox"));
  let av=document.getElementById("aiguia");
  if(!K&&!todo){if(av)av.remove();return}
