@@ -24,7 +24,7 @@ const texto=c=>nrm([c.id,c.t,c.fab,c.claves,(c.esp||[]).map(r=>r.join(" ")).join
 function fichaOrden(c){let fh=typeof compFicha=="function"?compFicha(c):"";
  const m=fh.match(/<table class="cmpe">[\s\S]*?<\/table>(\s*<div class="cmpst">[^<]*<\/div><table class="cmpp">[\s\S]*?<\/table>)?/);const spec=m?m[0]:"";if(spec)fh=fh.replace(spec,"");
  const V=t=>`<div class="cnverde">${t}</div>`;
- if(fh.includes('<div class="alpl">'))fh=fh.replace('<div class="alpl">',V("ALARMAS RELACIONADAS")+'<div class="alpl">');
+ if(fh.includes('<div class="alpl">')){}/* v651: sin el rótulo verde «ALARMAS RELACIONADAS»: la caja roja de alarmas ya lo dice */
  else fh=fh.replace(/(<div class="cmpfs"[^>]*>[\s\S]*?<\/figure><\/div>|<div class="cmpfs"[^>]*><\/div>)/,"$1"+V("SIN ALARMAS RELACIONADAS"));
  fh=fh.replace(/<div class="cmpst">\s*Medir en campo\s*<\/div>/i,`<div class="cnverde cnmedir">MEDIR EN CAMPO</div>`);/* v585: amarilla, letras negras y parpadeando *//* v579: «MEDIR EN CAMPO» también en caja verde y negra */
  /* v646: la ficha técnica (fotos del repuesto) sale desplegada; ESPECIFICACIONES, DETALLES DE CAMPO y MEDIR EN CAMPO, plegados.
@@ -40,7 +40,7 @@ function fichaOrden(c){let fh=typeof compFicha=="function"?compFicha(c):"";
  const saca=re=>{const m=fh.match(re);if(!m)return"";fh=fh.replace(m[0],"");return m[0]};
  const inst=saca(/<details class="cinst">[\s\S]*$/);
  const det=saca(/<details class="cnfold" data-fk="det\|[\s\S]*?<\/details>/);
- const ala=saca(/<div class="cnverde">(?:SIN )?ALARMAS RELACIONADAS<\/div>(?:<div class="alpl">[\s\S]*?<\/small><\/div>)?/);
+ const ala=saca(/<div class="cnverde">SIN ALARMAS RELACIONADAS<\/div>|<div class="alpl">[\s\S]*?<\/small><\/div>/);
  const med=saca(/<details class="cnfold" data-fk="med\|[\s\S]*?<\/details>/).replace("MEDIR EN CAMPO</div>","MEDICIÓN EN CAMPO</div>").replace("cnverde cnmedir","cnverde");
  const esp=spec?F("esp",V("ESPECIFICACIONES"),`<div class="cnspec">${spec}</div>`,"cnfesp"):"";
  return {fh,spec:esp,mas:det+ala+med+inst}}
