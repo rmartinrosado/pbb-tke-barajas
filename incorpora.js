@@ -287,13 +287,32 @@ window.compGuarda=async function(){const g=id=>(document.getElementById(id)||{})
  const row={codigo:g("ip_cod").trim()||"SIN CÓDIGO",titulo:g("ip_tit").trim()||"Componente",fab:g("ip_fab").trim(),claves:g("ip_cla").trim(),esp:desf(g("ip_esp"),2),pin:desf(g("ip_pin"),4),med:desf(g("ip_med")),av:g("ip_av").trim(),
   fotos:F.map(f=>f.ubi&&f.o&&f.caja?{src:f.src,vista:f.vista,o:f.o,caja:f.caja}:{src:f.src,vista:f.vista}),stock:{ref:g("ip_ref"),sust:g("ip_sus"),ubi:g("ip_ubi"),uds:g("ip_uds")},creado_por:(user&&user.email)||""};
  if(!row.claves){msg("Indica en qué averías interviene, para asociarlo a las OT");return}
- if(esYa(row.codigo)&&!confirm("⚠️ "+row.codigo+" ya está incorporado en Componentes de campo.\n\n¿Guardar otra ficha igualmente? (Cancelar para no duplicarlo)"))return;
+ /* v641: cada código es una ficha independiente: nunca se guarda como conjunto. Código ya incorporado → se integra en su ficha
+    (fotos nuevas, datos que le falten y palabras clave); código nuevo → ficha nueva. */
+ const cods=String(row.codigo).split(/\s*(?:\/|,|\+)\s*/).map(x=>x.trim().toUpperCase().replace(/^\+/,"")).filter(Boolean);
+ const ya=cods.filter(c=>esYa(c));
+ if(ya.length&&!confirm("Se guarda una ficha por código.\n\n"+(ya.length?"Ya incorporados (se integran las fotos y los datos que les falten): "+ya.join(", ")+"\n":"")+(cods.length>ya.length?"Fichas nuevas: "+cods.filter(c=>!ya.includes(c)).join(", "):"")+"\n\n¿Continuar?"))return;
  try{if(typeof compSubeFotos=="function")row.fotos=await compSubeFotos(row.fotos);
-  const {data,error}=await sb.from("componentes_campo").insert(row).select().single();if(error)throw error;C().push(aComp(data));msg("Componente "+row.codigo+" incorporado");
+  const R=await compGuardaPorCodigo(row,cods);msg(R.join(" · "));row.codigo=cods[0]||row.codigo;
   if(GRUPO){const r=(PROP&&PROP.recorte)||{};GRUPO.hechos.push({codigo:row.codigo,x0:+r.x0||0,x1:+r.x1||0,y0:+r.y0||0,y1:+r.y1||0});GRUPO.hechosIdx=(GRUPO.hechosIdx||[]).concat((PROP&&PROP._sel)||[]);GRUPO.sel=[]}const q=quedan();
   if(q.length&&GRUPO&&confirm("📦 En esta misma foto quedan "+q.length+" componente(s) por incorporar: "+q.map(x=>x.codigo||x.tipo||"¿?").join(", ")+".\n\n¿Elegir otro de la misma foto?")){compSiguiente();return}
   GRUPO=null;compCatalogo(row.codigo)}
  catch(e){msg("No se pudo guardar: "+String((e&&e.message)||e))}};
+/* v641: guarda una ficha por código; si ya existe, integra (no duplica) */
+async function compGuardaPorCodigo(row,cods){const out=[];if(!cods.length)cods=["SIN CÓDIGO"];
+ const desc=c=>((window.COMP_PLANOS||[]).find(r=>nCod(r[0])===nCod(c))||[])[1]||"";
+ const key=r=>String((Array.isArray(r)?r[0]:"")||"").trim().toLowerCase();
+ for(const c of cods){const ex=/^SIN C/i.test(c)?null:(C().find(x=>x.db&&partes(x.id).length===1&&partes(x.id)[0]===nCod(c))||C().find(x=>x.db&&partes(x.id).includes(nCod(c))));
+  if(ex){const {data:d0,error:e0}=await sb.from("componentes_campo").select("*").eq("id",ex.db).single();if(e0)throw e0;
+   const fs=(d0.fotos||[]).slice();(row.fotos||[]).forEach(f=>{if(!fs.some(g=>g.src===f.src))fs.push(f)});
+   const esp=(d0.esp||[]).slice();(row.esp||[]).forEach(r=>{const k=key(r);if(k&&!/^alarmas|^funci|^ubicaci/.test(k)&&!esp.some(x=>key(x)===k))esp.push(r)});
+   const cl=[...new Set(String(d0.claves||"").split(/\s*,\s*/).concat(String(row.claves||"").split(/\s*,\s*/)).map(x=>x.trim()).filter(Boolean))].join(", ");
+   const upd={fotos:fs,esp,claves:cl,fab:d0.fab||row.fab,titulo:d0.titulo||row.titulo,pin:(d0.pin&&d0.pin.length)?d0.pin:row.pin,med:(d0.med&&d0.med.length)?d0.med:row.med,av:d0.av||row.av};
+   const {data,error}=await sb.from("componentes_campo").update(upd).eq("id",ex.db).select().single();if(error)throw error;
+   const L=C();const i=L.findIndex(x=>x.db===ex.db);if(i>=0)L[i]=aComp(data);out.push(c+" integrado en su ficha")}
+  else{const r2=Object.assign({},row,{codigo:c,titulo:cods.length>1?(desc(c)||row.titulo):row.titulo});
+   const {data,error}=await sb.from("componentes_campo").insert(r2).select().single();if(error)throw error;C().push(aComp(data));out.push(c+" incorporado")}}
+ return out}
 /* ---------- accesos ---------- */
 /* v495: cabecera del catálogo (título + «Incorporar componente») fija arriba; la búsqueda (con la lupa) debajo del botón, también fija (v496); v497: la cabecera ya no es sticky: el listado tiene su propio scroll */
 /* v474: el catálogo se abre solo desde la caja «Componente de campo» de la guía */

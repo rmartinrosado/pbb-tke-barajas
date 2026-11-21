@@ -41,7 +41,7 @@ function candidatos(){const S=[],add=c=>{c=nC(c);if(c&&!S.some(x=>nP(x)===nP(c))
  return S.slice(0,9)}
 function cajaHTML(C){const sel=new Set(partes((document.getElementById("ip_cod")||{}).value).map(nP));
  if(!C.length)return `<div id="ic_asig" class="icasig"><b>🎯 Asignar código según planos</b><div class="mu" style="font-size:12px;margin-top:4px">Sin código propuesto. Escribe el código abajo o en «Código si lo sabes» y vuelve a identificar.</div></div>`;
- return `<div id="ic_asig" class="icasig"><b>🎯 Asignar código según planos</b><div class="mu" style="font-size:11.5px;margin:2px 0 6px">Marca el código de este componente (varios si es un conjunto, p. ej. P-K7.1 + P-K7.2). Se asigna a la ficha.</div>`+
+ return `<div id="ic_asig" class="icasig"><b>🎯 Asignar código según planos</b><div class="mu" style="font-size:11.5px;margin:2px 0 6px">Marca el código de este componente. Cada código es una ficha independiente: si ya está incorporado se integra en su ficha; si no, se crea una nueva.</div>`+
   C.map(c=>{const I=info(c);return `<label class="icas-row${sel.has(nP(c))?" on":""}"><input type="checkbox" data-asig="${E(c)}" ${sel.has(nP(c))?"checked":""}><span><b class="cmpid">${E(c)}</b> ${I.desc?E(I.desc):"<i>sin descripción en los planos</i>"}${I.folio?` <small>(${E(I.folio)})</small>`:""}
    <small class="icas-u">📍 ${E(I.ubi||"ubicación sin dato en los planos")}</small><small class="icpe icpe-${I.est.k}">${E(I.est.t)}</small></span></label>`}).join("")+`</div>`}
 function pintaCaja(){const ip=document.getElementById("ip_cod");if(!ip)return;const old=document.getElementById("ic_asig");

@@ -40,7 +40,7 @@ const T={
  "E-Q8":["049"],"E-K81/E-K82":["049"],
  "E-Q4":["053","260"],"E-Q4.1":["053","260"],"E-K41/E-K42":["053","260"],
  "E-Q40":["050","051","052"],"P-K71/P-K72":["050"],
- "P-Q6":["051"], /* v614: 135 es el inversor P-K6, no el guardamotor */"P-K61/P-K62":["135","051"],
+ "P-Q6":["051"],"P-Q7":["050"], /* v641 */ /* v614: 135 es el inversor P-K6, no el guardamotor */"P-K61/P-K62":["135","051"],
  "P-Q5":["052","067","077","063","064"],"P-K51/P-K52":["052","077","063","064","067"],
  /* --- pupitre: joystick y presencia --- */
  /* v614: P-K80…P-K85 son SALIDAS del PLC (P-A2) con señales al CBTH: ninguna alarma del joystick ni de la zapata los trae */
