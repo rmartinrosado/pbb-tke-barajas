@@ -15,7 +15,7 @@ const nrm=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
 const ordAlf=(a,b)=>String(a.id||"").localeCompare(String(b.id||""),"es",{numeric:true,sensitivity:"base"})||String(a.t||"").localeCompare(String(b.t||""),"es",{numeric:true,sensitivity:"base"});
 window.compOrdenAlf=ordAlf;
 const L=()=>(window.COMP_CAMPO||[]).slice().sort(ordAlf);
-const ZONAS={E:"Armario eléctrico",P:"Pupitre",C:"Cabina",ET:"Túnel",A:"Túnel",R:"Rotonda",T:"Traslación",H:"Hidráulica",B:"Brazo"};
+const ZONAS={E:"Armario eléctrico",P:"Pupitre",CP:"Pupitre",/*v637*/C:"Cabina",ET:"Túnel",A:"Túnel",R:"Rotonda",T:"Traslación",H:"Hidráulica",B:"Brazo"};
 const zona=c=>{const m=String(c.id||"").toUpperCase().match(/\b([A-Z]{1,3})-/);return m?(ZONAS[m[1]]||"Otros"):"Otros"};
 const texto=c=>nrm([c.id,c.t,c.fab,c.claves,(c.esp||[]).map(r=>r.join(" ")).join(" "),c.av].join(" "));
 /* caja «Repuesto»: lo que hace falta para pedir o cambiar la pieza */

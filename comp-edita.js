@@ -25,7 +25,7 @@ const ARMS=[["⚡","AE (armario eléctrico)"],["🎛","Armario de pupitre"]];
    · En Detalles de campo sale debajo del código de cada foto (📍).
    · En el editor, la caja «Añadir foto de ubicación» muestra esa ubicación y, al añadir la foto, es la primera opción
      (marcada) del selector de armario / sitio. ===== */
-const ZUBI={E:["⚡","AE (armario eléctrico)"],P:["🎛","Armario de pupitre"],C:["🚪","Cabina"],ET:["🚇","Túnel"],A:["🚇","Túnel"],R:["🔄","Interior Rotonda"],T:["🛞","Traslación"],H:["🛢","Hidráulica"],B:["🦾","Brazo"]};
+const ZUBI={E:["⚡","AE (armario eléctrico)"],P:["🎛","Armario de pupitre"],CP:["🎛","Pupitre"],C:["🚪","Cabina"],ET:["🚇","Túnel"],A:["🚇","Túnel"],R:["🔄","Interior Rotonda"],T:["🛞","Traslación"],H:["🛢","Hidráulica"],B:["🦾","Brazo"]};
 window.compUbiDe=function(c){if(!c)return"";const esp=c.esp||(c.raw&&c.raw.esp)||[];const f=esp.find(r=>/^ubicaci[oó]n$/i.test(String(r[0]||"").trim()));
  if(f&&String(f[1]||"").trim())return String(f[1]).split(/\s*·\s*/)[0].trim();
  const m=String(c.id||c.codigo||"").toUpperCase().match(/\b([A-Z]{1,3})-/);const z=m&&ZUBI[m[1]];return z?z[1]:""};
