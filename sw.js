@@ -24,13 +24,17 @@ self.addEventListener("fetch", e => {
       try{const r=await fetch(q.url,{cache:"no-store",credentials:"same-origin"});if(r&&r.ok&&r.type!=="opaqueredirect")c.put(k,r.clone());return r}
       catch(x){const m=await c.match(k);return m||Response.error()}})());return}
   if(q.mode==="navigate"||(mismo&&(f===""||f==="index.html"))){
+    /* v667: con cobertura mala la navegación esperaba a la red sin límite (y además a version.json) → pantalla negra/blanca
+       al abrir la PWA. Ahora: red con 4 s de margen; si no llega y hay copia guardada, arranca con la copia y la red
+       la actualiza por detrás. La limpieza de caché por versión nueva ya no retrasa el arranque. */
     e.respondWith((async()=>{const c=await caches.open(C);
-      const vj=fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).catch(()=>null);
-      try{const r=await fetch(q.url,{cache:"no-store",credentials:"same-origin"});
-        /* versión nueva publicada → se vacía la caché de scripts (por si algún archivo cambió sin cambiar su ?v=) */
-        try{const v=await vj;if(v){const a=await c.match("./__ver");const va=a?await a.text():"";if(va!==v){const ks=await c.keys();await Promise.all(ks.map(k=>c.delete(k)));await c.put("./__ver",new Response(v))}}}catch(x){}
-        if(r&&r.ok&&r.type!=="opaqueredirect")c.put("./index.html",r.clone());return r}
-      catch(x){const m=await c.match("./index.html");return m||ERR()}})());return}
+      const red=fetch(q.url,{cache:"no-store",credentials:"same-origin"}).then(r=>{if(r&&r.ok&&r.type!=="opaqueredirect")c.put("./index.html",r.clone());return r});
+      e.waitUntil((async()=>{try{const r=await fetch("version.json?t="+Date.now(),{cache:"no-store"});const v=r.ok?await r.text():null;
+        if(v){const a=await c.match("./__ver");const va=a?await a.text():"";if(va!==v){const ks=await c.keys();await Promise.all(ks.filter(k=>!/\/index\.html$/.test(k.url)).map(k=>c.delete(k)));await c.put("./__ver",new Response(v))}}}catch(x){}
+        try{await red}catch(x){}})());
+      const m=await c.match("./index.html");
+      if(m){const t=new Promise(r=>setTimeout(()=>r(null),4000));try{const r=await Promise.race([red,t]);if(r)return r}catch(x){}return m}
+      try{return await red}catch(x){return ERR()}})());return}
   if(mismo&&(f==="version.json"||f==="sw.js"))return;
   const verU=mismo?/[?&]v=\d/.test(u.search):/@\d/.test(u.pathname);
   if(verU){
