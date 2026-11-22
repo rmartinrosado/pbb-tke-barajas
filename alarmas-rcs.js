@@ -471,10 +471,11 @@ window.rcsSacar=function(x){if(typeof x=="string")x=porCod(x);if(!x)return null;
  if(out.cro.length)out.tipo="puente";return out};
 /* bloque «Componentes de campo que intervienen» (SOS y validación) */
 function bloqueInterv(x,L,varias){if(!L.length)return`<div class="rcscf rcsnada">🔩 Sin componentes de campo asociados a la alarma ${E(x.c)} en los planos.</div>`;
- return`<div class="rcscf"><div class="rcscft">🔩 Componentes de campo que intervienen</div>${L.map(o=>{
+ /* v726: plegado por defecto (se despliega al tocar el rótulo) */
+ return`<details class="rcscf"><summary class="rcscft">🔩 Componentes de campo que intervienen <span class="rcscfn">${L.length}</span></summary>${L.map(o=>{
   const sub=[varias&&o.als?"alarma "+o.als.join(" / "):"",o.papel,o.det.join(" · "),o.ubi,o.folio?"folio "+o.folio:""].filter(Boolean).join(" · ");
   return o.c?`<button type="button" class="rcscb rcsi rcsi-${o.rol}" data-k="${E(ckClave(o.c))}"><span class="cmpid">${E(o.id)}</span> ${E(o.nom)}<small>${E(sub)} · ver ficha ›</small></button>`
-   :`<div class="rcscb rcsi rcsi-${o.rol} rcsnf"><span class="cmpid">${E(o.id)}</span> ${E(o.nom||"Según planos")}<small>${E(sub)} · 📐 de planos (sin ficha)</small></div>`}).join("")}</div>`}
+   :`<div class="rcscb rcsi rcsi-${o.rol} rcsnf"><span class="cmpid">${E(o.id)}</span> ${E(o.nom||"Según planos")}<small>${E(sub)} · 📐 de planos (sin ficha)</small></div>`}).join("")}</details>`}
 window.rcsBloqueInterv=(x,L,varias)=>bloqueInterv(typeof x=="string"?porCod(x):x,L||window.rcsIntervienen(x),varias);
 const itAl=x=>`<button type="button" class="rcsit rcs${x.f}" data-c="${x.c}">${FN[x.f][0]} <b>${x.c}</b> ${E(x.t)}</button>`;
 const todasAl=()=>[["A",ICO("A")+" Alarmas"],["W",ICO("W")+" Advertencias"],["R","🔵 Puesto remoto"]].map(([f,t])=>`<div class="rcslg">${t}</div>`+CAT.filter(x=>x.f==f).map(itAl).join("")).join("");
@@ -654,7 +655,7 @@ const st=document.createElement("style");st.textContent=`
 #cmp_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .rcscb{display:block;width:100%!important;margin:0 0 4px!important;padding:8px 9px!important;text-align:left;font-size:13.5px!important;line-height:1.3;border-left:5px solid #455a64!important;border-radius:6px!important}
 .rcscb small{display:block;font-size:11.5px;opacity:.75;font-weight:500}.rcscb .cmpid{display:inline-block;background:#455a64;color:#fff;border-radius:6px;padding:1px 7px;margin-right:4px;font-family:ui-monospace,monospace}
-.rcscf{margin-top:6px}.rcsi-campo{border-left-color:#1fa64a!important}.rcsi-borna{border-left-color:#78909c!important}.rcsi-modulo{border-left-color:#f9a825!important}
+.rcscf{margin-top:6px}details.rcscf>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:48px;padding:6px 10px;margin:0 0 4px!important;border:1.5px solid color-mix(in srgb,var(--tx) 16%,transparent);border-radius:12px;background:color-mix(in srgb,var(--bg) 70%,var(--card))}details.rcscf>summary::-webkit-details-marker{display:none}details.rcscf>summary::after{content:"▾";margin-left:auto;font-size:16px;opacity:.7;transition:transform .2s}details.rcscf[open]>summary::after{transform:rotate(180deg)}.rcscfn{display:inline-grid;place-items:center;min-width:24px;height:22px;padding:0 6px;border-radius:11px;background:#455a64;color:#fff;font-size:11.5px}.rcsi-campo{border-left-color:#1fa64a!important}.rcsi-borna{border-left-color:#78909c!important}.rcsi-modulo{border-left-color:#f9a825!important}
 .rcsacu{position:relative}.rcsacu .rcsb{padding-right:34px}.rcsqx{position:absolute;top:6px;right:4px;width:28px!important;height:28px!important;padding:0!important;margin:0!important;border-radius:50%!important;font-size:14px!important;line-height:1;background:#0002!important;border:0!important}
 .rcsnal{margin:8px 0 2px;color:#1fa64a}
 .otrcs{margin-top:4px}.otalm{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:6px 0}.otalt{font-size:11.5px;font-weight:800;color:var(--mu,#78909c)}
