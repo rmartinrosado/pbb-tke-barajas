@@ -173,7 +173,7 @@ h1{background:linear-gradient(90deg,var(--tkor),#ffb020 40%,var(--tkpu));-webkit
 .selana{border-radius:14px!important}
 input[type=search]{border-radius:12px!important}input[type=search]:focus{outline:0;border-color:var(--tkor);box-shadow:0 0 0 4px color-mix(in srgb,var(--tkor) 22%,transparent)}
 .btn,.mods button{border-radius:10px!important}.btn.pri,.mods button.sel{background:linear-gradient(135deg,#ffb020,var(--tkor) 50%,#ff4d2e)!important;border-color:transparent!important;color:#111!important}
-.ins{padding:0 14px}.ins>summary{list-style:none;cursor:pointer;padding:12px 0;display:flex;align-items:center;gap:10px;font:800 15px var(--f-body)}
+.ins{padding:0 14px}.cab .ins>ol,.cab .ins>.tip{max-height:38vh;overflow-y:auto;-webkit-overflow-scrolling:touch}.cab .ins>.tip{max-height:none}.ins>summary{list-style:none;cursor:pointer;padding:12px 0;display:flex;align-items:center;gap:10px;font:800 15px var(--f-body)}
 .ins>summary::-webkit-details-marker{display:none}.ins>summary::after{content:"▾";margin-left:auto;color:var(--muted)}.ins[open]>summary::after{content:"▴"}
 .ins>summary i{font-style:normal;display:grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#fff;background:linear-gradient(135deg,var(--tkor),var(--tkpu))}
 .ins ol{margin:0 0 12px;padding-left:22px;font-size:14px;line-height:1.45}.ins li{margin:6px 0}.ins b{color:var(--fg)}
@@ -189,14 +189,7 @@ input[type=search]{border-radius:12px!important}input[type=search]:focus{outline
     <p class="sub">Valores esperados según el esquema general T87911031210ES rev. J (T4/T4S). Fase 1: E/S 24 V · Fase 2: potencia.</p>
   </header>
   <div class="esq" id="esq"><span>Esquema:</span><a data-esq="j" href="#">Rev. J (T4/T4S)</a><a data-esq="507" href="#">PBB 507 (A380)</a></div>
-  <div class="selana" id="selana">SELECCIONAR ANÁLISIS</div>
-  <div class="tabs" id="tabs">
-    <button data-v="pot" class="sel">Potencia desde CBTH<small>400 V · 230 V · SAI · fuentes 24 V</small></button>
-    <button data-v="es">E/S del PLC 24 V<small>Circuitos borna a borna</small></button>
-    <button data-v="bor">Borneros y mangueras<small>Regleteros, hilos y conductores</small></button>
-  </div>
-  </div>
-  <div class="scr" id="scr">
+  <!-- v739: instrucciones justo después de «Esquema» -->
   <details class="ins" id="ins"><summary><i>?</i>Cómo usar el simulador</summary>
   <ol>
    <li><b>Elige el esquema</b>: «Rev. J» para T4/T4S o «PBB 507» para la pasarela A380.</li>
@@ -210,6 +203,14 @@ input[type=search]{border-radius:12px!important}input[type=search]:focus{outline
   </ol>
   <div class="tip">⚠️ Valores teóricos del esquema: no incluye caídas de tensión ni la lógica del programa del PLC. Trabaja siempre con las medidas de seguridad de la instalación.</div>
   </details>
+  <div class="selana" id="selana">SELECCIONAR ANÁLISIS</div>
+  <div class="tabs" id="tabs">
+    <button data-v="pot" class="sel">Potencia desde CBTH<small>400 V · 230 V · SAI · fuentes 24 V</small></button>
+    <button data-v="es">E/S del PLC 24 V<small>Circuitos borna a borna</small></button>
+    <button data-v="bor">Borneros y mangueras<small>Regleteros, hilos y conductores</small></button>
+  </div>
+  </div>
+  <div class="scr" id="scr">
   <section class="box" id="pot"></section>
   <section class="box" id="bor" hidden></section>
   <div id="es" hidden>
