@@ -19,7 +19,7 @@
 #app .card.ot>.row.ohdx.ohrow>.espw::after{grid-column:3!important;grid-row:3!important;justify-self:center;align-self:start;text-align:center;margin:0!important;line-height:1}
 #app .card.ot>.row.ohdx>:not(b):not(.ohdesc):not(.ohsubw):not(.ohm):not(.espw):not(.ce){grid-column:1/-1}`;
  document.head.appendChild(st);
- const o=card;card=function(i){const h=o.apply(this,arguments);try{if(typeof view=="undefined"||view!="track"||!i)return h;
+ const o=card;card=function(i){const h=o.apply(this,arguments);try{if(!SEGV()||!i)return h;
   const d=String(i.desc||"").trim();
   const a=h.indexOf('<b class="ohb2">');if(a<0)return h;const k=h.indexOf("</b>",a);if(k<0)return h;
   const cab=h.slice(a+16,k);const j=cab.indexOf('<small class="ohsub"');

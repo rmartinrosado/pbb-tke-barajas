@@ -10,7 +10,7 @@ const tiene=i=>{try{return !!i&&i.estado=="abierta"&&((typeof puentesOT=="functi
  porque la guía era solo de Técnico/Admin). Fuera del SOS, el Operador sigue sin ver la guía completa. */
 window.sosActivo=()=>sosOn;
 /* v130: también la primera actuación de hidráulica (hidraulica.js: hidrOT / hidrHTML, sin puentes) */
-const oC=card;card=function(i){let h=oC(i);if(view!="track"||!tiene(i))return h;
+const oC=card;card=function(i){let h=oC(i);if(!SEGV()||!tiene(i))return h;
  const b=`<button class="sosb" title="SOS: puente provisional" aria-label="SOS: ir al puente provisional de la OT ${esc(i.orden||"")}" onclick="event.stopPropagation();sosVa('${i.id}')"><img src="sos.png" alt="SOS"></button>`;
  /* v68: en la fila de botones de abajo, al lado de la papelera (o al final del grupo izquierdo si no hay papelera) */
  /* v69: centrado en el hueco entre el grupo izquierdo (Editar/papelera) y el derecho (estrellas…) */

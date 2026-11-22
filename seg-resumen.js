@@ -50,7 +50,7 @@ function html(i){const T=tiempo(i);const ord=String(i.orden||"").trim();
  const l1=[T?`<span class="orc t ${T.c}" data-ort="1">${E(T.t)}</span>`:"",ord&&!/^sos$/i.test(ord)?`<span class="orc">Nº ${E(ord)}</span>`:"",ter?`<span class="orc">${E(ter)}</span>`:""].filter(Boolean);
  const l2=chips(i);
  return `${l1.length?`<div class="orl">${l1.join("")}</div>`:""}${l2.length?`<div class="orl">${l2.join("")}</div>`:""}`}
-function pinta(){try{if(typeof view=="undefined"||view!="track"||typeof inc=="undefined")return;
+function pinta(){try{if(!SEGV()||typeof inc=="undefined")return;
  document.querySelectorAll("#app .card.ot[data-oid]").forEach(c=>{const hd=c.querySelector(":scope>.ohd");if(!hd)return;
   const i=inc.find(x=>String(x.id)==c.dataset.oid);if(!i)return;const h=html(i);
   let r=c.querySelector(":scope>.otres");

@@ -37,7 +37,7 @@ window.reincPanel=function(dv,pp){const D=dv||30;if(typeof inc=="undefined")retu
  <h4 style="margin:12px 0 4px">Avisos que se repiten en la misma PBB</h4>${rep.slice(0,12).map(r=>`<details class="rnpr"><summary><b>PBB ${E(r.pos)}</b> · ${r.g.length}× · ${E(r.g[0].desc||"")}</summary>${r.g.map(x=>`<div class="rnci"><b>${fh(x.fecha)}</b> · ${E(x.desc||"")}${x.act?`<div class="rnca">✔ ${E(String(x.act).slice(0,200))}</div>`:""}</div>`).join("")}</details>`).join("")||'<div class="mu">Ninguno en este periodo.</div>'}`;
  const sh=$("#sheet");sh.style.display="flex"};
 /* v474: en Seguimiento OT, en la caja de cada OT que tenga avisos parecidos de esa posición en 30 días */
-const ponBtn=()=>{try{if(typeof view=="undefined"||view!="track")return;
+const ponBtn=()=>{try{if(!SEGV())return;
  document.querySelectorAll("#app .card.ot[data-oid]:not([data-rnc])").forEach(c=>{c.dataset.rnc=1;const o=inc.find(x=>x.id==c.dataset.oid);if(!o)return;
   const L=reincidencias(o.pos,o.desc||null,o.id,30);if(!L.length)return;const b=document.createElement("button");b.type="button";b.className="sec rncot";
   b.textContent=`⚠️ Reincidencia · ${L.length} aviso${L.length>1?"s":""} parecido${L.length>1?"s":""} en 30 días`;b.onclick=e=>{e.stopPropagation();reincPanel(30,String(o.pos).toUpperCase())};c.appendChild(b)})}catch(e){}};

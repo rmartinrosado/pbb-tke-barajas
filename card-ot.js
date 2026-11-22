@@ -72,6 +72,6 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  else if(!sos&&orl){const s2=c.querySelector(".sosc");if(s2&&orl.firstElementChild!==s2)orl.prepend(s2)}
  /* v692: SOS a la izquierda del reloj, en la esquina inferior izquierda de la tarjeta */
  if(orl)orl.classList.toggle("orlsos",!!orl.querySelector(".sosc"));}
-function todo(){if(typeof view!="undefined"&&view!="track")return;document.querySelectorAll("#app>.card.ot").forEach(c=>{try{fix(c)}catch(e){}})}
+function todo(){if(!SEGV())return;document.querySelectorAll("#app .card.ot").forEach(c=>{try{fix(c)}catch(e){}})}
 const ini=()=>{const a=document.getElementById("app");if(!a)return setTimeout(ini,300);new MutationObserver(todo).observe(a,{childList:true,subtree:true});todo()};ini();
 })();
