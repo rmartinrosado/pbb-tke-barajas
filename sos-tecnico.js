@@ -149,8 +149,18 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  const al=c.querySelector(".soscal");if(al){pon(B2,al);const la=al.querySelector("label");if(la&&!la.dataset.st){la.dataset.st=1;la.innerHTML='Lista rápida SOS <small>(casos frecuentes)</small>'}}
  pon(B2,c.querySelector(".soscr3"));pon(B2,$i("sr_f"));pon(B2,$i("sr_pv"));
  /* pasos y ACEPTAR al final del formulario */
+ /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
+ const P2=F.querySelector(".sostp2");if(P2&&!P2.dataset.pl){P2.dataset.pl=1;P2.classList.add("sostcer");const hd=P2.querySelector(".sostph");
+  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostpr"></span><span class="sostpv" aria-hidden="true">▾</span>`);
+  hd.addEventListener("click",()=>{P2.classList.toggle("sostcer");if(!P2.classList.contains("sostcer"))requestAnimationFrame(()=>P2.scrollIntoView({block:"nearest",behavior:"smooth"}))})}
+ resumen2();
  pon(PS,c.querySelector(".soscl"));const row=c.querySelector(".srobrow");if(row&&row.previousElementSibling!==F)F.after(row);
  pintaChips()}
+function resumen2(){const P2=document.querySelector("#sostf .sostp2");if(!P2)return;const r=P2.querySelector(".sostpr");if(!r)return;
+ const t=($i("sr_t")||{}).value||"";const n=(typeof rcsListaAl=="function"?rcsListaAl(t).length:0)||(t.trim()?t.trim().split("\n").filter(Boolean).length:0);
+ const lb=document.querySelector("#sheetc label.srfoto");const fo=!!(lb&&lb.classList.contains("srfok"));
+ const x=[n?`🔔 ${n} alarma${n>1?"s":""}`:"",fo?"📷 foto":""].filter(Boolean).join(" · ")||"Toca para añadir";if(r.textContent!==x)r.textContent=x;r.classList.toggle("on",!!(n||fo))}
+document.addEventListener("input",e=>{if(e.target&&e.target.id=="sr_t")resumen2()});
 /* ---------- componente: desplegable, elegir, chips ---------- */
 const lineaC=c=>`Componente ${c.id}${c.t?" ("+c.t+")":""}`;
 function elegidos(){const t=($i("sr_ob")||{}).value||"";return COMPS().filter(c=>t.includes(lineaC(c)))}
@@ -226,6 +236,13 @@ ${S} .sostch b{flex:none;background:#455a64;color:#fff;border-radius:7px;padding
 ${S} .sostch>span{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.25}
 ${S} .sostch button{flex:none;width:48px!important;height:48px!important;margin:0!important;padding:0!important;border-radius:10px!important;font-size:20px!important;background:var(--sk-in)!important;border:2px solid var(--sk-ed)!important}
 ${S} .sostch .sostchx{color:#c62828!important;border-color:#c62828!important;font-weight:900}
+${S} .sostp2 .sostph{cursor:pointer;min-height:56px;-webkit-tap-highlight-color:transparent}
+${S} .sostpr{order:3;margin-left:auto;font:800 12px/1.2 var(--tkmo,monospace);letter-spacing:.02em;text-transform:none;padding:6px 9px;border-radius:8px;border:2px solid var(--sk-ed);color:var(--mu)}
+${S} .sostpr.on{border-color:#1fa64a;color:#1fa64a;background:color-mix(in srgb,#1fa64a 10%,transparent)}
+${S} .sostpv{order:4;flex:none;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid var(--sk-ed);background:var(--sk-in);transition:transform .2s}
+${S} .sostp2 .sostph small{order:5}
+${S} .sostp2:not(.sostcer) .sostpv{transform:rotate(180deg)}
+${S} .sostp2.sostcer .sostpb{display:none}${S} .sostp2.sostcer .sostph{border-bottom:0}
 ${S} .sostps{border:2px dashed var(--sk-ed);border-radius:16px;padding:8px 10px 10px}
 ${S} .sostpst{font:800 12px/1.4 var(--tkmo,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin:0 2px 6px}
 ${S} .sostps .soscl{margin:0!important}
