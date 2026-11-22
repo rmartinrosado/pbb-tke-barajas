@@ -9,6 +9,13 @@ const st=document.createElement("style");st.textContent=`
 .orl .sosc img{width:40px;height:40px;display:block}
 .cacr .grep{display:inline-flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#fff!important;border:0!important;
  background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff))!important;box-shadow:0 6px 14px -6px var(--tkor,#ff7a1a)}
+.cacts.cacpa{justify-content:center!important;margin:10px 0 4px!important;position:relative}.cacts.cacpa>.cacr{justify-content:center!important;margin:0 auto!important;gap:14px;flex:0 0 auto}
+.cacts.cacpa>.cacl:empty{display:none}.cacts .cacr .grep{width:auto!important;padding:4px 12px!important}
+.grepw{position:relative;display:inline-flex}.grepw .repdedo{position:absolute;left:62%;top:58%;width:56px;height:42px;color:var(--pr);opacity:.75;pointer-events:none;z-index:3}
+.cacts.cacpa .sosdedo{display:none!important}
+#app .card .cacts .cacr button.grep{color:#fff!important;border:0!important;background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff))!important;min-height:52px;padding:6px 16px!important;border-radius:12px!important}
+#app .card .cacts .cacr button.grep small{color:#fff!important;font-size:10px}
+#app .card .cacts .cacr .gcam{min-height:52px;width:52px!important;height:52px!important}
 .cacr .grep svg{width:22px!important;height:22px!important}.cacr .grep small{font:800 8.5px/1 var(--tkmo,ui-monospace,monospace);letter-spacing:.3px}`;document.head.appendChild(st);
 window.repOT=function(id){try{localStorage.setItem("insc_"+id,localStorage.getItem("insc_"+id)||String(Date.now()))}catch(e){}
  if(typeof insOT=="function")insOT(id);
@@ -20,6 +27,12 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  const cr=c.querySelector(".cacr");
  if(cr&&oid&&!cr.querySelector(".grep")){const b=document.createElement("button");b.type="button";b.className="sec gwr grep";b.title="Reparación";b.setAttribute("aria-label","Reparación: inspección cable a cable origen → destino");
   b.innerHTML=LLAVE+"<small>REPARACIÓN</small>";b.onclick=e=>{e.stopPropagation();repOT(oid)};const cam=cr.querySelector(".gcam,.gfb2");cam?cam.after(b):cr.append(b)}
+ /* v690: botones (Foto PLC + REPARACIÓN) centrados justo después de la primera actuación; Cierre CGA al final; la mano señala REPARACIÓN */
+ const ca=c.querySelector(".obd>.cacts"),pa=c.querySelector(".obd>.pact"),cie=[...c.querySelectorAll(".obd>button.pri")].find(b=>/cierre/i.test(b.textContent));
+ if(ca){ca.classList.add("cacpa");if(pa&&pa.nextElementSibling!==ca)pa.after(ca)}
+ const ob=c.querySelector(".obd");if(cie&&ob&&ob.lastElementChild!==cie)ob.append(cie);
+ const rp=c.querySelector(".cacr .grep");if(rp&&!rp.parentElement.classList.contains("grepw")){const w=document.createElement("span");w.className="grepw";rp.before(w);w.append(rp)}
+ const gw=c.querySelector(".grepw");if(gw&&!gw.querySelector(".repdedo")&&window.OT_DEDO)gw.insertAdjacentHTML("beforeend",window.OT_DEDO.replace('class="otdedo"','class="otdedo repdedo"'));
  const sos=c.querySelector(".sosb:not(.sosc)"),orl=c.querySelector(".otres .orl");
  if(sos&&orl){const w=sos.parentElement;sos.classList.add("sosc");const t=orl.querySelector(".orc");t?t.after(sos):orl.prepend(sos);if(w&&/sosmid|sosw/.test(w.className)&&!w.children.length)w.remove()}
  else if(!sos&&orl&&!orl.querySelector(".sosc")){const s2=c.querySelector(".sosc");if(s2){const t=orl.querySelector(".orc");t?t.after(s2):orl.prepend(s2)}}}
