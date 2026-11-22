@@ -127,12 +127,12 @@ const zona=id=>{const m=/^(?:ACOPL\.?\s*)?([A-Z]+)\d*-/.exec(String(id||"").toUp
 const ck=c=>String(c.baseId||c.db||c.id);
 const COMPS=()=>(window.COMP_CAMPO||[]).filter(c=>c&&c.id);
 const panel=(cls,n,tit,sub)=>{const d=document.createElement("section");d.className="sostp "+cls;
- d.innerHTML=`<div class="sostph"><span class="sostpn">${n}</span><b>${tit}</b><small>${sub}</small></div><div class="sostpb"></div>`;return d};
+ d.innerHTML=`<div class="sostph"><span class="sostpn">${n}</span><span class="sostpt"><b>${tit}</b><small>${sub}</small></span></div><div class="sostpb"></div>`;return d};
 function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  const h=c.querySelector(".sosrh");const tt=h&&h.querySelector(".sosr2t");if(tt&&tt.textContent!=="SOS - DIRECTO")tt.textContent="SOS - DIRECTO";
  let F=$i("sostf");
  if(!F){F=document.createElement("div");F.id="sostf";
-  F.append(panel("sostp1","1","PBB Y AVERÍA","lo que se detecta en campo · manda"),panel("sostp2","2","ALARMA DE LA MAGELIS","complementaria · acota el problema"));
+  F.append(panel("sostp1","1","PBB Y AVERÍA","OBLIGATORIO · LO QUE SE DETECTA"),panel("sostp2","2","ALARMA MAGELIS","COMPLEMENTARIA · ACOTA EL PROBLEMA"));
   const ps=document.createElement("div");ps.className="sostps";ps.innerHTML=`<div class="sostpst">Al aceptar sale</div>`;F.append(ps);
   if(h)h.after(F);else c.prepend(F)}
  const B1=F.querySelector(".sostp1>.sostpb"),B2=F.querySelector(".sostp2>.sostpb"),PS=F.querySelector(".sostps");
@@ -140,7 +140,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* panel 1: Posición | Componente, desplegable y chips, avería */
  const fila=c.querySelector(".soscr2");pon(B1,fila);
  const cq=$i("cmp_q");const cw=cq&&cq.closest(".rcscmp");
- if(fila&&cw&&cw.parentNode!==fila){let w=fila.querySelector(".sostcw");if(!w){w=document.createElement("div");w.className="sostcw";w.innerHTML=`<label for="cmp_q">Componente <small>(si se sabe)</small></label>`;fila.appendChild(w)}w.appendChild(cw);cq.placeholder="🔩 Elegir ▾"}
+ if(fila&&cw&&cw.parentNode!==fila){let w=fila.querySelector(".sostcw");if(!w){w=document.createElement("div");w.className="sostcw";w.innerHTML=`<label for="cmp_q">Componente</label>`;fila.appendChild(w)}w.appendChild(cw);cq.placeholder="Si se sabe ▾"}
  pon(B1,$i("cmp_l"));
  let ch=$i("sost_cmps");if(!ch){ch=document.createElement("div");ch.id="sost_cmps"}pon(B1,ch);
  const lo=c.querySelector('label[for="sr_ob"]');pon(B1,lo);pon(B1,ob.closest(".srobsw"));
@@ -154,14 +154,22 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
   hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostpr"></span><span class="sostpv" aria-hidden="true">▾</span>`);
   hd.addEventListener("click",()=>{P2.classList.toggle("sostcer");if(!P2.classList.contains("sostcer"))requestAnimationFrame(()=>P2.scrollIntoView({block:"nearest",behavior:"smooth"}))})}
  resumen2();
- pon(PS,c.querySelector(".soscl"));const row=c.querySelector(".srobrow");if(row&&row.previousElementSibling!==F)F.after(row);
+ /* v721: los pasos 1-2-3 van en la MISMA LÍNEA que ACEPTAR (a la izquierda, compactos) */
+ const ol=c.querySelector(".soscl"),row=c.querySelector(".srobrow");if(PS&&PS.isConnected)PS.remove();
+ if(row){if(row.previousElementSibling!==F)F.after(row);if(ol&&ol.parentNode!==row)row.prepend(ol);
+  if(ol&&!ol.dataset.st){ol.dataset.st=1;const T=["Sacar en servicio","Reparar","Análisis IA"];[...ol.children].forEach((li,k)=>{if(T[k])li.textContent=T[k]})}
+  const rs=row.querySelector(".srobrst");if(rs&&!rs.dataset.st){rs.dataset.st=1;rs.innerHTML=RECARGA;rs.setAttribute("aria-label","Reiniciar el SOS");rs.title="Reiniciar el SOS"}}
+ /* rótulos cortos que caben en su caja */
+ if(lo&&lo.textContent!=="Avería en campo")lo.textContent="Avería en campo";
+ const lp=c.querySelector(".soscpos label");if(lp&&lp.textContent!=="Posición PBB")lp.textContent="Posición PBB";
  pintaChips()}
 function resumen2(){const P2=document.querySelector("#sostf .sostp2");if(!P2)return;const r=P2.querySelector(".sostpr");if(!r)return;
  const t=($i("sr_t")||{}).value||"";const n=(typeof rcsListaAl=="function"?rcsListaAl(t).length:0)||(t.trim()?t.trim().split("\n").filter(Boolean).length:0);
  const lb=document.querySelector("#sheetc label.srfoto");const fo=!!(lb&&lb.classList.contains("srfok"));
- const x=[n?`🔔 ${n} alarma${n>1?"s":""}`:"",fo?"📷 foto":""].filter(Boolean).join(" · ")||"Toca para añadir";if(r.textContent!==x)r.textContent=x;r.classList.toggle("on",!!(n||fo))}
+ const x=[n?`🔔 ${n}`:"",fo?"📷":""].filter(Boolean).join(" · ")||"AÑADIR";if(r.textContent!==x)r.textContent=x;r.classList.toggle("on",!!(n||fo))}
 document.addEventListener("input",e=>{if(e.target&&e.target.id=="sr_t")resumen2()});
 /* ---------- componente: desplegable, elegir, chips ---------- */
+const RECARGA=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>`;
 const lineaC=c=>`Componente ${c.id}${c.t?" ("+c.t+")":""}`;
 function elegidos(){const t=($i("sr_ob")||{}).value||"";return COMPS().filter(c=>t.includes(lineaC(c)))}
 function pintaChips(){const ch=$i("sost_cmps");if(!ch)return;const L=elegidos();const k=L.map(ck).join("|");if(ch.dataset.k===k)return;ch.dataset.k=k;
@@ -249,4 +257,39 @@ ${S} .sostps .soscl{margin:0!important}
 ${S} .srobrow{margin-top:14px!important}
 ${S} .srvblink{animation:none!important}`;
 document.head.appendChild(st2);
+
+/* ---------- v721: tipografía como el PANEL DE CONTROL · textos ajustados a cajas y botones ---------- */
+const st3=document.createElement("style");st3.textContent=`
+${S} .sosct .sosr2t{font:900 clamp(15px,4.6vw,19px)/1.1 var(--tkmo,ui-monospace,monospace)!important;letter-spacing:.12em!important;white-space:nowrap!important;
+ padding:6px 20px!important;min-width:0;flex:1 1 auto!important;overflow:hidden;text-overflow:clip}
+${S} .sosct{flex-wrap:nowrap!important}${S} .soshb{flex:none!important}${S} .soshb small{font:600 11px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:.04em!important}
+${S} .sostph{flex-wrap:nowrap!important;gap:10px!important;padding:10px 12px!important}
+${S} .sostpt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+${S} .sostpt b{font:900 15px/1.15 var(--tkmo,ui-monospace,monospace)!important;letter-spacing:.14em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+${S} .sostpt small{font:500 9.5px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:.08em!important;color:var(--mu)!important;padding:0!important;margin:0!important;flex-basis:auto!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+${S} .sostph>small{display:none}
+${S} .sostpn{width:34px!important;height:34px!important;font:900 17px/1 var(--tkmo,ui-monospace,monospace)!important}
+${S} .sostpr{order:0!important;margin:0!important;flex:none;font:700 11px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:.08em!important;padding:8px 9px!important}
+${S} .sostpv{order:0!important;width:38px!important;height:38px!important;font-size:16px!important}
+${S} label:not(.srfoto),${S} details.srtx>summary{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;font-weight:600!important;font-size:12px!important;letter-spacing:.06em!important;
+ color:var(--mu)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+${S} label:not(.srfoto)::before{width:7px!important;height:7px!important;box-shadow:0 0 0 2.5px color-mix(in srgb,var(--ac) 25%,transparent)!important}
+${S} label small,${S} summary small{font-size:10px!important;font-weight:500!important;letter-spacing:.04em!important;color:var(--mu)!important}
+${S} input:not([type=file]):not([type=checkbox]):not([type=radio]),${S} select,${S} textarea{font:500 17px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:0!important}
+${S} input::placeholder,${S} textarea::placeholder{font-size:16px!important;font-weight:400!important;opacity:.65}
+${S} .srobsw textarea{min-height:118px!important}
+${S} .soscr3 details.srtx>summary{font-size:13px!important;color:var(--tx)!important;white-space:normal;line-height:1.2}
+${S} .soscr3 .srfoto{font:600 13px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;}${S} .soscr3 .srfoto span{white-space:nowrap}
+/* línea de abajo: pasos | ACEPTAR | recargar */
+${S} .srobrow{display:flex!important;align-items:stretch!important;gap:8px!important;margin-top:14px!important}
+${S} .srobrow .soscl{flex:0 0 auto!important;width:clamp(104px,31vw,132px);display:flex!important;flex-direction:column!important;justify-content:center;gap:3px!important;margin:0!important;padding:4px 6px!important;
+ border:2px dashed var(--sk-ed);border-radius:12px;box-sizing:border-box}
+${S} .srobrow .soscl li{flex:none!important;flex-direction:row!important;align-items:center!important;gap:6px!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;
+ font:600 10.5px/1.15 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:.02em!important;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:18px}
+${S} .srobrow .soscl li::before{width:18px!important;height:18px!important;font-size:11px!important;border-radius:5px!important}
+${S} .srobrow .soscl li::after{display:none!important}
+${S} .srobrow button.pri{flex:1 1 auto!important;min-width:0;font:900 19px/1 var(--tkmo,ui-monospace,monospace)!important;letter-spacing:.16em!important;padding:0 6px!important;white-space:nowrap}
+${S} .srobrst{flex:none!important;width:64px!important}${S} .srobrst svg{width:30px!important;height:30px!important}
+${S} .sostps{display:none!important}`;
+document.head.appendChild(st3);
 })();
