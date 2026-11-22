@@ -9,7 +9,7 @@ const st=document.createElement("style");st.textContent=`
 #app .card .otres{align-items:stretch!important}#app .card .otres .orl.orlsos{justify-content:flex-start!important;align-self:stretch;width:100%}/* v696: REPARACIÓN con el mismo estilo de pastilla que T4S (solo la llave) */
 .otres .orl .grepc{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;color:inherit!important}
 .otres .orl .grepc svg{width:18px;height:18px;display:block}
-.otres .orl.orlsos{gap:5px!important}#app .card.ot .ohdx>.ohsubw:has(.ohchips){flex-direction:column!important;align-items:flex-start!important;gap:5px!important;padding-top:2px}
+.otres .orl.orlsos{gap:5px!important}#app .card.ot .otres .orc{font-size:12px!important;padding:2px 9px!important}#app .card.ot .otres{margin-top:2px!important}#app .card.ot .ohdx>.ohsubw:has(.ohchips){flex-direction:column!important;align-items:flex-start!important;gap:5px!important;padding-top:2px}
 /* v700: botones de la tarjeta (lápiz, papeleras, WhatsApp, borrar actuación…) con el mismo tamaño y formato */
 #app .card.ot .otcol button,#app .card.ot .obd button.gbdel,#app .card.ot .obd button.gdl2,#app .card.ot .obd .gblqf button{
  width:52px!important;height:52px!important;min-width:52px!important;min-height:52px!important;padding:0!important;margin:0!important;
@@ -18,7 +18,7 @@ const st=document.createElement("style");st.textContent=`
 #app .card.ot .otcol button svg,#app .card.ot .obd button.gbdel svg,#app .card.ot .obd button.gdl2 svg,#app .card.ot .obd .gblqf button svg{width:24px!important;height:24px!important}
 #app .card.ot .otcol{gap:10px!important}
 .ohchips{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
-.ohchips .orc{display:inline-flex;align-items:center;font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:999px;border:1.5px solid color-mix(in srgb,var(--tx) 35%,transparent);background:color-mix(in srgb,var(--tx) 8%,transparent);white-space:nowrap}#app .card .otres{position:relative}.otres>.repdedo{position:absolute;width:48px;height:36px;color:var(--pr);opacity:.8;pointer-events:none;z-index:3;margin:0}
+.ohchips .orc{display:inline-flex;align-items:center;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;border:1.5px solid color-mix(in srgb,var(--tx) 35%,transparent);background:color-mix(in srgb,var(--tx) 8%,transparent);white-space:nowrap}#app .card .otres{position:relative}.otres>.repdedo{position:absolute;width:48px;height:36px;color:var(--pr);opacity:.8;pointer-events:none;z-index:3;margin:0}
 .orl .sosc img{width:40px;height:40px;display:block}
 .cacr .grep{display:inline-flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#fff!important;border:0!important;
  background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff))!important;box-shadow:0 6px 14px -6px var(--tkor,#ff7a1a)}
@@ -49,7 +49,11 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  /* v699: Nº de orden y terminal debajo del número de la PBB */
  {const sw=c.querySelector(".ohsubw"),orl=c.querySelector(".otres .orl");
   if(sw&&orl){let k=sw.querySelector(":scope>.ohchips");if(!k){k=document.createElement("div");k.className="ohchips";sw.prepend(k)}
-   [...c.querySelectorAll(".otres .orc")].filter(x=>/^\s*N[ºo°]\s*\d|^\s*T(4S?|123)\s*$/i.test(x.textContent)).forEach(x=>{if(x.parentNode!==k)k.append(x)})}}
+   /* v702: sin duplicados (la fila de datos se repinta y volvía a traer los chips) y sin el terminal */
+   [...c.querySelectorAll(".otres .orc")].forEach(x=>{const t=x.textContent.trim();
+    if(/^T(4S?|123)$/i.test(t)){x.remove();return}
+    if(/^N[ºo°]\s*\d/i.test(t)){if([...k.children].some(y=>y.textContent.trim()==t))x.remove();else k.append(x)}});
+   const vis=new Set();[...k.children].forEach(y=>{const t=y.textContent.trim();if(vis.has(t)||/^T(4S?|123)$/i.test(t))y.remove();else vis.add(t)})}}
  /* v698: OT cerrada → sin botón de REPARACIÓN ni mano */
  let cerr=false;try{const o=(typeof inc!="undefined"?inc:[]).find(x=>x.id==(c.dataset.oid||oid));cerr=!!o&&o.estado=="cerrada"}catch(e){}
  if(cerr){c.querySelectorAll(".grepc,.repdedo").forEach(x=>x.remove())}
