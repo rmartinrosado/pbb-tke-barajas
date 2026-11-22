@@ -56,7 +56,9 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* v724: «Seleccionar alarma» y «Alarma registrada» (las líneas no se editan: se suman con el buscador o la lista y se quitan con ✕) */
  const sa=$i("sr_a");if(sa&&sa.options[0]&&sa.options[0].text!=="Seleccionar alarma")sa.options[0].text="Seleccionar alarma";
  const dt=c.querySelector("details.srtx"),tx=$i("sr_t");
- if(dt){const sm=dt.querySelector("summary");if(sm&&!sm.dataset.st){sm.dataset.st=1;sm.innerHTML='📋 Alarma registrada <small>(no editable)</small>'}}
+ if(dt){const sm=dt.querySelector("summary");/* v727: en una línea, con el número de alarmas registradas */
+  const nA=tx?(typeof rcsListaAl=="function"?rcsListaAl(tx.value).length:tx.value.split("\n").filter(z=>z.trim()).length):0;
+  const hA=`<span class="sostart">Alarma registrada</span><span class="sostarn${nA?" on":""}">${nA}</span>`;if(sm&&sm.innerHTML!==hA)sm.innerHTML=hA}
  if(tx&&!tx.readOnly){tx.readOnly=true;tx.tabIndex=-1;tx.setAttribute("aria-readonly","true");tx.placeholder="Sin alarmas · elígelas con el buscador o la lista"}pon(B2,$i("sr_f"));pon(B2,$i("sr_pv"));
  /* pasos y ACEPTAR al final del formulario */
  /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
@@ -219,9 +221,13 @@ ${P} .soscr3 .srfoto.srfok{border-color:#1fa64a!important;color:#1fa64a!importan
 ${P} .soscal{margin-top:2px}
 /* ---- línea de abajo: pasos | ACEPTAR | reiniciar ---- */
 ${P} .srobrow{display:flex!important;align-items:stretch!important;gap:8px!important;margin-top:14px!important}
+${P} .soscr3 details.srtx>summary{flex-wrap:nowrap!important;white-space:nowrap!important;gap:6px!important;letter-spacing:.3px!important;font-size:11.5px!important}
+${P} .sostart{overflow:hidden;text-overflow:ellipsis}
+${P} .sostarn{flex:none;display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:12px;font:900 12px/1 ${MO};background:color-mix(in srgb,var(--tx) 14%,transparent);color:var(--mu)}
+${P} .sostarn.on{background:linear-gradient(135deg,${OR},${PU});color:#fff}
 ${P} #sr_t[readonly]{cursor:default;background:color-mix(in srgb,var(--card) 60%,var(--bg))!important;border-style:dashed!important;font:600 15px/1.5 ${MO}!important;letter-spacing:.3px!important;-webkit-user-select:none;user-select:none;resize:none}
 ${P} #sr_t[readonly]:focus{border-color:${BRD}!important;box-shadow:none!important}
-${P} .sostzf{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 8px;scrollbar-width:none}${P} .sostzf::-webkit-scrollbar{display:none}
+${P} .sostzf{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 8px}${P} .sostzf::-webkit-scrollbar{display:none}
 ${P} .sostzb{flex:none;min-height:44px!important;margin:0!important;padding:0 12px!important;border-radius:22px!important;border:1.5px solid ${BRD}!important;background:${FLD}!important;color:var(--tx)!important;
  font:700 12.5px/1 system-ui,-apple-system,sans-serif!important;white-space:nowrap;box-shadow:none!important}
 ${P} .sostzb.on{border-color:transparent!important;color:#fff!important;background:linear-gradient(135deg,${OR},${PU})!important}
