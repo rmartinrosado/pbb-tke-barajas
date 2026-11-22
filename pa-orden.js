@@ -58,7 +58,10 @@ function croq(){const c=document.getElementById("gcroq");if(!c){document.querySe
  const want="🔌 "+tit;if(t.textContent!==want)t.textContent=want;
  /* v676: el título rojo ya va en el croquis: se quita el repetido de la caja de abajo (el que va antes de la llave) */
  const pc=g&&g.querySelector(":scope>.pucab");if(pc)pc.classList.add("pahid")}
-let tm=0;const pasa=()=>{clearTimeout(tm);tm=setTimeout(()=>{try{sai()}catch(e){}try{resIA()}catch(e){}try{croq()}catch(e){}document.querySelectorAll("#gsegl,.gsegl").forEach(arregla)},120)};
+/* v688: sin retardo de 120 ms (las cajas ya no saltan de sitio tras pintarse) */
+let en=0,raf=0,seguidos=0,ult=0;const pasa=()=>{if(raf)return;const now=performance.now();seguidos=now-ult<40?seguidos+1:0;ult=now;
+ /* v688: antes del siguiente pintado (requestAnimationFrame); si se encadena demasiado, vuelve a 150 ms */
+ const run=()=>{raf=0;if(en)return;en=1;try{try{sai()}catch(e){}try{resIA()}catch(e){}try{croq()}catch(e){}document.querySelectorAll("#gsegl,.gsegl").forEach(arregla)}finally{en=0}};raf=seguidos>20?setTimeout(run,150):requestAnimationFrame(run)};
 const app=()=>document.getElementById("app");
 const ini=()=>{const a=app();if(!a)return setTimeout(ini,300);new MutationObserver(pasa).observe(a,{childList:true,subtree:true});pasa()};ini();
 })();

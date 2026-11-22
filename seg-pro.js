@@ -40,5 +40,5 @@ function arma(){if(typeof view=="undefined"||view!="track")return;const c=docume
   w=document.createElement("div");w.className="sptools";(del||qr).before(t,w)}
  if(w){if(qr&&qr.parentNode!==w)w.prepend(qr);if(del&&del.parentNode!==w)w.append(del);if(pu&&w.nextElementSibling!==pu)w.after(pu)}}
 const o=window.render;if(typeof o=="function")window.render=render=function(){const r=o.apply(this,arguments);try{arma()}catch(e){}return r};
-let tm=0;const ini=()=>{const a=document.getElementById("app");if(!a)return setTimeout(ini,300);new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=0;try{arma()}catch(e){}},120)}).observe(a,{childList:true,subtree:true});arma()};ini();
+let tm=0;const ini=()=>{const a=document.getElementById("app");if(!a)return setTimeout(ini,300);let en=0;new MutationObserver(()=>{if(en)return;en=1;try{arma()}catch(e){}en=0}).observe(a,{childList:true,subtree:true});arma()};ini();
 })();

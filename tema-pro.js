@@ -35,5 +35,6 @@ function marca(){const app=document.getElementById("app");if(!app)return;if(!bdR
   const lat=s.borderLeftColor!==s.borderTopColor||s.borderLeftWidth!==s.borderTopWidth;
   if(k===bdRef&&!inl&&!lat&&!/pucard|gsaic|gcroq|otlle|kpi|btn/.test(c.className))c.classList.add("tkc");else c.classList.add("tkno")})}
 let t=0;const ini=()=>{const a=document.getElementById("app");if(!a)return setTimeout(ini,300);
- new MutationObserver(()=>{if(t)return;t=setTimeout(()=>{t=0;try{marca()}catch(e){}},80)}).observe(a,{childList:true,subtree:true});marca()};ini();
+ /* v688: sin retardo (el observador corre antes de pintar): antes la caja salía sin marco 80 ms y luego con él → parpadeo */
+ new MutationObserver(()=>{try{marca()}catch(e){}}).observe(a,{childList:true,subtree:true});marca()};ini();
 })();

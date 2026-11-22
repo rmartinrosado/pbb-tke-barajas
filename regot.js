@@ -66,7 +66,7 @@ let reloj=0;
 function mira(){const app=document.getElementById("app");if(!app)return;const es=!!document.getElementById("f_desc")&&!!document.getElementById("f_term");
  if(!es){if(app.classList.contains("regot"))app.classList.remove("regot","rgin");clearInterval(reloj);reloj=0;return}
  const card=app.querySelector(":scope>.card");if(!card)return;
- if(!app.classList.contains("regot")){app.classList.add("regot","rgin");setTimeout(()=>app.classList.remove("rgin"),1400)}
+ if(!app.classList.contains("regot"))app.classList.add("regot");/* v688: sin animación de entrada */
  if(!card.querySelector(".rgsub")){const h3=card.querySelector(":scope>h3");if(!h3)return;
   const sub=document.createElement("div");sub.className="rgsub";sub.innerHTML=`<span class="rgdot"></span><span>NUEVA OT</span><span>·</span><b class="rgf"></b><b class="rgh"></b>`;
   const sc=document.createElement("div");sc.className="rgscan";h3.after(sub,sc)}

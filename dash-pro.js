@@ -46,7 +46,7 @@ const z=n=>String(n).padStart(2,"0");
 let reloj=0;
 function mira(){const p=document.getElementById("pfix"),c=document.getElementById("pctl");
  if(!p||!c){clearInterval(reloj);reloj=0;return}
- if(!p.classList.contains("dpro")){p.classList.add("dpro","dpin");setTimeout(()=>p.classList.remove("dpin"),1400)}
+ if(!p.classList.contains("dpro"))p.classList.add("dpro");/* v688: sin animación de entrada (se repetía en cada repintado → parpadeo) */
  if(!p.querySelector(".dpsub")){const s=document.createElement("div");s.className="dpsub";s.innerHTML=`<span class="dpdot"></span><span>EN LÍNEA</span><span>·</span><b class="dpf"></b><b class="dph"></b>`;
   const sc=document.createElement("div");sc.className="dpscan";c.append(s,sc)}
  const pinta=()=>{const s=document.querySelector("#pfix .dpsub");if(!s){clearInterval(reloj);reloj=0;return}const d=new Date();

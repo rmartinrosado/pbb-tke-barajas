@@ -16,6 +16,7 @@
    · «↩ Solo la actuación más eficaz» vuelve al modo anterior. ===== */
 (function(){
 "use strict";
+(function(){const st=document.createElement("style");st.textContent=".icmini{margin:0 0 0 auto;flex:none;width:96px;border-radius:10px;overflow:hidden;border:1.5px solid color-mix(in srgb,var(--tkor,#ff7a1a) 60%,transparent);background:#000;cursor:zoom-in}.icmini img{display:block;width:100%;height:72px;object-fit:cover}.icpt .icpl{flex:none!important;width:auto!important;height:auto!important;min-height:0!important;margin:0 0 0 auto!important;padding:4px 8px!important;border-radius:8px!important;display:inline-flex!important;flex-direction:row!important;align-items:center;gap:4px;font-size:12px}.icpt .icpl svg{width:16px!important;height:16px!important}.icmini figcaption{font:700 10.5px/1.2 var(--tkmo,ui-monospace,monospace);text-align:center;padding:3px 2px;color:#fff;background:#0009}";document.head.appendChild(st)})();
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const nrm=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const ls={g:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},d:k=>{try{localStorage.removeItem(k)}catch(e){}}};
@@ -137,11 +138,23 @@ function medir(p,d){const z0=d.ref0&&(p.z=="CBTH")?d.ref0:(Z0[p.z]||Z0.E);
 
 /* ---------- HTML ---------- */
 function filaZ(z){const U=zonaDe(z+"-X1")||{c:z,k:"#757575"};return `<span class="icz" style="background:${U.k||"#757575"}">${esc(U.c||z)}</span>`}
+/* v687: en lugar de la caja con el folio, la foto en miniatura del componente del punto (bornero, módulo, relé…); al tocarla
+   se amplía. Si el componente no tiene foto en Componentes de campo, se deja el botón del folio. */
+const MPEND=new Set();
+function mini(p){const L=window.COMP_CAMPO||[];if(!L.length)return "";
+ const cods=[];String(p.p||"").replace(/\+?\b([A-Z]{1,4}\d?-[A-Z]{1,3}\d+(?:\.\d+)?)/g,(_,c)=>{cods.push(c.toUpperCase())});
+ const n=x=>String(x||"").toUpperCase().replace(/[\s.+]/g,"");
+ for(const cd of cods){const c=L.find(k=>String(k.id||"").split(/\s*[\/,]\s*/).map(n).includes(n(cd)));if(!c)continue;
+  if(c._fp){if(typeof compFotosAsegura=="function"&&!MPEND.has(c)){MPEND.add(c);compFotosAsegura(c).then(()=>{c._fp=false;MPEND.delete(c);try{window.insRepinta&&window.insRepinta()}catch(e){}}).catch(()=>MPEND.delete(c))}continue}
+  const F=(c.fotos||[]).map(f=>Array.isArray(f)?{src:f[0],v:String(f[1]||"")}:{src:(f||{}).src,v:String((f||{}).vista||"")}).filter(f=>f.src);if(!F.length)continue;
+  const f=F.find(x=>!/^ubicaci/i.test(x.v))||F[0];const all=esc(JSON.stringify(F.map(x=>x.src)));
+  return `<figure class="icmini" onclick="event.preventDefault();event.stopPropagation();if(typeof compVer=='function')compVer('${esc(f.src)}',${all})"><img src="${esc(f.src)}" alt="${esc(c.id)}" loading="lazy"><figcaption>${esc(cd)}${p.f?` · f.${esc(p.f)}`:""}</figcaption></figure>`}
+ return ""}
 function senalHTML(d,ix,i){const e=d.e,{pasos,notas}=cadena(d);let ult="";
  const tit=d.eq||e.d;const sub=e.m=="AUX"?`${d.eq?e.d+" · ":""}folio ${e.f}`:`${e.m} · ${e.c||""} IN ${e.b} · «${e.d}» · folio ${e.f}`;
  const pl=f=>f?`<button class="gpl icpl" aria-label="Ver plano folio ${f}" onclick="event.preventDefault();event.stopPropagation();gPlano('PAS',${f})">${typeof IC=="function"?IC('plans'):"📄"}<small>${f}</small></button>`:"";
  const filas=pasos.map((p,j)=>{const sep=p.z!==ult&&j>0;ult=p.z;const prev=pasos[j-1],next=pasos[j+1];
-  return `${sep?`<div class="icsep"></div>`:""}<div class="icp${p.c?" icc":""}${p.dst?" icd":""}"><div class="icpt">${filaZ(p.z)}<b class="icar">→</b> ${esc(p.n)} <span class="icb">${esc(p.p)}</span>${pl(p.f)}</div>
+  return `${sep?`<div class="icsep"></div>`:""}<div class="icp${p.c?" icc":""}${p.dst?" icd":""}"><div class="icpt">${filaZ(p.z)}<b class="icar">→</b> ${esc(p.n)} <span class="icb">${esc(p.p)}</span>${mini(p)||pl(p.f)}</div>
    <div class="icl"><span class="ick">Llega desde</span><span>${prev?esc(prev.p)+(prev.sale?" · "+esc(prev.sale):""):(p.src?"origen de tensión":"origen")}</span></div>
    <div class="icl"><span class="ick">Sale a</span><span>${next?esc(next.p)+(p.sale?" · por "+esc(p.sale):""):"destino (fin del recorrido)"}</span></div>
    <div class="icl icm"><span class="ick">Medir</span><span>${medir(p,d)}</span></div></div>`}).join("");
@@ -203,6 +216,9 @@ function repinta(scroll){const c=document.getElementById("ginsc");if(c)c.dataset
  try{pintaOv()}catch(e){}
  if(scroll)setTimeout(()=>{const x=document.getElementById("ginsc")||document.getElementById("insc-ov");if(x)x.scrollIntoView({block:"start",behavior:"smooth"})},150)}
 window.insCompletaRepinta=()=>repinta(false);
+/* v687: repintado tras cargar fotos de las miniaturas, sin cerrar lo que el técnico tenía abierto */
+window.insRepinta=()=>{const box=[document.getElementById("ginsc"),document.getElementById("insc-ov")].filter(Boolean);const st=box.map(b=>[b.open,[...b.querySelectorAll("details")].map(x=>x.open)]);
+ const y=scrollY;repinta(false);[document.getElementById("ginsc"),document.getElementById("insc-ov")].filter(Boolean).forEach((b,k)=>{const o=st[k];if(!o)return;b.open=o[0];const ds=[...b.querySelectorAll("details")];if(ds.length==o[1].length)ds.forEach((x,n)=>x.open=o[1][n])});scrollTo(0,y)};
 let tg=0;const app0=document.getElementById("app");
 if(app0)new MutationObserver(()=>{if(tg)return;tg=setTimeout(()=>{tg=0;try{pintaGuia()}catch(e){console.warn("ins-completa",e)}},140)}).observe(app0,{childList:true});
 if(typeof vTec=="function"){const ov=vTec;window.vTec=vTec=function(){const r=ov.apply(this,arguments);try{pintaGuia()}catch(e){}return r}}

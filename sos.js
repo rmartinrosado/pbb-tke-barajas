@@ -34,7 +34,9 @@ const oV=vTec;vTec=function(){const r=oV.apply(this,arguments);const app=documen
  let hi=document.getElementById("ghidr");const H=typeof hidrOT=="function"?hidrOT(i):null;
  if(!hi&&H){hi=document.createElement("div");hi.id="ghidr";hi.dataset.k=H;hi.className="card pucard";hi.innerHTML=hidrHTML(i,H)}
  let bar=document.getElementById("sosbar");if(!bar){bar=document.createElement("div");bar.id="sosbar";bar.className="card sosbar"}
- bar.innerHTML=`<img src="sos.png" alt=""><div><b>PBB ${esc(String(i.pos))} · ${esc(i.tipo||"")} · ${esc(i.orden||"")}</b><div class="mu" style="font-size:12px">${esc(i.desc||"")}</div></div>${(tecnico||admin)?`<button class="sec" onclick="sosIns()">🔌 Inspección cable a cable</button>`:`<button class="sec" onclick="go('track')">Volver</button>`}`;
+ /* v688: cabecera en tres líneas con llave de reparación: 1) posición + nº de OT · 2) descripción · 3) botón REPARACIÓN */
+ const LLAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
+ bar.innerHTML=`<div class="sbic">${LLAVE}</div><div class="sbtx"><b class="sbl1">PBB ${esc(String(i.pos))} · OT ${esc(i.orden||"-")}</b><div class="sbl2">${esc(i.desc||"")}</div></div>${(tecnico||admin)?`<button class="pri sbrep" onclick="sosIns()">${LLAVE}REPARACIÓN</button>`:`<button class="sec sbrep" onclick="go('track')">Volver</button>`}`;
  app.prepend(bar);[hi,se,pu].forEach(x=>{if(x)bar.after(x)});if(se&&pu)se.after(pu);if(hi){const u=pu||se;if(u)u.after(hi)}
  app.classList.add("sosmode");sosCasos(i);return r};
 /* v98: casos parecidos de la carpeta Casos bajo la primera actuación */
@@ -47,6 +49,12 @@ const st=document.createElement("style");st.textContent=`.sosw{display:flex;just
 .sosmid{flex:1 1 0;min-width:0;display:flex;justify-content:center;align-items:center}.sosmid+.cacr{margin-left:0!important}
 .sosb{width:40px!important;height:40px;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important;border-radius:50%;cursor:pointer;flex:none}
 .sosb img{width:40px;height:40px;display:block;border-radius:50%;filter:drop-shadow(0 2px 4px rgba(198,40,40,.4));animation:sosparp 2s ease-in-out infinite}@keyframes sosparp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.92)}}.sosb:active img{transform:scale(.94)}
+#sosbar.sosbar{display:grid!important;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
+#sosbar .sbic{grid-row:1/2;width:52px;height:52px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff));box-shadow:0 6px 16px -6px var(--tkor,#ff7a1a)}
+#sosbar .sbic svg{width:28px;height:28px}#sosbar .sbtx{min-width:0}
+#sosbar .sbl1{display:block;font-size:19px;font-weight:900;letter-spacing:.5px}#sosbar .sbl2{font-size:14px;color:var(--mu);margin-top:2px}
+#sosbar .sbrep{grid-column:1/-1;width:100%;margin:6px 0 0!important;min-height:52px;font-size:17px!important;font-weight:900!important;letter-spacing:2px;display:flex!important;align-items:center;justify-content:center;gap:10px}
+#sosbar .sbrep svg{width:22px;height:22px}
 #app.sosmode>*:not(#sosbar):not(#greset):not(#gpte):not(#gsegl):not(#ghidr):not(#soscasos):not(#gcroq){display:none!important}
 .sosbar{display:flex;align-items:center;gap:10px;border:2px solid #c62828!important}.sosbar img{width:40px;height:40px;flex:none}.sosbar>div{flex:1;min-width:0}.sosbar button{width:auto;margin:0;padding:8px 10px;font-size:13px;flex:none}`;document.head.appendChild(st);
 })();
