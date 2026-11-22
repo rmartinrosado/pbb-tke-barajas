@@ -9,7 +9,9 @@ const st=document.createElement("style");st.textContent=`
 #app .card .otres{align-items:stretch!important}#app .card .otres .orl.orlsos{justify-content:flex-start!important;align-self:stretch;width:100%}/* v696: REPARACIÓN con el mismo estilo de pastilla que T4S (solo la llave) */
 .otres .orl .grepc{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;color:inherit!important}
 .otres .orl .grepc svg{width:18px;height:18px;display:block}
-.otres .orl.orlsos{gap:5px!important}#app .card .otres{position:relative}.otres>.repdedo{position:absolute;width:48px;height:36px;color:var(--pr);opacity:.8;pointer-events:none;z-index:3;margin:0}
+.otres .orl.orlsos{gap:5px!important}#app .card.ot .ohdx>.ohsubw:has(.ohchips){flex-direction:column!important;align-items:flex-start!important;gap:5px!important;padding-top:2px}
+.ohchips{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.ohchips .orc{display:inline-flex;align-items:center;font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:999px;border:1.5px solid color-mix(in srgb,var(--tx) 35%,transparent);background:color-mix(in srgb,var(--tx) 8%,transparent);white-space:nowrap}#app .card .otres{position:relative}.otres>.repdedo{position:absolute;width:48px;height:36px;color:var(--pr);opacity:.8;pointer-events:none;z-index:3;margin:0}
 .orl .sosc img{width:40px;height:40px;display:block}
 .cacr .grep{display:inline-flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#fff!important;border:0!important;
  background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff))!important;box-shadow:0 6px 14px -6px var(--tkor,#ff7a1a)}
@@ -37,6 +39,10 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  const ca=c.querySelector(".obd>.cacts"),pa=c.querySelector(".obd>.pact"),cie=[...c.querySelectorAll(".obd>button.pri")].find(b=>/cierre/i.test(b.textContent));
  if(ca){ca.classList.add("cacpa");if(pa&&pa.nextElementSibling!==ca)pa.after(ca)}
  const ob=c.querySelector(".obd");if(cie&&ob&&ob.lastElementChild!==cie)ob.append(cie);
+ /* v699: Nº de orden y terminal debajo del número de la PBB */
+ {const sw=c.querySelector(".ohsubw"),orl=c.querySelector(".otres .orl");
+  if(sw&&orl){let k=sw.querySelector(":scope>.ohchips");if(!k){k=document.createElement("div");k.className="ohchips";sw.prepend(k)}
+   [...c.querySelectorAll(".otres .orc")].filter(x=>/^\s*N[ºo°]\s*\d|^\s*T(4S?|123)\s*$/i.test(x.textContent)).forEach(x=>{if(x.parentNode!==k)k.append(x)})}}
  /* v698: OT cerrada → sin botón de REPARACIÓN ni mano */
  let cerr=false;try{const o=(typeof inc!="undefined"?inc:[]).find(x=>x.id==(c.dataset.oid||oid));cerr=!!o&&o.estado=="cerrada"}catch(e){}
  if(cerr){c.querySelectorAll(".grepc,.repdedo").forEach(x=>x.remove())}
