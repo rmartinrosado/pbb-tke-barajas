@@ -85,7 +85,11 @@ window.avBorra=async function(id){if(!confirm("¿Olvidar este alias?"))return;co
 
 let ck={k:"",t:0,n:0};
 /* botones de administrador en Inicio (debajo de «PANEL DE CONTROL») */
-const pon=()=>{try{if(view!="dash"||!admin)return;const a=document.getElementById("app");if(!a)return;let t=document.getElementById("adtools");
+/* v682: los botones salen en el menú «Gestión» de la cabecera; aquí solo se calcula el nº de avisos pendientes (insignia de Gestión) */
+window.avPendientes=()=>{try{return pendientes().length}catch(e){return 0}};
+const pon=()=>{try{if(!admin)return;const k=(typeof inc!="undefined"?inc.length+"/"+inc.filter(x=>x&&x.noRec).length:0)+"|"+(window.__alAp||[]).length+"|"+ign().size;
+ if(k!==ck.k||Date.now()-ck.t>60000){ck={k,t:Date.now(),n:pendientes().length}}window.__avN=ck.n;const old=document.getElementById("adtools");if(old)old.remove();return}catch(e){}};
+const ponViejo=()=>{try{if(view!="dash"||!admin)return;const a=document.getElementById("app");if(!a)return;let t=document.getElementById("adtools");
  const k=(typeof inc!="undefined"?inc.length+"/"+inc.filter(x=>x&&x.noRec).length:0)+"|"+(window.__alAp||[]).length+"|"+ign().size;if(k!==ck.k||Date.now()-ck.t>60000){ck={k,t:Date.now(),n:pendientes().length}}const n=ck.n;const h=`<button class="sec" onclick="avPanel()">🧠 Avisos sin reconocer${n?`<span class="avn">${n}</span>`:""}</button><button class="sec" onclick="tmPanel()">⏱ Tiempos por avería</button>`;
  if(!t){t=document.createElement("div");t.id="adtools";t.className="adtools";const p=document.getElementById("pctl");p?p.after(t):a.prepend(t)}
  if(t.innerHTML!==h)t.innerHTML=h}catch(e){}};
