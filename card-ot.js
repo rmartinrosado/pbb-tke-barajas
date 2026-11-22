@@ -9,7 +9,7 @@ const st=document.createElement("style");st.textContent=`
 #app .card .otres{align-items:stretch!important}#app .card .otres .orl.orlsos{justify-content:flex-start!important;align-self:stretch;width:100%}/* v696: REPARACIÓN con el mismo estilo de pastilla que T4S (solo la llave) */
 .otres .orl .grepc{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;color:inherit!important}
 .otres .orl .grepc svg{width:18px;height:18px;display:block}
-.otres .orl.orlsos{gap:5px!important}
+.otres .orl.orlsos{gap:5px!important}#app .card .otres{position:relative}.otres>.repdedo{position:absolute;width:48px;height:36px;color:var(--pr);opacity:.8;pointer-events:none;z-index:3;margin:0}
 .orl .sosc img{width:40px;height:40px;display:block}
 .cacr .grep{display:inline-flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#fff!important;border:0!important;
  background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff))!important;box-shadow:0 6px 14px -6px var(--tkor,#ff7a1a)}
@@ -42,6 +42,11 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
   if(o2&&oid&&!o2.querySelector(".grepc")){const b=document.createElement("button");b.type="button";b.className="orc grepc";b.title="Reparación";b.setAttribute("aria-label","Reparación: inspección cable a cable origen → destino");
    b.innerHTML=LLAVE;b.onclick=e=>{e.stopPropagation();repOT(oid)};o2.append(b)}
   const ob=o2&&o2.querySelector(".grepc");if(ob&&!ob.classList.contains("orc")){ob.classList.add("orc");ob.innerHTML=LLAVE}}
+ /* v697: la mano señala la llave (va en .otres, fuera de la fila que recorta, y se coloca sobre el botón) */
+ {const ot=c.querySelector(".otres"),bt=ot&&ot.querySelector(".grepc");
+  if(ot&&bt&&window.OT_DEDO){let m=ot.querySelector(":scope>.repdedo");if(!m){ot.insertAdjacentHTML("beforeend",window.OT_DEDO.replace('class="otdedo"','class="otdedo repdedo"'));m=ot.querySelector(":scope>.repdedo")}
+   const pon=()=>{if(!m.isConnected)return;const a=ot.getBoundingClientRect(),r=bt.getBoundingClientRect();if(!r.width)return;
+    m.style.left=(r.left-a.left+r.width*0.3)+"px";m.style.top=(r.top-a.top+r.height*0.45)+"px"};requestAnimationFrame(pon)}}
  const rp=null&&c.querySelector(".cacr .grep");if(rp&&!rp.parentElement.classList.contains("grepw")){const w=document.createElement("span");w.className="grepw";rp.before(w);w.append(rp)}
  const gw=c.querySelector(".grepw");if(gw&&!gw.querySelector(".repdedo")&&window.OT_DEDO)gw.insertAdjacentHTML("beforeend",window.OT_DEDO.replace('class="otdedo"','class="otdedo repdedo"'));
  const sos=c.querySelector(".sosb:not(.sosc)"),orl=c.querySelector(".otres .orl");
