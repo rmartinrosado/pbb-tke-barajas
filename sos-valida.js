@@ -54,9 +54,18 @@ function analiza(){
  else if(Ca.length){const i=inter(Ca,Ct);C=i.length?i:Ca}
  else C=Ct;
  C=uniq(C.map(actual));
+ /* v703: borneros (-X) y módulos del PLC (E-A…/P-A…) son elementos de PASO de la señal: no son el «componente a intervenir»
+    salvo que la avería o la alarma los nombre. Si solo quedaban ellos, se busca el elemento real en los planos (pendiente de incorporar). */
+ const txt=[ob,al,foto].join(" ").toUpperCase().replace(/[\s+]/g,"");
+ const paso=c=>/-X\d|^[EP]\d?-A\d+$/i.test(String(c.id||"").replace(/^\+/,""))&&!String(c.id||"").toUpperCase().split(/\s*[\/,]\s*/).some(k=>txt.includes(k.replace(/[\s+]/g,"")));
+ const C2=C.filter(c=>!paso(c));let pend=[];
+ if(!C2.length&&C.length){const P=window.COMP_PLANOS||[];const t2=nrm([ob,al,...cod.map(z=>z.x.t)].join(" "));
+  const cods=new Set();[ob,al,...cod.map(z=>z.x.t)].join(" ").toUpperCase().replace(/\b([A-Z]{1,3}-[A-Z]{1,2}\d+(?:\.\d+)?)\b/g,(_,k)=>{cods.add(k)});
+  pend=P.filter(r=>r&&r[0]&&!/-X\d|^[EP]-A\d+$/.test(r[0])&&(cods.has(String(r[0]).toUpperCase())||(nrm(r[1]).length>4&&t2.includes(nrm(r[1]))))).slice(0,4)}
+ C=C2;
  /* alarma escrita sin código en la avería: si sus componentes no son los del elemento descrito, no coincide */
  if(est=="ok"&&ob&&!Ld.length&&Cd.length&&Ca.length&&!inter(Cd,Ca).length){est="dif";cod=[]}
- return{ob,al,est,cod,Ld,La,C}}
+ return{ob,al,est,cod,Ld,La,C,pend}}
 
 /* ---------- pintado ---------- */
 const EST={ok:["✅","ALARMA VALIDADA","La alarma coincide con el manual RCS y con la avería en campo."],
@@ -80,6 +89,9 @@ function bloqueComp(A){let b;
  if(A.C.length==1)b=`<div class="svok">Acotado con la avería en campo${A.cod.length?" y la alarma "+E(A.cod.map(z=>z.x.c).join(" / ")):""}.</div>${fichaH(A.C[0])}`;
  else if(A.C.length>1)b=`<div class="svok">No está claro cuál de estos interviene: elige el que corresponda (detalla la avería para acotarlo).</div>
   <div class="svbs">${A.C.map(c=>`<button type="button" class="rcscb svb" data-k="${E(clave(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}${c.fab?`<small>${E(c.fab)}</small>`:""}</button>`).join("")}</div><div id="sv_fi"></div>`;
+ else if((A.pend||[]).length)b=`<div class="svok">El elemento de la avería está en los planos pero <b>aún no está incorporado</b> en Componentes de campo (los borneros y el módulo del PLC por los que pasa la señal no se proponen como componente a intervenir):</div>
+  <div class="svbs">${A.pend.map(r=>`<div class="rcscb svb" style="cursor:default"><span class="cmpid">${E(r[0])}</span> ${E(r[1])}<small>📍 ${E(r[2]||"")} · folio ${E(r[3]||"")}</small></div>`).join("")}</div>
+  <button type="button" class="sec" style="width:100%" onclick="typeof abreComp=='function'&&abreComp()">CATÁLOGO · PENDIENTES DE IMPORTAR</button>`;
  else b=`<div class="svok">Con lo descrito no se identifica un componente del catálogo. Detalla el elemento (p. ej. «láser de extensión», «potenciómetro de cabina») o búscalo en el catálogo.</div>
   <button type="button" class="sec" style="width:100%" onclick="typeof compCatalogo=='function'&&compCatalogo()">CATÁLOGO DE COMPONENTES</button>`;
  return`<div class="ubh ubcmp" id="sv_cmp">🔩 COMPONENTE A INTERVENIR<small>${A.C.length==1?"Ficha técnica del componente":"Especificaciones técnicas"}</small></div><div class="ubb ubbcmp">${b}</div>`}
