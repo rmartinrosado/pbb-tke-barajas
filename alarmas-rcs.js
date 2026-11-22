@@ -341,6 +341,7 @@ const accHTML=t=>{t=String(t||"");const re=/(?:^|[;.]\s*|\s)(?=[1-9][ºª°]\s)/
  {const k=p.length-1,m=k>=0&&/^([\s\S]*?\.)\s+([A-ZÁÉÍÓÚ][^.:]{0,24}:[\s\S]*)$/.exec(p[k]);if(m&&/^[1-9][ºª°]\s/.test(p[k]))p.splice(k,1,m[1],m[2])}
  if(p.filter(z=>/^[1-9][ºª°]\s/.test(z)).length<2)return"➜ "+E(t);
  return p.map(z=>{const m=/^([1-9])[ºª°]\s+([\s\S]*)$/.exec(z);return m?`<div class="rcsop"><span class="rcsopn">${m[1]}</span><span>${E(m[2])}</span></div>`:`<div class="rcsop rcsop0">➜ ${E(z)}</div>`}).join("")};
+window.rcsAccHTML=t=>accHTML(t).replace(/^➜ /,"");
 const caja=(o,compacta)=>{const x=o.x,g=G[x.g],[ic,fam,fs]=FN[x.f];
  return`<div class="rcsb rcs${x.f}"><div class="rcsh"><span class="rcsf">${ic} ${fam}</span><b>${E(x.c)}</b> ${E(x.t)}</div>
  <div class="rcsg">${E(g.n)} · <span class="mu">${E(fs)}</span></div>
