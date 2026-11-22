@@ -539,6 +539,33 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
  cq.addEventListener("keyup",e=>{if(e.key=="Enter")pintaC(true)});cq.addEventListener("focus",()=>{l.innerHTML="";l.classList.remove("on")});
  /* tocar fuera cierra el desplegable de alarmas */
  sc.addEventListener("click",e=>{if(!e.target.closest(".rcsbus")){l.innerHTML="";l.classList.remove("on")}})}
+/* ---------- 2b) v712: REGISTRAR OT · selección de alarmas y eventos de la Magelis (manual RCS), como en el SOS ----------
+   Bajo «Descripción de la incidencia»: buscador con el desplegable de todas las alarmas, advertencias y eventos (por familias),
+   filtrado al escribir. Se pueden sumar varias (con ✕ para quitar) y salen sus cajas y los componentes de campo que intervienen.
+   Al guardar, quedan en la OT (i.alarmas, una por línea, e i.alCod = la primera): las usan la guía de campo, la primera
+   actuación según planos y el cierre CGA. */
+function otPon(){const t=document.getElementById("f_desc");if(!t||!document.getElementById("f_term")&&!document.getElementById("f_pos")||document.getElementById("otrcs_q"))return;
+ const d=document.createElement("div");d.className="rcsbus otrcs";d.id="otrcs";
+ d.innerHTML=`<label>Alarma de la Magelis <small>(manual RCS · opcional, se pueden sumar varias)</small></label>
+ <div class="rcsbi"><input id="otrcs_q" type="search" autocomplete="off" enterkeyhint="search" placeholder="🔎 Nº o texto de la alarma o evento"></div>
+ <div id="otrcs_l"></div><div id="otrcs_s"></div>`;
+ t.insertAdjacentElement("afterend",d);
+ const q=d.querySelector("#otrcs_q"),l=d.querySelector("#otrcs_l"),s=d.querySelector("#otrcs_s");window.__otAl=[];
+ const pinta=()=>{const v=q.value.trim();l.innerHTML=v?(busca(v).map(itAl).join("")||`<div class="rcsnada">Sin alarmas para «${E(v)}»</div>`):todasAl();l.classList.add("on");l.scrollTop=0};
+ const cierra=()=>{l.innerHTML="";l.classList.remove("on")};
+ const pintaSel=()=>{const X=window.__otAl;if(!X.length){s.innerHTML="";return}
+  s.innerHTML=(X.length>1?`<div class="rcscft rcsnal">📋 ${X.length} alarmas en la OT</div>`:"")+X.map(x=>`<div class="rcsacu">${caja({x},true)}<button type="button" class="rcsqx" data-c="${E(x.c)}" aria-label="Quitar la alarma ${E(x.c)}">✕</button></div>`).join("")+bloqueInterv(X[0],window.rcsIntervUnion(X),X.length>1);
+  s.querySelectorAll(".rcsqx").forEach(b=>b.onclick=e=>{e.stopPropagation();window.__otAl=window.__otAl.filter(z=>z.c!=b.dataset.c);pintaSel()});
+  s.querySelectorAll("button.rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],"Alarmas de la OT")})};
+ const elige=x=>{if(!window.__otAl.some(z=>z.c==x.c))window.__otAl.push(x);else if(typeof msg=="function")msg(`La alarma ${x.c} ya está incluida`);q.value="";q.blur();cierra();pintaSel()};
+ q.addEventListener("focus",pinta);q.addEventListener("click",()=>{if(!l.classList.contains("on"))pinta()});q.addEventListener("input",pinta);
+ q.addEventListener("keyup",e=>{if(e.key=="Enter"){const R=busca(q.value);if(R.length==1)elige(R[0])}});
+ l.addEventListener("click",e=>{const b=e.target.closest(".rcsit");if(!b)return;const x=porCod(b.dataset.c);if(x)elige(x)});
+ document.getElementById("app").addEventListener("click",e=>{if(!e.target.closest("#otrcs"))cierra()})}
+if(typeof guardar=="function"){const og=guardar;guardar=function(){const X=(window.__otAl||[]).slice();const n0=Array.isArray(inc)?inc.length:0;
+ const r=og.apply(this,arguments);
+ try{if(X.length&&Array.isArray(inc)&&inc.length>n0&&inc[0]){inc[0].alarmas=X.map(x=>`${x.c} ${x.t}`).join("\n");inc[0].alCod=X[0].c;window.__otAl=[];sv("pbb_inc",inc);try{render()}catch(e){}}}catch(e){console.warn("otrcs",e)}
+ return r}}
 /* ---------- 3) Cierre CGA: código y tipo de cierre ---------- */
 const TC=[["rep","🔧 Avería reparada"],["rea","🔁 Rearme OFF → ON"],["ope","🟡 Operativa (no avería)"],["esp","🔵 Especialista / RCC"]];
 /* v504: el código se elige en dos pasos (familia → alarmas de la familia, por grupos y en orden ascendente, con buscador),
@@ -584,7 +611,7 @@ if(typeof cerrar=="function"){const oc=cerrar;cerrar=function(id){try{const v=le
   const et="["+[v.x?v.x.c+" "+v.x.t:"",v.t?TC.find(z=>z[0]==v.t)[1].replace(/^\S+\s/,""):""].filter(Boolean).join(" · ")+"]";
   if(ra&&!ra.value.includes(et))ra.value=(et+" "+ra.value.replace(/^\[[^\]]*\]\s*/,"")).trim()}}catch(e){}
  return oc.apply(this,arguments)}}
-let tm=0;new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=0;try{sosPon()}catch(e){}try{ciePon()}catch(e){}},60)}).observe(document.body,{childList:true,subtree:true});
+let tm=0;new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=0;try{sosPon()}catch(e){}try{ciePon()}catch(e){}try{otPon()}catch(e){}},60)}).observe(document.body,{childList:true,subtree:true});
 const st=document.createElement("style");st.textContent=`
 .rcsw{border:2px solid #1565c0}.rcst,.rcsct{font:800 12px/1.3 var(--tkmo,monospace);letter-spacing:.8px;color:#42a5f5;margin-bottom:6px}
 .rcsb{border-left:5px solid #888;border-radius:6px;padding:6px 8px;margin:6px 0;background:color-mix(in srgb,var(--card,#171a20) 92%,#888)}
@@ -594,7 +621,7 @@ const st=document.createElement("style");st.textContent=`
 .rcsg{font-size:12px;font-weight:700;margin-top:2px}.rcsq{font-size:13px;margin-top:4px}.rcsa{font-size:13px;margin-top:4px;font-weight:600}.rcsr{font-size:12px;margin-top:4px;color:var(--mu,#8a93a3)}
 .rcsbus{margin-top:8px}.rcsbi input{width:100%;box-sizing:border-box;margin:0}
 .rcsfil{display:flex;gap:6px}.rcsfil .rcscmp{flex:0 0 33%;min-width:0}.rcsfil .rcsbi:not(.rcscmp){flex:1;min-width:0}.rcsfil input{height:44px;font-size:15px;padding:6px 8px}.rcsfil .rcscmp input::placeholder{font-size:13px}
-#rcs_l.on{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border:1px solid var(--bd,#bbb);border-radius:8px;padding:4px}
+#rcs_l.on,#otrcs_l.on{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border:1px solid var(--bd,#bbb);border-radius:8px;padding:4px}
 .rcslg{font:800 11px/1.4 var(--tkmo,monospace);letter-spacing:.7px;text-transform:uppercase;color:#1565c0;margin:6px 2px 2px}
 #cmp_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .rcscb{display:block;width:100%!important;margin:0 0 4px!important;padding:8px 9px!important;text-align:left;font-size:13.5px!important;line-height:1.3;border-left:5px solid #455a64!important;border-radius:6px!important}
@@ -602,10 +629,11 @@ const st=document.createElement("style");st.textContent=`
 .rcscf{margin-top:6px}.rcsi-campo{border-left-color:#1fa64a!important}.rcsi-borna{border-left-color:#78909c!important}.rcsi-modulo{border-left-color:#f9a825!important}
 .rcsacu{position:relative}.rcsacu .rcsb{padding-right:34px}.rcsqx{position:absolute;top:6px;right:4px;width:28px!important;height:28px!important;padding:0!important;margin:0!important;border-radius:50%!important;font-size:14px!important;line-height:1;background:#0002!important;border:0!important}
 .rcsnal{margin:8px 0 2px;color:#1fa64a}
+.otrcs{margin-top:4px}.otrcs>label small{font-weight:600;letter-spacing:0;text-transform:none;opacity:.8}.otrcs .rcsbi input{width:100%}
 .rcsnf{cursor:default;border:1px dashed #8889;background:transparent}.rcsi small{opacity:.85}.rcscft{font:800 12px/1.4 var(--tkmo,monospace);letter-spacing:.5px;color:#455a64;margin-bottom:4px}
 .cmpav{padding:7px 9px;border:1.5px solid #f9a825;background:#f9a8251a;border-radius:8px;font-size:13px;margin-bottom:4px}
 .rcsnada{font-size:12.5px;color:var(--mu,#7a8394);padding:4px 2px}
-#rcs_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}.rcsit{width:100%!important;margin:0!important;text-align:left;padding:7px 9px!important;font-size:13px!important;border-left:5px solid #888!important;border-radius:6px!important}
+#rcs_l,#otrcs_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}.rcsit{width:100%!important;margin:0!important;text-align:left;padding:7px 9px!important;font-size:13px!important;border-left:5px solid #888!important;border-radius:6px!important}
 .rcsit.rcsA{border-left-color:#d32f2f!important}.rcsit.rcsW{border-left-color:#f9a825!important}.rcsit.rcsR{border-left-color:#1e88e5!important}
 .rcscie{margin-top:8px;border:1.5px solid #1565c0;border-radius:10px;padding:6px 8px}.rcscg{display:grid;grid-template-columns:1.3fr 1fr;gap:6px}
 .rcscg select{text-overflow:ellipsis;margin:0!important;min-width:0;font-size:14px}#rcs_ci{font-size:12px;margin-top:4px}
