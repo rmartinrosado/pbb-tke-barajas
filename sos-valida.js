@@ -144,6 +144,8 @@ function ponSacar(A,res){const b1=res.querySelector(".ubb1");if(!b1||!A.cod.leng
   resto.forEach(n=>{if(S.croH&&n.classList&&n.classList.contains("ubcro"))n.remove();else det.appendChild(n)});if(det.childNodes.length>1)b1.appendChild(det)}
  nuevos.reverse().forEach(n=>b1.prepend(n))}
 window.__sosValAnaliza=analiza;
+/* v711: el mismo bloque «según planos» para la guía de campo de una OT (llave de la tarjeta) */
+window.rcsSacarHTML=function(xs){try{return sacarHTML({cod:(xs||[]).filter(Boolean).map(x=>({x}))})}catch(e){console.warn("rcsSacarHTML",e);return null}};
 window.sosValCmp=()=>{const h=$("sv_cmp");if(h)h.scrollIntoView({block:"start",behavior:"smooth"})};
 function pon(){const res=$("sr_res");if(!res||!res.querySelector(".ub1"))return;
  res.querySelectorAll("#sv_al,#sv_cmp,#sv_cmp+.ubbcmp").forEach(x=>x.remove());

@@ -60,7 +60,7 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  else{
  /* v693: REPARACIÓN en la fila de datos, al lado del terminal (T4S); visible con la tarjeta plegada */
  {const o2=c.querySelector(".otres .orl");const g0=c.querySelector(".cacr .grep");if(g0){const w0=g0.closest(".grepw");(w0||g0).remove()}
-  if(o2&&oid&&!o2.querySelector(".grepc")){const b=document.createElement("button");b.type="button";b.className="orc grepc";b.title="Reparación";b.setAttribute("aria-label","Reparación: inspección cable a cable origen → destino");
+  if(o2&&oid&&!o2.querySelector(".grepc")){const b=document.createElement("button");b.type="button";b.className="orc grepc";b.title="Guía de campo de la OT";b.setAttribute("aria-label","Guía de campo de la OT con cotejo de planos y primera actuación");
    b.innerHTML=LLAVE;b.onclick=e=>{e.stopPropagation();repOT(oid)};o2.append(b)}
   const ob=o2&&o2.querySelector(".grepc");if(ob&&!ob.classList.contains("orc")){ob.classList.add("orc");ob.innerHTML=LLAVE}}
  /* v697: la mano señala la llave (va en .otres, fuera de la fila que recorta, y se coloca sobre el botón) */
