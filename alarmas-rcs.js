@@ -295,7 +295,10 @@ const GR=c=>{if(/^R/.test(c))return"rem";const n=+c;
  if([261,262,264,268,347,348].includes(n))return"col";if([259,269,275,345,362,363].includes(n))return"pre";if((n>=276&&n<=280)||n==284)return"cal";
  if(n==294)return"bro";if(n>=358&&n<=361)return"ant";return"inf"};
 const FAM=c=>/^R/.test(c)?"R":+c<=143?"A":"W";
-const FN={A:["🔴","ALARMA","Avería / seguridad: intervención en campo"],W:["🟡","ADVERTENCIA","La resuelve el operador: no es avería si se borra al corregir la causa"],R:["🔵","PUESTO REMOTO","Fallo del RCC o comunicaciones, no de la pasarela"]};
+/* v717: iconos propios de ALARMA (hexágono rojo con llave y destornillador) y ADVERTENCIA / aviso (triángulo amarillo con «!») */
+const ICO=f=>f=="A"?`<img class="rcsico" src="iconos/alarma.png" alt="Alarma">`:f=="W"?`<img class="rcsico" src="iconos/advertencia.png" alt="Advertencia">`:"🔵";
+window.rcsIco=ICO;
+const FN={A:[ICO("A"),"ALARMA","Avería / seguridad: intervención en campo"],W:[ICO("W"),"ADVERTENCIA","La resuelve el operador: no es avería si se borra al corregir la causa"],R:["🔵","PUESTO REMOTO","Fallo del RCC o comunicaciones, no de la pasarela"]};
 const ALIAS={"057":"medida analogica extension|laser extension","056":"medida analogica altura|ultrasonido altura","058":"medida analogica giro cabina|potenciometro cabina","059":"medida analogica giro rotonda|potenciometro rotonda",
  "115":"wrong docking|atraque incorrecto","354":"bypass atraque incorrecto","273":"estabilizadores bajados","352":"posicionando estabilizador","081":"inductivos estabilizadores",
  "017":"antiatrapamiento izquierdo tunel interior","018":"antiatrapamiento derecho tunel interior","019":"antiatrapamiento izquierdo tunel medio","020":"antiatrapamiento derecho tunel medio",
@@ -474,7 +477,7 @@ function bloqueInterv(x,L,varias){if(!L.length)return`<div class="rcscf rcsnada"
    :`<div class="rcscb rcsi rcsi-${o.rol} rcsnf"><span class="cmpid">${E(o.id)}</span> ${E(o.nom||"Según planos")}<small>${E(sub)} · 📐 de planos (sin ficha)</small></div>`}).join("")}</div>`}
 window.rcsBloqueInterv=(x,L,varias)=>bloqueInterv(typeof x=="string"?porCod(x):x,L||window.rcsIntervienen(x),varias);
 const itAl=x=>`<button type="button" class="rcsit rcs${x.f}" data-c="${x.c}">${FN[x.f][0]} <b>${x.c}</b> ${E(x.t)}</button>`;
-const todasAl=()=>[["A","🔴 Alarmas"],["W","🟡 Advertencias"],["R","🔵 Puesto remoto"]].map(([f,t])=>`<div class="rcslg">${t}</div>`+CAT.filter(x=>x.f==f).map(itAl).join("")).join("");
+const todasAl=()=>[["A",ICO("A")+" Alarmas"],["W",ICO("W")+" Advertencias"],["R","🔵 Puesto remoto"]].map(([f,t])=>`<div class="rcslg">${t}</div>`+CAT.filter(x=>x.f==f).map(itAl).join("")).join("");
 /* v705: lista de alarmas de la caja «Alarma a mano», una por línea (por número o por texto del manual), sin repetir */
 function listaAl(txt){const out=[];String(txt||"").split(/\n+/).forEach(li=>{if(!li.trim())return;
  let D=[];const m=li.trim().match(/^(R?\d{1,3})\b/i);const x0=m&&porCod(m[1]);if(x0)D=[{x:x0}];else D=detecta(li);
@@ -589,18 +592,18 @@ if(typeof guardaEdit=="function"){const oe=guardaEdit;guardaEdit=function(id){co
  return oe.apply(this,arguments)}}
 /* ficha de la OT: chips con las alarmas, debajo de la descripción */
 if(typeof card=="function"){const oc=card;card=function(i){let h=oc.apply(this,arguments);try{const X=alMagDe(i);if(!X.length)return h;
- const chips=`<div class="otalm"><span class="otalt">🔔 Magelis</span>${X.map(x=>`<span class="otalc rcs${x.f}"><b>${E(x.c)}</b> ${E(x.t)}</span>`).join("")}</div>`;
+ const chips=`<div class="otalm"><span class="otalt">🔔 Magelis</span>${X.map(x=>`<span class="otalc rcs${x.f}">${x.f!="R"?ICO(x.f)+" ":""}<b>${E(x.c)}</b> ${E(x.t)}</span>`).join("")}</div>`;
  const k=h.indexOf('<div class="mu">Inicio ');if(k>=0)h=h.slice(0,k)+chips+h.slice(k);else{const k2=h.indexOf('<div class="cacts">');h=k2>=0?h.slice(0,k2)+chips+h.slice(k2):h+chips}}catch(e){}return h}}
 /* ---------- 3) Cierre CGA: código y tipo de cierre ---------- */
-const TC=[["rep","🔧 Avería reparada"],["rea","🔁 Rearme OFF → ON"],["ope","🟡 Operativa (no avería)"],["esp","🔵 Especialista / RCC"]];
+const TC=[["rep","🔧 Avería reparada"],["rea","🔁 Rearme OFF → ON"],["ope","⚠️ Operativa (no avería)"],["esp","🔵 Especialista / RCC"]];
 /* v504: el código se elige en dos pasos (familia → alarmas de la familia, por grupos y en orden ascendente, con buscador),
    papelera para borrar lo elegido, y autorrelleno al escribir en Actuación u Observaciones si el texto nombra una alarma */
-const FAMS=[["A","🔴","Alarmas","001-143 · avería o seguridad"],["W","🟡","Advertencias","241-363 · las resuelve el operador"],["R","🔵","Puesto remoto","R001-R016 · RCC y comunicaciones"]];
+const FAMS=[["A",ICO("A"),"Alarmas","001-143 · avería o seguridad"],["W",ICO("W"),"Advertencias","241-363 · las resuelve el operador"],["R","🔵","Puesto remoto","R001-R016 · RCC y comunicaciones"]];
 function selPon(sc,x,auto){const cc=sc.querySelector("#rcs_c"),bt=sc.querySelector("#rcs_cb"),tt=sc.querySelector("#rcs_t"),ci=sc.querySelector("#rcs_ci"),bo=sc.querySelector("#rcs_cx");if(!cc)return;
  cc.value=x?x.c:"";cc.dataset.auto=x&&auto?"1":"";
  bt.innerHTML=x?`<span class="rcsbf rcs${x.f}">${FN[x.f][0]}</span> <b>${x.c}</b> · ${E(x.t)}`:`<span class="mu">Código alarma…</span>`;
  bt.classList.toggle("on",!!x);bo.style.visibility=x?"visible":"hidden";
- ci.textContent=x?`${FN[x.f][0]} ${FN[x.f][1]} · ${G[x.g].n}${auto?" · propuesto por el texto":""}`:"";
+ ci.innerHTML=x?`${FN[x.f][0]} ${FN[x.f][1]} · ${G[x.g].n}${auto?" · propuesto por el texto":""}`:"";
  if(x){if(G[x.g].c)tt.value=G[x.g].c}else tt.value=""}
 function picker(sc){let pk=document.getElementById("rcspk");if(pk)pk.remove();pk=document.createElement("div");pk.id="rcspk";document.body.appendChild(pk);
  const cierra=()=>pk.remove();
@@ -670,7 +673,7 @@ const st=document.createElement("style");st.textContent=`
 .rcspkh{display:flex;align-items:center;gap:8px;margin-bottom:8px}.rcspkh b{flex:1;font-size:15px}.rcspkh button{width:auto!important;margin:0!important;padding:6px 10px!important;flex:none}
 .rcspf{display:flex!important;align-items:center;gap:10px;width:100%!important;margin:0 0 8px!important;padding:14px 12px!important;text-align:left;border-left:6px solid #888!important;border-radius:10px!important}
 .rcspf.rcsA{border-left-color:#d32f2f!important}.rcspf.rcsW{border-left-color:#f9a825!important}.rcspf.rcsR{border-left-color:#1e88e5!important}
-.rcspfi{font-size:22px}.rcspf>span:nth-child(2){flex:1;display:flex;flex-direction:column}.rcspf b{font-size:16px}.rcspf small{font-size:12px;color:var(--mu,#8a93a3);font-weight:500}.rcspfa{font-size:24px;color:var(--mu,#8a93a3)}
+.rcspfi{font-size:22px}.rcspfi .rcsico{width:34px;height:34px}.rcsico{width:1.25em;height:1.25em;vertical-align:-.25em;display:inline-block;object-fit:contain}.rcspf>span:nth-child(2){flex:1;display:flex;flex-direction:column}.rcspf b{font-size:16px}.rcspf small{font-size:12px;color:var(--mu,#8a93a3);font-weight:500}.rcspfa{font-size:24px;color:var(--mu,#8a93a3)}
 #rcspq{margin:0 0 6px;font-size:16px}.rcspl{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;flex:1;min-height:0}
 .rcspgt{font:800 11px/1.4 var(--tkmo,monospace);letter-spacing:.7px;text-transform:uppercase;color:#42a5f5;margin:10px 2px 4px}
 .rcspi{display:block;width:100%!important;margin:0 0 4px!important;padding:9px 10px!important;text-align:left;font-size:14px!important;line-height:1.25;border-radius:8px!important}.rcspi b{margin-right:4px}

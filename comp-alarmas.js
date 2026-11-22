@@ -78,7 +78,7 @@ let tm=0;new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=0;document
 window.addEventListener("resize",()=>document.querySelectorAll("#sheetc .icpr textarea,#cedCapa textarea").forEach(alto));
 /* recuadro de alarmas para mostrar (Incorporar y ficha) */
 window.compAlarmasHTML=function(L,titulo){if(!L||!L.length)return"";const E=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
- return `<div class="alpl">🚨 <b>${E(titulo||"Alarmas / eventos del PLC (Magelis · manual RCS)")}</b><div>${L.map(a=>`<span class="alc ${/^R/.test(a.c)?"rc":+a.c>=241?"ad":""}" title="${E(a.por||"")}">${E(a.c)} ${E(a.t)}</span>`).join("")}</div><small>🔴 alarma · 🟠 advertencia/evento · 🔵 puesto remoto. Se guardan en la ficha y en sus averías («alarma ${E(L[0].c.replace(/^0+(?=\d)/,""))}») para identificar rápido la avería.</small></div>`};
+ return `<div class="alpl">🚨 <b>${E(titulo||"Alarmas / eventos del PLC (Magelis · manual RCS)")}</b><div>${L.map(a=>`<span class="alc ${/^R/.test(a.c)?"rc":+a.c>=241?"ad":""}" title="${E(a.por||"")}">${/^R/.test(a.c)?"":`<img class="rcsico" src="iconos/${+a.c>=241?"advertencia":"alarma"}.png" alt=""> `}${E(a.c)} ${E(a.t)}</span>`).join("")}</div><small>🔴 alarma · 🟠 advertencia/evento · 🔵 puesto remoto. Se guardan en la ficha y en sus averías («alarma ${E(L[0].c.replace(/^0+(?=\d)/,""))}») para identificar rápido la avería.</small></div>`};
 })();
 /* ===== v614: FILTRO POR PLANO al incorporar (19/11/2026) =====
    Revisión de todo el catálogo frente al cableado (rev. J y 507): la IA metía alarmas que el plano no respalda.

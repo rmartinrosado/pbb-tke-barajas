@@ -118,7 +118,7 @@ function bloqueComp(A){let b;
    operador. El croquis sale de los planos (no del texto mezclado de varias alarmas); en las que no tienen puente de seguridad
    se dibuja el que da el texto de ESA alarma sola. Lo que el análisis por texto proponía queda debajo, plegado. */
 const TIT={puente:"🔌 Puente provisional en el módulo de seguridad",anap:"⚡ Actuación rápida de campo · puente provisional de resistencia",seta:"🛑 Parada de emergencia · no se puentea",ana:"📈 Medida analógica · no se puentea",
- nopte:"⛔ Entrada de seguridad · no se puentea",op:"🟡 La resuelve el operador · no es avería",rem:"🔵 Puesto remoto",txt:"⚡ Actuación"};
+ nopte:"⛔ Entrada de seguridad · no se puentea",op:'<img class="rcsico" src="iconos/advertencia.png" alt="Advertencia"> La resuelve el operador · no es avería',rem:"🔵 Puesto remoto",txt:"⚡ Actuación"};
 function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcsSacar(x)}catch(e){return null}}).filter(Boolean);if(!R.length)return null;
  const mk=d=>({id:"sosv_"+d.length,pos:"",tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:"",com:"",obs:"",orden:"SOS",fecha:""});
  const cro=[];R.forEach(r=>{if(r.tipo=="puente")r.cro.forEach(o=>cro.push(o));
@@ -128,7 +128,7 @@ function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcs
    +`<div class="puac">${E(r.txt.replace(/^Módulo safety amarillo .*?vigilando\)?\.\s*/,""))}</div><div class="puac">Prueba: quitar el puente, modo OFF → ON y comprobar en la Magelis que la ${E(r.x.c)} no vuelve a entrar.</div>`;
   else if(r.tipo=="anap")p=r.an.p.map(t=>`<div class="puac">${E(t)}</div>`).join("")+`<div class="puac">Solo en MANUAL y con un compañero vigilando; avisar a CGA. Reparar el sensor o su manguera, quitar la resistencia y volver a conectar el conductor.</div><div class="puac">Prueba: con el puente puesto la ${E(r.x.c)} se borra tras OFF → ON; al reparar, comprobar en la Magelis que la medida varía en todo el recorrido.</div>`;
   else p=`<div class="puac">${E(r.txt)}</div>`;
-  return`<div class="svsa"><div class="svsah"><b>${E(r.x.c)}</b> ${E(r.x.t)} · <span>${TIT[r.tipo]||TIT.txt}</span></div>${p}</div>`}).join("");
+  return`<div class="svsa"><div class="svsah">${typeof rcsIco=="function"&&r.x.f!="R"?rcsIco(r.x.f)+" ":""}<b>${E(r.x.c)}</b> ${E(r.x.t)} · <span>${TIT[r.tipo]||TIT.txt}</span></div>${p}</div>`}).join("");
  const croH=cro.length&&typeof croquisPuente=="function"?`<div class="card gcroq ubcro svcro"><div class="gcrh">🔌 Croquis del puente provisional según planos · módulo ${E([...new Set(cro.map(o=>o.mod))].join(" / "))}${cro.length>1?` · ${cro.length} puentes (desliza)`:""}</div><div class="gcrs">${cro.map(o=>{try{return`<div class="gcri">${croquisPuente(o,5)}</div>`}catch(e){return""}}).join("")}</div></div>`:"";
  /* croquis de los puentes analógicos (los mismos de la guía de campo, Observaciones de «Medidas analógicas») */
  const K=window.CROQ_AN||{};const ak=[];R.forEach(r=>{if(r.tipo=="anap")r.an.k.forEach(k=>{if(K[k]&&!ak.includes(k))ak.push(k)})});
