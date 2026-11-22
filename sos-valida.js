@@ -121,10 +121,16 @@ const TIT={puente:"🔌 Puente provisional en el módulo de seguridad",anap:"⚡
  nopte:"⛔ Entrada de seguridad · no se puentea",op:'<img class="rcsico" src="iconos/advertencia.png" alt="Advertencia"> La resuelve el operador · no es avería',rem:"🔵 Puesto remoto",txt:"⚡ Actuación"};
 /* v735: opciones numeradas (1º, 2º, 3º…) cada una en su línea, como en la caja de la alarma */
 const ACC=t=>typeof rcsAccHTML=="function"?rcsAccHTML(t):E(t);
+/* v736: el croquis sacado por TEXTO tiene que ser del mismo sistema que la alarma: «258 Límite derecho de giro rotonda»
+   sacaba E-A3 8.1 «Límite giro traslación derecha» (casaban «límite», «giro» y «derecha»). Si la alarma nombra un sistema
+   (rotonda, traslación, cabina…), solo valen los puentes de entradas de ese sistema. */
+const SIS=[["rot",/rotonda/i],["tra",/traslaci|bogie|ruedas?\b/i],["cab",/cabina/i],["ext",/extensi|retracc|t[uú]nel/i],["ele",/inclinaci|elevaci|altura|subir|bajar/i],["por",/port[oó]n/i],["zap",/zapata/i],["bum",/bumper/i],["ata",/antiatrap/i],["hz",/400\s*hz|recogedor/i],["aa",/aire acond|\bA\/A\b|carro/i]];
+const sisDe=t=>SIS.filter(([,re])=>re.test(String(t||""))).map(([k])=>k);
+function mismoSis(tAl,o){const A=sisDe(tAl);if(!A.length)return true;const C=sisDe([o.d,o.k1,(o.el||[]).join(" "),o.sd].join(" "));return !C.length||C.some(k=>A.includes(k))}
 function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcsSacar(x)}catch(e){return null}}).filter(Boolean);if(!R.length)return null;
  const mk=d=>({id:"sosv_"+d.length,pos:"",tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:"",com:"",obs:"",orden:"SOS",fecha:""});
  const cro=[];R.forEach(r=>{if(r.tipo=="puente")r.cro.forEach(o=>cro.push(o));
-  else if(r.tipo=="txt"||r.tipo=="op"){try{if(typeof _croqLista=="function")_croqLista(mk(r.x.c+" "+r.x.t)).forEach(o=>{if(!cro.some(q=>q.mod==o.mod&&q.b1==o.b1&&q.b2==o.b2))cro.push(Object.assign({},o,{d:r.x.c+" · "+(o.d||"")}))})}catch(e){}}});
+  else if(r.tipo=="txt"||r.tipo=="op"){try{if(typeof _croqLista=="function")_croqLista(mk(r.x.c+" "+r.x.t)).filter(o=>mismoSis(r.x.t,o)).forEach(o=>{if(!cro.some(q=>q.mod==o.mod&&q.b1==o.b1&&q.b2==o.b2))cro.push(Object.assign({},o,{d:r.x.c+" · "+(o.d||"")}))})}catch(e){}}});
  const lin=R.map(r=>{let p="";
   if(r.tipo=="puente")p=r.cro.map(o=>`<div class="puac">En <b>MANUAL</b> y con un compañero vigilando: <b>puente provisional en ${E(o.mod)} ${E(o.b1)} (${E(o.k1)}) ↔ ${E(o.b2)} (${E(o.k2)})</b>${o.el&&o.el.length?` · libera ${E(o.el.join(" / "))}`:""}. Mover en sentido contrario para salir de la seguridad y avisar a CGA.</div>`).join("")
    +`<div class="puac">${ACC(r.txt.replace(/^Módulo safety amarillo .*?vigilando\)?\.\s*/,""))}</div><div class="puac">Prueba: quitar el puente, modo OFF → ON y comprobar en la Magelis que la ${E(r.x.c)} no vuelve a entrar.</div>`;
