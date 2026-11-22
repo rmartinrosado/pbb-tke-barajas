@@ -1,4 +1,6 @@
-/* ===== v740: GUÍA DE CAMPO · «ATRAQUE INCORRECTO» ajustado al MANUAL RCS (F8-690.0312-51, pág. 82-85) (22/11/2026) =====
+/* ===== v741: simulación redibujada como el icono de atraque de la Magelis (avión de morro y PBB con fuelle, cabina, rotonda
+   y túnel en línea ámbar), legible en modo claro y oscuro.
+   ===== v740: GUÍA DE CAMPO · «ATRAQUE INCORRECTO» ajustado al MANUAL RCS (F8-690.0312-51, pág. 82-85) (22/11/2026) =====
    v737-v738: apartado nuevo (falso contacto con avión C-B51 / C-B52, simulación y croquis del puente en P-A5 1.1).
    v740: rehecho con el manual de operación RCS:
    · pág. 82 · Atraque correcto: el contacto con el avión SOLO con la unidad de traslación hacia delante (o hacia atrás).
@@ -49,25 +51,28 @@ function sim(){return `<div class="atqw" data-s="1">
 <svg class="atqv" viewBox="0 0 340 344" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Simulación del falso contacto derecho C-B51 y pasos para desatracar">
  <defs><marker id="atqar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#e53935"/></marker>
   <marker id="atqag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1fa64a"/></marker></defs>
- <rect x="6" y="10" width="240" height="42" rx="21" class="aqav"/><rect x="104" y="22" width="24" height="30" rx="3" class="aqpu"/>
- <text x="18" y="36" class="aqt">AVIÓN</text><text x="134" y="36" class="aqm">puerta</text>
- <g class="v1 v3"><path d="M116 58 V110" class="aqdim" marker-start="url(#atqag)" marker-end="url(#atqag)"/><text x="122" y="88" class="aqt aqok">≈ 5 m · SIN CONTACTO</text></g>
+ <!-- v741: avión y PBB en planta como el icono de atraque de la Magelis (rotado: morro a la izquierda, PBB por debajo) -->
+ <path d="M250 12 H60 C30 12 10 24 10 37 C10 50 30 62 60 62 H250" class="aqln"/>
+ <path d="M22 32 q6 -6 13 -6 q-2 6 -9 9z M22 42 q6 6 13 6 q-2 -6 -9 -9z" class="aqln2"/>
+ <path d="M104 62 V54 H132 V62" class="aqln"/><text x="60" y="41" class="aqt">AVIÓN</text><text x="136" y="58" class="aqm">puerta</text>
+ <g class="v1 v3"><path d="M118 66 V104" class="aqdim" marker-start="url(#atqag)" marker-end="url(#atqag)"/><text x="122" y="88" class="aqt aqok">≈ 5 m · SIN CONTACTO</text></g>
  <g class="v2"><text x="10" y="74" class="aqt aqbyo">BYPASS + JOYSTICK ATRÁS</text><text x="10" y="86" class="aqm">velocidad lenta · ignora las alarmas</text></g>
  <g class="v4"><text x="10" y="74" class="aqt aqok">MANUAL · JOYSTICK ATRÁS</text><text x="10" y="86" class="aqm">giros y altura libres · compañero vigilando</text></g>
  <g class="v5"><text x="10" y="74" class="aqt aqok">ATRACAR SOLO CON TRASLACIÓN</text><text x="10" y="86" class="aqm">al tocar: 243 y «desatracar: joystick atrás»</text></g>
  <g class="aqpbb">
-  <rect x="60" y="118" width="112" height="44" rx="6" class="aqcab"/><text x="116" y="144" text-anchor="middle" class="aqt">CABINA</text>
-  <rect x="88" y="162" width="56" height="40" class="aqtun"/><text x="116" y="186" text-anchor="middle" class="aqm">túnel</text>
-  <rect x="60" y="114" width="112" height="6" rx="3" class="aqbum"/>
-  <circle cx="72" cy="117" r="7" class="aqok2"/><text x="36" y="110" class="aqm">C-B52</text>
-  <g class="v1 v2"><circle cx="160" cy="117" r="9" class="aqko aqbl"/><text x="166" y="106" class="aqt aqko2">C-B51</text><g class="aqbl"><text x="176" y="122" class="aqt aqko2">FALSO</text><text x="176" y="133" class="aqt aqko2">CONTACTO</text></g></g>
-  <g class="v3 v4"><circle cx="160" cy="117" r="7" class="aqoff"/><text x="166" y="106" class="aqm">C-B51</text></g>
-  <g class="v5"><circle cx="160" cy="117" r="8" class="aqnew"/><text x="166" y="106" class="aqm aqok">C-B51 ✓</text></g>
+  <path d="M92 110 H144" class="aqbmp"/><path d="M96 114 H140 M96 118 H140 M96 122 H140" class="aqln"/>
+  <rect x="90" y="126" width="56" height="32" rx="4" class="aqln"/><text x="118" y="146" text-anchor="middle" class="aqt">CABINA</text>
+  <path d="M112 158 V162 M124 158 V162" class="aqln"/><circle cx="118" cy="171" r="9" class="aqln"/><circle cx="118" cy="171" r="2.5" class="aqln2"/>
+  <g transform="rotate(38 118 171)"><rect x="109" y="181" width="18" height="38" rx="2" class="aqln"/><path d="M109 191 H127 M109 200 H127 M109 209 H127" class="aqln3"/></g>
+  <circle cx="94" cy="110" r="6" class="aqok2"/><text x="62" y="104" class="aqm">C-B52</text>
+  <g class="v1 v2"><circle cx="142" cy="110" r="8" class="aqko aqbl"/><text x="150" y="104" class="aqt aqko2">C-B51</text><g class="aqbl"><text x="152" y="122" class="aqt aqko2">FALSO</text><text x="152" y="133" class="aqt aqko2">CONTACTO</text></g></g>
+  <g class="v3 v4"><circle cx="142" cy="110" r="6" class="aqoff"/><text x="150" y="104" class="aqm">C-B51</text></g>
+  <g class="v5"><circle cx="142" cy="110" r="7" class="aqnew"/><text x="150" y="104" class="aqm aqok">C-B51 ✓</text></g>
  </g>
- <g class="v2">${TORT(24,216)}<path d="M24 124 V196" class="aqarr3" marker-end="url(#atqar)"/></g>
- <g class="v3"><g class="aqbl"><path d="M164 128 L192 158" class="aqarr" marker-end="url(#atqar)"/><rect x="172" y="162" width="86" height="15" rx="3" class="aqlb"/><text x="215" y="173" text-anchor="middle" class="aqlt">⬅ DESCONECTAR</text></g>
+ <g class="v2">${TORT(40,206)}<path d="M44 118 V188" class="aqarr3" marker-end="url(#atqar)"/></g>
+ <g class="v3"><g class="aqbl"><path d="M148 118 L182 156" class="aqarr" marker-end="url(#atqar)"/><rect x="172" y="162" width="86" height="15" rx="3" class="aqlb"/><text x="215" y="173" text-anchor="middle" class="aqlt">⬅ DESCONECTAR</text></g>
   <text x="174" y="190" class="aqm">conector M12 fuera</text></g>
- <g class="v4"><path d="M24 124 V196" class="aqarr2" marker-end="url(#atqag)"/></g>
+ <g class="v4"><path d="M44 118 V188" class="aqarr2" marker-end="url(#atqag)"/></g>
  <g transform="translate(262,64)"><rect x="0" y="0" width="74" height="98" rx="6" class="aqmod"/><text x="37" y="14" text-anchor="middle" class="aqt">P-A5</text><text x="37" y="25" text-anchor="middle" class="aqm">pupitre</text>
   <circle cx="13" cy="44" r="7" class="aqled v1 v2"/><circle cx="13" cy="44" r="7" class="aqledo v3 v4 v5"/><text x="24" y="47" class="aqm">1.1 dcho</text>
   <circle cx="13" cy="66" r="7" class="aqledo"/><text x="24" y="69" class="aqm">4.4 izdo</text>
@@ -134,7 +139,7 @@ const st=document.createElement("style");st.textContent=`
 .atqv .aqav{fill:#cfd8dc;stroke:#78909c}.atqv .aqpu{fill:#90a4ae}.atqv .aqcab,.atqv .aqcab2{fill:#cfd8dc;stroke:#607d8b}.atqv .aqtun,.atqv .aqtun2{fill:#e3e7ea;stroke:#90a4ae}.atqv .aqbum{fill:#263238}
 .atqv .aqeje{fill:#b0bec5;stroke:#78909c}.atqv .aqrue{fill:#616161}.atqv .aqrot{fill:#e0e0e0;stroke:#90a4ae;stroke-width:2}.atqv .aqsue{stroke:#263238;stroke-width:4}
 .atqv .aqfl{stroke:#f36f21;stroke-width:4;fill:none;stroke-linejoin:round}.atqv .aqfr{stroke:#b71c1c;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.atqv .aqal2{fill:#e53935!important;font-weight:800;opacity:1!important}.atqv .aqx{stroke:#e91e63;stroke-width:3;stroke-linecap:round}.atqv .aqsep{stroke:#8886;stroke-dasharray:4 3}
+.atqv .aqal2{fill:#e53935!important;font-weight:800;opacity:1!important}.atqv .aqln{fill:none;stroke:#f0a020;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}.atqv .aqln2{fill:#f0a020}.atqv .aqln3{stroke:#f0a020;stroke-width:1.2;opacity:.8}.atqv .aqbmp{stroke:#f0a020;stroke-width:4.5;stroke-linecap:round}.atqv .aqx{stroke:#e91e63;stroke-width:3;stroke-linecap:round}.atqv .aqsep{stroke:#8886;stroke-dasharray:4 3}
 .atqv .aqdim{stroke:#1fa64a;stroke-width:1.6;stroke-dasharray:4 3;fill:none}.atqv .aqok{fill:#1fa64a!important}.atqv .aqok2{fill:#1fa64a;stroke:#0b5d27}
 .atqv .aqko{fill:#e53935;stroke:#7f0000;stroke-width:2}.atqv .aqko2{fill:#e53935!important}.atqv .aqoff{fill:#9e9e9e;stroke:#424242}
 .atqv .aqarr{stroke:#e53935;stroke-width:3;fill:none;stroke-linecap:round}.atqv .aqarr2{stroke:#1fa64a;stroke-width:4;fill:none;stroke-linecap:round}.atqv .aqarr3{stroke:#f36f21;stroke-width:4;fill:none;stroke-linecap:round}
@@ -148,7 +153,7 @@ const st=document.createElement("style");st.textContent=`
 @keyframes atqBl{50%{opacity:.15}}@keyframes atqLed{50%{fill:#2e7d32}}
 .atqv .v1,.atqv .v2,.atqv .v3,.atqv .v4,.atqv .v5{display:none}
 .atqw[data-s="1"] .v1,.atqw[data-s="2"] .v2,.atqw[data-s="3"] .v3,.atqw[data-s="4"] .v4,.atqw[data-s="5"] .v5{display:inline}
-.atqv .aqpbb{transition:transform 2.4s ease-in-out}.atqw[data-s="2"] .aqpbb{transform:translateY(16px)}.atqw[data-s="4"] .aqpbb,.atqw[data-s="5"] .aqpbb{transform:translateY(34px)}
+.atqv .aqpbb{transition:transform 2.4s ease-in-out}.atqw[data-s="2"] .aqpbb{transform:translateY(16px)}.atqw[data-s="4"] .aqpbb,.atqw[data-s="5"] .aqpbb{transform:translateY(24px)}
 .atqco{display:flex;flex-direction:column;gap:6px;margin:4px 0 10px}
 .atqcf{display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:2px;padding:8px 10px;border-radius:10px;border:1.5px solid color-mix(in srgb,var(--tx) 14%,transparent);background:color-mix(in srgb,var(--bg) 70%,var(--card));text-align:left}
 .atqcf b{grid-row:span 3;align-self:start;background:#455a64;color:#fff;border-radius:6px;padding:2px 7px;font:800 13px/1.3 var(--tkmo,monospace)}
