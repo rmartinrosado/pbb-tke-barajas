@@ -44,12 +44,13 @@ function pinta(d){const P=d.closest(".puit")||d.parentElement;if(!P)return;
  const r=elige(txt,cab);if(!r){d.dataset.pft=String(+(d.dataset.pft||0)+1);return}
  const k=r.cod+"|"+(r.c.db||r.c.id);
  const pon=()=>{if(!d.isConnected||d.dataset.pf)return;const h=CACHE[k]||(CACHE[k]=html(r.cod,r.c));if(!h){d.dataset.pf="0";return}
-  const b=document.createElement("div");b.className="pafo";b.innerHTML=h;d.parentNode.insertBefore(b,d);d.dataset.pf="1"};
+  const b=document.createElement("div");b.className="pafo";b.innerHTML=h;const cr=d.previousElementSibling;/* v715: las fotos van encima del croquis del puente (el croquis queda pegado al texto ⚡) */
+  const ant=cr&&cr.classList.contains("pucroan")?cr:d;d.parentNode.insertBefore(b,ant);d.dataset.pf="1"};
  if(r.c._fp&&typeof compFotosAsegura=="function"){d.dataset.pf="";compFotosAsegura(r.c).then(()=>{delete CACHE[k];pon()});return}
  pon()}
 function barre(){document.querySelectorAll(".puac:not([data-pf])").forEach(d=>{
   if(+(d.dataset.pft||0)>20)return;const t=(d.textContent||"").trim();if(!/^⚡/.test(t))return;
-  const prev=d.previousElementSibling;if(prev&&prev.classList.contains("pafo")){d.dataset.pf="1";return}
+  let prev=d.previousElementSibling;if(prev&&prev.classList.contains("pucroan"))prev=prev.previousElementSibling;if(prev&&prev.classList.contains("pafo")){d.dataset.pf="1";return}
   try{pinta(d)}catch(e){d.dataset.pf="0"}})}
 let rq=0;const pide=()=>{if(rq)return;rq=requestAnimationFrame(()=>{rq=0;barre()})};
 new MutationObserver(pide).observe(document.documentElement,{childList:true,subtree:true});
