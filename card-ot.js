@@ -6,7 +6,10 @@
 const LLAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
 const st=document.createElement("style");st.textContent=`
 .orl .sosc{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0!important;margin:0!important;border-radius:50%!important;border:0!important;background:transparent!important;flex:none}
-#app .card .otres{align-items:stretch!important}#app .card .otres .orl.orlsos{justify-content:flex-start!important;align-self:stretch;width:100%}.orl .sosc img{width:40px;height:40px;display:block}
+#app .card .otres{align-items:stretch!important}#app .card .otres .orl.orlsos{justify-content:flex-start!important;align-self:stretch;width:100%}.otres .orl .grepc{display:inline-flex;align-items:center;gap:5px;flex:none;margin:0!important;padding:0!important;width:48px!important;height:48px!important;justify-content:center;flex-direction:column;gap:1px;border-radius:50%!important;border:0!important;width:auto!important;min-height:0!important;
+ color:#fff!important;font:800 11.5px/1 var(--tkmo,ui-monospace,monospace)!important;letter-spacing:.4px;background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff))!important;box-shadow:0 4px 12px -5px var(--tkor,#ff7a1a)}
+.otres .orl .grepc svg{width:20px;height:20px}.otres .orl .grepc span{font-size:5.8px;letter-spacing:-.2px}.otres .orl.orlsos{gap:5px!important}
+.orl .sosc img{width:40px;height:40px;display:block}
 .cacr .grep{display:inline-flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#fff!important;border:0!important;
  background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff))!important;box-shadow:0 6px 14px -6px var(--tkor,#ff7a1a)}
 .cacts.cacpa{justify-content:center!important;margin:10px 0 4px!important;position:relative}.cacts.cacpa>.cacr{justify-content:center!important;margin:0 auto!important;gap:14px;flex:0 0 auto}
@@ -25,13 +28,17 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  const oid=id?id[1]:null;
  c.querySelectorAll('.cacr .gvar,.cacr button[onclick^="insOT("],.cacr .gplc').forEach(b=>b.remove());
  const cr=c.querySelector(".cacr");
- if(cr&&oid&&!cr.querySelector(".grep")){const b=document.createElement("button");b.type="button";b.className="sec gwr grep";b.title="Reparación";b.setAttribute("aria-label","Reparación: inspección cable a cable origen → destino");
+ if(false&&cr&&oid&&!cr.querySelector(".grep")){const b=document.createElement("button");b.type="button";b.className="sec gwr grep";b.title="Reparación";b.setAttribute("aria-label","Reparación: inspección cable a cable origen → destino");
   b.innerHTML=LLAVE+"<small>REPARACIÓN</small>";b.onclick=e=>{e.stopPropagation();repOT(oid)};const cam=cr.querySelector(".gcam,.gfb2");cam?cam.after(b):cr.append(b)}
  /* v690: botones (Foto PLC + REPARACIÓN) centrados justo después de la primera actuación; Cierre CGA al final; la mano señala REPARACIÓN */
  const ca=c.querySelector(".obd>.cacts"),pa=c.querySelector(".obd>.pact"),cie=[...c.querySelectorAll(".obd>button.pri")].find(b=>/cierre/i.test(b.textContent));
  if(ca){ca.classList.add("cacpa");if(pa&&pa.nextElementSibling!==ca)pa.after(ca)}
  const ob=c.querySelector(".obd");if(cie&&ob&&ob.lastElementChild!==cie)ob.append(cie);
- const rp=c.querySelector(".cacr .grep");if(rp&&!rp.parentElement.classList.contains("grepw")){const w=document.createElement("span");w.className="grepw";rp.before(w);w.append(rp)}
+ /* v693: REPARACIÓN en la fila de datos, al lado del terminal (T4S); visible con la tarjeta plegada */
+ {const o2=c.querySelector(".otres .orl");const g0=c.querySelector(".cacr .grep");if(g0){const w0=g0.closest(".grepw");(w0||g0).remove()}
+  if(o2&&oid&&!o2.querySelector(".grepc")){const b=document.createElement("button");b.type="button";b.className="grepc";b.title="Reparación";b.setAttribute("aria-label","Reparación: inspección cable a cable origen → destino");
+   b.innerHTML=LLAVE+"<span>REPARACIÓN</span>";b.onclick=e=>{e.stopPropagation();repOT(oid)};o2.append(b)}}
+ const rp=null&&c.querySelector(".cacr .grep");if(rp&&!rp.parentElement.classList.contains("grepw")){const w=document.createElement("span");w.className="grepw";rp.before(w);w.append(rp)}
  const gw=c.querySelector(".grepw");if(gw&&!gw.querySelector(".repdedo")&&window.OT_DEDO)gw.insertAdjacentHTML("beforeend",window.OT_DEDO.replace('class="otdedo"','class="otdedo repdedo"'));
  const sos=c.querySelector(".sosb:not(.sosc)"),orl=c.querySelector(".otres .orl");
  if(sos&&orl){const w=sos.parentElement;sos.classList.add("sosc");orl.prepend(sos);if(w&&/sosmid|sosw/.test(w.className)&&!w.children.length)w.remove()}
