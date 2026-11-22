@@ -335,10 +335,16 @@ function detecta(txt){const t=nrm(txt);if(!t.trim())return[];const out=new Map()
 window.rcsDetecta=detecta;
 const textoOT=i=>[i.desc,i.def,i.com,i.alMag,i.alarmas&&(typeof i.alarmas=="string"?i.alarmas:JSON.stringify(i.alarmas).replace(/[{}\[\]"]/g," "))].filter(Boolean).join(" · ");
 /* ---------- recuadro de un código ---------- */
+/* v734: si la actuación trae opciones numeradas (1º …; 2º …; 3º …) cada una va en su línea, alineada a la izquierda */
+const accHTML=t=>{t=String(t||"");const re=/(?:^|[;.]\s*|\s)(?=[1-9][ºª°]\s)/g;const p=t.split(re).map(z=>z.trim().replace(/[;,]\s*$/,"")).filter(Boolean);
+ /* la nota final tras la última opción («. Prueba: …») va aparte */
+ {const k=p.length-1,m=k>=0&&/^([\s\S]*?\.)\s+([A-ZÁÉÍÓÚ][^.:]{0,24}:[\s\S]*)$/.exec(p[k]);if(m&&/^[1-9][ºª°]\s/.test(p[k]))p.splice(k,1,m[1],m[2])}
+ if(p.filter(z=>/^[1-9][ºª°]\s/.test(z)).length<2)return"➜ "+E(t);
+ return p.map(z=>{const m=/^([1-9])[ºª°]\s+([\s\S]*)$/.exec(z);return m?`<div class="rcsop"><span class="rcsopn">${m[1]}</span><span>${E(m[2])}</span></div>`:`<div class="rcsop rcsop0">➜ ${E(z)}</div>`}).join("")};
 const caja=(o,compacta)=>{const x=o.x,g=G[x.g],[ic,fam,fs]=FN[x.f];
  return`<div class="rcsb rcs${x.f}"><div class="rcsh"><span class="rcsf">${ic} ${fam}</span><b>${E(x.c)}</b> ${E(x.t)}</div>
  <div class="rcsg">${E(g.n)} · <span class="mu">${E(fs)}</span></div>
- ${compacta?"":`<div class="rcsq">${E(g.q)}</div>`}<div class="rcsa">➜ ${E((window.RCS_AA||{})[x.c]||g.a)}</div>${x.f=="A"&&!compacta?`<div class="rcsr">${E(REARME)}</div>`:""}${enlaces(x)}</div>`};
+ ${compacta?"":`<div class="rcsq">${E(g.q)}</div>`}<div class="rcsa">${accHTML((window.RCS_AA||{})[x.c]||g.a)}</div>${x.f=="A"&&!compacta?`<div class="rcsr">${E(REARME)}</div>`:""}${enlaces(x)}</div>`};
 window.rcsCaja=caja;
 /* ---------- v502: enlace a la página del manual RCS subido a Planos ---------- */
 const PEXP={fc:34,lim:34,len:107,ope:84,eme:44,acc:24,pro:106,aux:106,byp:106,avi:107,col:107,pre:86,inf:106,est:106,rem:108};
@@ -647,7 +653,7 @@ const st=document.createElement("style");st.textContent=`
 .rcsb.rcsA{border-left-color:#d32f2f}.rcsb.rcsW{border-left-color:#f9a825}.rcsb.rcsR{border-left-color:#1e88e5}
 .rcsh{font-size:14.5px;line-height:1.3}.rcsf{display:inline-block;font:800 10.5px/1.6 var(--tkmo,monospace);letter-spacing:.6px;padding:0 6px;border-radius:4px;margin-right:4px;background:#0003}
 .rcsA .rcsf{color:#ff5252}.rcsW .rcsf{color:#fbc02d}.rcsR .rcsf{color:#42a5f5}
-.rcsg{font-size:12px;font-weight:700;margin-top:2px}.rcsq{font-size:13px;margin-top:4px}.rcsa{font-size:13px;margin-top:4px;font-weight:600}.rcsr{font-size:12px;margin-top:4px;color:var(--mu,#8a93a3)}
+.rcsg{font-size:12px;font-weight:700;margin-top:2px}.rcsq{font-size:13px;margin-top:4px}.rcsa{font-size:13px;margin-top:4px;font-weight:600}.rcsop{display:flex;align-items:flex-start;gap:8px;text-align:left!important;margin:5px 0 0;line-height:1.35}.rcsop>span:last-child{flex:1;min-width:0;text-align:left!important}.rcsopn{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;font:900 12px/1 var(--tkmo,monospace);color:#fff;background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff));margin-top:1px}.rcsop0{display:block;margin-top:7px;padding-top:6px;border-top:1px dashed color-mix(in srgb,var(--tx) 18%,transparent)}.rcsr{font-size:12px;margin-top:4px;color:var(--mu,#8a93a3)}
 .rcsbus{margin-top:8px}.rcsbi input{width:100%;box-sizing:border-box;margin:0}
 .rcsfil{display:flex;gap:6px}.rcsfil .rcscmp{flex:0 0 33%;min-width:0}.rcsfil .rcsbi:not(.rcscmp){flex:1;min-width:0}.rcsfil input{height:44px;font-size:15px;padding:6px 8px}.rcsfil .rcscmp input::placeholder{font-size:13px}
 #rcs_l.on,.otrcsl.on{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border:1px solid var(--bd,#bbb);border-radius:8px;padding:4px}
