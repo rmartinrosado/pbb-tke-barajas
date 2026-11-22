@@ -10,6 +10,13 @@ const st=document.createElement("style");st.textContent=`
 .otres .orl .grepc{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;color:inherit!important}
 .otres .orl .grepc svg{width:18px;height:18px;display:block}
 .otres .orl.orlsos{gap:5px!important}#app .card.ot .ohdx>.ohsubw:has(.ohchips){flex-direction:column!important;align-items:flex-start!important;gap:5px!important;padding-top:2px}
+/* v700: botones de la tarjeta (lápiz, papeleras, WhatsApp, borrar actuación…) con el mismo tamaño y formato */
+#app .card.ot .otcol button,#app .card.ot .obd button.gbdel,#app .card.ot .obd button.gdl2,#app .card.ot .obd .gblqf button{
+ width:52px!important;height:52px!important;min-width:52px!important;min-height:52px!important;padding:0!important;margin:0!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;border-radius:14px!important;
+ border:1.5px solid color-mix(in srgb,var(--tx) 22%,transparent)!important;background:var(--card)!important;color:var(--tx)!important;box-shadow:0 4px 12px -8px #0008}
+#app .card.ot .otcol button svg,#app .card.ot .obd button.gbdel svg,#app .card.ot .obd button.gdl2 svg,#app .card.ot .obd .gblqf button svg{width:24px!important;height:24px!important}
+#app .card.ot .otcol{gap:10px!important}
 .ohchips{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .ohchips .orc{display:inline-flex;align-items:center;font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:999px;border:1.5px solid color-mix(in srgb,var(--tx) 35%,transparent);background:color-mix(in srgb,var(--tx) 8%,transparent);white-space:nowrap}#app .card .otres{position:relative}.otres>.repdedo{position:absolute;width:48px;height:36px;color:var(--pr);opacity:.8;pointer-events:none;z-index:3;margin:0}
 .orl .sosc img{width:40px;height:40px;display:block}
