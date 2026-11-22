@@ -37,6 +37,10 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  const ca=c.querySelector(".obd>.cacts"),pa=c.querySelector(".obd>.pact"),cie=[...c.querySelectorAll(".obd>button.pri")].find(b=>/cierre/i.test(b.textContent));
  if(ca){ca.classList.add("cacpa");if(pa&&pa.nextElementSibling!==ca)pa.after(ca)}
  const ob=c.querySelector(".obd");if(cie&&ob&&ob.lastElementChild!==cie)ob.append(cie);
+ /* v698: OT cerrada → sin botón de REPARACIÓN ni mano */
+ let cerr=false;try{const o=(typeof inc!="undefined"?inc:[]).find(x=>x.id==(c.dataset.oid||oid));cerr=!!o&&o.estado=="cerrada"}catch(e){}
+ if(cerr){c.querySelectorAll(".grepc,.repdedo").forEach(x=>x.remove())}
+ else{
  /* v693: REPARACIÓN en la fila de datos, al lado del terminal (T4S); visible con la tarjeta plegada */
  {const o2=c.querySelector(".otres .orl");const g0=c.querySelector(".cacr .grep");if(g0){const w0=g0.closest(".grepw");(w0||g0).remove()}
   if(o2&&oid&&!o2.querySelector(".grepc")){const b=document.createElement("button");b.type="button";b.className="orc grepc";b.title="Reparación";b.setAttribute("aria-label","Reparación: inspección cable a cable origen → destino");
@@ -47,6 +51,7 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
   if(ot&&bt&&window.OT_DEDO){let m=ot.querySelector(":scope>.repdedo");if(!m){ot.insertAdjacentHTML("beforeend",window.OT_DEDO.replace('class="otdedo"','class="otdedo repdedo"'));m=ot.querySelector(":scope>.repdedo")}
    const pon=()=>{if(!m.isConnected)return;const a=ot.getBoundingClientRect(),r=bt.getBoundingClientRect();if(!r.width)return;
     m.style.left=(r.left-a.left+r.width*0.3)+"px";m.style.top=(r.top-a.top+r.height*0.45)+"px"};requestAnimationFrame(pon)}}
+ }
  const rp=null&&c.querySelector(".cacr .grep");if(rp&&!rp.parentElement.classList.contains("grepw")){const w=document.createElement("span");w.className="grepw";rp.before(w);w.append(rp)}
  const gw=c.querySelector(".grepw");if(gw&&!gw.querySelector(".repdedo")&&window.OT_DEDO)gw.insertAdjacentHTML("beforeend",window.OT_DEDO.replace('class="otdedo"','class="otdedo repdedo"'));
  const sos=c.querySelector(".sosb:not(.sosc)"),orl=c.querySelector(".otres .orl");
