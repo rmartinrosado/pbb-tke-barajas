@@ -549,7 +549,9 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
      actuación según planos y el cierre CGA. */
 const alMagDe=i=>{if(!i)return[];const t=i.alMag||(typeof i.alarmas=="string"?i.alarmas:"");return t?listaAl(t):[]};
 window.rcsAlMagDe=alMagDe;
-function picker(anchor,pre,X0,tit){const d=document.createElement("div");d.className="rcsbus otrcs";d.id=pre;
+/* v716: nombre propio (antes «picker», que la función del cierre CGA de más abajo pisaba: en Registrar OT se abría sin
+   parar la ventana «Código de alarma · familia» y no se podía registrar) */
+function otPicker(anchor,pre,X0,tit){const d=document.createElement("div");d.className="rcsbus otrcs";d.id=pre;
  d.innerHTML=`<label>${tit} <small>(manual RCS · opcional, se pueden sumar varias)</small></label>
  <div class="rcsbi"><input id="${pre}_q" type="search" autocomplete="off" enterkeyhint="search" placeholder="🔎 Nº o texto de la alarma o evento"></div>
  <div id="${pre}_l" class="otrcsl"></div><div id="${pre}_s"></div>`;
@@ -573,11 +575,11 @@ const ponAl=(i,X)=>{if(!i)return;const vieja=alMagDe(i).map(x=>x.c);
  if(typeof i.alarmas=="string")delete i.alarmas};
 function otPon(){
  /* registrar */
- const t=document.getElementById("f_desc");if(t&&!document.getElementById("otrcs"))picker(t,"otrcs",[],"Alarma de la Magelis");
+ const t=document.getElementById("f_desc");if(t&&!document.getElementById("otrcs"))otPicker(t,"otrcs",[],"Alarma de la Magelis");
  /* editar */
  const e=document.getElementById("e_d");if(e&&!document.getElementById("edrcs")){const sc=document.getElementById("sheetc");const bt=sc&&sc.querySelector('[onclick^="guardaEdit("]');
   const id=bt&&((bt.getAttribute("onclick")||"").match(/\(\s*'([^']+)'/)||[])[1];const i=id&&Array.isArray(inc)&&inc.find(x=>x.id==id);
-  const w=picker(e,"edrcs",alMagDe(i),"Alarmas de la Magelis");w.dataset.oid=id||""}}
+  const w=otPicker(e,"edrcs",alMagDe(i),"Alarmas de la Magelis");w.dataset.oid=id||""}}
 if(typeof guardar=="function"){const og=guardar;guardar=function(){const w=document.getElementById("otrcs");const X=w&&w.sel?w.sel.slice():[];const n0=Array.isArray(inc)?inc.length:0;
  const r=og.apply(this,arguments);
  try{if(X.length&&Array.isArray(inc)&&inc.length>n0&&inc[0]){ponAl(inc[0],X);sv("pbb_inc",inc);try{render()}catch(e){}}}catch(e){console.warn("otrcs",e)}
