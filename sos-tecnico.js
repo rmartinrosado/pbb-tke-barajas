@@ -229,6 +229,7 @@ ${P} .sostart{overflow:hidden;text-overflow:ellipsis}
 ${P} .sostarn{flex:none;display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:12px;font:900 12px/1 ${MO};background:color-mix(in srgb,var(--tx) 14%,transparent);color:var(--mu)}
 ${P} .sostarn.on{background:linear-gradient(135deg,${OR},${PU});color:#fff}
 ${P} #sr_t[readonly]{cursor:default;background:color-mix(in srgb,var(--card) 60%,var(--bg))!important;border-style:dashed!important;font:600 clamp(10.5px,3.2vw,12.5px)/1.7 ${MO}!important;letter-spacing:0!important;white-space:pre!important;overflow-x:hidden!important;overflow-wrap:normal!important;padding:8px 10px!important;min-height:0!important;-webkit-user-select:none;user-select:none;resize:none}
+${P} #sr_ob{font:600 clamp(10.5px,3.2vw,12.5px)/1.7 ${MO}!important;letter-spacing:0!important}${P} #sr_ob::placeholder{font:500 clamp(10.5px,3.2vw,12.5px)/1.7 ${MO}!important;letter-spacing:0!important}
 ${P} #sr_t[readonly]:focus{border-color:${BRD}!important;box-shadow:none!important}
 ${P} .sostzf{display:flex;flex-wrap:nowrap;gap:5px;padding:2px 0 8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:none}
 ${P} .sostzf>.sostzb{flex:1 0 auto}${P} .sostzf::-webkit-scrollbar{display:none}
