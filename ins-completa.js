@@ -179,17 +179,20 @@ function cajaHTML(i){const cons=window.insCons(i.id);
  let h=`<summary><b>🔌 Inspección cable a cable completa · origen → destino</b> <span class="mu" style="font-weight:400">(${S.length} señal${S.length==1?"":"es"})</span></summary>
  <div class="icav">La actuación más eficaz está dada por consultada: se ha recalculado todo. ${blq?"Es un <b>bloqueo</b>: se despliega el interbloqueo completo desde el <b>CBTH</b> hasta los equipos de la <b>PBB</b> y las máquinas de servicios auxiliares <b>AAA</b> y <b>HZ</b>. ":""}Revisa en campo cada punto, del origen al destino; lo que nombra la OT va primero (🎯).</div>
  ${est?`<div class="icav icst">${esc(est)}</div>`:""}`;
+ /* v691: botones (Solo la actuación más eficaz · Pasar a la OT · Recalcular IA) arriba, tras la caja verde */
+ const acc=`<div class="row" style="gap:8px;margin-top:4px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="event.stopPropagation();insConsMarca(false)">↩ Solo la actuación más eficaz</button>
+  <button class="sec" style="flex:1" onclick="event.stopPropagation();insCopia()">Pasar a la OT</button></div>
+  <div class="mu" style="font-size:12px;margin:10px 0 4px;text-align:center;font-weight:700">🔄 RECALCULAR IA COMPLETA · elige el motor</div>
+  <div class="row icmot" style="gap:8px;flex-wrap:nowrap"><button class="pri" style="flex:1" onclick="event.stopPropagation();pcCompleta&&pcCompleta(false,'gemini')">Gemini<small>gratis</small></button>
+  <button class="pri icmc" style="flex:1" onclick="event.stopPropagation();pcCompleta&&pcCompleta(false,'claude')">Claude<small>con coste</small></button></div>`;
+
+ h+=`<div class="icacc">${acc}</div>`;
  if(!S.length)h+=`<div class="gav">No hay recorridos de cableado en la app para lo que describe la OT. Usa los tramos de la IA de abajo y los planos elegidos.</div>`;
  const grupos=[];S.forEach(d=>{const g=d.g||"OT";let G=grupos.find(x=>x.g==g);if(!G){G={g,a:[]};grupos.push(G)}G.a.push(d)});
  let ix=0;grupos.forEach(G=>{const rel=G.a.some(d=>d.rel);
   h+=`<details class="icg"${rel||grupos.length==1?" open":""}><summary><b>${esc(GRP[G.g]||"Señales relacionadas con la OT")}</b> <span class="mu" style="font-weight:400">(${G.a.length})</span></summary>${G.a.map(d=>senalHTML(d,ix++,i)).join("")}</details>`});
  h+=tramosIA(o);
  if(!(o&&o.tramos&&o.tramos.length))h+=`<div class="mu" style="font-size:12px;margin:8px 0">${o&&o.modo=="completa"?"La IA no ha devuelto tramos del lado de los equipos.":"Los tramos del lado de los equipos (dentro del CBTH, AAA y HZ) los da la IA con los planos elegidos en «📐 Cotejo entre planos»."}</div>`;
- h+=`<div class="row" style="gap:8px;margin-top:10px;flex-wrap:nowrap"><button class="sec" style="flex:1" onclick="event.stopPropagation();insConsMarca(false)">↩ Solo la actuación más eficaz</button>
-  <button class="sec" style="flex:1" onclick="event.stopPropagation();insCopia()">Pasar a la OT</button></div>
-  <div class="mu" style="font-size:12px;margin:10px 0 4px;text-align:center;font-weight:700">🔄 RECALCULAR IA COMPLETA · elige el motor</div>
-  <div class="row icmot" style="gap:8px;flex-wrap:nowrap"><button class="pri" style="flex:1" onclick="event.stopPropagation();pcCompleta&&pcCompleta(false,'gemini')">Gemini<small>gratis</small></button>
-  <button class="pri icmc" style="flex:1" onclick="event.stopPropagation();pcCompleta&&pcCompleta(false,'claude')">Claude<small>con coste</small></button></div>`;
  return h}
 function botonHTML(i){return window.insCons(i.id)?"":`<button class="sec icbtn" onclick="event.preventDefault();event.stopPropagation();insConsMarca(true)">✅ Actuación más eficaz consultada · sacar la inspección completa cable a cable (origen → destino)</button>`}
 
@@ -237,7 +240,7 @@ if(typeof insOT=="function"){const oo=insOT;window.insOT=insOT=function(){const 
 window.insCadenaTexto=function(i){try{return senales(i).slice(0,10).map(d=>{const {pasos}=cadena(d);return `- ${d.eq||d.e.d}: `+pasos.map(p=>p.p+(p.sale?" ["+p.sale+"]":"")).join(" → ")+` (folio ${d.e.f})`}).join("\n")}catch(e){return ""}};
 
 const st=document.createElement("style");st.textContent=`
-.icbox{border:2px solid #2e7d32!important}.icbox>summary{cursor:pointer}
+.icbox{border:2px solid #2e7d32!important}.icacc{margin:6px 0 12px;padding-bottom:12px;border-bottom:1px dashed var(--bd)}.icbox>summary{cursor:pointer}
 .icav{margin:8px 0;padding:7px 10px;border-left:4px solid #2e7d32;border-radius:6px;background:color-mix(in srgb,#2e7d32 8%,transparent);font-size:12.5px;line-height:1.4}
 .icst{border-left-color:#1565c0;background:color-mix(in srgb,#1565c0 8%,transparent)}
 .icg{margin:8px 0;padding:6px 8px;border:1px solid var(--bd);border-radius:10px}.icg>summary{cursor:pointer;font-size:13.5px}
