@@ -54,6 +54,8 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  const al=c.querySelector(".soscal");if(al){pon(B2,al);const la=al.querySelector("label");if(la&&!la.dataset.st){la.dataset.st=1;la.innerHTML='Lista rápida SOS <small>(casos frecuentes)</small>'}}
  pon(B2,c.querySelector(".soscr3"));
  /* v724: «Seleccionar alarma» y «Alarma registrada» (las líneas no se editan: se suman con el buscador o la lista y se quitan con ✕) */
+ /* v730: «Foto Display-Magelis» */
+ {const fb=c.querySelector("label.srfoto>span");if(fb&&/^📷 Foto Magelis$/.test(fb.textContent.trim()))fb.textContent="📷 Foto Display-Magelis";const lb=c.querySelector("label.srfoto");if(lb&&lb.dataset.ori&&/Foto Magelis</.test(lb.dataset.ori))lb.dataset.ori=lb.dataset.ori.replace("Foto Magelis<","Foto Display-Magelis<")}
  const sa=$i("sr_a");if(sa&&sa.options[0]&&sa.options[0].text!=="Seleccionar alarma")sa.options[0].text="Seleccionar alarma";
  const dt=c.querySelector("details.srtx"),tx=$i("sr_t");
  if(dt){const sm=dt.querySelector("summary");/* v727: en una línea, con el número de alarmas registradas */
