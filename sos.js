@@ -34,7 +34,7 @@ const oV=vTec;vTec=function(){const r=oV.apply(this,arguments);const app=documen
  let hi=document.getElementById("ghidr");const H=typeof hidrOT=="function"?hidrOT(i):null;
  if(!hi&&H){hi=document.createElement("div");hi.id="ghidr";hi.dataset.k=H;hi.className="card pucard";hi.innerHTML=hidrHTML(i,H)}
  let bar=document.getElementById("sosbar");if(!bar){bar=document.createElement("div");bar.id="sosbar";bar.className="card sosbar"}
- bar.innerHTML=`<img src="sos.png" alt=""><div><b>PBB ${esc(String(i.pos))} · ${esc(i.tipo||"")} · ${esc(i.orden||"")}</b><div class="mu" style="font-size:12px">${esc(i.desc||"")}</div></div>${(tecnico||admin)?`<button class="sec" onclick="sosSal()">Guía completa</button>`:`<button class="sec" onclick="go('track')">Volver</button>`}`;
+ bar.innerHTML=`<img src="sos.png" alt=""><div><b>PBB ${esc(String(i.pos))} · ${esc(i.tipo||"")} · ${esc(i.orden||"")}</b><div class="mu" style="font-size:12px">${esc(i.desc||"")}</div></div>${(tecnico||admin)?`<button class="sec" onclick="sosIns()">🔌 Inspección cable a cable</button>`:`<button class="sec" onclick="go('track')">Volver</button>`}`;
  app.prepend(bar);[hi,se,pu].forEach(x=>{if(x)bar.after(x)});if(se&&pu)se.after(pu);if(hi){const u=pu||se;if(u)u.after(hi)}
  app.classList.add("sosmode");sosCasos(i);return r};
 /* v98: casos parecidos de la carpeta Casos bajo la primera actuación */
