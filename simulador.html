@@ -159,6 +159,25 @@ ol.pasos li{padding-left:2px}ol.pasos li::marker{color:var(--warn);font-weight:7
 .lnk{font:600 13px var(--f-body);color:var(--accent);background:none;border:0;padding:0;text-align:left;cursor:pointer;text-decoration:underline;text-underline-offset:2px;overflow-wrap:break-word}
 .grp{font-family:var(--f-disp);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-top:14px;padding-top:8px;border-top:2px solid var(--line)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* v683: tema «consola técnica» de la PWA */
+:root{--tkor:#ff7a1a;--tkpu:#9b3dff}
+h1{background:linear-gradient(90deg,var(--tkor),#ffb020 40%,var(--tkpu));-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.06em}
+.box,.ins{position:relative;border-radius:16px!important;border:1.5px solid transparent!important;
+ background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(135deg,var(--tkor),var(--tkpu) 55%,#1e88e5) border-box!important;
+ box-shadow:0 10px 30px -16px color-mix(in srgb,var(--tkpu) 50%,transparent)}
+.tabs button{border-radius:14px!important;border:1.5px solid var(--line)!important;box-shadow:0 6px 16px -10px #000a;transition:transform .14s,border-color .25s,box-shadow .25s}
+.tabs button:active{transform:scale(.97)}
+.tabs button.sel{border-color:transparent!important;background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(135deg,var(--tkor),var(--tkpu)) border-box!important;box-shadow:0 8px 20px -10px var(--tkor)!important}
+.esq a{border-radius:10px!important}.esq a.sel{border-color:var(--tkor)!important;box-shadow:inset 0 -3px 0 var(--tkor)!important}
+.selana{border-radius:14px!important}
+input[type=search]{border-radius:12px!important}input[type=search]:focus{outline:0;border-color:var(--tkor);box-shadow:0 0 0 4px color-mix(in srgb,var(--tkor) 22%,transparent)}
+.btn,.mods button{border-radius:10px!important}.btn.pri,.mods button.sel{background:linear-gradient(135deg,#ffb020,var(--tkor) 50%,#ff4d2e)!important;border-color:transparent!important;color:#111!important}
+.ins{padding:0 14px}.ins>summary{list-style:none;cursor:pointer;padding:12px 0;display:flex;align-items:center;gap:10px;font:800 15px var(--f-body)}
+.ins>summary::-webkit-details-marker{display:none}.ins>summary::after{content:"▾";margin-left:auto;color:var(--muted)}.ins[open]>summary::after{content:"▴"}
+.ins>summary i{font-style:normal;display:grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#fff;background:linear-gradient(135deg,var(--tkor),var(--tkpu))}
+.ins ol{margin:0 0 12px;padding-left:22px;font-size:14px;line-height:1.45}.ins li{margin:6px 0}.ins b{color:var(--fg)}
+.ins .tip{margin:0 0 12px;padding:8px 10px;border-radius:10px;background:var(--warnBg);color:var(--warn);font-size:13px}
 </style>
 
 </head><body>
@@ -178,6 +197,19 @@ ol.pasos li{padding-left:2px}ol.pasos li::marker{color:var(--warn);font-weight:7
   </div>
   </div>
   <div class="scr" id="scr">
+  <details class="ins" id="ins"><summary><i>?</i>Cómo usar el simulador</summary>
+  <ol>
+   <li><b>Elige el esquema</b>: «Rev. J» para T4/T4S o «PBB 507» para la pasarela A380.</li>
+   <li><b>Elige el análisis</b>:
+    <br>· <b>Potencia desde CBTH</b>: tensiones desde el cuadro (400 V · 230 V · SAI) hasta las fuentes de 24 V.
+    <br>· <b>E/S del PLC 24 V</b>: busca un punto (componente, hilo, borna como X51:20, «seguridad», «bypass»…) y verás su circuito borna a borna y el LED que debe tener.
+    <br>· <b>Borneros y mangueras</b>: qué hilo y conductor va en cada borna.</li>
+   <li><b>Pon el circuito como lo tienes en campo</b>: pulsa en protecciones, contactores y finales de carrera para abrirlos o cerrarlos; las tensiones se recalculan al momento.</li>
+   <li><b>Mide con el polímetro respecto a 0 V</b> en el punto que indica la pantalla y compara con el valor esperado.</li>
+   <li><b>Localiza el fallo</b>: está entre el <b>último punto con el valor correcto</b> y el <b>primero que no lo da</b> (borna floja, hilo cortado, contacto abierto…).</li>
+  </ol>
+  <div class="tip">⚠️ Valores teóricos del esquema: no incluye caídas de tensión ni la lógica del programa del PLC. Trabaja siempre con las medidas de seguridad de la instalación.</div>
+  </details>
   <section class="box" id="pot"></section>
   <section class="box" id="bor" hidden></section>
   <div id="es" hidden>
@@ -573,4 +605,6 @@ mods();list();det();
 <script src="texto.js?v=314"></script>
 <script src="borneros-st.js?v=551"></script><script src="visor-zoom.js?v=548"></script><script src="borneros.js?v=553"></script>
 
+<script>(function(){const d=document.getElementById("ins");if(!d)return;try{if(!localStorage.getItem("sim_ins"))d.open=true;d.addEventListener("toggle",()=>{if(!d.open)localStorage.setItem("sim_ins","1")})}catch(e){}
+ document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>{d.open=false}))})();</script>
 </body></html>
