@@ -1,4 +1,4 @@
-/* ===== v711: GUÍA DE CAMPO DE LA OT desde la LLAVE de la tarjeta =====
+/* ===== v711-v713: GUÍA DE CAMPO DE LA OT desde la LLAVE de la tarjeta (v713: inspección cable a cable completa recalculada con Gemini) =====
    · La llave de la tarjeta de la OT abre la guía de campo de ESA OT (antes abría la inspección cable a cable).
    · Al abrirla se lanza el cotejo de planos (Gemini, gratis): si ya hay resultado guardado para el mismo texto de la OT y los
      mismos planos se muestra tal cual; si la OT ha cambiado, se recalcula.
@@ -38,8 +38,14 @@ window.repOT=function(id){const i=Array.isArray(inc)&&inc.find(x=>x.id==id);if(!
  try{gTipo=GUIA.tipos[i.tipo]?i.tipo:"PAS"}catch(e){}
  go("tec");
  let k=0;const sube=()=>{const p=document.getElementById("gpaplan")||document.getElementById("gpcot");if(p){p.scrollIntoView({block:"start",behavior:"smooth"});return}if(++k<25)setTimeout(sube,150)};setTimeout(sube,250);
- /* cotejo de planos: arranca con Gemini si no hay resultado guardado para este texto de la OT */
- let n=0;const cot=()=>{if(typeof pcCompleta=="function"&&document.getElementById("g_doc")){pcCompleta(false).catch(()=>{});return}if(++n<25)setTimeout(cot,200)};setTimeout(cot,400)};
+ /* v713: inspección cable a cable COMPLETA (origen → destino) y recálculo de la IA siempre al entrar por la llave:
+    primero Gemini (gratis); si no da resultado, el botón ofrece Claude con su aviso de coste. El cotejo de planos va en el mismo recálculo. */
+ try{localStorage.setItem("insc_"+id,localStorage.getItem("insc_"+id)||String(Date.now()))}catch(e){}
+ try{ANA_C={k:"",r:null}}catch(e){}
+ let n=0;const cot=()=>{if(typeof pcCompleta=="function"&&document.getElementById("g_doc")){
+   Promise.resolve(pcCompleta(false,"gemini")).catch(()=>{}).then(()=>{try{if(typeof insCompletaRepinta=="function")insCompletaRepinta()}catch(e){}
+    const c=document.getElementById("ginsc");if(c&&"open" in c)c.open=true});return}
+  if(++n<25)setTimeout(cot,200)};setTimeout(cot,400)};
 const st=document.createElement("style");st.textContent=`.gpap{border:2px solid #d32f2f!important;padding:10px!important}
 .gpaph{font:800 13px/1.35 var(--tkmo,monospace);letter-spacing:.5px;color:#d32f2f;margin-bottom:6px}.gpaph small{display:block;font-weight:700;letter-spacing:0;color:var(--mu,#78909c)}
 .gpap .svsac{margin-top:8px}`;document.head.appendChild(st);
