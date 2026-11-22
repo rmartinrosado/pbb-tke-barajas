@@ -10,102 +10,6 @@
 (function(){
 "use strict";
 const S="#sheet.sost";
-const st=document.createElement("style");st.id="sostcss";st.textContent=`
-/* ---------- hoja a pantalla completa ---------- */
-${S}{align-items:stretch!important;background:var(--card)!important}
-${S}>#sheetc{max-height:none!important;height:100%!important;height:100dvh!important;width:100%!important;border-radius:0!important;border-top:0!important;
- padding:calc(10px + env(safe-area-inset-top,0px)) 14px calc(96px + env(safe-area-inset-bottom,0px)) 14px!important;
- --sk-l:color-mix(in srgb,var(--tx) 6%,transparent);--sk-l2:color-mix(in srgb,var(--tx) 3%,transparent);
- --sk-in:color-mix(in srgb,var(--card) 88%,var(--tx));--sk-ed:color-mix(in srgb,var(--bd) 70%,var(--tx));
- background-color:var(--card)!important;
- background-image:linear-gradient(var(--sk-l) 1px,transparent 1px),linear-gradient(90deg,var(--sk-l) 1px,transparent 1px),
-  linear-gradient(var(--sk-l2) 1px,transparent 1px),linear-gradient(90deg,var(--sk-l2) 1px,transparent 1px)!important;
- background-size:48px 48px,48px 48px,12px 12px,12px 12px!important;background-attachment:local!important}
-
-/* ---------- cabecera ---------- */
-${S} .sosct{gap:8px!important;margin:0 0 8px!important;align-items:stretch!important}
-${S} .sosct .sosr2t{position:relative;display:flex;align-items:center;justify-content:center;min-height:56px;padding:6px 26px!important;border-radius:12px!important;
- font-size:clamp(16px,5vw,21px)!important;letter-spacing:.06em!important;border:2px solid #ff4d4f!important;
- background:linear-gradient(180deg,#e8262a,#b3121a)!important;box-shadow:inset 0 1px 0 #ffffff40,inset 0 -3px 0 #0000003a,0 3px 10px #c6282855;overflow:hidden}
-${S} .sosct .sosr2t::before,${S} .sosct .sosr2t::after{content:"";position:absolute;top:0;bottom:0;width:16px;
- background:repeating-linear-gradient(135deg,#ffd200 0 6px,#111 6px 12px);opacity:.95}
-${S} .sosct .sosr2t::before{left:0}${S} .sosct .sosr2t::after{right:0}
-${S} .soscx,${S} .shx{width:56px!important;height:56px!important;border-radius:12px!important;font-size:24px!important;border:2px solid var(--sk-ed)!important;
- background:var(--sk-in)!important;box-shadow:inset 0 -3px 0 #0002}
-${S} .soshb{height:56px!important;padding:0 12px!important;border-radius:12px!important;border-width:2px!important;font-size:20px!important;gap:5px!important;
- background:color-mix(in srgb,#1fa64a 10%,var(--card))!important;box-shadow:inset 0 -3px 0 #0002}
-${S} .soshb small{font-size:13px!important;letter-spacing:.02em}
-${S} .soscp{font-size:13.5px!important;line-height:1.35!important;margin:0 0 10px!important;padding:8px 10px;border-left:4px solid var(--ac);
- background:color-mix(in srgb,var(--ac) 7%,transparent);border-radius:0 8px 8px 0;text-align:left!important;color:var(--tx)!important}
-
-/* ---------- pasos 1 → 2 → 3 como cadena de proceso ---------- */
-${S} .soscl{gap:14px!important;margin:0 0 12px!important}
-${S} .soscl li{position:relative;flex-direction:column;align-items:flex-start!important;gap:6px!important;padding:8px 8px 9px!important;font-size:11.5px!important;
- line-height:1.2!important;letter-spacing:.02em;border:2px solid var(--sk-ed)!important;border-style:solid!important;border-radius:10px!important;
- background:var(--sk-in);box-shadow:inset 0 -3px 0 #0001}
-${S} .soscl li::before{width:28px!important;height:28px!important;font-size:15px!important;border-radius:8px!important;background:var(--ac);color:#fff!important;border:0!important;
- box-shadow:inset 0 -2px 0 #0003}
-${S} .soscl li:not(:last-child)::after{content:"";position:absolute;right:-12px;top:50%;width:0;height:0;margin-top:-7px;border:7px solid transparent;border-left:9px solid var(--ac)}
-
-/* ---------- rótulos: monoespaciada con piloto ---------- */
-${S} label:not(.srfoto),${S} details.srtx>summary{font-family:var(--tkmo,ui-monospace,Menlo,monospace)!important;text-transform:uppercase;letter-spacing:.06em!important;
- font-size:13px!important;font-weight:800!important;margin:12px 0 5px!important;display:flex;align-items:center;gap:6px}
-${S} label:not(.srfoto)::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 25%,transparent)}
-${S} .soscr2 label{display:flex!important}
-
-/* ---------- casillas grandes con bisel ---------- */
-${S} input:not([type=file]):not([type=checkbox]):not([type=radio]),${S} select,${S} textarea{min-height:60px!important;font-size:18px!important;
- border:2px solid var(--sk-ed)!important;border-radius:12px!important;background:var(--sk-in)!important;color:var(--tx)!important;
- box-shadow:inset 0 2px 4px #0000001f!important;padding:10px 12px!important;box-sizing:border-box}
-${S} .soscr2 input,${S} .soscr2 select,${S} .rcsfil input{height:60px!important}
-${S} select{padding-right:34px!important}
-${S} input:focus,${S} select:focus,${S} textarea:focus{outline:0!important;border-color:var(--ac)!important;
- box-shadow:0 0 0 4px color-mix(in srgb,var(--ac) 28%,transparent),inset 0 2px 4px #0000001f!important}
-${S} .rcsfil{gap:8px!important}${S} .rcsbus{margin-top:4px!important}
-${S} .rcsfil .rcscmp input::placeholder{font-size:16px!important}
-${S} .soscr2{gap:8px!important}
-
-/* ---------- avería en campo ---------- */
-${S} .srobsw textarea{min-height:132px!important;padding-right:66px!important;line-height:1.4}
-${S} .srobsw button{width:52px!important;height:52px!important;border-radius:12px!important;border-width:2px!important;right:8px!important}
-${S} .srobsw button svg{width:26px!important;height:26px!important}
-
-/* ---------- alarma a mano | foto: pulsadores grandes ---------- */
-${S} .soscr3{gap:10px!important;margin-top:12px!important}
-${S} .soscr3 details.srtx,${S} .soscr3 .srfoto{min-height:68px!important;border:2px solid var(--sk-ed)!important;border-radius:14px!important;
- background:var(--sk-in)!important;box-shadow:inset 0 -4px 0 #00000022!important}
-${S} .soscr3 details.srtx>summary{margin:0!important;font-size:15px!important;line-height:1.2;min-height:60px;justify-content:center;flex-wrap:wrap;text-align:center}
-${S} .soscr3 .srfoto{font-size:16px!important}${S} .soscr3 .srfoto small,${S} .soscr3 summary small{font-size:11.5px!important;text-transform:none;letter-spacing:0}
-${S} .soscr3 .srfoto.srfok{border-color:#2e7d32!important}
-
-/* ---------- ACEPTAR tipo pulsador y papelera ---------- */
-${S} .srobrow{gap:10px!important;margin-top:16px!important}
-${S} .srobrow button.pri{min-height:72px!important;border-radius:14px!important;font-size:22px!important;font-weight:900!important;
- letter-spacing:.14em!important;text-transform:uppercase;border:2px solid color-mix(in srgb,var(--ac) 70%,#000)!important;color:#fff!important;
- background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 82%,#fff),var(--ac) 55%,color-mix(in srgb,var(--ac) 80%,#000))!important;
- box-shadow:inset 0 1px 0 #ffffff59,inset 0 -5px 0 #00000033,0 4px 12px color-mix(in srgb,var(--ac) 40%,transparent)!important;text-shadow:0 1px 1px #0005}
-${S} .srobrow button.pri:active,${S} .soscr3 .srfoto:active,${S} .soscx:active,${S} .soshb:active{transform:translateY(2px);box-shadow:inset 0 2px 4px #0003!important}
-${S} .srobrst{width:72px!important;min-height:72px!important;border-radius:14px!important;border-width:2.5px!important;box-shadow:inset 0 -4px 0 #00000022}
-${S} .srobrst svg{width:30px!important;height:30px!important}
-
-/* ---------- listas de alarmas y componentes: filas para el dedo con guante ---------- */
-${S} .rcsit{min-height:54px!important;padding:12px 12px!important;font-size:15px!important;display:flex!important;align-items:center;gap:6px;border-radius:10px!important;margin:0 0 4px!important}
-${S} #rcs_l.on{max-height:52vh!important;border-width:2px!important;border-radius:12px!important;padding:6px!important;background:var(--card)}
-${S} .rcslg{font-size:12.5px!important;margin:10px 4px 4px!important;display:flex;align-items:center;gap:6px}
-${S} .rcscb{min-height:56px!important;font-size:15px!important;padding:10px 12px!important;border-radius:10px!important}
-${S} .rcsqx{width:40px!important;height:40px!important;font-size:18px!important}
-${S} .rcsb{border-radius:10px!important;padding:10px 12px!important}
-
-/* ---------- resultados e historial ---------- */
-${S} #sr_res button,${S} #sr_res summary,${S} .shnew,${S} .shi button{min-height:52px}
-${S} #sr_res button{border-radius:12px!important;font-size:16px!important}
-${S} .shh{gap:8px!important}${S} .sht{font-size:21px!important}
-${S} .shi{border-radius:12px!important;padding:12px!important;font-size:14.5px!important}
-${S} .shnew{min-height:60px!important;font-size:17px!important;border-radius:12px!important}
-
-/* ---------- exterior / alto contraste ---------- */
-html.ext ${S} input:not([type=file]),html.ext ${S} select,html.ext ${S} textarea,html.ext ${S} .soscr3 .srfoto,html.ext ${S} .soscr3 details.srtx{border-width:3px!important}`;
-document.head.appendChild(st);
 /* la hoja es del SOS si dentro está la avería en campo o el historial del SOS */
 const sh=()=>document.getElementById("sheet"),sc=()=>document.getElementById("sheetc");
 const mira=()=>{const s=sh(),c=sc();if(!s||!c)return;const es=!!(c.querySelector("#sr_ob")||c.querySelector(".shh .sht"));if(s.classList.contains("sost")!==es)s.classList.toggle("sost",es)};
@@ -129,7 +33,7 @@ const COMPS=()=>(window.COMP_CAMPO||[]).filter(c=>c&&c.id);
 const panel=(cls,n,tit,sub)=>{const d=document.createElement("section");d.className="sostp "+cls;
  d.innerHTML=`<div class="sostph"><span class="sostpn">${n}</span><span class="sostpt"><b>${tit}</b><small>${sub}</small></span></div><div class="sostpb"></div>`;return d};
 function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
- const h=c.querySelector(".sosrh");const tt=h&&h.querySelector(".sosr2t");if(tt&&tt.textContent!=="SOS - DIRECTO")tt.textContent="SOS - DIRECTO";
+ const h=c.querySelector(".sosrh");try{cabecera()}catch(e){}
  let F=$i("sostf");
  if(!F){F=document.createElement("div");F.id="sostf";
   /* v722: permutados · 1 ALARMA MAGELIS (arriba) · 2 PBB Y AVERÍA */
@@ -216,81 +120,140 @@ document.addEventListener("click",e=>{if(!e.target.closest||!e.target.closest("#
  if(c.querySelector(".shh")&&HIS){para();const H=HIS;HIS=null;c.className=H.cls;c.replaceChildren(...H.n);requestAnimationFrame(()=>{c.scrollTop=H.y});return}
  if(c.scrollTop>60){para();c.scrollTo({top:0,behavior:"smooth"});return}
  /* sin nada más: se cierra el SOS y queda la pantalla de debajo */},true);
-const st2=document.createElement("style");st2.textContent=`
-${S} .soscp{display:none!important}
-${S} .sosct .sosr2t{font-size:clamp(18px,6vw,24px)!important;letter-spacing:.1em!important}
-${S} #sostf{display:flex;flex-direction:column;gap:14px}
-${S} .sostp{border:2px solid var(--sk-ed);border-radius:16px;background:color-mix(in srgb,var(--card) 94%,var(--tx));box-shadow:0 2px 0 #0000000d,inset 0 1px 0 #ffffff14;overflow:visible}
-${S} .sostp1{border-color:color-mix(in srgb,var(--ac) 65%,var(--sk-ed))}
-${S} .sostph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:2px dashed var(--sk-ed);
- font-family:var(--tkmo,ui-monospace,Menlo,monospace);text-transform:uppercase;letter-spacing:.06em}
-${S} .sostph b{font-size:15px;font-weight:900}${S} .sostph small{flex-basis:100%;font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:none;font-family:inherit;color:var(--mu);padding-left:44px;margin-top:-4px}
-${S} .sostpn{flex:none;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900;color:#fff;background:var(--ac);box-shadow:inset 0 -3px 0 #0003}
-${S} .sostp2 .sostpn{background:#1565c0}${S} .sostp2{border-color:color-mix(in srgb,#1565c0 55%,var(--sk-ed))}
-${S} .sostpb{padding:4px 12px 14px}
-${S} .sostpb>label:first-child,${S} .sostpb>.soscr2:first-child label,${S} .sostpb>.rcsbus:first-child{margin-top:8px!important}
-${S} .soscr2{align-items:flex-end!important}${S} .soscpos{flex:0 0 40%!important}${S} .sostcw{flex:1;min-width:0}
-${S} .sostcw .rcscmp{flex:none!important;width:100%}
-${S} .sostcw .rcscmp input{height:60px!important;font-size:17px!important}${S} .sostcw .rcscmp input::placeholder{font-size:17px!important;color:var(--tx);opacity:.7}
-${S} .soscal{margin-top:4px}
-${S} .rcsbus{margin-top:10px!important}
-${S} #cmp_l:not(:empty){margin-top:8px}
-${S} .sostcl{max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border:2px solid var(--ac);border-radius:12px;padding:6px;background:var(--card)}
-${S} .sostcz{font:800 12.5px/1.4 var(--tkmo,monospace);letter-spacing:.06em;text-transform:uppercase;color:var(--ac);margin:10px 4px 4px}
-${S} .sostcz:first-child{margin-top:2px}
-${S} .rcscb.sostya{opacity:.55}${S} .rcscb.sostya::after{content:" ✓ ya en la avería";font-size:12px;font-weight:800;color:#1fa64a}
-${S} #sost_cmps{display:flex;flex-direction:column;gap:6px}${S} #sost_cmps:not(:empty){margin-top:10px}
-${S} .sostch{display:flex;align-items:center;gap:8px;min-height:56px;padding:4px 4px 4px 10px;border:2px solid #1fa64a;border-radius:12px;background:color-mix(in srgb,#1fa64a 8%,var(--card))}
-${S} .sostch b{flex:none;background:#455a64;color:#fff;border-radius:7px;padding:3px 8px;font-family:ui-monospace,monospace;font-size:14px}
-${S} .sostch>span{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.25}
-${S} .sostch button{flex:none;width:48px!important;height:48px!important;margin:0!important;padding:0!important;border-radius:10px!important;font-size:20px!important;background:var(--sk-in)!important;border:2px solid var(--sk-ed)!important}
-${S} .sostch .sostchx{color:#c62828!important;border-color:#c62828!important;font-weight:900}
-${S} .sostp2 .sostph{cursor:pointer;min-height:56px;-webkit-tap-highlight-color:transparent}
-${S} .sostpr{order:3;margin-left:auto;font:800 12px/1.2 var(--tkmo,monospace);letter-spacing:.02em;text-transform:none;padding:6px 9px;border-radius:8px;border:2px solid var(--sk-ed);color:var(--mu)}
-${S} .sostpr.on{border-color:#1fa64a;color:#1fa64a;background:color-mix(in srgb,#1fa64a 10%,transparent)}
-${S} .sostpv{order:4;flex:none;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid var(--sk-ed);background:var(--sk-in);transition:transform .2s}
-${S} .sostp2 .sostph small{order:5}
-${S} .sostp2:not(.sostcer) .sostpv{transform:rotate(180deg)}
-${S} .sostp2.sostcer .sostpb{display:none}${S} .sostp2.sostcer .sostph{border-bottom:0}
-${S} .sostps{border:2px dashed var(--sk-ed);border-radius:16px;padding:8px 10px 10px}
-${S} .sostpst{font:800 12px/1.4 var(--tkmo,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin:0 2px 6px}
-${S} .sostps .soscl{margin:0!important}
-${S} .srobrow{margin-top:14px!important}
-${S} .srvblink{animation:none!important}`;
-document.head.appendChild(st2);
 
 /* ---------- v721: tipografía como el PANEL DE CONTROL · textos ajustados a cajas y botones ---------- */
-const st3=document.createElement("style");st3.textContent=`
-${S} .sosct .sosr2t{font:900 clamp(15px,4.6vw,19px)/1.1 var(--tkmo,ui-monospace,monospace)!important;letter-spacing:.12em!important;white-space:nowrap!important;
- padding:6px 20px!important;min-width:0;flex:1 1 auto!important;overflow:hidden;text-overflow:clip}
-${S} .sosct{flex-wrap:nowrap!important}${S} .soshb{flex:none!important}${S} .soshb small{font:600 11px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:.04em!important}
-${S} .sostph{flex-wrap:nowrap!important;gap:10px!important;padding:10px 12px!important}
-${S} .sostpt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-${S} .sostpt b{font:900 15px/1.15 var(--tkmo,ui-monospace,monospace)!important;letter-spacing:.14em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-${S} .sostpt small{font:500 9.5px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:.08em!important;color:var(--mu)!important;padding:0!important;margin:0!important;flex-basis:auto!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
-${S} .sostph>small{display:none}
-${S} .sostpn{width:34px!important;height:34px!important;font:900 17px/1 var(--tkmo,ui-monospace,monospace)!important}
-${S} .sostpr{order:0!important;margin:0!important;flex:none;font:700 11px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:.08em!important;padding:8px 9px!important}
-${S} .sostpv{order:0!important;width:38px!important;height:38px!important;font-size:16px!important}
-${S} label:not(.srfoto),${S} details.srtx>summary{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;font-weight:600!important;font-size:12px!important;letter-spacing:.06em!important;
- color:var(--mu)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-${S} label:not(.srfoto)::before{width:7px!important;height:7px!important;box-shadow:0 0 0 2.5px color-mix(in srgb,var(--ac) 25%,transparent)!important}
-${S} label small,${S} summary small{font-size:10px!important;font-weight:500!important;letter-spacing:.04em!important;color:var(--mu)!important}
-${S} input:not([type=file]):not([type=checkbox]):not([type=radio]),${S} select,${S} textarea{font:500 17px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:0!important}
-${S} input::placeholder,${S} textarea::placeholder{font-size:16px!important;font-weight:400!important;opacity:.65}
-${S} .srobsw textarea{min-height:118px!important}
-${S} .soscr3 details.srtx>summary{font-size:13px!important;color:var(--tx)!important;white-space:normal;line-height:1.2}
-${S} .soscr3 .srfoto{font:600 13px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;}${S} .soscr3 .srfoto span{white-space:nowrap}
-/* línea de abajo: pasos | ACEPTAR | recargar */
-${S} .srobrow{display:flex!important;align-items:stretch!important;gap:8px!important;margin-top:14px!important}
-${S} .srobrow .soscl{flex:0 0 auto!important;width:clamp(104px,31vw,132px);display:flex!important;flex-direction:column!important;justify-content:center;gap:3px!important;margin:0!important;padding:4px 6px!important;
- border:2px dashed var(--sk-ed);border-radius:12px;box-sizing:border-box}
-${S} .srobrow .soscl li{flex:none!important;flex-direction:row!important;align-items:center!important;gap:6px!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;
- font:600 10.5px/1.15 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:.02em!important;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:18px}
-${S} .srobrow .soscl li::before{width:18px!important;height:18px!important;font-size:11px!important;border-radius:5px!important}
-${S} .srobrow .soscl li::after{display:none!important}
-${S} .srobrow button.pri{flex:1 1 auto!important;min-width:0;font:900 19px/1 var(--tkmo,ui-monospace,monospace)!important;letter-spacing:.16em!important;padding:0 6px!important;white-space:nowrap}
-${S} .srobrst{flex:none!important;width:64px!important}${S} .srobrst svg{width:30px!important;height:30px!important}
-${S} .sostps{display:none!important}`;
-document.head.appendChild(st3);
+
+/* ======================= v723: MISMO DISEÑO QUE EL PANEL DE CONTROL Y «REGISTRAR OT» =======================
+   Consola técnica de toda la PWA: tarjetas con marco degradado naranja · morado · azul y cuadrícula difuminada, títulos en
+   monoespaciada con degradado, cabecera con estado y reloj en vivo y franja de escaneo, rótulos monoespaciados en gris con
+   línea, campos redondeados con foco luminoso naranja y botón principal amarillo-naranja con brillo. Mismos colores del tema
+   (claro / oscuro / exterior). Se mantienen los tamaños grandes para manejar con guantes. */
+const P="#sheet.sost>#sheetc",OR="var(--tkor,#ff7a1a)",PU="var(--tkpu,#9b3dff)",MO="var(--tkmo,ui-monospace,SFMono-Regular,Menlo,monospace)";
+const FLD="color-mix(in srgb,var(--bg) 70%,var(--card))",BRD="color-mix(in srgb,var(--tx) 16%,transparent)";
+const st=document.createElement("style");st.id="sostcss";st.textContent=`
+${S}{align-items:stretch!important;background:var(--bg)!important}
+${P}{max-height:none!important;height:100%!important;height:100dvh!important;width:100%!important;border-radius:0!important;border:0!important;background:var(--bg)!important;background-image:none!important;
+ padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(96px + env(safe-area-inset-bottom,0px)) 12px!important;color:var(--tx)!important}
+/* ---- cabecera: como «Registrar OT» ---- */
+${P} .sosrh{margin:0 0 10px!important}
+${P} .sosct{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:nowrap!important;margin:0!important}
+${P} .sosct .sosr2t{flex:1 1 auto!important;min-width:0;display:flex!important;align-items:center;gap:10px;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+ background:none!important;box-shadow:none!important;animation:none!important;white-space:nowrap!important;overflow:hidden!important;
+ font:900 clamp(17px,5.4vw,21px)/1.15 ${MO}!important;letter-spacing:2.5px!important;text-transform:uppercase;text-align:left!important;color:var(--tx)!important}
+${P} .sosct .sosr2t::before{content:"";flex:none;width:5px;align-self:stretch;min-height:28px;border-radius:3px;background:linear-gradient(180deg,#ff3b30,${OR})}
+${P} .sosct .sosr2t::after{display:none!important}
+${P} .sosr2t>span{background:linear-gradient(90deg,var(--tx) 25%,#ff3b30);-webkit-background-clip:text;background-clip:text;color:transparent;overflow:hidden;text-overflow:ellipsis}
+${P} .soscx,${P} .soshb,${P} .shx{flex:none!important;height:50px!important;margin:0!important;border-radius:12px!important;border:1.5px solid ${BRD}!important;background:${FLD}!important;box-shadow:none!important;color:var(--tx)!important}
+${P} .soscx,${P} .shx{width:50px!important;padding:0!important;font-size:20px!important;font-weight:800!important}
+${P} .soshb{padding:0 10px!important;display:flex!important;align-items:center;gap:5px!important;font-size:17px!important;color:#1fa64a!important;border-color:color-mix(in srgb,#1fa64a 45%,transparent)!important}
+${P} .soshb small{font:800 11px/1 ${MO}!important;letter-spacing:1px!important;text-transform:uppercase}
+${P} .sostsub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 6px 15px;font:600 12px/1.2 ${MO};color:var(--mu);letter-spacing:.6px}
+${P} .sostsub b{color:var(--tx)}${P} .sostdot{width:8px;height:8px;border-radius:50%;background:#ff3b30;animation:sostPul 1.4s infinite}
+${P} .sostscan{position:relative;height:2px;margin:0 0 2px;border-radius:2px;background:color-mix(in srgb,var(--tx) 10%,transparent);overflow:hidden}
+${P} .sostscan::after{content:"";position:absolute;top:0;bottom:0;width:35%;left:-35%;background:linear-gradient(90deg,transparent,${OR},${PU},transparent);animation:sostScan 2.6s cubic-bezier(.6,0,.4,1) infinite}
+@keyframes sostScan{to{left:100%}}@keyframes sostPul{0%{box-shadow:0 0 0 0 #ff3b3088}70%{box-shadow:0 0 0 7px #ff3b3000}100%{box-shadow:0 0 0 0 #ff3b3000}}
+${P} .soscp,${P} .sostps{display:none!important}
+/* ---- paneles: tarjeta de consola ---- */
+${P} #sostf{display:flex;flex-direction:column;gap:12px}
+${P} .sostp{position:relative;overflow:visible;border-radius:18px!important;padding:0!important;
+ background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,${OR},${PU} 55%,#1e88e5) border-box!important;border:1.5px solid transparent!important;
+ box-shadow:0 10px 40px -14px color-mix(in srgb,${PU} 45%,transparent)!important}
+${P} .sostp::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.06;
+ background-image:linear-gradient(var(--tx) 1px,transparent 1px),linear-gradient(90deg,var(--tx) 1px,transparent 1px);background-size:22px 22px;
+ -webkit-mask-image:linear-gradient(180deg,#000,transparent 60%);mask-image:linear-gradient(180deg,#000,transparent 60%)}
+${P} .sostph{position:relative;display:flex!important;align-items:center;gap:10px!important;flex-wrap:nowrap!important;padding:14px 14px 4px!important;border:0!important;font-family:${MO}!important;text-transform:none!important;letter-spacing:0!important}
+${P} .sostpn{flex:none;width:28px!important;height:28px!important;border-radius:8px!important;display:grid!important;place-items:center;font:900 14px/1 ${MO}!important;color:#fff!important;
+ background:linear-gradient(135deg,${OR},${PU})!important;box-shadow:0 3px 10px -3px ${OR}!important}
+${P} .sostpt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+${P} .sostpt b{font:900 15px/1.15 ${MO}!important;letter-spacing:2px!important;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ background:linear-gradient(90deg,var(--tx) 30%,${OR});-webkit-background-clip:text;background-clip:text;color:transparent!important}
+${P} .sostpt small{font:600 10.5px/1.2 ${MO}!important;letter-spacing:.6px!important;color:var(--mu)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;padding:0!important;margin:0!important}
+${P} .sostpb{position:relative;padding:2px 14px 16px!important}
+${P} .sostp2 .sostph{cursor:pointer;min-height:58px;padding-bottom:14px!important;-webkit-tap-highlight-color:transparent}
+${P} .sostp2:not(.sostcer) .sostph{padding-bottom:4px!important}
+${P} .sostp2.sostcer .sostpb{display:none}
+${P} .sostpr{flex:none;order:0!important;margin:0!important;padding:7px 9px!important;border-radius:9px!important;border:1.5px solid ${BRD}!important;background:${FLD};font:800 11px/1 ${MO}!important;letter-spacing:1px!important;color:var(--mu)!important}
+${P} .sostpr.on{border-color:#1fa64a!important;color:#1fa64a!important;background:color-mix(in srgb,#1fa64a 10%,transparent)}
+${P} .sostpv{flex:none;order:0!important;width:40px!important;height:40px!important;border-radius:10px!important;display:grid!important;place-items:center;font-size:15px!important;border:1.5px solid ${BRD}!important;background:${FLD};color:var(--tx);transition:transform .2s}
+${P} .sostp2:not(.sostcer) .sostpv{transform:rotate(180deg)}
+/* ---- rótulos: como «Registrar OT» ---- */
+${P} label:not(.srfoto){display:flex!important;align-items:center;gap:8px;margin:14px 0 8px!important;padding:0!important;font:800 11.5px/1 ${MO}!important;letter-spacing:1.6px!important;text-transform:uppercase;color:var(--mu)!important;white-space:nowrap;overflow:hidden;min-width:0}
+${P} label:not(.srfoto)::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,${OR},${PU});box-shadow:none}
+${P} label:not(.srfoto)::after{content:"";flex:1;min-width:10px;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--tx) 18%,transparent),transparent)}
+${P} label small{font:600 10px/1 ${MO}!important;letter-spacing:.6px!important;color:var(--mu)!important;opacity:.85;text-transform:none}
+/* ---- campos ---- */
+${P} input:not([type=file]):not([type=checkbox]):not([type=radio]),${P} select,${P} textarea{min-height:56px!important;margin:0!important;box-sizing:border-box;width:100%;
+ border-radius:12px!important;border:1.5px solid ${BRD}!important;background:${FLD}!important;color:var(--tx)!important;box-shadow:none!important;
+ font:500 17px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:0!important;padding:10px 12px!important;transition:border-color .2s,box-shadow .2s}
+${P} input::placeholder,${P} textarea::placeholder{font-size:15.5px!important;font-weight:400!important;color:var(--mu)!important;opacity:.8}
+${P} input:focus,${P} select:focus,${P} textarea:focus{outline:0!important;border-color:${OR}!important;box-shadow:0 0 0 4px color-mix(in srgb,${OR} 22%,transparent),0 6px 20px -8px ${OR}!important}
+${P} #sr_p{font:800 18px/1 ${MO}!important;letter-spacing:3px!important}${P} #sr_p::placeholder{letter-spacing:.5px}
+${P} .soscr2{display:flex!important;gap:8px!important;align-items:flex-end!important}${P} .soscpos{flex:0 0 38%!important;min-width:0}${P} .sostcw{flex:1;min-width:0}
+${P} .sostcw .rcscmp{width:100%}${P} .rcsfil{display:flex;gap:8px}${P} .rcsbus{margin-top:6px!important}
+${P} .srobsw{position:relative}${P} .srobsw textarea{min-height:120px!important;padding-right:64px!important;line-height:1.4!important}
+${P} .srobsw button{position:absolute;right:8px!important;width:48px!important;height:48px!important;border-radius:12px!important;border:1.5px solid ${BRD}!important;background:var(--card)!important;box-shadow:none!important}
+${P} .srobsw button svg{width:24px!important;height:24px!important}
+/* ---- alarma a mano | foto ---- */
+${P} .soscr3{display:flex!important;gap:8px!important;margin-top:12px!important}
+${P} .soscr3 details.srtx,${P} .soscr3 .srfoto{flex:1 1 45%;min-height:58px!important;margin:0!important;border-radius:12px!important;border:1.5px solid ${BRD}!important;background:${FLD}!important;box-shadow:none!important;color:var(--tx)!important}
+${P} .soscr3 details[open]{flex-basis:100%}
+${P} .soscr3 details.srtx>summary{display:flex;align-items:center;justify-content:center;min-height:54px;margin:0!important;text-align:center;flex-wrap:wrap;gap:4px;
+ font:800 12px/1.2 ${MO}!important;letter-spacing:1px!important;text-transform:uppercase;color:var(--tx)!important;white-space:normal}
+${P} .soscr3 .srfoto{display:flex!important;flex-direction:column;align-items:center;justify-content:center;padding:6px!important;font:800 12px/1.2 ${MO}!important;letter-spacing:1px!important;text-transform:uppercase!important}
+${P} .soscr3 .srfoto small,${P} .soscr3 summary small{font:600 10px/1.2 ${MO}!important;letter-spacing:.4px!important;color:var(--mu)!important;text-transform:none!important}
+${P} .soscr3 .srfoto.srfok{border-color:#1fa64a!important;color:#1fa64a!important}
+${P} .soscal{margin-top:2px}
+/* ---- línea de abajo: pasos | ACEPTAR | reiniciar ---- */
+${P} .srobrow{display:flex!important;align-items:stretch!important;gap:8px!important;margin-top:14px!important}
+${P} .srobrow .soscl{flex:0 0 auto!important;width:clamp(108px,31vw,134px);display:flex!important;flex-direction:column!important;justify-content:center;gap:4px!important;margin:0!important;padding:6px 8px!important;
+ list-style:none;counter-reset:s;border-radius:14px;border:1.5px solid ${BRD};background:${FLD};box-sizing:border-box}
+${P} .srobrow .soscl li{counter-increment:s;display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important;
+ font:800 9.5px/1.1 ${MO}!important;letter-spacing:.5px!important;text-transform:uppercase;color:var(--mu)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+${P} .srobrow .soscl li::before{content:counter(s);flex:none;display:grid;place-items:center;width:18px!important;height:18px!important;border-radius:6px!important;border:0!important;
+ font:900 10.5px/1 ${MO}!important;color:#fff!important;background:linear-gradient(135deg,${OR},${PU})!important;box-shadow:none!important}
+${P} .srobrow .soscl li::after{display:none!important}
+${P} .srobrow button.pri{position:relative;overflow:hidden;flex:1 1 auto!important;min-width:0;min-height:66px!important;margin:0!important;padding:0 6px!important;border:0!important;border-radius:14px!important;
+ font:900 17px/1 ${MO}!important;letter-spacing:2.5px!important;text-transform:uppercase;white-space:nowrap;color:#111!important;text-shadow:none!important;animation:none!important;
+ background:linear-gradient(135deg,#ffb020,${OR} 45%,#ff4d2e)!important;box-shadow:0 12px 28px -10px ${OR},0 0 0 1px #fff4 inset!important}
+${P} .srobrow button.pri::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,#fff7,transparent);animation:rgShine 3.2s ease-in-out infinite}
+@keyframes rgShine{60%,100%{left:130%}}
+${P} .srobrst{flex:none!important;width:62px!important;min-height:66px!important;margin:0!important;padding:0!important;display:grid!important;place-items:center;border-radius:14px!important;
+ border:1.5px solid ${BRD}!important;background:${FLD}!important;color:${OR}!important;box-shadow:none!important}
+${P} .srobrst svg{width:28px!important;height:28px!important}
+${P} button:active,${P} .srfoto:active{transform:scale(.97)}
+/* ---- desplegables y chips ---- */
+${P} #rcs_l.on,${P} .sostcl{max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:12px!important;padding:6px!important;
+ border:1.5px solid ${OR}!important;background:var(--card)!important;box-shadow:0 10px 30px -12px #0008}
+${P} .rcslg,${P} .sostcz{font:800 11px/1.4 ${MO}!important;letter-spacing:1.4px!important;text-transform:uppercase;color:var(--mu)!important;margin:10px 4px 4px!important;display:flex;align-items:center;gap:6px}
+${P} .rcsit,${P} .rcscb{min-height:52px!important;display:flex!important;flex-wrap:wrap;align-items:center;gap:6px;width:100%!important;margin:0 0 4px!important;padding:10px 12px!important;text-align:left;
+ font:500 15px/1.3 system-ui,-apple-system,sans-serif!important;border-radius:10px!important;background:${FLD}!important;border:1px solid ${BRD}!important;color:var(--tx)!important}
+${P} .rcscb small{flex-basis:100%;font-size:12px!important;color:var(--mu)}
+${P} .rcscb .cmpid{font:800 13px/1.3 ${MO}!important;background:color-mix(in srgb,var(--tx) 70%,var(--card))!important;color:var(--card)!important;border-radius:6px;padding:2px 7px}
+${P} .rcscb.sostya{opacity:.55}${P} .rcscb.sostya::after{content:"✓ ya en la avería";font:800 11px/1 ${MO};color:#1fa64a}
+${P} #cmp_l:not(:empty){margin-top:8px}
+${P} #sost_cmps{display:flex;flex-direction:column;gap:6px}${P} #sost_cmps:not(:empty){margin-top:10px}
+${P} .sostch{display:flex;align-items:center;gap:8px;min-height:54px;padding:4px 4px 4px 10px;border-radius:12px;border:1.5px solid color-mix(in srgb,#1fa64a 55%,transparent);background:color-mix(in srgb,#1fa64a 8%,var(--card))}
+${P} .sostch b{flex:none;font:800 13px/1.3 ${MO};background:color-mix(in srgb,var(--tx) 70%,var(--card));color:var(--card);border-radius:6px;padding:2px 7px}
+${P} .sostch>span{flex:1;min-width:0;font-size:14px;font-weight:500;line-height:1.25}
+${P} .sostch button{flex:none;width:46px!important;height:46px!important;margin:0!important;padding:0!important;border-radius:10px!important;font-size:18px!important;background:var(--card)!important;border:1.5px solid ${BRD}!important}
+${P} .sostch .sostchx{color:#e5534b!important;border-color:color-mix(in srgb,#e5534b 55%,transparent)!important;font-weight:900}
+${P} .rcsqx{width:40px!important;height:40px!important}
+${P} .rcsb{border-radius:12px!important;padding:10px 12px!important}
+/* ---- resultados e historial ---- */
+${P} #sr_res button{border-radius:12px!important;min-height:50px}
+${P} .sht{font:900 19px/1.15 ${MO}!important;letter-spacing:2px!important;text-transform:uppercase;color:var(--tx)!important}
+${P} .shnew{min-height:58px!important;border-radius:14px!important;font:900 15px/1 ${MO}!important;letter-spacing:2px!important;border:0!important;color:#111!important;
+ background:linear-gradient(135deg,#ffb020,${OR} 45%,#ff4d2e)!important}
+${P} .shi{border-radius:14px!important;padding:12px!important;background:var(--card)!important;border:1.5px solid ${BRD}!important;border-left:4px solid #ff3b30!important}
+html.ext ${P} input:not([type=file]),html.ext ${P} select,html.ext ${P} textarea{border-width:2.5px!important}
+@media (prefers-reduced-motion:reduce){${P} *{animation:none!important}}`;
+document.head.appendChild(st);
+/* cabecera: título con su degradado y línea de estado con reloj en vivo, como «Registrar OT» y el Panel */
+const DIAS=["dom","lun","mar","mié","jue","vie","sáb"],zz=n=>String(n).padStart(2,"0");let reloj=0;
+function cabecera(){const c=sc();const h=c&&c.querySelector(".sosrh");if(!h||!$i("sr_ob"))return;const t=h.querySelector(".sosr2t");
+ if(t&&!t.querySelector("span")){t.innerHTML="<span>SOS - DIRECTO</span>"}
+ if(!h.querySelector(".sostsub")){const ct=h.querySelector(".sosct");if(!ct)return;ct.insertAdjacentHTML("afterend",`<div class="sostsub"><span class="sostdot"></span><span>SOS ACTIVO</span><span>·</span><b class="sostf"></b><b class="sosth"></b></div><div class="sostscan"></div>`)}
+ const pinta=()=>{const f=document.querySelector("#sheetc .sostf");if(!f){clearInterval(reloj);reloj=0;return}const d=new Date();
+  f.textContent=`${DIAS[d.getDay()]} ${zz(d.getDate())}/${zz(d.getMonth()+1)}`;document.querySelector("#sheetc .sosth").textContent=`${zz(d.getHours())}:${zz(d.getMinutes())}:${zz(d.getSeconds())}`};
+ pinta();if(!reloj)reloj=setInterval(pinta,1000)}
 })();
