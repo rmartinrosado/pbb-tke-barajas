@@ -69,8 +69,9 @@ const SEC={t:"Atraque incorrecto · falso contacto con avión (C-B51 derecho / C
   "Reloj de la Magelis: comprobar que coincide con la hora real antes de pasar las horas de los eventos a la OT (puede estar una hora adelantado)."],
  r:"ESQUEMA GENERAL rev. J folio 85 (P-A5 DIN01 / DIN08, P-X92) · folio 86 (C-B7) · manual RCS: 243 / 115"};
 Object.defineProperty(SEC,"obsCro",{get(){return `<div class="gobsh2">Simulación · toca un paso o déjala avanzar</div>${sim()}${croq()}`},enumerable:true});
-/* se coloca junto a «Fallo de autonivelación» (cabina) */
-const k=L.findIndex(s=>/^Fallo de autonivelación/.test(s.t));if(k>=0)L.splice(k+1,0,SEC);else L.push(SEC);
+/* v738: se AÑADE AL FINAL (no en medio): otras partes guardan las cajas por su número de orden (PBB 507, SAI, marcas de
+   pasos) y al insertarla en medio se desplazaban y la quitaban. En pantalla va igual en el grupo «Cabina, capota y portón». */
+L.push(SEC);
 
 /* ---------- pasos de la simulación: botones y avance solo ---------- */
 const pon=(w,n)=>{w.dataset.s=String(n);w.querySelectorAll(".atqbt").forEach(b=>b.classList.toggle("on",+b.dataset.n===n))};
