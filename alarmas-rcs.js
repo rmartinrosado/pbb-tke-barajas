@@ -4,7 +4,14 @@ window.RCS_AA={
  "056":"Altura: medir los mA del ultrasonido de altura C-B14 (cabina) → P-X62 → E-X62 (hilo 341) → E-A4 AI01 (folio 62). Debe dar 4-20 mA proporcional a la altura; fuera de rango → sensor C-B14, su alimentación o el cable P-X62 → E-X62.",
  "057":"Longitud / extensión: medir los mA del láser de extensión ET-B9 → E-X62 (hilo 312) → E-A4 AI02 (folio 62). Debe dar 4-20 mA proporcional a la extensión; fuera de rango → láser ET-B9 (ópticas, reflector, alineación), su alimentación o el cable.",
  "058":"Cabina: medir los mA del convertidor E-R10 (hilo 315) → E-A4 AI03 y el potenciómetro de giro de cabina C-R10 (cables 1-2-3, 10 kΩ) y su acoplamiento (folios 61-62).",
- "059":"Rotonda: medir los mA del potenciómetro de giro de rotonda R-R1 → IT-X62 → E-X62 (hilo 316) → E-A4 AI04 (folio 62)."};
+ "059":"Rotonda: medir los mA del potenciómetro de giro de rotonda R-R1 → IT-X62 → E-X62 (hilo 316) → E-A4 AI04 (folio 62).",
+ /* v704: FC de seguridad según planos rev. J (folios 40-42 y 68). Primero sacar en servicio con el puente en el módulo amarillo;
+    la causa principal es el límite de TRABAJO de ese movimiento que no cortó a tiempo. */
+ "001":"Módulo safety amarillo E-A8 entrada 8.1 (IN08S, FC inclinación): puente provisional en MANUAL y con compañero vigilando. FC IT-S2 / IT-S3 (contacto NC 11-12, túnel) → IT-X51 → E-X51. Causa principal: límite de trabajo inferior IT-B10 (E-A2 2.4) desajustado o averiado.",
+ "002":"Módulo safety amarillo E-A8 entrada 8.1 (IN08S, FC inclinación): puente provisional en MANUAL y con compañero vigilando. FC IT-S2 / IT-S3 (contacto NC 11-12, túnel) → IT-X51 → E-X51. Causa principal: límite de trabajo superior IT-B11 (E-A2 3.1) desajustado o averiado.",
+ "003":"Módulo safety amarillo E-A8 entrada 7.1 (IN07S, FC rotonda): puente provisional en MANUAL y con compañero vigilando. FC CO-S1 (contacto NC 11-12, rotonda) → CO3-X51 → IT-X51 → E-X51. Causa principal: detectores de giro de rotonda CO-B1 / CO-B2 (E-A0 3.4 / 4.4) desajustados o averiados.",
+ "004":"Módulo safety amarillo E-A8 entrada 6.1 (IN06S, FC extensión; UT2 6.2): puente provisional en MANUAL y con compañero vigilando. FC ET-S1 (contacto NC 11-12, túnel exterior) → ET-X51:7-8 → manguera EET-W1 → E-X54:7-8 (hilos 270 / 626, folios 42 y 68). Causa principal: detectores del límite de trabajo de extensión-retracción ET-B6 / ET-B7 (E-A2 4.1 / 3.4) desajustados o averiados.",
+ "005":"Módulo safety amarillo E-A8 entrada 5.1 (IN05S, FC traslación; UT1 5.2): puente provisional en MANUAL y con compañero vigilando. FC H-S1 (contacto NC 11-12, elevación) → H-X51 → E-X55 (hilos 285 / 625, folio 42). Causa principal: inductivos de límite de giro H-B3 / H-B4 de la almena (E-A3 7.1 / 8.1) desajustados o averiados."};
 /* v580: añadido el evento 294 (barrera de rotonda) fuera de la lista del manual (salta de 288 a 337); texto provisional,
    pendiente de revisar los eventos 289-336 de la Magelis. */
 /* ===== v501-v504: ALARMAS Y ADVERTENCIAS DEL MANUAL RCS (MAX Automate, F8-690.0312-51 rev. Ø, págs. 104-110) · 16/11/2026 =====
@@ -305,12 +312,15 @@ const STOP=new Set("de del la el en los las por con y a fallo activado activada"
 const pal=t=>t.split(/[^a-z0-9]+/).filter(w=>w.length>=2&&!STOP.has(w));
 function detecta(txt){const t=nrm(txt);if(!t.trim())return[];const out=new Map();
  /* por número con prefijo: «alarma 115», «AL 057», «aviso nº 250», «adv. 256», «cód. 141» */
- t.replace(/\b(?:alarmas?|al|aviso|evento|adv(?:ertencia)?|cod(?:igo)?|magelis)\.?\s*(?:n[ºo°]\.?\s*)?[:#-]?\s*(r?\d{3}|r\d{1,2})\b/g,(m,c)=>{const x=porCod(c);if(x)out.set(x.c,{x,por:"num"});return m});
+ /* v704: lo reconocido por número se quita del texto antes de buscar por palabras: «004 Límite FC de extensión-retracción»
+    ya no arrastra 250 «Límite de extensión» ni 251 «Límite de retracción» */
+ let tr=t;
+ tr=tr.replace(/\b(?:alarmas?|al|aviso|evento|adv(?:ertencia)?|cod(?:igo)?|magelis)\.?\s*(?:n[ºo°]\.?\s*)?[:#-]?\s*(r?\d{3}|r\d{1,2})\b/g,(m,c)=>{const x=porCod(c);if(x){out.set(x.c,{x,por:"num"});return" · "}return m});
  /* número suelto al principio de la línea con el texto detrás («057 Fallo medida…») */
- t.replace(/(?:^|[\n·;])\s*(\d{3})\s*[|:.-]?\s+([a-z][^\n·;]{4,})/g,(m,c,r)=>{const x=porCod(c);if(x&&pal(r).some(w=>x.n.includes(w)))out.set(x.c,{x,por:"num"});return m});
+ tr=tr.replace(/(^|[\n·;])\s*(\d{3})\s*[|:.-]?\s+([a-z][^\n·;]{4,})/g,(m,p0,c,r)=>{const x=porCod(c);if(x&&pal(r).some(w=>x.n.includes(w))){out.set(x.c,{x,por:"num"});return p0+" "}return m});
  /* por texto: todas las palabras del texto oficial (o de su alias) están en el aviso */
- const W=new Set(pal(t+" "+sinon(t)));const tiene=w=>W.has(w)||[...W].some(v=>v.length>=5&&w.length>=5&&v.slice(0,5)==w.slice(0,5));
- let mejor=[];CAT.forEach(x=>{if(out.has(x.c)||(NO[x.c]&&NO[x.c].test(t)))return;
+ const W=new Set(pal(tr+" "+sinon(tr)));const tiene=w=>W.has(w)||[...W].some(v=>v.length>=5&&w.length>=5&&v.slice(0,5)==w.slice(0,5));
+ let mejor=[];CAT.forEach(x=>{if(out.has(x.c)||(NO[x.c]&&NO[x.c].test(tr)))return;
   const vari=[pal(nrm(x.t)).filter(w=>!/^\d+$/.test(w)||w.length>1)].concat(ALIAS[x.c]?ALIAS[x.c].split("|").map(pal):[]);
   vari.forEach(ws=>{if(ws.length<2)return;if(ws.every(tiene))mejor.push({x,s:ws.length})})});
  mejor.sort((a,b)=>b.s-a.s);const top=mejor.length?mejor[0].s:0;
@@ -381,6 +391,49 @@ function compDeAlarma(x){const out=new Map();const add=c=>{if(c)out.set(ckClave(
  try{if(typeof compCampo=="function")compCampo(x.t+" "+(ALIAS[x.c]||"").replace(/\|/g," ")).forEach(add)}catch(e){}
  return[...out.values()]}
 window.compDeAlarma=compDeAlarma;
+/* v704: COMPONENTES DE CAMPO QUE INTERVIENEN en una alarma, sacados de los PLANOS (rev. J) y no por parecido de texto:
+   1) canales del PLC que llevan esa alarma (CANAL_AL): manda el canal más específico (p. ej. 004 → solo E-A8 6.1);
+      se añaden los canales cuya señal nombra el mismo movimiento (004 → detectores de extensión/retracción de E-A2,
+      que son la CAUSA PRINCIPAL de que se pise el FC: límite de trabajo que no corta).
+   2) de cada canal (CABLEADO) se toma la cadena real: elemento de campo → borneros de paso (sin el común +24 V) → módulo.
+   3) si el canal no tiene elemento dibujado (analógicas de E-A4), el elemento sale de la actuación propia (RCS_AA).
+   Cada uno se enlaza a su ficha si está incorporado en Componentes de campo; si no, se muestra con los datos de planos. */
+const nr5=t=>nrm(t).split(/[^a-z0-9]+/).filter(w=>w.length>=5).map(w=>w.slice(0,5));
+const limpiaId=t=>String(t||"").replace(/^\+/,"").replace(/'+/g,"").replace(/\(([^)]*)\)/," ($1)").trim();
+function intervienen(x){const CA=window.CANAL_AL||{},CB=window.CABLEADO||{},PL=window.COMP_PLANOS||[],AA=window.RCS_AA||{};if(!x)return[];
+ const cod=x.c;const ks=Object.keys(CA).filter(k=>CA[k].includes(cod));if(!ks.length)return[];
+ const min=Math.min(...ks.map(k=>CA[k].length));const pw=nr5(x.t+" "+(ALIAS[cod]||"").replace(/\|/g," ")).filter(w=>!/^(limit|fallo|activ|segur|medid|analo)$/.test(w));
+ const ent=[];ks.forEach(k=>{const [m,b,c]=k.split("|");Object.keys(CB).forEach(ck=>{const e=CB[ck];if(!e||e.m!=m||e.b!=b||(c&&e.c!=c))return;
+  const pri=CA[k].length==min;const casa=pw.some(w=>nr5(e.d).includes(w));if(pri||casa)ent.push({k,e,pri})})});
+ const out=new Map();
+ const add=(id,rol,det,pri,f)=>{id=limpiaId(id);if(!id||/^-|CLEMA/i.test(id))return;const o=out.get(id)||{id,rol,det:[],pri,f};
+  if(det&&!o.det.includes(det))o.det.push(det);o.pri=o.pri||pri;out.set(id,o)};
+ const tipoE=(t,ps)=>!ps||!ps.length?"":/-S\d/.test(t)?"contacto "+ps.slice().sort().join("-"):"pines "+ps.slice().sort().join("-");
+ [true,false].forEach(P=>ent.filter(z=>z.pri==P).forEach(({k,e})=>{let hay=false;
+  (e.n||[]).forEach(n=>{if(n.k=="E"){hay=true;add(n.t,"campo",tipoE(n.t,n.ps),P,n.f);const o=out.get(limpiaId(n.t));if(o&&!o.dc)o.dc=e.d}});
+  /* canal sin elemento dibujado: el sensor de la actuación propia de las alarmas del canal */
+  if(!hay){const a=(CA[k]||[]).find(q=>AA[q]);const m=a&&String(AA[a]).match(/\b[A-Z]{1,3}-[A-Z]{1,2}\d+(?:\.\d+)?\b/g);
+   (m||[]).filter(id=>!/-X\d|^[EP]-A\d/.test(id)).slice(0,1).forEach(id=>add(id,"campo","señal 4-20 mA",P))}}));
+ ent.forEach(({e,pri})=>(e.n||[]).forEach(n=>{if(n.k!="B")return;if((n.v||[]).some(v=>v.h=="189"||/^189\b/.test(v.d||"")))return;add(n.t,"borna","borna "+n.p,pri,n.f)}));
+ ent.forEach(({e,pri})=>add(e.m,"modulo","entrada "+e.b+(e.k?" ("+e.k+")":"")+(e.d?" · "+String(e.d).toLowerCase():""),pri,e.f));
+ const fc=x.g=="fc";
+ return[...out.values()].map(o=>{const r=PL.find(z=>String(z[0]).toUpperCase()==o.id.split(" ")[0].toUpperCase())||null;
+  const c=COMPS().find(z=>ckIds(z).concat([z.id]).some(i=>ckey(i)==ckey(o.id.split(" ")[0])))||null;
+  const papel=o.rol=="campo"?(fc?(o.pri?"Final de carrera de seguridad (el que se pisa)":"Límite de trabajo · causa principal"):(o.pri?"Elemento de campo":"Elemento de campo relacionado")):o.rol=="borna"?"Bornero de paso de la señal":(/^E-A[89]$|^E-A10$/.test(o.id)?"Módulo de seguridad (amarillo)":"Módulo del PLC");
+  /* símbolo genérico del plano con calificador («IT-S3''(INF)» en antiatrapamientos y frenos de cabina): no es el IT-S3 del
+     catálogo de planos; se nombra por la señal del canal */
+  if(/\(/.test(o.id)){const q=(o.id.match(/\(([^)]*)\)/)||[])[1]||"";const d=String(o.dc||"").toLowerCase();
+   return Object.assign(o,{r:null,c:null,papel,nom:"FC "+(d||"de seguridad")+(q?" · "+q.toLowerCase():""),ubi:"",folio:o.f})}
+  return Object.assign(o,{r,c,papel,nom:c?c.t:r?r[1]:"",ubi:r?r[2]:"",folio:r?r[3]:o.f})})
+  .sort((a,b)=>{const ord=z=>(z.rol=="campo"?0:z.rol=="borna"?2:3)+(z.rol=="campo"&&!z.pri?1:0);return ord(a)-ord(b)})}
+window.rcsIntervienen=x=>{try{return intervienen(typeof x=="string"?porCod(x):x)}catch(e){console.warn("rcsIntervienen",e);return[]}};
+/* bloque «Componentes de campo que intervienen» (SOS y validación) */
+function bloqueInterv(x,L){if(!L.length)return`<div class="rcscf rcsnada">🔩 Sin componentes de campo asociados a la alarma ${E(x.c)} en los planos.</div>`;
+ return`<div class="rcscf"><div class="rcscft">🔩 Componentes de campo que intervienen</div>${L.map(o=>{
+  const sub=[o.papel,o.det.join(" · "),o.ubi,o.folio?"folio "+o.folio:""].filter(Boolean).join(" · ");
+  return o.c?`<button type="button" class="rcscb rcsi rcsi-${o.rol}" data-k="${E(ckClave(o.c))}"><span class="cmpid">${E(o.id)}</span> ${E(o.nom)}<small>${E(sub)} · ver ficha ›</small></button>`
+   :`<div class="rcscb rcsi rcsi-${o.rol} rcsnf"><span class="cmpid">${E(o.id)}</span> ${E(o.nom||"Según planos")}<small>${E(sub)} · 📐 de planos (sin ficha)</small></div>`}).join("")}</div>`}
+window.rcsBloqueInterv=(x,L)=>bloqueInterv(typeof x=="string"?porCod(x):x,L||window.rcsIntervienen(x));
 const itAl=x=>`<button type="button" class="rcsit rcs${x.f}" data-c="${x.c}">${FN[x.f][0]} <b>${x.c}</b> ${E(x.t)}</button>`;
 const todasAl=()=>[["A","🔴 Alarmas"],["W","🟡 Advertencias"],["R","🔵 Puesto remoto"]].map(([f,t])=>`<div class="rcslg">${t}</div>`+CAT.filter(x=>x.f==f).map(itAl).join("")).join("");
 function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const sel=sc.querySelector("#sr_a");if(!sel||sc.querySelector("#rcs_q"))return;
@@ -396,12 +449,22 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
  q.addEventListener("focus",pinta);q.addEventListener("click",()=>{if(!l.classList.contains("on"))pinta()});q.addEventListener("input",pinta);
  q.addEventListener("keyup",e=>{if(e.key=="Enter"){const R=busca(q.value);if(R.length==1)elige(R[0])}});
  const elige=x=>{const t=sc.querySelector("#sr_t");if(t){const v=`${x.c} ${x.t}`;if(!nrm(t.value).includes(nrm(v)))t.value=[t.value.trim(),v].filter(Boolean).join(" · ");const dt=t.closest("details");if(dt)dt.open=true}
-  q.value="";q.blur();l.innerHTML="";l.classList.remove("on");
-  const C=window.compDeAlarma(x);
-  s.innerHTML=caja({x},true)+(C.length?`<div class="rcscf"><div class="rcscft">🔩 Componente de campo que falla</div>${C.map(c=>`<button type="button" class="rcscb" data-k="${E(ckClave(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}</button>`).join("")}</div>`
-   :`<div class="rcscf rcsnada">🔩 Sin componente de campo asociado a la alarma ${E(x.c)} en el catálogo.</div>`);
-  s.querySelectorAll(".rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],x.c+" "+x.t)});
-  if(C.length&&typeof abreCompClaves=="function")abreCompClaves(C.map(ckClave),x.c+" "+x.t)};
+  q.value="";q.blur();l.innerHTML="";l.classList.remove("on");pintaAl(x)};
+ const pintaAl=x=>{
+  /* v704: la alarma elegida se queda en esta pantalla con los componentes que intervienen según planos;
+     ya NO se abre la ficha del componente (solo si se toca uno). La validación sale al pulsar ACEPTAR. */
+  let L=window.rcsIntervienen(x);
+  if(!L.length){const C=window.compDeAlarma(x).filter(c=>!/-X\d|^[EP]\d?-A\d+$/i.test(String(c.id||"").replace(/^\+/,"")));
+   L=C.map(c=>({id:c.id,rol:"campo",det:[],c,papel:"Elemento de campo (catálogo)",nom:c.t,ubi:"",folio:""}))}
+  s.innerHTML=caja({x},true)+bloqueInterv(x,L);
+  s.dataset.cod=x.c;
+  s.querySelectorAll("button.rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],x.c+" "+x.t)})};
+ /* la alarma elegida en el desplegable «Elige la alarma de la Magelis» sale igual (sin abrir fichas) */
+ sel.addEventListener("change",()=>{const v=sel.value?sel.options[sel.selectedIndex].text:"";/* el texto de la opción trae el canal del módulo («ET-S1 · E-A8 6.1»): manda la alarma de ese canal */
+  const mc=v.match(/\b([EP]-A\d+)\s+(\d\.\d)\b/);const Lc=mc&&(window.CANAL_AL||{})[mc[1]+"|"+mc[2]]||[];
+  const xc=Lc.length?porCod(/superior/i.test(v)&&Lc[1]?Lc[1]:Lc[0]):null;
+  const D=xc?[{x:xc}]:v?detecta(v+" "+sel.value):[];
+  if(D.length)pintaAl(D[0].x);else if(s.dataset.cod&&!sc.querySelector("#sr_t").value.trim()){s.innerHTML="";delete s.dataset.cod}});
  l.addEventListener("click",e=>{const b=e.target.closest(".rcsit");if(!b)return;const x=porCod(b.dataset.c);if(x)elige(x)});
  /* --- componente --- */
  const abreC=c=>{cq.blur();cl.innerHTML="";if(typeof abreCompClaves=="function")abreCompClaves([ckClave(c)],"Componente "+c.id);else if(typeof abreCompTag=="function")abreCompTag(c.id)};
@@ -476,7 +539,8 @@ const st=document.createElement("style");st.textContent=`
 #cmp_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .rcscb{display:block;width:100%!important;margin:0 0 4px!important;padding:8px 9px!important;text-align:left;font-size:13.5px!important;line-height:1.3;border-left:5px solid #455a64!important;border-radius:6px!important}
 .rcscb small{display:block;font-size:11.5px;opacity:.75;font-weight:500}.rcscb .cmpid{display:inline-block;background:#455a64;color:#fff;border-radius:6px;padding:1px 7px;margin-right:4px;font-family:ui-monospace,monospace}
-.rcscf{margin-top:6px}.rcscft{font:800 12px/1.4 var(--tkmo,monospace);letter-spacing:.5px;color:#455a64;margin-bottom:4px}
+.rcscf{margin-top:6px}.rcsi-campo{border-left-color:#1fa64a!important}.rcsi-borna{border-left-color:#78909c!important}.rcsi-modulo{border-left-color:#f9a825!important}
+.rcsnf{cursor:default;border:1px dashed #8889;background:transparent}.rcsi small{opacity:.85}.rcscft{font:800 12px/1.4 var(--tkmo,monospace);letter-spacing:.5px;color:#455a64;margin-bottom:4px}
 .cmpav{padding:7px 9px;border:1.5px solid #f9a825;background:#f9a8251a;border-radius:8px;font-size:13px;margin-bottom:4px}
 .rcsnada{font-size:12.5px;color:var(--mu,#7a8394);padding:4px 2px}
 #rcs_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}.rcsit{width:100%!important;margin:0!important;text-align:left;padding:7px 9px!important;font-size:13px!important;border-left:5px solid #888!important;border-radius:6px!important}

@@ -47,11 +47,16 @@ function analiza(){
  else if(Lf.length){est="foto";cod=Lf}
  else est=al?"noal":"nada";
  /* componentes: los de la avería en campo mandan; los de la alarma validada acotan */
- const Cd=uniq(campo(ob)),Ca=uniq(cod.flatMap(z=>deAl(z.x))),Ct=uniq(campo([ob,al,foto].filter(Boolean).join(" ")));
+ /* v704: los componentes de la alarma salen de los PLANOS (rcsIntervienen: canal del PLC → elemento → borneros → módulo),
+    no del parecido de texto (004 ya no da el láser ET-B9). Los elementos de campo incorporados acotan; los que no lo están
+    se proponen desde los planos. */
+ const I=[];cod.forEach(z=>{try{(typeof rcsIntervienen=="function"?rcsIntervienen(z.x):[]).forEach(o=>{if(!I.some(q=>q.id==o.id))I.push(o)})}catch(e){}});
+ const Icampo=I.filter(o=>o.rol=="campo");
+ const Cd=uniq(campo(ob)),Ca=Icampo.length?uniq(Icampo.filter(o=>o.c).map(o=>o.c)):uniq(cod.flatMap(z=>deAl(z.x))),Ct=Icampo.length?[]:uniq(campo([ob,al,foto].filter(Boolean).join(" ")));
  let C;
  if(Cd.length&&Ca.length){const i=inter(Cd,Ca);C=i.length?i:Cd}
  else if(Cd.length)C=Cd;
- else if(Ca.length){const i=inter(Ca,Ct);C=i.length?i:Ca}
+ else if(Ca.length){const i=Ct.length?inter(Ca,Ct):[];C=i.length?i:Ca}
  else C=Ct;
  C=uniq(C.map(actual));
  /* v703: borneros (-X) y módulos del PLC (E-A…/P-A…) son elementos de PASO de la señal: no son el «componente a intervenir»
@@ -63,9 +68,10 @@ function analiza(){
   const cods=new Set();[ob,al,...cod.map(z=>z.x.t)].join(" ").toUpperCase().replace(/\b([A-Z]{1,3}-[A-Z]{1,2}\d+(?:\.\d+)?)\b/g,(_,k)=>{cods.add(k)});
   pend=P.filter(r=>r&&r[0]&&!/-X\d|^[EP]-A\d+$/.test(r[0])&&(cods.has(String(r[0]).toUpperCase())||(nrm(r[1]).length>4&&t2.includes(nrm(r[1]))))).slice(0,4)}
  C=C2;
+ if(!C.length&&!pend.length&&Icampo.length)pend=Icampo.filter(o=>!o.c).map(o=>[o.id,o.nom||"Según planos",[o.papel,o.ubi].filter(Boolean).join(" · "),o.folio||""]);
  /* alarma escrita sin código en la avería: si sus componentes no son los del elemento descrito, no coincide */
  if(est=="ok"&&ob&&!Ld.length&&Cd.length&&Ca.length&&!inter(Cd,Ca).length){est="dif";cod=[]}
- return{ob,al,est,cod,Ld,La,C,pend}}
+ return{ob,al,est,cod,Ld,La,C,pend,I}}
 
 /* ---------- pintado ---------- */
 const EST={ok:["✅","ALARMA VALIDADA","La alarma coincide con el manual RCS y con la avería en campo."],
@@ -80,22 +86,26 @@ function bloqueAlarma(A){const [ic,t,s]=EST[A.est];const mal=A.est=="dif"||A.est
  if(A.est=="dif")h+=`<div class="svl">Alarma indicada:</div>${A.La.map(cajaAl).join("")}<div class="svl">Según la avería en campo (manda):${A.cod.length?"":" sin código del manual; componente según lo descrito ↓"}</div>`;
  if(A.est=="noal")h+=`<div class="svl">Escrita: «${E(A.al)}»${A.cod.length?" · según la avería en campo:":""}</div>`;
  h+=A.cod.map(cajaAl).join("");
+ /* v704: componentes de campo que intervienen (según planos), igual que al elegir la alarma */
+ if((A.I||[]).length&&A.cod.length==1&&typeof rcsBloqueInterv=="function")h+=rcsBloqueInterv(A.cod[0].x,A.I);
  /* componente: chip que baja a la ficha */
  if(A.C.length==1){const c=A.C[0];h+=`<button type="button" class="svchip" onclick="sosValCmp()"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}<small>🔩 Componente a intervenir · ver ficha ↓</small></button>`}
  else if(A.C.length>1)h+=`<button type="button" class="svchip svvar" onclick="sosValCmp()">🔩 ${A.C.length} componentes posibles · elegir ↓</button>`;
+ else if((A.pend||[]).length&&!(A.I||[]).length)h+=`<button type="button" class="svchip" onclick="sosValCmp()">🔩 ${E(A.pend.map(r=>r[0]).join(" · "))}<small>Componente a intervenir (planos) · ver ↓</small></button>`;
  return`<div class="svw" id="sv_al">${h}</div>`}
 const fichaH=c=>{try{return typeof compFicha=="function"?compFicha(c):""}catch(e){return""}};
 function bloqueComp(A){let b;
  if(A.C.length==1)b=`<div class="svok">Acotado con la avería en campo${A.cod.length?" y la alarma "+E(A.cod.map(z=>z.x.c).join(" / ")):""}.</div>${fichaH(A.C[0])}`;
  else if(A.C.length>1)b=`<div class="svok">No está claro cuál de estos interviene: elige el que corresponda (detalla la avería para acotarlo).</div>
   <div class="svbs">${A.C.map(c=>`<button type="button" class="rcscb svb" data-k="${E(clave(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}${c.fab?`<small>${E(c.fab)}</small>`:""}</button>`).join("")}</div><div id="sv_fi"></div>`;
- else if((A.pend||[]).length)b=`<div class="svok">El elemento de la avería está en los planos pero <b>aún no está incorporado</b> en Componentes de campo (los borneros y el módulo del PLC por los que pasa la señal no se proponen como componente a intervenir):</div>
+ else if((A.pend||[]).length)b=`<div class="svok">${(A.I||[]).length?"Elementos de campo de la alarma según planos, <b>aún no incorporados</b> en Componentes de campo (ficha pendiente):":"El elemento de la avería está en los planos pero <b>aún no está incorporado</b> en Componentes de campo (los borneros y el módulo del PLC por los que pasa la señal no se proponen como componente a intervenir):"}</div>
   <div class="svbs">${A.pend.map(r=>`<div class="rcscb svb" style="cursor:default"><span class="cmpid">${E(r[0])}</span> ${E(r[1])}<small>📍 ${E(r[2]||"")} · folio ${E(r[3]||"")}</small></div>`).join("")}</div>
   <button type="button" class="sec" style="width:100%" onclick="typeof abreComp=='function'&&abreComp()">CATÁLOGO · PENDIENTES DE IMPORTAR</button>`;
  else b=`<div class="svok">Con lo descrito no se identifica un componente del catálogo. Detalla el elemento (p. ej. «láser de extensión», «potenciómetro de cabina») o búscalo en el catálogo.</div>
   <button type="button" class="sec" style="width:100%" onclick="typeof compCatalogo=='function'&&compCatalogo()">CATÁLOGO DE COMPONENTES</button>`;
  return`<div class="ubh ubcmp" id="sv_cmp">🔩 COMPONENTE A INTERVENIR<small>${A.C.length==1?"Ficha técnica del componente":"Especificaciones técnicas"}</small></div><div class="ubb ubbcmp">${b}</div>`}
 
+window.__sosValAnaliza=analiza;
 window.sosValCmp=()=>{const h=$("sv_cmp");if(h)h.scrollIntoView({block:"start",behavior:"smooth"})};
 function pon(){const res=$("sr_res");if(!res||!res.querySelector(".ub1"))return;
  res.querySelectorAll("#sv_al,#sv_cmp,#sv_cmp+.ubbcmp").forEach(x=>x.remove());
@@ -104,6 +114,7 @@ function pon(){const res=$("sr_res");if(!res||!res.querySelector(".ub1"))return;
  d.innerHTML=bloqueAlarma(A);res.insertBefore(d.firstChild,res.firstChild);
  const h2=res.querySelector(".ub2");d.innerHTML=bloqueComp(A);
  while(d.firstChild){h2?res.insertBefore(d.firstChild,h2):res.appendChild(d.firstChild)}
+ res.querySelectorAll("#sv_al button.rcsi").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],"Alarma validada")});
  res.querySelectorAll(".svb").forEach(b=>b.onclick=()=>{const c=A.C.find(z=>clave(z)==b.dataset.k);const f=$("sv_fi");if(!c||!f)return;
   res.querySelectorAll(".svb").forEach(x=>x.classList.toggle("on",x===b));f.innerHTML=fichaH(c)})}
 
