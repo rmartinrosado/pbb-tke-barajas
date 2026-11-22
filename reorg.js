@@ -19,9 +19,12 @@ window.gestionMenu=function(){const n=+(window.avPendientes?window.avPendientes(
  const it=(ic,t,sub,fn,extra)=>`<button type="button" onclick="closeSheet();setTimeout(()=>{${fn}},60)"><i>${ic}</i><span>${t}<small>${sub}</small></span>${extra||""}</button>`;
  document.getElementById("sheetc").innerHTML=`<div class="row" style="flex-wrap:nowrap;align-items:center"><h3 style="margin:0">⚙️ Gestión</h3><button class="sec" onclick="closeSheet()" style="width:auto;padding:4px 12px;margin:0 0 0 auto">✕</button></div>
  <div id="gesm"><h4>Instalación y equipo</h4>${it("➕","Añadir posición PBB","Dar de alta una pasarela","gesMad(0)")}${it("👥","Técnicos","Altas, bajas y turnos","gesMad(1)")}${it("⬇️","Exportar","Descargar las OT (CSV)","gesMad(2)")}
+ <h4>Seguimiento OT</h4>${it("🔳","Imprimir QR de las PBB","Etiquetas QR de cada pasarela","typeof qrPBB=='function'&&qrPBB()")}${it("🗑️","Eliminar lista","Borra las OT que muestra Seguimiento con sus filtros","gesBorraL()")}
+ ${(()=>{let e="";try{e=pushEst}catch(x){}return e=="ok"?it("🔔","Avisos de llegada activos","Toca para enviar un aviso de prueba","typeof pushPrueba=='function'&&pushPrueba()"):e=="nosoporta"?"":it("🔕","Activar avisos de llegada",e=="denegado"?"Bloqueados: actívalos en Ajustes → Notificaciones → PBB TKE":e=="instalar"?"Añade la app a la pantalla de inicio y ábrela desde el icono":"Recibir aviso cuando llega una OT","typeof pushAlta=='function'&&pushAlta(true)")})()}
  <h4>Análisis</h4>${it("🧠","Avisos sin reconocer","Avisos del RCS sin alarma conocida","avPanel()",n?`<b class="n">${n}</b>`:"")}${it("⏱","Tiempos por avería","Duración media por tipo de avería","tmPanel()")}</div>`;
  document.getElementById("sheet").style.display="flex"};
 window.gesMad=mad;
+window.gesBorraL=function(){const f=()=>typeof otBorraLista=="function"&&otBorraLista();if(typeof view!="undefined"&&view!="track"){go("track");setTimeout(f,400)}else f()};
 const STAR=`<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M9.5 3l1.9 5.4L17 10.3l-5.6 1.9L9.5 17.6l-1.9-5.4L2 10.3l5.6-1.9z"/><path d="M18 13.5l1.1 3 3 1.1-3 1.1-1.1 3-1.1-3-3-1.1 3-1.1z"/></svg>`;
 function barra(){const nav=document.getElementById("nav");if(!nav)return;
  [...nav.querySelectorAll(":scope>button")].forEach(b=>{if(/go\('new'\)/.test(b.getAttribute("onclick")||""))b.remove()});

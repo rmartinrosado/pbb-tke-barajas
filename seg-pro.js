@@ -23,10 +23,13 @@ const st=document.createElement("style");st.textContent=`
 #app .segpro .sptools>button{margin:0!important;min-height:48px;border-radius:12px!important;font-size:14px!important;display:flex;align-items:center;justify-content:center;gap:8px}
 #app .segpro #pushb{margin-top:8px;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--bg) 60%,var(--card));border:1px dashed color-mix(in srgb,var(--tx) 18%,transparent);font-size:13px}
 #app .segpro #pushb .tj{font-size:13px!important}
+/* v695: «Herramientas» (QR, Eliminar lista, avisos de llegada) pasa al menú Gestión */
+#app .segpro .spt.h,#app .segpro .sptools,#app .segpro #qrBtn,#app .segpro #otBorraL{display:none!important}
+body.esadm #app .segpro #pushb{display:none!important}
 @media (prefers-reduced-motion:reduce){#app .segpro .spsc::after{animation:none}}`;document.head.appendChild(st);
 const n2=n=>String(n).padStart(2,"0");
 function arma(){if(typeof view=="undefined"||view!="track")return;const c=document.querySelector("#app>.card");if(!c||!c.querySelector("#bq"))return;
- c.classList.add("segpro");
+ c.classList.add("segpro");try{document.body.classList.toggle("esadm",!!admin)}catch(e){}
  let L=[];try{L=inc||[]}catch(e){}
  const ab=L.filter(x=>x.estado=="abierta").length,ce=L.filter(x=>x.estado=="cerrada").length,es=L.filter(x=>x.espera||x.estado=="espera"||x.sincond).length;
  let k=c.querySelector(".spk");const h3=c.querySelector(":scope>h3");
