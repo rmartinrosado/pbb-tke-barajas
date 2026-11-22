@@ -10,7 +10,8 @@ const E=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;","
 const otAct=()=>{try{return typeof gOT!="undefined"&&gOT&&Array.isArray(inc)?inc.find(x=>x.id==gOT):null}catch(e){return null}};
 const alarmasOT=i=>{const out=[];const add=x=>{if(x&&!out.some(y=>y.c==x.c))out.push(x)};
  try{if(i.alCod&&window.RCS_AL)add(RCS_AL.find(z=>z.c==i.alCod))}catch(e){}
- const t=[i.desc,i.def,i.com,i.obs,typeof i.alarmas=="string"?i.alarmas:""].filter(Boolean).join("\n");
+ try{if(typeof rcsAlMagDe=="function")rcsAlMagDe(i).forEach(add)}catch(e){}
+ const t=[i.desc,i.def,i.com,i.obs,i.alMag||"",typeof i.alarmas=="string"?i.alarmas:""].filter(Boolean).join("\n");
  try{if(typeof rcsListaAl=="function")rcsListaAl(t).forEach(add)}catch(e){}
  try{if(typeof rcsDetecta=="function")rcsDetecta(t.replace(/\n/g," · ")).forEach(z=>add(z.x))}catch(e){}
  return out};
