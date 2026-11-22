@@ -61,6 +61,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  if(dt){const sm=dt.querySelector("summary");/* v727: en una línea, con el número de alarmas registradas */
   const nA=tx?(typeof rcsListaAl=="function"?rcsListaAl(tx.value).length:tx.value.split("\n").filter(z=>z.trim()).length):0;
   const hA=`<span class="sostart">Alarma registrada</span><span class="sostarn${nA?" on":""}">${nA}</span>`;if(sm&&sm.innerHTML!==hA)sm.innerHTML=hA}
+ if(tx&&tx.getAttribute("wrap")!=="off")tx.setAttribute("wrap","off");/* v732: una alarma por línea, sin partirla */
  if(tx&&!tx.readOnly){tx.readOnly=true;tx.tabIndex=-1;tx.setAttribute("aria-readonly","true");tx.placeholder="Sin alarmas · elígelas con el buscador o la lista"}pon(B2,$i("sr_f"));pon(B2,$i("sr_pv"));
  /* pasos y ACEPTAR al final del formulario */
  /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
@@ -227,7 +228,7 @@ ${P} .soscr3 details.srtx>summary{flex-wrap:nowrap!important;white-space:nowrap!
 ${P} .sostart{overflow:hidden;text-overflow:ellipsis}
 ${P} .sostarn{flex:none;display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:12px;font:900 12px/1 ${MO};background:color-mix(in srgb,var(--tx) 14%,transparent);color:var(--mu)}
 ${P} .sostarn.on{background:linear-gradient(135deg,${OR},${PU});color:#fff}
-${P} #sr_t[readonly]{cursor:default;background:color-mix(in srgb,var(--card) 60%,var(--bg))!important;border-style:dashed!important;font:600 15px/1.5 ${MO}!important;letter-spacing:.3px!important;-webkit-user-select:none;user-select:none;resize:none}
+${P} #sr_t[readonly]{cursor:default;background:color-mix(in srgb,var(--card) 60%,var(--bg))!important;border-style:dashed!important;font:600 clamp(10.5px,3.2vw,12.5px)/1.7 ${MO}!important;letter-spacing:0!important;white-space:pre!important;overflow-x:hidden!important;overflow-wrap:normal!important;padding:8px 10px!important;min-height:0!important;-webkit-user-select:none;user-select:none;resize:none}
 ${P} #sr_t[readonly]:focus{border-color:${BRD}!important;box-shadow:none!important}
 ${P} .sostzf{display:flex;flex-wrap:nowrap;gap:5px;padding:2px 0 8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:none}
 ${P} .sostzf>.sostzb{flex:1 0 auto}${P} .sostzf::-webkit-scrollbar{display:none}
