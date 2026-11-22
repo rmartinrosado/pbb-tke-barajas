@@ -53,6 +53,10 @@ const CA={
 const PROPIAS={"E-A0":["089","023","117","120"],"E-A1":["117","120"],"E-A2":["117","120"],"E-A3":["117","120"],"E-A4":["117"],"E-A5":["119","023","120"],
  "E-A6":["119","023"],"E-A7":["119","023"],"E-A8":["119","023"],"E-A9":["119","023"],"E-A10":["119","023"],
  "P-A0":["118","089","120"],"P-A1":["118","120"],"P-A2":["118","120"],"P-A3":["118","120"],"P-A4":["118","120"],"P-A5":["118","120"],"P-A6":["118","120"]};
+/* v745: 115 «Atraque incorrecto» = contacto con el avión sin traslación (manual RCS pág. 84): sus elementos son los contactos
+   con avión C-B51 (P-A5 1.1) y C-B52 (P-A5 4.4) y el brazo del autonivelador C-B7 (P-A5 5.1), como la 243. Sin canal, el SOS
+   buscaba por texto y sacaba P-K83 «Relé OK Handling» (su ficha lleva la palabra «atraque» en las claves). */
+["P-A5|1.1","P-A5|4.4","P-A5|5.1"].forEach(k=>{CA[k]=CA[k]||[];if(!CA[k].includes("115"))CA[k].unshift("115")});
 window.CANAL_AL=CA;window.MODULO_AL_PROPIAS=PROPIAS;
 const N=s=>String(s||"").toUpperCase().replace(/^[+-]/,"").replace(/\([^)]*\)/g,"").replace(/:.*$/,"").replace(/\s+/g,"");
 function deCanal(e){return CA[e.m+"|"+e.b+"|"+e.c]||CA[e.m+"|"+e.b]||[]}
