@@ -52,7 +52,12 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* panel 2: buscador del manual, lista rápida, a mano y foto */
  pon(B2,c.querySelector(".rcsbus:not(.otrcs)"));
  const al=c.querySelector(".soscal");if(al){pon(B2,al);const la=al.querySelector("label");if(la&&!la.dataset.st){la.dataset.st=1;la.innerHTML='Lista rápida SOS <small>(casos frecuentes)</small>'}}
- pon(B2,c.querySelector(".soscr3"));pon(B2,$i("sr_f"));pon(B2,$i("sr_pv"));
+ pon(B2,c.querySelector(".soscr3"));
+ /* v724: «Seleccionar alarma» y «Alarma registrada» (las líneas no se editan: se suman con el buscador o la lista y se quitan con ✕) */
+ const sa=$i("sr_a");if(sa&&sa.options[0]&&sa.options[0].text!=="Seleccionar alarma")sa.options[0].text="Seleccionar alarma";
+ const dt=c.querySelector("details.srtx"),tx=$i("sr_t");
+ if(dt){const sm=dt.querySelector("summary");if(sm&&!sm.dataset.st){sm.dataset.st=1;sm.innerHTML='📋 Alarma registrada <small>(no editable)</small>'}}
+ if(tx&&!tx.readOnly){tx.readOnly=true;tx.tabIndex=-1;tx.setAttribute("aria-readonly","true");tx.placeholder="Sin alarmas · elígelas con el buscador o la lista"}pon(B2,$i("sr_f"));pon(B2,$i("sr_pv"));
  /* pasos y ACEPTAR al final del formulario */
  /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
  const P2=F.querySelector(".sostp2");if(P2&&!P2.dataset.pl){P2.dataset.pl=1;P2.classList.add("sostcer");const hd=P2.querySelector(".sostph");
@@ -62,7 +67,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* v721: los pasos 1-2-3 van en la MISMA LÍNEA que ACEPTAR (a la izquierda, compactos) */
  const ol=c.querySelector(".soscl"),row=c.querySelector(".srobrow");if(PS&&PS.isConnected)PS.remove();
  if(row){if(row.previousElementSibling!==F)F.after(row);if(ol&&ol.parentNode!==row)row.prepend(ol);
-  if(ol&&!ol.dataset.st){ol.dataset.st=1;const T=["Sacar en servicio","Reparar","Análisis IA"];[...ol.children].forEach((li,k)=>{if(T[k])li.textContent=T[k]})}
+  if(ol&&!ol.dataset.st){ol.dataset.st=1;const T=["En servicio ya","Reparar","Análisis IA"];[...ol.children].forEach((li,k)=>{if(T[k])li.textContent=T[k]})}
   const rs=row.querySelector(".srobrst");if(rs&&!rs.dataset.st){rs.dataset.st=1;rs.innerHTML=RECARGA;rs.setAttribute("aria-label","Reiniciar el SOS");rs.title="Reiniciar el SOS"}}
  /* rótulos cortos que caben en su caja */
  if(lo&&lo.textContent!=="Avería en campo")lo.textContent="Avería en campo";
@@ -81,8 +86,16 @@ function pintaChips(){const ch=$i("sost_cmps");if(!ch)return;const L=elegidos();
  ch.innerHTML=L.map(c=>`<span class="sostch"><b>${E(c.id)}</b><span>${E(c.t||"")}</span><button type="button" class="sostchf" data-k="${E(ck(c))}" aria-label="Ver ficha de ${E(c.id)}">📄</button><button type="button" class="sostchx" data-k="${E(ck(c))}" aria-label="Quitar ${E(c.id)}">✕</button></span>`).join("")}
 function lista(){const cl=$i("cmp_l");if(!cl)return;const L=COMPS().slice().sort((a,b)=>String(a.id).localeCompare(String(b.id),"es",{numeric:true}));
  if(!L.length){cl.innerHTML=`<div class="rcsnada">Aún no hay componentes de campo en el catálogo.</div>`;cl.dataset.st="1";return}
- const ya=new Set(elegidos().map(ck));const G=new Map();L.forEach(c=>{const z=zona(c.id);if(!G.has(z))G.set(z,[]);G.get(z).push(c)});
- cl.innerHTML=`<div class="sostcl">${[...G].map(([z,X])=>`<div class="sostcz">${E(z)}</div>`+X.map(c=>`<button type="button" class="rcscb${ya.has(ck(c))?" sostya":""}" data-k="${E(ck(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t||"")}${c.fab?`<small>${E(c.fab)}</small>`:""}</button>`).join("")).join("")}</div>`;cl.dataset.st="1"}
+ const ya=new Set(elegidos().map(ck));const G0=new Map();L.forEach(c=>{const z=zonaC(c);if(!G0.has(z))G0.set(z,[]);G0.get(z).push(c)});
+ /* v724: filtro de ubicación (chips) arriba del desplegable */
+ if(ZF&&!G0.has(ZF))ZF="";const G=ZF?new Map([[ZF,G0.get(ZF)]]):G0;
+ const fil=`<div class="sostzf">${[["","Todas · "+L.length]].concat([...G0].map(([z,X])=>[z,z+" · "+X.length])).map(([z,t])=>`<button type="button" class="sostzb${z===ZF?" on":""}" data-z="${E(z)}">${E(t)}</button>`).join("")}</div>`;
+ cl.innerHTML=fil+`<div class="sostcl">${[...G].map(([z,X])=>`<div class="sostcz">${E(z)}</div>`+X.map(c=>`<button type="button" class="rcscb${ya.has(ck(c))?" sostya":""}" data-k="${E(ck(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t||"")}${c.fab?`<small>${E(c.fab)}</small>`:""}</button>`).join("")).join("")}</div>`;cl.dataset.st="1"}
+let ZF="";
+/* zona del componente: la de su foto de ubicación (armario eléctrico, pupitre…) y, si no tiene, la del prefijo del código */
+const UB=[[/armario el|\bAE\b/i,"⚡ Armario eléctrico (AE)"],[/pupitre/i,"🎛️ Pupitre"],[/cabina/i,"🚪 Cabina"],[/t[uú]nel|extensi/i,"↔️ Túneles · extensión"],[/inclinaci|elevaci|columna/i,"↕️ Elevación · inclinación"],[/rotonda/i,"🔄 Rotonda"],[/traslaci|bogie|rueda/i,"🛞 Traslación"],[/escalera/i,"🪜 Escalera de servicio"]];
+function zonaC(c){const F=(c.fotos||[]).map(f=>Array.isArray(f)?String(f[1]||""):String((f||{}).vista||"")).filter(v=>/^ubicaci/i.test(v)).join(" ")+" "+String(c.ubi||c.u||"");
+ for(const[re,z]of UB)if(re.test(F))return z;return zona(c.id)}
 const cierraL=()=>{const cl=$i("cmp_l");if(cl&&cl.innerHTML){cl.innerHTML="";delete cl.dataset.st}};
 function suma(k){const c=COMPS().find(z=>ck(z)==k),t=$i("sr_ob");if(!c||!t)return;const li=lineaC(c);
  if(!t.value.includes(li)){t.value=[t.value.replace(/\s+$/,""),li].filter(Boolean).join("\n");t.dispatchEvent(new Event("input",{bubbles:true}))}
@@ -94,6 +107,7 @@ document.addEventListener("click",e=>{const t=e.target;if(!t.closest||!t.closest
  const b=t.closest("#cmp_l .rcscb");if(b){e.preventDefault();e.stopPropagation();suma(b.dataset.k);return}
  const x=t.closest(".sostchx");if(x){e.preventDefault();e.stopPropagation();quita(x.dataset.k);return}
  const f=t.closest(".sostchf");if(f){e.preventDefault();e.stopPropagation();if(typeof abreCompClaves=="function")abreCompClaves([f.dataset.k],"Componente del SOS");return}
+ const zb=t.closest(".sostzb");if(zb){e.preventDefault();e.stopPropagation();ZF=zb.dataset.z||"";lista();return}
  if(t.closest("#cmp_q")){const q=$i("cmp_q");if(q&&!q.value.trim())setTimeout(lista,0);return}
  if(!t.closest("#cmp_l"))cierraL()},true);
 document.addEventListener("focusin",e=>{if(e.target&&e.target.id=="cmp_q"&&!e.target.value.trim())setTimeout(lista,0)});
@@ -205,19 +219,25 @@ ${P} .soscr3 .srfoto.srfok{border-color:#1fa64a!important;color:#1fa64a!importan
 ${P} .soscal{margin-top:2px}
 /* ---- línea de abajo: pasos | ACEPTAR | reiniciar ---- */
 ${P} .srobrow{display:flex!important;align-items:stretch!important;gap:8px!important;margin-top:14px!important}
-${P} .srobrow .soscl{flex:0 0 auto!important;width:clamp(108px,31vw,134px);display:flex!important;flex-direction:column!important;justify-content:center;gap:4px!important;margin:0!important;padding:6px 8px!important;
+${P} #sr_t[readonly]{cursor:default;background:color-mix(in srgb,var(--card) 60%,var(--bg))!important;border-style:dashed!important;font:600 15px/1.5 ${MO}!important;letter-spacing:.3px!important;-webkit-user-select:none;user-select:none;resize:none}
+${P} #sr_t[readonly]:focus{border-color:${BRD}!important;box-shadow:none!important}
+${P} .sostzf{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 8px;scrollbar-width:none}${P} .sostzf::-webkit-scrollbar{display:none}
+${P} .sostzb{flex:none;min-height:44px!important;margin:0!important;padding:0 12px!important;border-radius:22px!important;border:1.5px solid ${BRD}!important;background:${FLD}!important;color:var(--tx)!important;
+ font:700 12.5px/1 system-ui,-apple-system,sans-serif!important;white-space:nowrap;box-shadow:none!important}
+${P} .sostzb.on{border-color:transparent!important;color:#fff!important;background:linear-gradient(135deg,${OR},${PU})!important}
+${P} .srobrow .soscl{flex:0 0 auto!important;width:clamp(112px,33vw,140px);display:flex!important;flex-direction:column!important;justify-content:center;gap:2px!important;margin:0!important;padding:4px 7px!important;
  list-style:none;counter-reset:s;border-radius:14px;border:1.5px solid ${BRD};background:${FLD};box-sizing:border-box}
 ${P} .srobrow .soscl li{counter-increment:s;display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important;
- font:800 9.5px/1.1 ${MO}!important;letter-spacing:.5px!important;text-transform:uppercase;color:var(--mu)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-${P} .srobrow .soscl li::before{content:counter(s);flex:none;display:grid;place-items:center;width:18px!important;height:18px!important;border-radius:6px!important;border:0!important;
- font:900 10.5px/1 ${MO}!important;color:#fff!important;background:linear-gradient(135deg,${OR},${PU})!important;box-shadow:none!important}
+ font:700 11px/1.1 system-ui,-apple-system,sans-serif!important;letter-spacing:0!important;text-transform:none;color:var(--tx)!important;white-space:nowrap;overflow:hidden;text-overflow:clip}
+${P} .srobrow .soscl li::before{content:counter(s);flex:none;display:grid;place-items:center;width:15px!important;height:15px!important;border-radius:5px!important;border:0!important;
+ font:900 9.5px/1 ${MO}!important;color:#fff!important;background:linear-gradient(135deg,${OR},${PU})!important;box-shadow:none!important}
 ${P} .srobrow .soscl li::after{display:none!important}
-${P} .srobrow button.pri{position:relative;overflow:hidden;flex:1 1 auto!important;min-width:0;min-height:66px!important;margin:0!important;padding:0 6px!important;border:0!important;border-radius:14px!important;
+${P} .srobrow button.pri{position:relative;overflow:hidden;flex:1 1 auto!important;min-width:0;min-height:54px!important;margin:0!important;padding:0 6px!important;border:0!important;border-radius:14px!important;
  font:900 17px/1 ${MO}!important;letter-spacing:2.5px!important;text-transform:uppercase;white-space:nowrap;color:#111!important;text-shadow:none!important;animation:none!important;
  background:linear-gradient(135deg,#ffb020,${OR} 45%,#ff4d2e)!important;box-shadow:0 12px 28px -10px ${OR},0 0 0 1px #fff4 inset!important}
 ${P} .srobrow button.pri::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,#fff7,transparent);animation:rgShine 3.2s ease-in-out infinite}
 @keyframes rgShine{60%,100%{left:130%}}
-${P} .srobrst{flex:none!important;width:62px!important;min-height:66px!important;margin:0!important;padding:0!important;display:grid!important;place-items:center;border-radius:14px!important;
+${P} .srobrst{flex:none!important;width:54px!important;min-height:54px!important;margin:0!important;padding:0!important;display:grid!important;place-items:center;border-radius:14px!important;
  border:1.5px solid ${BRD}!important;background:${FLD}!important;color:${OR}!important;box-shadow:none!important}
 ${P} .srobrst svg{width:28px!important;height:28px!important}
 ${P} button:active,${P} .srfoto:active{transform:scale(.97)}
