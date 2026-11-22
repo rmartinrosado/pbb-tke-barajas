@@ -414,20 +414,30 @@ function intervienen(x){const CA=window.CANAL_AL||{},CB=window.CABLEADO||{},PL=w
  [true,false].forEach(P=>ent.filter(z=>z.pri==P).forEach(({k,e})=>{let hay=false;
   (e.n||[]).forEach(n=>{if(n.k=="E"){hay=true;add(n.t,"campo",tipoE(n.t,n.ps),P,n.f);const o=out.get(limpiaId(n.t));if(o&&!o.dc)o.dc=e.d}});
   /* canal sin elemento dibujado: el sensor de la actuación propia de las alarmas del canal */
-  if(!hay){const a=(CA[k]||[]).find(q=>AA[q]);const m=a&&String(AA[a]).match(/\b[A-Z]{1,3}-[A-Z]{1,2}\d+(?:\.\d+)?\b/g);
-   (m||[]).filter(id=>!/-X\d|^[EP]-A\d/.test(id)).slice(0,1).forEach(id=>add(id,"campo","señal 4-20 mA",P))}}));
- ent.forEach(({e,pri})=>(e.n||[]).forEach(n=>{if(n.k!="B")return;if((n.v||[]).some(v=>v.h=="189"||/^189\b/.test(v.d||"")))return;add(n.t,"borna","borna "+n.p,pri,n.f)}));
+  /* v710: canal sin elemento dibujado (analógicas de E-A4): los elementos salen de la actuación propia de ESTA alarma (o de la
+     primera del canal que la tenga) y de la nota del plano; se añaden TODOS (058: potenciómetro C-R10 y convertidor E-R10) */
+  if(!hay){const a=AA[x.c]&&(CA[k]||[]).includes(x.c)?x.c:(CA[k]||[]).find(q=>AA[q]);const tx=[a?AA[a]:"",...(e.n||[]).map(n=>n.x||"")].join(" ");
+   const m=tx.match(/\b[A-Z]{1,3}-[A-Z]{1,2}\d+(?:\.\d+)?\b/g)||[];
+   [...new Set(m)].filter(id=>!/-X\d|^[EP]-A\d/.test(id)).forEach(id=>add(id,"campo",/^E-R\d/.test(id)?"convertidor → 4-20 mA":/-R\d/.test(id)&&tx.includes("E-R10")&&/^C-/.test(id)?"potenciómetro 10 kΩ, cables 1-2-3 (E-W9 → E-X65)":/-R\d/.test(id)?"potenciómetro / transmisor 4-20 mA":"sensor 4-20 mA",P))}}));
+ ent.forEach(({e,pri})=>(e.n||[]).forEach(n=>{if(n.k!="B")return;if((n.v||[]).some(v=>v.h=="189"||/^189\b/.test(v.d||"")))return;
+  /* un aparato con bornas (E-R10…) no es un bornero: va como elemento con su borna */
+  if(!/-X\d/.test(String(n.t||""))){add(n.t,"campo","borna "+n.p,pri,n.f);return}add(n.t,"borna","borna "+n.p,pri,n.f)}));
+ /* bornero por el que entra el elemento al armario según la nota del plano (058: E-X65) */
+ ent.forEach(({e,pri})=>(e.n||[]).forEach(n=>{if(!n.x)return;(n.x.match(/\b[A-Z]{1,3}-X\d+(?:\.\d+)?\b/g)||[]).forEach(b=>{if(b!="E-X68")add(b,"borna","",pri,n.f)})}));
  ent.forEach(({e,pri})=>add(e.m,"modulo","entrada "+e.b+(e.k?" ("+e.k+")":"")+(e.d?" · "+String(e.d).toLowerCase():""),pri,e.f));
  const fc=x.g=="fc";
- return[...out.values()].map(o=>{const r=PL.find(z=>String(z[0]).toUpperCase()==o.id.split(" ")[0].toUpperCase())||null;
+ /* v710: fichas que acompañan a un elemento (acoplamiento elástico de C-R10…): se suman como elemento de campo */
+ [...out.values()].filter(o=>o.rol=="campo").forEach(o=>{const base=ckey(o.id.split(" ")[0]);
+  COMPS().filter(c=>ckIds(c).some(i=>ckey(i)==base)&&ckey(c.id)!=base).forEach(c=>{const id=String(c.id).trim();if(!out.has(id))out.set(id,{id,rol:"campo",det:["acoplamiento / accesorio de "+o.id],pri:o.pri,f:o.f,acc:c})})});
+ return[...out.values()].map(o=>{if(o.acc)return Object.assign(o,{r:null,c:o.acc,papel:"Accesorio del elemento de campo",nom:o.acc.t,ubi:"",folio:o.f});const r=PL.find(z=>String(z[0]).toUpperCase()==o.id.split(" ")[0].toUpperCase())||null;
   const c=COMPS().find(z=>ckIds(z).concat([z.id]).some(i=>ckey(i)==ckey(o.id.split(" ")[0])))||null;
   const papel=o.rol=="campo"?(fc?(o.pri?"Final de carrera de seguridad (el que se pisa)":"Límite de trabajo · causa principal"):(o.pri?"Elemento de campo":"Elemento de campo relacionado")):o.rol=="borna"?"Bornero de paso de la señal":(/^E-A[89]$|^E-A10$/.test(o.id)?"Módulo de seguridad (amarillo)":"Módulo del PLC");
   /* símbolo genérico del plano con calificador («IT-S3''(INF)» en antiatrapamientos y frenos de cabina): no es el IT-S3 del
      catálogo de planos; se nombra por la señal del canal */
   if(/\(/.test(o.id)){const q=(o.id.match(/\(([^)]*)\)/)||[])[1]||"";const d=String(o.dc||"").toLowerCase();
    return Object.assign(o,{r:null,c:null,papel,nom:"FC "+(d||"de seguridad")+(q?" · "+q.toLowerCase():""),ubi:"",folio:o.f})}
-  return Object.assign(o,{r,c,papel,nom:c?c.t:r?r[1]:"",ubi:r?r[2]:"",folio:r?r[3]:o.f})})
-  .sort((a,b)=>{const ord=z=>(z.rol=="campo"?0:z.rol=="borna"?2:3)+(z.rol=="campo"&&!z.pri?1:0);return ord(a)-ord(b)})}
+  const ubi=r?r[2]:"";return Object.assign(o,{r,c,papel:o.rol=="campo"&&!fc&&/armario/i.test(ubi)?"Aparato en el armario eléctrico":papel,nom:c?c.t:r?r[1]:"",ubi,folio:r?r[3]:o.f})})
+  .sort((a,b)=>{const ord=z=>(z.rol=="campo"?(z.acc?0.3:/armario/i.test(z.ubi||"")?0.6:0):z.rol=="borna"?2:3)+(z.rol=="campo"&&!z.pri?1:0);return ord(a)-ord(b)})}
 window.rcsIntervienen=x=>{try{return intervienen(typeof x=="string"?porCod(x):x)}catch(e){console.warn("rcsIntervienen",e);return[]}};
 /* v705: «1 · SACAR EN SERVICIO YA» de UNA alarma según planos (canal más específico de CANAL_AL + CABLEADO rev. J):
    · entrada de seguridad (módulos amarillos E-A8 / E-A9 / E-A10): puente provisional IN n.1 ↔ UT n.2 del canal, en MANUAL
@@ -471,10 +481,10 @@ function listaAl(txt){const out=[];String(txt||"").split(/\n+/).forEach(li=>{if(
  D.forEach(z=>{if(!out.some(y=>y.c==z.x.c))out.push(z.x)})});return out}
 window.rcsListaAl=listaAl;
 /* componentes que intervienen en VARIAS alarmas: se suman sin repetir y se anota en qué alarmas interviene cada uno */
-window.rcsIntervUnion=function(X){const M=new Map();(X||[]).forEach(x=>{if(typeof x=="string")x=porCod(x);if(!x)return;
+window.rcsIntervUnion=function(X){/* v710 */const M=new Map();(X||[]).forEach(x=>{if(typeof x=="string")x=porCod(x);if(!x)return;
  window.rcsIntervienen(x).forEach(o=>{const k=o.id;const p=M.get(k);if(p){if(!p.als.includes(x.c))p.als.push(x.c);o.det.forEach(d=>{if(!p.det.includes(d))p.det.push(d)});if(o.pri&&!p.pri){p.pri=true;p.papel=o.papel}}
   else M.set(k,Object.assign({},o,{det:o.det.slice(),als:[x.c]}))})});
- const ord=z=>(z.rol=="campo"?0:z.rol=="borna"?2:3)+(z.rol=="campo"&&!z.pri?1:0);return[...M.values()].sort((a,b)=>ord(a)-ord(b))};
+ const ord=z=>(z.rol=="campo"?(z.acc?0.3:/armario/i.test(z.ubi||"")?0.6:0):z.rol=="borna"?2:3)+(z.rol=="campo"&&!z.pri?1:0);return[...M.values()].sort((a,b)=>ord(a)-ord(b))};
 function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const sel=sc.querySelector("#sr_a");if(!sel||sc.querySelector("#rcs_q"))return;
  const lab=sel.previousElementSibling;const fila=sel.closest(".soscr2");
  const d=document.createElement("div");d.className="rcsbus";
