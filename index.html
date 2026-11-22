@@ -4160,7 +4160,7 @@ Si algo no se puede confirmar con la documentación, dilo y pide el dato o la me
  const og=gIAuto;gIAuto=function(){const nueva=gIAutoOT!==gOT;const r=og.apply(this,arguments);if(!nueva)return r;
   const i=inc.find(x=>x.id==gOT);if(!i||explicito(i))return r;const A=otRelSig(i);if(!A)return r;
   const b=A.rel[0];gIMod=b.mod;gISig=b.S.id;
-  gIAutoTxt=`Relacionado con la OT ${i.orden||""} («${i.desc||""}»): ${A.gr.join(" · ")}. Señal propuesta: ${b.mod} · ${b.S.t}. Abajo tienes todas las señales relacionadas, de más a menos probable.`;return r};
+  gIAutoTxt=`Relacionado con la OT ${i.orden||""} («${i.desc||""}»): ${A.gr.join(" · ")}. Señal propuesta: ${b.mod} · ${b.S.t}.`;return r};
  const oh=gInsHTML;gInsHTML=function(){let h=oh.apply(this,arguments);const i=inc.find(x=>x.id==gOT);const A=i&&otRelSig(i);if(!A)return h;
   const mods=new Set(A.rel.map(x=>x.mod)),ids=new Set(A.rel.map(x=>x.S.id));
   const pan=`<details class="otrel" style="display:none"><summary><b>🎯 Señales relacionadas con la OT</b> <span class="mu" style="font-weight:400">(${A.rel.length} · ${esc(A.gr.join(" · "))})</span></summary>
