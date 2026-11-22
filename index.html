@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=728;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=729;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -69,7 +69,7 @@ iframe{width:100%;height:70vh;border:1px solid var(--bd);border-radius:10px;back
 .gobsv .pb{fill:#9aa3ad;stroke:#555;stroke-width:1}.gobsv .pbon{fill:#9aa3ad;stroke:#f9a825;stroke-width:2.5}.gobsv .psc{fill:#cfd4da;stroke:#444}.gobsv .pst{stroke:#444;stroke-width:1.5}
 .gobsv .pw{stroke:#607d8b;stroke-width:2.5;fill:none}.gobsv .prl{stroke:#b0743a;stroke-width:3;fill:none;stroke-linecap:round;animation:gobsp 1.2s ease-in-out infinite}
 .gobsv .prb{fill:#e8d3a6;stroke:#8d6e3f;stroke-width:1.2}.gobsv .pbko{stroke:#cfd4da;stroke-width:7;fill:none}.gobsv .pbk{stroke:#111;stroke-width:4;fill:none}.gobsv .pcap{fill:#1565c0;stroke:#0d3c7a}
-html.lt .gobsv .pbk{stroke:#111}@keyframes gobsp{50%{opacity:.35}}</style>
+html.lt .gobsv .pbk{stroke:#111}@keyframes gobsp{50%{opacity:.35}}.gobsv .pdes{animation:gobsd 1s steps(1,end) infinite}.gobsv .pdesa{stroke:#e53935;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}.gobsv .pdesr{fill:#e53935}.gobsv .pdest{fill:#fff!important;font-size:9px;font-weight:900;letter-spacing:.3px}@keyframes gobsd{50%{opacity:.12}}</style>
 </head><body>
 <script>/* v701: las tarjetas de OT de Inicio se comportan como las de Seguimiento (plegables, SOS, llave…) */window.SEGV=function(){try{return view=="track"||view=="dash"}catch(e){return false}};</script>
 <script>/* v656: arranque vigilado. Si a los 12 s no hay nada en pantalla (página en blanco), se ofrece recargar o reparar la caché. */
@@ -3711,6 +3711,10 @@ function puAnalog(i){if(!i||i.estado!="abierta")return [];const txt=segNorm([i.d
     g+=`<text x="${cx}" y="${Y+38}" text-anchor="middle" class="pn">${n}</text><text x="${cx}" y="${Y+53}" text-anchor="middle" class="pm">${t}</text>`;
     if(!sinCampo&&n!=on[1])g+=`<line x1="${n==on[0]?cx-8:cx}" y1="${YB}" x2="${n==on[0]?cx-8:cx}" y2="${YB+58}" class="pw"/>`});
    return{g,X,W,Y,H,YB}};
+  /* v729: desconexión de cable → rótulo rojo PARPADEANDO y flecha hacia atrás (saliendo de la borna) */
+  const des=(x,y1,y2,lx,ly,an,txt)=>{const w=txt.length*5.9+12,rx=an=="end"?lx-w:an=="middle"?lx-w/2:lx;const dir=y2>y1?1:-1;
+   return`<g class="pdes"><path d="M${x} ${y1} V${y2-dir*6}" class="pdesa"/><path d="M${x-6} ${y2-dir*8} L${x} ${y2} L${x+6} ${y2-dir*8}" class="pdesa"/>
+   <rect x="${rx}" y="${ly-10}" width="${w}" height="14" rx="3" class="pdesr"/><text x="${rx+w/2}" y="${ly}" text-anchor="middle" class="pdest">${txt}</text></g>`};
   const svg=(t,sub,g,l1,l2,YB,aria)=>`<div class="gobsi"><svg class="gobsv" viewBox="0 0 334 266" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${aria}">
    <text x="10" y="16" class="ph">${t}</text><text x="10" y="30" class="pm">${sub}</text>${g}
    <text x="10" y="${YB+112}" class="pt">⚡ ${l1}</text><text x="10" y="${YB+126}" class="pt pw2">✂ ${l2}</text></svg></div>`;
@@ -3719,7 +3723,7 @@ function puAnalog(i){if(!i||i.estado!="abierta")return [];const txt=segNorm([i.d
   const ex62=(b,tit,campo,aria)=>{const k=X62.findIndex(z=>z[0]==b);const o=bornero(X62,["1",b]);const {X,W,YB}=o;let g=o.g;
    const x1=X(0)+W/2+6,xb=X(k)+W/2,yr=YB+26;
    g+=`<path d="M${x1} ${YB-4} V${yr} H${x1+40}" class="prl"/><path d="M${xb-40} ${yr} H${xb} V${YB-4}" class="prl"/>`+res(x1,xb,yr);
-   const xc=xb+9;g+=`<path d="M${xc} ${YB+92} V${YB+52}" class="pbko"/><path d="M${xc} ${YB+92} V${YB+52}" class="pbk"/><rect x="${xc-6}" y="${YB+40}" width="12" height="14" rx="3" class="pcap"/><text x="${xc+10}" y="${YB+52}" class="pt pw2">✂</text>`;
+   const xc=xb+9;g+=des(xc,YB+2,YB+36,xc-16,YB+80,"end","⬅ DESCONECTAR");g+=`<path d="M${xc} ${YB+92} V${YB+52}" class="pbko"/><path d="M${xc} ${YB+92} V${YB+52}" class="pbk"/><rect x="${xc-6}" y="${YB+40}" width="12" height="14" rx="3" class="pcap"/><text x="${xc+10}" y="${YB+52}" class="pt pw2">✂</text>`;
    return svg(tit,b=="5"?"no en 504/507/508 · abajo: mangueras de campo":"arriba: hilos a E-A4 / E-X68 · abajo: mangueras de campo",g,`2,2 kΩ 1 W (rojo-rojo-rojo-oro) entre 1 y ${b} → ≈11 mA`,campo,YB,aria)};
   /* E-R10: el hilo 315 (va a AI03) sale de la 7 y se empalma a la resistencia, que va a la 10 (+24 V); la 7 queda libre */
   const er10=()=>{const B=[["10","+24 V","189"],["11","0 V","205"],["9","−I3","205"],["7","salida",""]];const o=bornero(B,["10","7"],true);const {X,W,Y,YB}=o;let g=o.g;
@@ -3727,13 +3731,13 @@ function puAnalog(i){if(!i||i.estado!="abierta")return [];const txt=segNorm([i.d
    /* hilo 315 (va a E-A4 1.3) sacado de la 7 y bajado por la derecha hasta el empalme con la resistencia */
    g+=`<path d="M${x7} ${Y-22} V${Y-16} C ${x7+70} ${Y-2}, ${x7+70} ${yr}, ${xe+6} ${yr}" class="pw" style="stroke-width:3"/><text x="${x7+12}" y="${Y-18}" class="pm">hilo 315 → E-A4 1.3</text>`;
    g+=`<path d="M${x10} ${YB-4} V${yr} H${x10+40}" class="prl"/><path d="M${xe-40} ${yr} H${xe}" class="prl"/>`+res(x10,xe,yr)+`<circle cx="${xe+3}" cy="${yr}" r="6" class="pcap"/>`;
-   g+=`<text x="${x7}" y="${YB+14}" text-anchor="middle" class="pt pw2">libre</text>`;
+   g+=`<text x="${x7}" y="${YB+14}" text-anchor="middle" class="pt pw2">libre</text>`;g+=des(x7-14,Y+4,Y-14,x7-24,Y-30,"end","⬅ DESCONECTAR 315");
    return svg("E-R10 · puente provisional CABINA (AI03)","convertidor E-R10 del potenciómetro C-R10 (no pasa por E-X62)",g,"2,2 kΩ 1 W entre E-R10:10 (+24 V) y el hilo 315","hilo 315 fuera de E-R10:7, empalmado y aislado",YB,"Croquis del puente de cabina en el convertidor E-R10")};
   /* E-X65: potenciómetro C-R10 averiado con el convertidor E-R10 bien → E-W9 fuera y dos 4,7 kΩ (1-2 y 2-3): cursor a mitad de giro */
   const pot=()=>{const B=[["1","extremo","319"],["2","cursor","321"],["3","extremo","322"],["4","malla",""]];const o=bornero(B,["1","2","3"],true,80);const {X,W,YB}=o;let g=o.g;
    const c=i=>X(i)+W/2,y1=YB+26,y2=YB+60,AM=["#f2c80f","#8e44ad","#d32f2f"];
    g+=`<path d="M${c(0)} ${YB-4} V${y1}" class="prl"/><path d="M${c(1)} ${YB-4} V${y2}" class="prl"/><path d="M${c(2)} ${YB-4} V${y2}" class="prl"/>`+res(c(0),c(1),y1,AM)+res(c(1),c(2),y2,AM);
-   const xc=c(3)+30;g+=`<path d="M${xc} ${YB+92} V${YB+40}" class="pbko"/><path d="M${xc} ${YB+92} V${YB+40}" class="pbk"/><rect x="${xc-6}" y="${YB+28}" width="12" height="14" rx="3" class="pcap"/><text x="${xc-34}" y="${YB+86}" class="pm">E-W9</text>`;
+   const xc=c(3)+30;g+=des(xc,YB-2,YB+24,xc-12,YB+76,"end","⬅ DESCONECTAR");g+=`<path d="M${xc} ${YB+92} V${YB+40}" class="pbko"/><path d="M${xc} ${YB+92} V${YB+40}" class="pbk"/><rect x="${xc-6}" y="${YB+28}" width="12" height="14" rx="3" class="pcap"/><text x="${xc-34}" y="${YB+100}" class="pm">E-W9</text>`;
    return svg("E-X65 · puente POTENCIÓMETRO CABINA C-R10","E-R10 bien · arriba: hilos 319/321/322 a E-R10 1-2-3",g,"2 × 4,7 kΩ (amarillo-violeta-rojo-oro): 1-2 y 2-3","E-W9 (C-R10) suelto de E-X65:1-2-3 y aislado",YB,"Croquis del puente del potenciómetro de cabina en E-X65 con dos resistencias de 4,7 kilohmios")};
   const K={ext:ex62("4","E-X62 · puente provisional EXTENSIÓN (AI02)","BK de E-W13 (láser ET-B9) suelto de la 4 y aislado","Croquis del puente de extensión entre E-X62:1 y E-X62:4"),
    rot:ex62("5","E-X62 · puente provisional ROTONDA (AI04)","señal EIT-W4 (R-R1) suelta de la 5 y aislada","Croquis del puente de rotonda entre E-X62:1 y E-X62:5"),cab:er10(),pot:pot()};
@@ -4671,7 +4675,7 @@ header .hb{align-self:flex-start}
  La app compara su versión (APP_VER) con version.json del repositorio al abrirse, al volver a primer plano y cada 10 min.
  Si la publicada es mayor, sale una franja verde arriba con «Actualizar»: borra la caché y recarga la última versión.
  IMPORTANTE al publicar una versión nueva: subir APP_VER aquí y "v" en version.json al mismo número. ===== */
-const APP_VER=window.__APPV||728;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
+const APP_VER=window.__APPV||729;/* v394: la versión se cambia en window.__APPV (inicio del <head>) y aquí; y "v" de version.json */
 (function(){const o=cab;cab=function(){o();const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v"+APP_VER}})();
 (function(){const st=document.createElement("style");st.textContent=`#nvBar{position:fixed;left:8px;right:8px;top:8px;z-index:99999;display:flex;align-items:center;gap:10px;background:#2e9e44;color:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3);font:600 15px system-ui,sans-serif}#nvBar span{flex:1}#nvBar button{border:0;border-radius:8px;padding:9px 14px;font:700 15px system-ui,sans-serif;background:#fff;color:#2e9e44}#nvBar .nvx{background:transparent;color:#fff;padding:9px 6px;font-size:18px}`;document.head.appendChild(st)})();
 async function nvActualiza(){try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
@@ -5815,7 +5819,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   try{eval(fn+"=window."+fn)}catch(e){}});
 })();
 </script>
-<script src="puente-croquis.js?v=431"></script><script src="guia-titulos.js?v=417"></script><script src="pdf-pellizco.js?v=280"></script>
+<script src="puente-croquis.js?v=729"></script><script src="guia-titulos.js?v=417"></script><script src="pdf-pellizco.js?v=280"></script>
 <script>
 /* ===== v267: CROQUIS DEL PUENTE en la Guía de campo · cuando la OT tiene primera actuación en campo por LÍMITE, entre la caja SOS y la
    de «Primera actuación en campo» se dibuja el bloque exacto del módulo del PLC (colores reales de E-A… / P-A…), con el cable del puente

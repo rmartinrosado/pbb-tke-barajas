@@ -17,6 +17,7 @@ html.lt .pzk{--pk-bg:#f4f5f7;--pk-mod:#e3e6ea;--pk-mod2:#cfd4db;--pk-bd:#6b7280;
 @keyframes pzkW{0%{opacity:1}50%{opacity:.18}}
 @keyframes pzkL{0%{fill:var(--pk-led)}50%{fill:#3a3f47}}
 @keyframes pzkR{to{stroke-dashoffset:-22}}
+.pzk .pdes{animation:pzkW 1s steps(1,end) infinite}.pzk .pdesa{stroke:#e53935;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}.pzk .pdesr{fill:#e53935}.pzk .pdest{fill:#fff!important;font-size:12px;font-weight:900}
 @keyframes pzkP{0%,100%{transform:translateY(-9px)}45%,70%{transform:translateY(0)}}`;
 function css(){if(document.getElementById("pzkcss"))return;const s=document.createElement("style");s.id="pzkcss";s.textContent=CSS;document.head.appendChild(s)}
 /* puntera (ferrule) apuntando hacia abajo, con la punta en (x,y) */
@@ -168,7 +169,8 @@ function v5(o){
  ${lead(Math.max(xa,xb),ya)}${lead(Math.max(xa,xb),yb)}
  ${SU?(()=>{const ox=out+side*4,oy=ya+86,dd=`M${xa+side*30} ${ya+22} C ${xa+side*58} ${ya+40}, ${ox} ${ya+44}, ${ox} ${oy}`;
   return `<path class="wire2" d="${dd}"/><path class="wire" d="${dd}"/><g class="pin" style="transform-box:fill-box"><g transform="translate(${xa+side*30},${ya+22}) rotate(${side*-60})"><rect x="-4.5" y="3" width="9" height="18" fill="var(--pk-cu)"/><rect x="-7" y="19" width="14" height="20" rx="3" fill="var(--pk-w)"/></g></g>
-  <text x="${xa+side*22}" y="${ya+64}" text-anchor="middle" font-size="18" class="hi">✂</text><text x="${ox}" y="${oy+18}" text-anchor="middle" font-size="11" font-weight="800" class="hi">AISLAR</text>`})():`<path class="wire2" d="${d}"/><path class="wire" d="${d}"/>${fer(xa+side*8,ya+6)}${fer(xb+side*8,yb+6)}`}
+  <text x="${xa+side*22}" y="${ya+64}" text-anchor="middle" font-size="18" class="hi">✂</text><g class="pdes"><path d="M${xa+side*14} ${ya+4} L${xa+side*44} ${ya+34}" class="pdesa"/><path d="M${xa+side*44-side*12} ${ya+34} L${xa+side*44} ${ya+34} L${xa+side*44} ${ya+22}" class="pdesa"/>
+  <rect x="${X0+SW/2-62}" y="${TOP+132}" width="124" height="17" rx="4" class="pdesr"/><text x="${X0+SW/2}" y="${TOP+145}" text-anchor="middle" class="pdest">⬅ DESCONECTAR</text></g><text x="${ox}" y="${oy+18}" text-anchor="middle" font-size="11" font-weight="800" class="hi">AISLAR</text>`})():`<path class="wire2" d="${d}"/><path class="wire" d="${d}"/>${fer(xa+side*8,ya+6)}${fer(xb+side*8,yb+6)}`}
  <g font-weight="800"><text x="${lx}" y="${ya+3}" font-size="15" class="hi">${esc(o.b1)}</text><text x="${lx}" y="${ya+19}" font-size="10.5" class="mu">${esc(o.k1)}</text>
  ${SU?"":`<text x="${lx}" y="${yb+3}" font-size="15" class="hi">${esc(o.b2)}</text><text x="${lx}" y="${yb+19}" font-size="10.5" class="mu">${esc(o.k2)}</text>`}</g>
  <text x="${W/2}" y="${H-24}" text-anchor="middle" class="mu" style="font-size:12px">${SU?`<tspan x="${W/2}">Con el hilo suelto y aislado, el LED de ${esc(o.b1)}</tspan><tspan x="${W/2}" dy="15">se apaga y la PBB se desbloquea</tspan>`:`<tspan x="${W/2}">${safe?`Con el puente, el LED ${n1}`:`Con el puente, el LED ${(blk-1)*4+ledIn} de la entrada`}</tspan><tspan x="${W/2}" dy="15">${safe?"debe encenderse":"se enciende"}</tspan>`}</text></svg>`} /* v303: texto bajo el dibujo centrado y en dos líneas para que entre en pantalla */
