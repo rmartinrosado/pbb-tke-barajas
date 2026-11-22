@@ -117,7 +117,7 @@ function bloqueComp(A){let b;
    entrada del módulo amarillo (con su croquis), setas y medidas 4-20 mA que no se puentean, advertencias que resuelve el
    operador. El croquis sale de los planos (no del texto mezclado de varias alarmas); en las que no tienen puente de seguridad
    se dibuja el que da el texto de ESA alarma sola. Lo que el análisis por texto proponía queda debajo, plegado. */
-const TIT={puente:"🔌 Puente provisional en el módulo de seguridad",seta:"🛑 Parada de emergencia · no se puentea",ana:"📈 Medida analógica · no se puentea",
+const TIT={puente:"🔌 Puente provisional en el módulo de seguridad",anap:"⚡ Actuación rápida de campo · puente provisional de resistencia",seta:"🛑 Parada de emergencia · no se puentea",ana:"📈 Medida analógica · no se puentea",
  nopte:"⛔ Entrada de seguridad · no se puentea",op:"🟡 La resuelve el operador · no es avería",rem:"🔵 Puesto remoto",txt:"⚡ Actuación"};
 function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcsSacar(x)}catch(e){return null}}).filter(Boolean);if(!R.length)return null;
  const mk=d=>({id:"sosv_"+d.length,pos:"",tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:"",com:"",obs:"",orden:"SOS",fecha:""});
@@ -126,10 +126,14 @@ function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcs
  const lin=R.map(r=>{let p="";
   if(r.tipo=="puente")p=r.cro.map(o=>`<div class="puac">En <b>MANUAL</b> y con un compañero vigilando: <b>puente provisional en ${E(o.mod)} ${E(o.b1)} (${E(o.k1)}) ↔ ${E(o.b2)} (${E(o.k2)})</b>${o.el&&o.el.length?` · libera ${E(o.el.join(" / "))}`:""}. Mover en sentido contrario para salir de la seguridad y avisar a CGA.</div>`).join("")
    +`<div class="puac">${E(r.txt.replace(/^Módulo safety amarillo .*?vigilando\)?\.\s*/,""))}</div><div class="puac">Prueba: quitar el puente, modo OFF → ON y comprobar en la Magelis que la ${E(r.x.c)} no vuelve a entrar.</div>`;
+  else if(r.tipo=="anap")p=r.an.p.map(t=>`<div class="puac">${E(t)}</div>`).join("")+`<div class="puac">Solo en MANUAL y con un compañero vigilando; avisar a CGA. Reparar el sensor o su manguera, quitar la resistencia y volver a conectar el conductor.</div><div class="puac">Prueba: con el puente puesto la ${E(r.x.c)} se borra tras OFF → ON; al reparar, comprobar en la Magelis que la medida varía en todo el recorrido.</div>`;
   else p=`<div class="puac">${E(r.txt)}</div>`;
   return`<div class="svsa"><div class="svsah"><b>${E(r.x.c)}</b> ${E(r.x.t)} · <span>${TIT[r.tipo]||TIT.txt}</span></div>${p}</div>`}).join("");
  const croH=cro.length&&typeof croquisPuente=="function"?`<div class="card gcroq ubcro svcro"><div class="gcrh">🔌 Croquis del puente provisional según planos · módulo ${E([...new Set(cro.map(o=>o.mod))].join(" / "))}${cro.length>1?` · ${cro.length} puentes (desliza)`:""}</div><div class="gcrs">${cro.map(o=>{try{return`<div class="gcri">${croquisPuente(o,5)}</div>`}catch(e){return""}}).join("")}</div></div>`:"";
- return{croH,cardH:`<div class="card pucard svsac"><div class="pucab">📐 SEGÚN PLANOS · ${R.length>1?R.length+" alarmas, una por una":"alarma "+E(R[0].x.c)}</div>${lin}</div>`}}
+ /* croquis de los puentes analógicos (los mismos de la guía de campo, Observaciones de «Medidas analógicas») */
+ const K=window.CROQ_AN||{};const ak=[];R.forEach(r=>{if(r.tipo=="anap")r.an.k.forEach(k=>{if(K[k]&&!ak.includes(k))ak.push(k)})});
+ const anH=ak.length?`<div class="card gcroq ubcro svcro"><div class="gcrh">⚡ Actuación rápida de campo · puente provisional de resistencia${ak.length>1?` · ${ak.length} croquis (desliza)`:""}</div><div class="gobss">${ak.map(k=>K[k]).join("")}</div></div>`:"";
+ return{croH:croH+anH,cardH:`<div class="card pucard svsac"><div class="pucab">📐 SEGÚN PLANOS · ${R.length>1?R.length+" alarmas, una por una":"alarma "+E(R[0].x.c)}</div>${lin}</div>`}}
 function ponSacar(A,res){const b1=res.querySelector(".ubb1");if(!b1||!A.cod.length||A.est=="nada"||A.est=="noal")return;
  b1.querySelectorAll(".svsac,.svcro,details.svtxt").forEach(x=>{if(x.matches("details.svtxt"))[...x.childNodes].forEach(c=>{if(c.tagName!="SUMMARY")b1.appendChild(c)});x.remove()});
  const S=sacarHTML(A);if(!S)return;

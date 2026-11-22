@@ -440,7 +440,14 @@ window.rcsSacar=function(x){if(typeof x=="string")x=porCod(x);if(!x)return null;
  const min=ks.length?Math.min(...ks.map(k=>CA[k].length)):0;const pri=ks.filter(k=>CA[k].length==min);
  const SDI=/^E-A(8|9|10)$/;const out={x,tipo:"txt",txt:aa,cro:[]};
  if(x.g=="eme"){out.tipo="seta";out.txt="Las setas NO se puentean. "+g.a;return out}
- if(x.g=="ana"){out.tipo="ana";out.txt="Medida 4-20 mA: no se puentea. "+aa;return out}
+ /* v709: medidas analógicas · ACTUACIÓN RÁPIDA DE CAMPO con puente provisional de resistencia (croquis de CROQ_AN, guía de campo
+    «Medidas analógicas» · Observaciones). La altura (056, ultrasonido C-B14) no se puentea. */
+ const AN={"057":{k:["ext"],p:["Extensión (AI02): en E-X62 soltar y aislar el BK de E-W13 (láser ET-B9) de la borna 4 y poner una resistencia de 2,2 kΩ 1 W entre E-X62:1 (+24 V) y E-X62:4 → ≈11 mA fijos en AI02."]},
+  "059":{k:["rot"],p:["Rotonda (AI04, no en 504/507/508): en E-X62 soltar y aislar la señal de EIT-W4 (potenciómetro R-R1) de la borna 5 y poner 2,2 kΩ 1 W entre E-X62:1 y E-X62:5 → ≈11 mA fijos en AI04. En 504/508 la rotonda va por el encoder R-R10 en red: no hay puente analógico."]},
+  "058":{k:["cab","pot"],p:["Cabina · convertidor E-R10 averiado o sin saber cuál falla: sacar el hilo 315 de E-R10:7, empalmarlo aislado a una 2,2 kΩ 1 W y la otra patilla a E-R10:10 (+24 V) → ≈11 mA fijos en AI03 (la 7 queda libre).",
+   "Cabina · potenciómetro C-R10 averiado con E-R10 bien (24 V en 10-11): en E-X65 soltar y aislar E-W9 (1-2-3) y poner dos resistencias de 4,7 kΩ entre 1-2 y 2-3 → el convertidor lee el cursor a mitad de giro. La cabina queda con ángulo FIJO para el PLC: girarla solo en MANUAL y a la vista."]}};
+ if(x.g=="ana"&&AN[x.c]){out.tipo="anap";out.cro=[];out.an=AN[x.c];out.txt=aa;return out}
+ if(x.g=="ana"){out.tipo="ana";out.txt="Medida 4-20 mA: la altura NO se puentea. "+aa;return out}
  if(x.g=="bro"){out.tipo="nopte";out.txt=g.a;return out}
  if(x.f=="W"){out.tipo="op";out.txt=g.a;return out}
  if(x.f=="R"){out.tipo="rem";out.txt=g.a;return out}
