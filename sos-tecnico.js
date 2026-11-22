@@ -1,4 +1,6 @@
-/* ===== v718: SOS A PANTALLA COMPLETA · aspecto técnico de panel de mando (22/11/2026) =====
+/* ===== v719 (abajo): «SOS - DIRECTO», campos agrupados en dos paneles, pasos 1-2-3 antes de ACEPTAR, componente con
+   desplegable y flecha atrás por pasos dentro del SOS.
+   ===== v718: SOS A PANTALLA COMPLETA · aspecto técnico de panel de mando (22/11/2026) =====
    · La hoja del SOS ocupa toda la pantalla, de arriba hasta la barra lateral de abajo (sin hueco gris ni esquinas de hoja).
    · Botones y casillas grandes para manejar con GUANTES: mínimo 60 px de alto, letra 17-18 px, bordes gruesos.
    · Estética de HMI industrial con el tema actual (variables --card, --tx, --mu, --bd, --ac del modo claro / oscuro / exterior):
@@ -109,4 +111,125 @@ const sh=()=>document.getElementById("sheet"),sc=()=>document.getElementById("sh
 const mira=()=>{const s=sh(),c=sc();if(!s||!c)return;const es=!!(c.querySelector("#sr_ob")||c.querySelector(".shh .sht"));if(s.classList.contains("sost")!==es)s.classList.toggle("sost",es)};
 const ini=()=>{const c=sc();if(!c)return setTimeout(ini,300);new MutationObserver(mira).observe(c,{childList:true});mira()};ini();
 if(typeof window.closeSheet=="function"){const oc=window.closeSheet;window.closeSheet=closeSheet=function(){const r=oc.apply(this,arguments);const s=sh();if(s)s.classList.remove("sost");return r}}
+/* ======================= v719: ORGANIZACIÓN DEL SOS (22/11/2026) =======================
+   · Título «SOS - DIRECTO». Sin el párrafo de explicación (lo dicen los paneles).
+   · Panel 1 «PBB Y AVERÍA» (lo que manda): Posición PBB | Componente (si se sabe) y Avería en campo.
+   · Panel 2 «ALARMA DE LA MAGELIS» (complementaria): buscador del manual RCS, lista rápida SOS, a mano y foto.
+   · Pasos 1 → 2 → 3 («al aceptar sale») justo antes de ACEPTAR.
+   · Componente: al tocarlo sale el desplegable de los componentes de campo por zonas; el elegido se SUMA a la avería
+     («Componente C-R10 (…)») y queda como chip con ✕ y 📄 ficha. Escribiendo filtra igual.
+   · Flecha atrás dentro del SOS: cierra el desplegable abierto → del Historial vuelve al SOS tal cual → de los resultados
+     sube al formulario → y solo entonces cierra el SOS (pantalla de debajo). ===== */
+const $i=id=>document.getElementById(id);
+const E=t=>String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ZON=[["E","⚡ Armario eléctrico (AE)"],["P","🎛️ Pupitre"],["C","🚪 Cabina"],["ET","↔️ Túneles · extensión"],["IT","↕️ Elevación · inclinación"],["H","🛞 Traslación"],["T","🛞 Traslación"],["R","🔄 Rotonda"],["SS","🪜 Escalera de servicio"]];
+const zona=id=>{const m=/^(?:ACOPL\.?\s*)?([A-Z]+)\d*-/.exec(String(id||"").toUpperCase());const z=m&&ZON.find(x=>x[0]==m[1]);return z?z[1]:"🔩 Otros"};
+const ck=c=>String(c.baseId||c.db||c.id);
+const COMPS=()=>(window.COMP_CAMPO||[]).filter(c=>c&&c.id);
+const panel=(cls,n,tit,sub)=>{const d=document.createElement("section");d.className="sostp "+cls;
+ d.innerHTML=`<div class="sostph"><span class="sostpn">${n}</span><b>${tit}</b><small>${sub}</small></div><div class="sostpb"></div>`;return d};
+function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
+ const h=c.querySelector(".sosrh");const tt=h&&h.querySelector(".sosr2t");if(tt&&tt.textContent!=="SOS - DIRECTO")tt.textContent="SOS - DIRECTO";
+ let F=$i("sostf");
+ if(!F){F=document.createElement("div");F.id="sostf";
+  F.append(panel("sostp1","1","PBB Y AVERÍA","lo que se detecta en campo · manda"),panel("sostp2","2","ALARMA DE LA MAGELIS","complementaria · acota el problema"));
+  const ps=document.createElement("div");ps.className="sostps";ps.innerHTML=`<div class="sostpst">Al aceptar sale</div>`;F.append(ps);
+  if(h)h.after(F);else c.prepend(F)}
+ const B1=F.querySelector(".sostp1>.sostpb"),B2=F.querySelector(".sostp2>.sostpb"),PS=F.querySelector(".sostps");
+ const pon=(box,el)=>{if(el&&el.parentNode!==box)box.appendChild(el)};
+ /* panel 1: Posición | Componente, desplegable y chips, avería */
+ const fila=c.querySelector(".soscr2");pon(B1,fila);
+ const cq=$i("cmp_q");const cw=cq&&cq.closest(".rcscmp");
+ if(fila&&cw&&cw.parentNode!==fila){let w=fila.querySelector(".sostcw");if(!w){w=document.createElement("div");w.className="sostcw";w.innerHTML=`<label for="cmp_q">Componente <small>(si se sabe)</small></label>`;fila.appendChild(w)}w.appendChild(cw);cq.placeholder="🔩 Elegir ▾"}
+ pon(B1,$i("cmp_l"));
+ let ch=$i("sost_cmps");if(!ch){ch=document.createElement("div");ch.id="sost_cmps"}pon(B1,ch);
+ const lo=c.querySelector('label[for="sr_ob"]');pon(B1,lo);pon(B1,ob.closest(".srobsw"));
+ /* panel 2: buscador del manual, lista rápida, a mano y foto */
+ pon(B2,c.querySelector(".rcsbus:not(.otrcs)"));
+ const al=c.querySelector(".soscal");if(al){pon(B2,al);const la=al.querySelector("label");if(la&&!la.dataset.st){la.dataset.st=1;la.innerHTML='Lista rápida SOS <small>(casos frecuentes)</small>'}}
+ pon(B2,c.querySelector(".soscr3"));pon(B2,$i("sr_f"));pon(B2,$i("sr_pv"));
+ /* pasos y ACEPTAR al final del formulario */
+ pon(PS,c.querySelector(".soscl"));const row=c.querySelector(".srobrow");if(row&&row.previousElementSibling!==F)F.after(row);
+ pintaChips()}
+/* ---------- componente: desplegable, elegir, chips ---------- */
+const lineaC=c=>`Componente ${c.id}${c.t?" ("+c.t+")":""}`;
+function elegidos(){const t=($i("sr_ob")||{}).value||"";return COMPS().filter(c=>t.includes(lineaC(c)))}
+function pintaChips(){const ch=$i("sost_cmps");if(!ch)return;const L=elegidos();const k=L.map(ck).join("|");if(ch.dataset.k===k)return;ch.dataset.k=k;
+ ch.innerHTML=L.map(c=>`<span class="sostch"><b>${E(c.id)}</b><span>${E(c.t||"")}</span><button type="button" class="sostchf" data-k="${E(ck(c))}" aria-label="Ver ficha de ${E(c.id)}">📄</button><button type="button" class="sostchx" data-k="${E(ck(c))}" aria-label="Quitar ${E(c.id)}">✕</button></span>`).join("")}
+function lista(){const cl=$i("cmp_l");if(!cl)return;const L=COMPS().slice().sort((a,b)=>String(a.id).localeCompare(String(b.id),"es",{numeric:true}));
+ if(!L.length){cl.innerHTML=`<div class="rcsnada">Aún no hay componentes de campo en el catálogo.</div>`;cl.dataset.st="1";return}
+ const ya=new Set(elegidos().map(ck));const G=new Map();L.forEach(c=>{const z=zona(c.id);if(!G.has(z))G.set(z,[]);G.get(z).push(c)});
+ cl.innerHTML=`<div class="sostcl">${[...G].map(([z,X])=>`<div class="sostcz">${E(z)}</div>`+X.map(c=>`<button type="button" class="rcscb${ya.has(ck(c))?" sostya":""}" data-k="${E(ck(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t||"")}${c.fab?`<small>${E(c.fab)}</small>`:""}</button>`).join("")).join("")}</div>`;cl.dataset.st="1"}
+const cierraL=()=>{const cl=$i("cmp_l");if(cl&&cl.innerHTML){cl.innerHTML="";delete cl.dataset.st}};
+function suma(k){const c=COMPS().find(z=>ck(z)==k),t=$i("sr_ob");if(!c||!t)return;const li=lineaC(c);
+ if(!t.value.includes(li)){t.value=[t.value.replace(/\s+$/,""),li].filter(Boolean).join("\n");t.dispatchEvent(new Event("input",{bubbles:true}))}
+ else if(typeof msg=="function")msg(`${c.id} ya está en la avería`);
+ const q=$i("cmp_q");if(q){q.value="";q.blur()}cierraL();pintaChips()}
+function quita(k){const c=COMPS().find(z=>ck(z)==k),t=$i("sr_ob");if(!c||!t)return;const li=lineaC(c);
+ t.value=t.value.split("\n").filter(x=>x.trim()!==li).join("\n").replace(/\s*·?\s*$/,"");t.dispatchEvent(new Event("input",{bubbles:true}));pintaChips()}
+document.addEventListener("click",e=>{const t=e.target;if(!t.closest||!t.closest("#sheetc"))return;
+ const b=t.closest("#cmp_l .rcscb");if(b){e.preventDefault();e.stopPropagation();suma(b.dataset.k);return}
+ const x=t.closest(".sostchx");if(x){e.preventDefault();e.stopPropagation();quita(x.dataset.k);return}
+ const f=t.closest(".sostchf");if(f){e.preventDefault();e.stopPropagation();if(typeof abreCompClaves=="function")abreCompClaves([f.dataset.k],"Componente del SOS");return}
+ if(t.closest("#cmp_q")){const q=$i("cmp_q");if(q&&!q.value.trim())setTimeout(lista,0);return}
+ if(!t.closest("#cmp_l"))cierraL()},true);
+document.addEventListener("focusin",e=>{if(e.target&&e.target.id=="cmp_q"&&!e.target.value.trim())setTimeout(lista,0)});
+document.addEventListener("input",e=>{const t=e.target;if(!t)return;if(t.id=="cmp_q"&&!t.value.trim())setTimeout(lista,250);if(t.id=="sr_ob")pintaChips()});
+/* ---------- orden: tras cada repintado del SOS ---------- */
+let tA=0;const pide=()=>{if(tA)return;tA=requestAnimationFrame(()=>{tA=0;try{arregla()}catch(e){console.warn("sos-tecnico",e)}})};
+const iniA=()=>{const c=sc();if(!c)return setTimeout(iniA,300);new MutationObserver(pide).observe(c,{childList:true,subtree:true});pide()};iniA();
+/* ---------- Historial: se guarda el SOS tal cual para volver con la flecha ---------- */
+let HIS=null;
+document.addEventListener("click",e=>{if(!e.target.closest||!e.target.closest("#sheetc .soshb"))return;const c=sc();if(!c||!$i("sr_ob"))return;
+ HIS={n:[...c.childNodes],cls:c.className,y:c.scrollTop}},true);
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#sheetc .shnew, #sheetc .soscx"))HIS=null},true);
+/* ---------- flecha atrás por pasos dentro del SOS ---------- */
+const capaEncima=()=>{for(const el of document.body.children){if(/^(fab|fabm|fabv|fabb|login|lock|splash|navbg|navtab|nvBar|sheet|toast)$/.test(el.id)||/^(SCRIPT|STYLE)$/.test(el.tagName))continue;
+  const cs=getComputedStyle(el);if(cs.position!="fixed"||cs.display=="none"||cs.visibility=="hidden"||+cs.opacity==0)continue;
+  const r=el.getBoundingClientRect();if(r.width>=innerWidth*.8&&r.height>=innerHeight*.5)return true}return false};
+document.addEventListener("click",e=>{if(!e.target.closest||!e.target.closest("#fabb"))return;const s=sh(),c=sc();
+ if(!s||!c||s.style.display!="flex"||!s.classList.contains("sost"))return;
+ const m=$i("fabm");if(m&&m.classList.contains("on"))return;if(capaEncima())return;
+ const para=()=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation()};
+ const a=document.activeElement;if(a&&a!==document.body&&a.matches&&a.matches("input,textarea,select")){a.blur()}
+ const rl=$i("rcs_l"),cl=$i("cmp_l");
+ if((rl&&rl.classList.contains("on"))||(cl&&cl.innerHTML.trim())){para();if(rl){rl.innerHTML="";rl.classList.remove("on")}cierraL();return}
+ if(c.querySelector(".shh")&&HIS){para();const H=HIS;HIS=null;c.className=H.cls;c.replaceChildren(...H.n);requestAnimationFrame(()=>{c.scrollTop=H.y});return}
+ if(c.scrollTop>60){para();c.scrollTo({top:0,behavior:"smooth"});return}
+ /* sin nada más: se cierra el SOS y queda la pantalla de debajo */},true);
+const st2=document.createElement("style");st2.textContent=`
+${S} .soscp{display:none!important}
+${S} .sosct .sosr2t{font-size:clamp(18px,6vw,24px)!important;letter-spacing:.1em!important}
+${S} #sostf{display:flex;flex-direction:column;gap:14px}
+${S} .sostp{border:2px solid var(--sk-ed);border-radius:16px;background:color-mix(in srgb,var(--card) 94%,var(--tx));box-shadow:0 2px 0 #0000000d,inset 0 1px 0 #ffffff14;overflow:visible}
+${S} .sostp1{border-color:color-mix(in srgb,var(--ac) 65%,var(--sk-ed))}
+${S} .sostph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:2px dashed var(--sk-ed);
+ font-family:var(--tkmo,ui-monospace,Menlo,monospace);text-transform:uppercase;letter-spacing:.06em}
+${S} .sostph b{font-size:15px;font-weight:900}${S} .sostph small{flex-basis:100%;font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:none;font-family:inherit;color:var(--mu);padding-left:44px;margin-top:-4px}
+${S} .sostpn{flex:none;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900;color:#fff;background:var(--ac);box-shadow:inset 0 -3px 0 #0003}
+${S} .sostp2 .sostpn{background:#1565c0}${S} .sostp2{border-color:color-mix(in srgb,#1565c0 55%,var(--sk-ed))}
+${S} .sostpb{padding:4px 12px 14px}
+${S} .sostpb>label:first-child,${S} .sostpb>.soscr2:first-child label,${S} .sostpb>.rcsbus:first-child{margin-top:8px!important}
+${S} .soscr2{align-items:flex-end!important}${S} .soscpos{flex:0 0 40%!important}${S} .sostcw{flex:1;min-width:0}
+${S} .sostcw .rcscmp{flex:none!important;width:100%}
+${S} .sostcw .rcscmp input{height:60px!important;font-size:17px!important}${S} .sostcw .rcscmp input::placeholder{font-size:17px!important;color:var(--tx);opacity:.7}
+${S} .soscal{margin-top:4px}
+${S} .rcsbus{margin-top:10px!important}
+${S} #cmp_l:not(:empty){margin-top:8px}
+${S} .sostcl{max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border:2px solid var(--ac);border-radius:12px;padding:6px;background:var(--card)}
+${S} .sostcz{font:800 12.5px/1.4 var(--tkmo,monospace);letter-spacing:.06em;text-transform:uppercase;color:var(--ac);margin:10px 4px 4px}
+${S} .sostcz:first-child{margin-top:2px}
+${S} .rcscb.sostya{opacity:.55}${S} .rcscb.sostya::after{content:" ✓ ya en la avería";font-size:12px;font-weight:800;color:#1fa64a}
+${S} #sost_cmps{display:flex;flex-direction:column;gap:6px}${S} #sost_cmps:not(:empty){margin-top:10px}
+${S} .sostch{display:flex;align-items:center;gap:8px;min-height:56px;padding:4px 4px 4px 10px;border:2px solid #1fa64a;border-radius:12px;background:color-mix(in srgb,#1fa64a 8%,var(--card))}
+${S} .sostch b{flex:none;background:#455a64;color:#fff;border-radius:7px;padding:3px 8px;font-family:ui-monospace,monospace;font-size:14px}
+${S} .sostch>span{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.25}
+${S} .sostch button{flex:none;width:48px!important;height:48px!important;margin:0!important;padding:0!important;border-radius:10px!important;font-size:20px!important;background:var(--sk-in)!important;border:2px solid var(--sk-ed)!important}
+${S} .sostch .sostchx{color:#c62828!important;border-color:#c62828!important;font-weight:900}
+${S} .sostps{border:2px dashed var(--sk-ed);border-radius:16px;padding:8px 10px 10px}
+${S} .sostpst{font:800 12px/1.4 var(--tkmo,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin:0 2px 6px}
+${S} .sostps .soscl{margin:0!important}
+${S} .srobrow{margin-top:14px!important}
+${S} .srvblink{animation:none!important}`;
+document.head.appendChild(st2);
 })();
