@@ -1,4 +1,5 @@
-/* ===== v742: fallo con cualquiera de los dos contactos (elegir derecho / izquierdo), inductivos sin parpadeo, barra de
+/* ===== v744: barra de control de la animación (play / pausa / parar y velocidad).
+   ===== v742: fallo con cualquiera de los dos contactos (elegir derecho / izquierdo), inductivos sin parpadeo, barra de
    velocidad y P-A5 más grande.
    ===== v741: simulación redibujada como el icono de atraque de la Magelis (avión de morro y PBB con fuelle, cabina, rotonda
    y túnel en línea ámbar), legible en modo claro y oscuro.
@@ -54,6 +55,8 @@ const LADO={R:{s:"C-B51",lado:"derecho",b:"1.1",din:"DIN01",x:"P-X92:12",h:"320"
 const T2=(f)=>["R","L"].map(k=>f(LADO[k],k)).join("");
 function sim(){return `<div class="atqw" data-s="1" data-l="R">
 <div class="atql"><span>Sensor que falla:</span>${T2((o,k)=>`<button type="button" class="atqlb${k=="R"?" on":""}" data-l="${k}" onclick="atqLado(this)"><b>${o.s}</b>${o.lado}</button>`)}</div>
+<div class="atqc"><button type="button" class="atqpl" onclick="atqPlay(this)" aria-label="Pausa">⏸</button><button type="button" class="atqst" onclick="atqStop(this)" aria-label="Parar">⏹</button>
+ <span class="atqcl">Velocidad</span><input type="range" class="atqrg" min="1" max="5" step="1" value="3" oninput="atqVel(this)" aria-label="Velocidad de la animación"><b class="atqvt">normal</b></div>
 <div class="atqb">${PASOS.map((t,k)=>`<button type="button" class="atqbt${k?"":" on"}" data-n="${k+1}" onclick="atqPaso(this)"><b>${k+1}</b>${t}</button>`).join("")}</div>
 <svg class="atqv" viewBox="0 0 340 344" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Simulación del falso contacto con avión y pasos para desatracar">
  <defs><marker id="atqar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#e53935"/></marker>
@@ -145,8 +148,15 @@ L.push(SEC); /* al final: otras partes guardan las cajas por su número de orden
 const N=PASOS.length;
 const pon=(w,n)=>{w.dataset.s=String(n);w.querySelectorAll(".atqbt").forEach(b=>b.classList.toggle("on",+b.dataset.n===n))};
 window.atqLado=function(b){const w=b.closest(".atqw");if(!w)return;w.dataset.l=b.dataset.l;w.querySelectorAll(".atqlb").forEach(x=>x.classList.toggle("on",x===b))};
-window.atqPaso=function(b){const w=b.closest(".atqw");if(!w)return;w.dataset.man="1";pon(w,+b.dataset.n)};
-setInterval(()=>{document.querySelectorAll(".atqw:not([data-man])").forEach(w=>{if(!w.offsetParent)return;pon(w,(+w.dataset.s%N)+1)})},3800);
+/* v744: barra de control de la animación · ▶/⏸ play-pausa, ⏹ parar (vuelve al paso 1) y velocidad (lenta … rápida) */
+const VEL={1:[6500,"lenta"],2:[4800,"×0,75"],3:[3600,"normal"],4:[2400,"×1,5"],5:[1400,"rápida"]};
+const playOn=(w,on)=>{w.dataset.man=on?"":"1";if(on)delete w.dataset.man;w.dataset.t="0";const b=w.querySelector(".atqpl");if(b){b.textContent=on?"⏸":"▶";b.setAttribute("aria-label",on?"Pausa":"Reproducir");b.classList.toggle("on",!on)}};
+window.atqPaso=function(b){const w=b.closest(".atqw");if(!w)return;playOn(w,false);pon(w,+b.dataset.n)};
+window.atqPlay=function(b){const w=b.closest(".atqw");if(!w)return;playOn(w,w.dataset.man==="1")};
+window.atqStop=function(b){const w=b.closest(".atqw");if(!w)return;playOn(w,false);pon(w,1)};
+window.atqVel=function(r){const w=r.closest(".atqw");if(!w)return;const v=VEL[r.value]||VEL[3];w.dataset.vel=v[0];const t=w.querySelector(".atqvt");if(t)t.textContent=v[1]};
+setInterval(()=>{document.querySelectorAll(".atqw:not([data-man])").forEach(w=>{if(!w.offsetParent)return;const t=(+w.dataset.t||0)+250;
+ if(t>=(+w.dataset.vel||3600)){w.dataset.t="0";pon(w,(+w.dataset.s%N)+1)}else w.dataset.t=String(t)})},250);
 const st=document.createElement("style");st.textContent=`
 .atqw{margin:6px 0 10px}.atqb{display:flex;gap:4px;margin-bottom:6px}
 .atqbt{flex:1;min-width:0;min-height:46px;margin:0!important;padding:4px 1px!important;border-radius:10px!important;border:1.5px solid color-mix(in srgb,var(--tx) 16%,transparent)!important;
@@ -180,6 +190,12 @@ const st=document.createElement("style");st.textContent=`
 .atqv .aqbig{font-size:12px}.atqv .aqt2{font-size:8.5px;font-weight:700}
 .atqv .aqspb{fill:color-mix(in srgb,var(--tx) 14%,transparent)}.atqv .aqspf{transform-box:fill-box;transform-origin:left center;transform:scaleX(.02);transition:transform 1.6s ease,fill .4s;fill:#e53935}
 .atqw[data-s="2"] .aqspf{transform:scaleX(.22);fill:#f39c12}.atqw[data-s="3"] .aqspf{transform:scaleX(.02);fill:#9e9e9e}.atqw[data-s="4"] .aqspf{transform:scaleX(.6);fill:#1fa64a}.atqw[data-s="5"] .aqspf{transform:scaleX(.6);fill:#1fa64a}
+.atqc{display:flex;align-items:center;gap:6px;margin:0 0 6px;padding:6px 8px;border-radius:12px;border:1.5px solid color-mix(in srgb,var(--tx) 16%,transparent);background:color-mix(in srgb,var(--bg) 70%,var(--card))}
+.atqpl,.atqst{flex:none;width:44px;height:40px;margin:0!important;padding:0!important;border-radius:10px!important;border:0!important;font-size:18px!important;color:#fff!important;background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff))!important}
+.atqst{background:color-mix(in srgb,var(--tx) 30%,transparent)!important}.atqpl.on{background:#1fa64a!important}
+.atqcl{flex:none;font:800 10.5px/1 var(--tkmo,monospace);letter-spacing:1px;text-transform:uppercase;color:var(--mu)}
+.atqrg{flex:1;min-width:60px;height:40px;margin:0;accent-color:var(--tkor,#ff7a1a);touch-action:pan-x}
+.atqvt{flex:none;min-width:50px;text-align:right;font:800 11px/1 var(--tkmo,monospace);color:var(--tx)}
 .atqco{display:flex;flex-direction:column;gap:6px;margin:4px 0 10px}
 .atqcf{display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:2px;padding:8px 10px;border-radius:10px;border:1.5px solid color-mix(in srgb,var(--tx) 14%,transparent);background:color-mix(in srgb,var(--bg) 70%,var(--card));text-align:left}
 .atqcf b{grid-row:span 3;align-self:start;background:#455a64;color:#fff;border-radius:6px;padding:2px 7px;font:800 13px/1.3 var(--tkmo,monospace)}
