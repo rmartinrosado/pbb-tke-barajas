@@ -136,6 +136,9 @@ const SEC={t:"Atraque incorrecto · alarma 115 y falso contacto con avión (C-B5
   "La fiabilidad de la ayuda al desatraque depende de la calibración y del mantenimiento de la pasarela (pág. 83). Comprobar también el reloj de la Magelis antes de pasar horas a la OT."],
  r:"Manual RCS F8-690.0312-51 pág. 82-85 · ESQUEMA GENERAL rev. J folio 85 (P-A5 DIN01 / DIN08, P-X92) y folio 86 (C-B7) · alarmas 115 / 243"};
 Object.defineProperty(SEC,"obsCro",{get(){return `<div class="gobsh2">Tipos de atraque · manual RCS</div>${tipos()}<div class="gobsh2">Simulación · toca un paso o déjala avanzar</div>${sim()}${cotejo()}`},enumerable:true});
+/* v743: croquis del puente provisional de los contactos con avión, como OPCIÓN para «1 · Sacar en servicio ya» del SOS (115 / 243) */
+window.atqCroqOpcion=function(){if(typeof croquisPuente!="function")return"";
+ return ["R","L"].map(k=>{const o=LADO[k];let s="";try{s=croquisPuente({mod:"P-A5",b1:o.b,b2:o.b,k1:`${o.din} · hilo ${o.h} · ${o.s}`,k2:"",d:`CONTACTO AVIÓN ${o.lado.toUpperCase()} ${o.s} · si da señal sin avión`,suelta:true},5)}catch(e){}return s}).filter(Boolean).join("")};
 L.push(SEC); /* al final: otras partes guardan las cajas por su número de orden (v738) */
 
 /* ---------- pasos de la simulación ---------- */

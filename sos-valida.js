@@ -141,7 +141,12 @@ function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcs
  /* croquis de los puentes analógicos (los mismos de la guía de campo, Observaciones de «Medidas analógicas») */
  const K=window.CROQ_AN||{};const ak=[];R.forEach(r=>{if(r.tipo=="anap")r.an.k.forEach(k=>{if(K[k]&&!ak.includes(k))ak.push(k)})});
  const anH=ak.length?`<div class="card gcroq ubcro svcro"><div class="gcrh">⚡ Actuación rápida de campo · puente provisional de resistencia${ak.length>1?` · ${ak.length} croquis (desliza)`:""}</div><div class="gobss">${ak.map(k=>K[k]).join("")}</div></div>`:"";
- return{croH:croH+anH,cardH:`<div class="card pucard svsac"><div class="pucab">📐 SEGÚN PLANOS · ${R.length>1?R.length+" alarmas, una por una":"alarma "+E(R[0].x.c)}</div>${lin}</div>`}}
+ /* v743: 115 atraque incorrecto / 243 contacto con avión → OPCIÓN: puente provisional del contacto que da señal sin avión */
+ const atq=R.some(r=>/^(115|243)$/.test(String(r.x.c)))&&typeof atqCroqOpcion=="function"?atqCroqOpcion():"";
+ const opH=atq?`<div class="card gcroq ubcro svcro svopc"><div class="gcrh">🔌 OPCIÓN · puente provisional si un contacto con avión da señal SIN avión · 2 croquis (desliza)</div>
+  <div class="puac">1º desatracar con el <b>bypass naranja + joystick hacia ATRÁS</b> (lento). Si la 115 / 243 vuelve sin avión: mirar en P-A5 el LED <b>1.1 (C-B51 derecho)</b> o <b>4.4 (C-B52 izquierdo)</b>; desenchufar el M12 de ese sensor y, si el LED sigue encendido, soltar y aislar su hilo (<b>320</b> / <b>740</b>). Solo MANUAL y con compañero vigilando ese lado.</div>
+  <div class="gobss">${atq}</div></div>`:"";
+ return{croH:croH+anH+opH,cardH:`<div class="card pucard svsac"><div class="pucab">📐 SEGÚN PLANOS · ${R.length>1?R.length+" alarmas, una por una":"alarma "+E(R[0].x.c)}</div>${lin}</div>`}}
 function ponSacar(A,res){const b1=res.querySelector(".ubb1");if(!b1||!A.cod.length||A.est=="nada"||A.est=="noal")return;
  b1.querySelectorAll(".svsac,.svcro,details.svtxt").forEach(x=>{if(x.matches("details.svtxt"))[...x.childNodes].forEach(c=>{if(c.tagName!="SUMMARY")b1.appendChild(c)});x.remove()});
  const S=sacarHTML(A);if(!S)return;
