@@ -132,7 +132,8 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  const h=c.querySelector(".sosrh");const tt=h&&h.querySelector(".sosr2t");if(tt&&tt.textContent!=="SOS - DIRECTO")tt.textContent="SOS - DIRECTO";
  let F=$i("sostf");
  if(!F){F=document.createElement("div");F.id="sostf";
-  F.append(panel("sostp1","1","PBB Y AVERÍA","OBLIGATORIO · LO QUE SE DETECTA"),panel("sostp2","2","ALARMA MAGELIS","COMPLEMENTARIA · ACOTA EL PROBLEMA"));
+  /* v722: permutados · 1 ALARMA MAGELIS (arriba) · 2 PBB Y AVERÍA */
+  F.append(panel("sostp2","1","ALARMA MAGELIS","COMPLEMENTARIA · ACOTA EL PROBLEMA"),panel("sostp1","2","PBB Y AVERÍA","OBLIGATORIO · LO QUE SE DETECTA"));
   const ps=document.createElement("div");ps.className="sostps";ps.innerHTML=`<div class="sostpst">Al aceptar sale</div>`;F.append(ps);
   if(h)h.after(F);else c.prepend(F)}
  const B1=F.querySelector(".sostp1>.sostpb"),B2=F.querySelector(".sostp2>.sostpb"),PS=F.querySelector(".sostps");
