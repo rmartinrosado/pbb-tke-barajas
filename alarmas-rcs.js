@@ -472,7 +472,7 @@ window.rcsSacar=function(x){if(typeof x=="string")x=porCod(x);if(!x)return null;
 /* bloque «Componentes de campo que intervienen» (SOS y validación) */
 function bloqueInterv(x,L,varias){if(!L.length)return`<div class="rcscf rcsnada">🔩 Sin componentes de campo asociados a la alarma ${E(x.c)} en los planos.</div>`;
  /* v726: plegado por defecto (se despliega al tocar el rótulo) */
- return`<details class="rcscf"><summary class="rcscft">🔩 Componentes de campo que intervienen <span class="rcscfn">${L.length}</span></summary>${L.map(o=>{
+ return`<details class="rcscf"><summary class="rcscft">🔩 Elementos que intervienen <span class="rcscfn">${L.length}</span></summary>${L.map(o=>{
   const sub=[varias&&o.als?"alarma "+o.als.join(" / "):"",o.papel,o.det.join(" · "),o.ubi,o.folio?"folio "+o.folio:""].filter(Boolean).join(" · ");
   return o.c?`<button type="button" class="rcscb rcsi rcsi-${o.rol}" data-k="${E(ckClave(o.c))}"><span class="cmpid">${E(o.id)}</span> ${E(o.nom)}<small>${E(sub)} · ver ficha ›</small></button>`
    :`<div class="rcscb rcsi rcsi-${o.rol} rcsnf"><span class="cmpid">${E(o.id)}</span> ${E(o.nom||"Según planos")}<small>${E(sub)} · 📐 de planos (sin ficha)</small></div>`}).join("")}</details>`}
