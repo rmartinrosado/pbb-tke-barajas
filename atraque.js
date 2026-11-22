@@ -1,4 +1,6 @@
-/* ===== v741: simulación redibujada como el icono de atraque de la Magelis (avión de morro y PBB con fuelle, cabina, rotonda
+/* ===== v742: fallo con cualquiera de los dos contactos (elegir derecho / izquierdo), inductivos sin parpadeo, barra de
+   velocidad y P-A5 más grande.
+   ===== v741: simulación redibujada como el icono de atraque de la Magelis (avión de morro y PBB con fuelle, cabina, rotonda
    y túnel en línea ámbar), legible en modo claro y oscuro.
    ===== v740: GUÍA DE CAMPO · «ATRAQUE INCORRECTO» ajustado al MANUAL RCS (F8-690.0312-51, pág. 82-85) (22/11/2026) =====
    v737-v738: apartado nuevo (falso contacto con avión C-B51 / C-B52, simulación y croquis del puente en P-A5 1.1).
@@ -46,54 +48,67 @@ function tipos(){const X=(x,y)=>`<path d="M${x-9} ${y-9} L${x+9} ${y+9} M${x+9} 
 
 /* ---------- 2) simulación del fallo y la actuación (falso contacto C-B51) ---------- */
 const PASOS=["Fallo","Bypass","Desconectar","Aparcar","Reparar"];
-function sim(){return `<div class="atqw" data-s="1">
+/* v742: el fallo se simula con CUALQUIERA de los dos contactos (elegir C-B51 derecho / C-B52 izquierdo), los inductivos SIN
+   parpadeo (rojo fijo = señal falsa), barra de VELOCIDAD de la PBB en cada paso y módulo P-A5 más grande. */
+const LADO={R:{s:"C-B51",lado:"derecho",b:"1.1",din:"DIN01",x:"P-X92:12",h:"320",w:"P-W17",cx:142},L:{s:"C-B52",lado:"izquierdo",b:"4.4",din:"DIN08",x:"P-X92:7",h:"740",w:"P-W18",cx:94}};
+const T2=(f)=>["R","L"].map(k=>f(LADO[k],k)).join("");
+function sim(){return `<div class="atqw" data-s="1" data-l="R">
+<div class="atql"><span>Sensor que falla:</span>${T2((o,k)=>`<button type="button" class="atqlb${k=="R"?" on":""}" data-l="${k}" onclick="atqLado(this)"><b>${o.s}</b>${o.lado}</button>`)}</div>
 <div class="atqb">${PASOS.map((t,k)=>`<button type="button" class="atqbt${k?"":" on"}" data-n="${k+1}" onclick="atqPaso(this)"><b>${k+1}</b>${t}</button>`).join("")}</div>
-<svg class="atqv" viewBox="0 0 340 344" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Simulación del falso contacto derecho C-B51 y pasos para desatracar">
+<svg class="atqv" viewBox="0 0 340 344" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Simulación del falso contacto con avión y pasos para desatracar">
  <defs><marker id="atqar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#e53935"/></marker>
   <marker id="atqag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1fa64a"/></marker></defs>
- <!-- v741: avión y PBB en planta como el icono de atraque de la Magelis (rotado: morro a la izquierda, PBB por debajo) -->
  <path d="M250 12 H60 C30 12 10 24 10 37 C10 50 30 62 60 62 H250" class="aqln"/>
  <path d="M22 32 q6 -6 13 -6 q-2 6 -9 9z M22 42 q6 6 13 6 q-2 -6 -9 -9z" class="aqln2"/>
  <path d="M104 62 V54 H132 V62" class="aqln"/><text x="60" y="41" class="aqt">AVIÓN</text><text x="136" y="58" class="aqm">puerta</text>
- <g class="v1 v3"><path d="M118 66 V104" class="aqdim" marker-start="url(#atqag)" marker-end="url(#atqag)"/><text x="122" y="88" class="aqt aqok">≈ 5 m · SIN CONTACTO</text></g>
+ <g class="v1 v3"><path d="M118 66 V104" class="aqdim" marker-start="url(#atqag)" marker-end="url(#atqag)"/><text x="124" y="88" class="aqt aqok">≈ 5 m · SIN CONTACTO</text></g>
  <g class="v2"><text x="10" y="74" class="aqt aqbyo">BYPASS + JOYSTICK ATRÁS</text><text x="10" y="86" class="aqm">velocidad lenta · ignora las alarmas</text></g>
- <g class="v4"><text x="10" y="74" class="aqt aqok">MANUAL · JOYSTICK ATRÁS</text><text x="10" y="86" class="aqm">giros y altura libres · compañero vigilando</text></g>
- <g class="v5"><text x="10" y="74" class="aqt aqok">ATRACAR SOLO CON TRASLACIÓN</text><text x="10" y="86" class="aqm">al tocar: 243 y «desatracar: joystick atrás»</text></g>
+ <g class="v4"><text x="10" y="74" class="aqt aqok">MANUAL · JOYSTICK ATRÁS</text><text x="10" y="86" class="aqm">giros y altura libres · vigilante</text></g>
+ <g class="v5"><text x="10" y="74" class="aqt aqok">ATRACAR SOLO CON TRASLACIÓN</text><text x="10" y="86" class="aqm">al tocar: 243 y «joystick atrás»</text></g>
  <g class="aqpbb">
   <path d="M92 110 H144" class="aqbmp"/><path d="M96 114 H140 M96 118 H140 M96 122 H140" class="aqln"/>
   <rect x="90" y="126" width="56" height="32" rx="4" class="aqln"/><text x="118" y="146" text-anchor="middle" class="aqt">CABINA</text>
   <path d="M112 158 V162 M124 158 V162" class="aqln"/><circle cx="118" cy="171" r="9" class="aqln"/><circle cx="118" cy="171" r="2.5" class="aqln2"/>
   <g transform="rotate(38 118 171)"><rect x="109" y="181" width="18" height="38" rx="2" class="aqln"/><path d="M109 191 H127 M109 200 H127 M109 209 H127" class="aqln3"/></g>
-  <circle cx="94" cy="110" r="6" class="aqok2"/><text x="62" y="104" class="aqm">C-B52</text>
-  <g class="v1 v2"><circle cx="142" cy="110" r="8" class="aqko aqbl"/><text x="150" y="104" class="aqt aqko2">C-B51</text><g class="aqbl"><text x="152" y="122" class="aqt aqko2">FALSO</text><text x="152" y="133" class="aqt aqko2">CONTACTO</text></g></g>
-  <g class="v3 v4"><circle cx="142" cy="110" r="6" class="aqoff"/><text x="150" y="104" class="aqm">C-B51</text></g>
-  <g class="v5"><circle cx="142" cy="110" r="7" class="aqnew"/><text x="150" y="104" class="aqm aqok">C-B51 ✓</text></g>
+  <text x="62" y="104" class="aqm">C-B52</text><text x="150" y="104" class="aqm">C-B51</text>
+  ${T2((o,k)=>{const ot=k=="R"?LADO.L:LADO.R;return `<g class="l${k}">
+   <circle cx="${ot.cx}" cy="110" r="6.5" class="aqok2"/>
+   <g class="v1 v2"><circle cx="${o.cx}" cy="110" r="8" class="aqko"/>${k=="R"?`<text x="152" y="122" class="aqt aqko2">FALSO</text><text x="152" y="133" class="aqt aqko2">CONTACTO</text>`:`<text x="86" y="122" text-anchor="end" class="aqt aqko2">FALSO</text><text x="86" y="133" text-anchor="end" class="aqt aqko2">CONTACTO</text>`}</g>
+   <g class="v3 v4"><circle cx="${o.cx}" cy="110" r="6.5" class="aqoff"/></g>
+   <g class="v5"><circle cx="${o.cx}" cy="110" r="7" class="aqnew"/></g></g>`})}
  </g>
  <g class="v2">${TORT(40,206)}<path d="M44 118 V188" class="aqarr3" marker-end="url(#atqar)"/></g>
- <g class="v3"><g class="aqbl"><path d="M148 118 L182 156" class="aqarr" marker-end="url(#atqar)"/><rect x="172" y="162" width="86" height="15" rx="3" class="aqlb"/><text x="215" y="173" text-anchor="middle" class="aqlt">⬅ DESCONECTAR</text></g>
-  <text x="174" y="190" class="aqm">conector M12 fuera</text></g>
  <g class="v4"><path d="M44 118 V188" class="aqarr2" marker-end="url(#atqag)"/></g>
- <g transform="translate(262,64)"><rect x="0" y="0" width="74" height="98" rx="6" class="aqmod"/><text x="37" y="14" text-anchor="middle" class="aqt">P-A5</text><text x="37" y="25" text-anchor="middle" class="aqm">pupitre</text>
-  <circle cx="13" cy="44" r="7" class="aqled v1 v2"/><circle cx="13" cy="44" r="7" class="aqledo v3 v4 v5"/><text x="24" y="47" class="aqm">1.1 dcho</text>
-  <circle cx="13" cy="66" r="7" class="aqledo"/><text x="24" y="69" class="aqm">4.4 izdo</text>
-  <text x="6" y="90" class="aqm v1 v2">1.1 ENCENDIDO</text><text x="6" y="90" class="aqm v3 v4 v5">1.1 apagado</text></g>
+ <g class="v3"><g class="lR"><path d="M148 118 L174 148" class="aqarr" marker-end="url(#atqar)"/><g class="aqbl"><rect x="150" y="152" width="88" height="15" rx="3" class="aqlb"/><text x="194" y="163" text-anchor="middle" class="aqlt">⬅ DESCONECTAR</text></g><text x="152" y="180" class="aqm">M12 de C-B51 fuera</text></g>
+  <g class="lL"><path d="M88 118 L62 148" class="aqarr" marker-end="url(#atqar)"/><g class="aqbl"><rect x="6" y="152" width="88" height="15" rx="3" class="aqlb"/><text x="50" y="163" text-anchor="middle" class="aqlt">⬅ DESCONECTAR</text></g><text x="8" y="180" class="aqm">M12 de C-B52 fuera</text></g></g>
+ <!-- P-A5 más grande -->
+ <g transform="translate(246,58)"><rect x="0" y="0" width="90" height="122" rx="7" class="aqmod"/><text x="45" y="17" text-anchor="middle" class="aqt aqbig">P-A5</text><text x="45" y="29" text-anchor="middle" class="aqm">armario pupitre</text>
+  ${T2((o,k)=>`<g class="l${k}">
+   <circle cx="16" cy="50" r="9" class="${k=="R"?"aqled v1 v2":"aqledo"}"/>${k=="R"?`<circle cx="16" cy="50" r="9" class="aqledo v3 v4 v5"/>`:""}
+   <circle cx="16" cy="78" r="9" class="${k=="L"?"aqled v1 v2":"aqledo"}"/>${k=="L"?`<circle cx="16" cy="78" r="9" class="aqledo v3 v4 v5"/>`:""}
+   <text x="6" y="106" class="aqt2 v1 v2">${o.b} ENCENDIDO</text><text x="6" y="106" class="aqt2 v3 v4 v5">${o.b} apagado</text>
+   <text x="6" y="117" class="aqm">${o.s} · hilo ${o.h}</text></g>`)}
+  <text x="30" y="53" class="aqt2">1.1 C-B51</text><text x="30" y="81" class="aqt2">4.4 C-B52</text></g>
+ <!-- barra de velocidad -->
+ <g transform="translate(246,186)"><text x="0" y="8" class="aqm">VELOCIDAD</text><text x="90" y="8" text-anchor="end" class="aqt2 aqal v1">0 · BLOQ.</text><text x="90" y="8" text-anchor="end" class="aqt2 aqbyo v2">LENTA</text><text x="90" y="8" text-anchor="end" class="aqt2 v3">0</text><text x="90" y="8" text-anchor="end" class="aqt2 aqok v4 v5">NORMAL</text>
+  <rect x="0" y="12" width="90" height="10" rx="5" class="aqspb"/><rect x="0" y="12" width="90" height="10" rx="5" class="aqspf"/></g>
  <g transform="translate(172,214)"><rect x="0" y="0" width="164" height="96" rx="6" class="aqmag"/><text x="8" y="14" class="aqm aqmw">MAGELIS · DISPLAY</text>
   <g class="v1"><g class="aqbl"><text x="8" y="30" class="aqt aqal">115 ATRAQUE INCORRECTO</text><text x="8" y="43" class="aqt aqwn">243 contacto con avión</text></g>
    ${JOY(22,68,1)}<text x="42" y="64" class="aqm aqmw">Para desatracar: mover</text><text x="42" y="75" class="aqm aqmw">el joystick hacia atrás</text><text x="42" y="88" class="aqm aqal">todo bloqueado</text></g>
   <g class="v2">${BYP(8,22)}<text x="72" y="32" class="aqm aqmw">mantener</text><text x="72" y="43" class="aqm aqmw">pulsado (izq.)</text>${JOY(22,70,1)}<text x="42" y="66" class="aqm aqmw">+ joystick ATRÁS</text>${TORT(54,84)}<text x="68" y="88" class="aqm aqmw">lento · sin alarmas</text></g>
   <text x="8" y="36" class="aqt aqokw v3 v4">243 / 115 borradas</text><text x="8" y="52" class="aqm aqmw v3 v4">movimientos libres en MANUAL</text>
   <g class="v5"><text x="8" y="32" class="aqt aqokw">243 solo al tocar</text>${JOY(22,64,1)}<text x="42" y="62" class="aqm aqmw">«desatracar: joystick</text><text x="42" y="73" class="aqm aqmw">hacia atrás» al atracar</text><text x="8" y="90" class="aqm aqmw">115 solo si toca sin traslación</text></g></g>
- <g><text x="8" y="252" class="aqt v1">1 · Se cree atracada</text><text x="8" y="266" class="aqm v1">C-B51 da contacto sin avión</text><text x="8" y="278" class="aqm v1">115 · todo bloqueado</text>
+ ${T2((o,k)=>`<g class="l${k}"><text x="8" y="252" class="aqt v1">1 · Se cree atracada</text><text x="8" y="266" class="aqm v1">${o.s} da contacto sin avión</text><text x="8" y="278" class="aqm v1">115 · todo bloqueado</text>
   <text x="8" y="252" class="aqt v2">2 · Bypass (manual pág. 85)</text><text x="8" y="266" class="aqm v2">solo hacia atrás y lento</text><text x="8" y="278" class="aqm v2">operador con experiencia</text>
-  <text x="8" y="252" class="aqt v3">3 · Quitar la señal</text><text x="8" y="266" class="aqm v3">conector M12 de C-B51 fuera</text><text x="8" y="278" class="aqm v3">o hilo 320 de P-A5 1.1</text>
-  <text x="8" y="252" class="aqt v4">4 · Aparcar en MANUAL</text><text x="8" y="266" class="aqm v4">compañero vigilando el</text><text x="8" y="278" class="aqm v4">lado derecho · avisar CGA</text>
-  <text x="8" y="252" class="aqt v5">5 · Reparar y probar</text><text x="8" y="266" class="aqm v5">sensor, conector, P-W17</text><text x="8" y="278" class="aqm v5">atraque correcto sin 115</text></g>
- <text x="8" y="334" class="aqm">Planta · folio 85 · C-B51 → P-X92:12 → hilo 320 → P-A5 1.1</text>
-</svg></div>`}
-/* ---------- 3) croquis del puente provisional (P-A5 1.1 · soltar y aislar el hilo 320) ---------- */
-function croq(){if(typeof croquisPuente!="function")return"";let s="";
- try{s=croquisPuente({mod:"P-A5",b1:"1.1",b2:"1.1",k1:"IN01 · hilo 320 · C-B51",k2:"",d:"CONTACTO AVIÓN DERECHA C-B51 · solo si con el conector M12 fuera el LED sigue encendido",suelta:true},5)}catch(e){return""}
- return `<div class="gobsh2">Opción 2 · en el armario del pupitre: soltar y aislar el hilo 320 de P-A5 1.1</div><div class="atqcr">${s}</div>`}
+  <text x="8" y="252" class="aqt v3">3 · Quitar la señal</text><text x="8" y="266" class="aqm v3">conector M12 de ${o.s} fuera</text><text x="8" y="278" class="aqm v3">o hilo ${o.h} de P-A5 ${o.b}</text>
+  <text x="8" y="252" class="aqt v4">4 · Aparcar en MANUAL</text><text x="8" y="266" class="aqm v4">compañero vigilando el</text><text x="8" y="278" class="aqm v4">lado ${o.lado} · avisar CGA</text>
+  <text x="8" y="252" class="aqt v5">5 · Reparar y probar</text><text x="8" y="266" class="aqm v5">sensor, conector, ${o.w}</text><text x="8" y="278" class="aqm v5">atraque correcto sin 115</text>
+  <text x="8" y="334" class="aqm">Planta · folio 85 · ${o.s} → ${o.x} → hilo ${o.h} → P-A5 ${o.b}</text></g>`)}
+</svg>${croq()}</div>`}
+/* ---------- 3) croquis del puente provisional en P-A5 (soltar y aislar el hilo del contacto que falla) ---------- */
+function croq(){if(typeof croquisPuente!="function")return"";
+ return T2((o,k)=>{let s="";try{s=croquisPuente({mod:"P-A5",b1:o.b,b2:o.b,k1:`${o.din} · hilo ${o.h} · ${o.s}`,k2:"",d:`CONTACTO AVIÓN ${o.lado.toUpperCase()} ${o.s} · solo si con el conector M12 fuera el LED sigue encendido`,suelta:true},5)}catch(e){}
+  return s?`<div class="atqcrw l${k}"><div class="gobsh2">Opción 2 · armario del pupitre: soltar y aislar el hilo ${o.h} de P-A5 ${o.b}</div><div class="atqcr">${s}</div></div>`:""})}
 /* ---------- 4) cotejo con los inductivos de contacto ---------- */
 function cotejo(){const F=[["C-B51","Contacto avión DERECHA","P-A5 1.1 · DIN01","P-X92:12 · hilo 320 · P-W17","Da el 243; si entra con un movimiento que no es traslación → 115"],
  ["C-B52","Contacto avión IZQUIERDA","P-A5 4.4 · DIN08","P-X92:7 · hilo 740 · P-W18","Igual que C-B51 por su lado"],
@@ -120,12 +135,13 @@ const SEC={t:"Atraque incorrecto · alarma 115 y falso contacto con avión (C-B5
   "El puente provisional es QUITAR la señal del contacto que falla. Nunca llevar la entrada a +24 V ni unir los dos contactos: simularía un contacto permanente.",
   "La fiabilidad de la ayuda al desatraque depende de la calibración y del mantenimiento de la pasarela (pág. 83). Comprobar también el reloj de la Magelis antes de pasar horas a la OT."],
  r:"Manual RCS F8-690.0312-51 pág. 82-85 · ESQUEMA GENERAL rev. J folio 85 (P-A5 DIN01 / DIN08, P-X92) y folio 86 (C-B7) · alarmas 115 / 243"};
-Object.defineProperty(SEC,"obsCro",{get(){return `<div class="gobsh2">Tipos de atraque · manual RCS</div>${tipos()}<div class="gobsh2">Simulación · toca un paso o déjala avanzar</div>${sim()}${cotejo()}${croq()}`},enumerable:true});
+Object.defineProperty(SEC,"obsCro",{get(){return `<div class="gobsh2">Tipos de atraque · manual RCS</div>${tipos()}<div class="gobsh2">Simulación · toca un paso o déjala avanzar</div>${sim()}${cotejo()}`},enumerable:true});
 L.push(SEC); /* al final: otras partes guardan las cajas por su número de orden (v738) */
 
 /* ---------- pasos de la simulación ---------- */
 const N=PASOS.length;
 const pon=(w,n)=>{w.dataset.s=String(n);w.querySelectorAll(".atqbt").forEach(b=>b.classList.toggle("on",+b.dataset.n===n))};
+window.atqLado=function(b){const w=b.closest(".atqw");if(!w)return;w.dataset.l=b.dataset.l;w.querySelectorAll(".atqlb").forEach(x=>x.classList.toggle("on",x===b))};
 window.atqPaso=function(b){const w=b.closest(".atqw");if(!w)return;w.dataset.man="1";pon(w,+b.dataset.n)};
 setInterval(()=>{document.querySelectorAll(".atqw:not([data-man])").forEach(w=>{if(!w.offsetParent)return;pon(w,(+w.dataset.s%N)+1)})},3800);
 const st=document.createElement("style");st.textContent=`
@@ -144,7 +160,7 @@ const st=document.createElement("style");st.textContent=`
 .atqv .aqko{fill:#e53935;stroke:#7f0000;stroke-width:2}.atqv .aqko2{fill:#e53935!important}.atqv .aqoff{fill:#9e9e9e;stroke:#424242}
 .atqv .aqarr{stroke:#e53935;stroke-width:3;fill:none;stroke-linecap:round}.atqv .aqarr2{stroke:#1fa64a;stroke-width:4;fill:none;stroke-linecap:round}.atqv .aqarr3{stroke:#f36f21;stroke-width:4;fill:none;stroke-linecap:round}
 .atqv .aqlb{fill:#e53935}.atqv .aqlt{fill:#fff!important;font-size:8.5px;font-weight:900}.atqv .aqnew{fill:#1fa64a;stroke:#0b5d27}
-.atqv .aqmod{fill:#56b84a;stroke:#2d6b25}.atqv .aqled{fill:#22c55e;stroke:#0b5d27;animation:atqLed 1s steps(1,end) infinite}.atqv .aqledo{fill:#5d5d5d;stroke:#222}
+.atqv .aqmod{fill:#56b84a;stroke:#2d6b25}.atqv .aqled{fill:#22c55e;stroke:#0b5d27}.atqv .aqledo{fill:#5d5d5d;stroke:#222}
 .atqv .aqmag{fill:#1f2630;stroke:#455a64}.atqv .aqmw{fill:#cfd8dc!important;opacity:1!important}.atqv .aqwn{fill:#ffca28!important}.atqv .aqal{fill:#ff5252!important;opacity:1!important}.atqv .aqokw{fill:#69f0ae!important}.atqv .aqbyo{fill:#f39c12!important}
 .atqv .aqjo{fill:#eceff1;stroke:#90a4ae}.atqv .aqji{fill:#fff;stroke:#90a4ae}.atqv .aqja{stroke:#37474f;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}.atqv .aqjt{fill:#78909c}
 .atqv .aqbyp{fill:#f5a623}.atqv .aqbyt{fill:none;stroke:#263238;stroke-width:2;stroke-linejoin:round}.atqv .aqbyx{fill:#263238!important;font-size:10px;font-weight:900}.atqv .aqbyc{fill:none;stroke:#263238;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -154,6 +170,13 @@ const st=document.createElement("style");st.textContent=`
 .atqv .v1,.atqv .v2,.atqv .v3,.atqv .v4,.atqv .v5{display:none}
 .atqw[data-s="1"] .v1,.atqw[data-s="2"] .v2,.atqw[data-s="3"] .v3,.atqw[data-s="4"] .v4,.atqw[data-s="5"] .v5{display:inline}
 .atqv .aqpbb{transition:transform 2.4s ease-in-out}.atqw[data-s="2"] .aqpbb{transform:translateY(16px)}.atqw[data-s="4"] .aqpbb,.atqw[data-s="5"] .aqpbb{transform:translateY(24px)}
+.atql{display:flex;align-items:center;gap:5px;margin-bottom:6px;font:700 11px/1.1 system-ui,sans-serif;color:var(--mu)}.atql span{flex:none}
+.atqlb{flex:1;min-height:40px;margin:0!important;padding:3px 4px!important;border-radius:10px!important;border:1.5px solid color-mix(in srgb,var(--tx) 16%,transparent)!important;background:color-mix(in srgb,var(--bg) 70%,var(--card))!important;color:var(--tx)!important;font:600 11px/1.15 system-ui,sans-serif!important;display:flex;flex-direction:column;align-items:center}
+.atqlb b{font:800 12px/1.2 var(--tkmo,monospace)}.atqlb.on{border-color:#e53935!important;box-shadow:0 0 0 3px #e5393533}
+.atqw[data-l="R"] .lL,.atqw[data-l="L"] .lR{display:none!important}
+.atqv .aqbig{font-size:12px}.atqv .aqt2{font-size:8.5px;font-weight:700}
+.atqv .aqspb{fill:color-mix(in srgb,var(--tx) 14%,transparent)}.atqv .aqspf{transform-box:fill-box;transform-origin:left center;transform:scaleX(.02);transition:transform 1.6s ease,fill .4s;fill:#e53935}
+.atqw[data-s="2"] .aqspf{transform:scaleX(.22);fill:#f39c12}.atqw[data-s="3"] .aqspf{transform:scaleX(.02);fill:#9e9e9e}.atqw[data-s="4"] .aqspf{transform:scaleX(.6);fill:#1fa64a}.atqw[data-s="5"] .aqspf{transform:scaleX(.6);fill:#1fa64a}
 .atqco{display:flex;flex-direction:column;gap:6px;margin:4px 0 10px}
 .atqcf{display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:2px;padding:8px 10px;border-radius:10px;border:1.5px solid color-mix(in srgb,var(--tx) 14%,transparent);background:color-mix(in srgb,var(--bg) 70%,var(--card));text-align:left}
 .atqcf b{grid-row:span 3;align-self:start;background:#455a64;color:#fff;border-radius:6px;padding:2px 7px;font:800 13px/1.3 var(--tkmo,monospace)}
