@@ -37,10 +37,16 @@ function analiza(){
  const ob=val("sr_ob");const sa=$("sr_a");
  const al=[(sa&&sa.value?sa.options[sa.selectedIndex].text:""),val("sr_t")].map(x=>x.trim()).filter(Boolean).join(" · ");
  const foto=(!ob&&!al&&window.__sosFotoAl)||"";
- const Ld=det(ob),La=det(al),Lf=det(foto);
+ const Ld=det(ob),Lf=det(foto);
+ /* v705: «Alarma a mano» lleva una alarma por línea: se leen línea a línea (no con el texto en una sola línea) */
+ let La=det(sa&&sa.value?sa.options[sa.selectedIndex].text:"");
+ try{const raw=(($("sr_t")||{}).value||"");const L2=typeof rcsListaAl=="function"?rcsListaAl(raw):[];const k=new Set(La.map(z=>z.x.c));
+  L2.forEach(x=>{if(!k.has(x.c)){k.add(x.c);La.push({x,por:"num"})}});if(!L2.length&&raw.trim())det(raw).forEach(z=>{if(!k.has(z.x.c)){k.add(z.x.c);La.push(z)}})}catch(e){La=det(al)}
  const cods=L=>new Set(L.map(z=>z.x.c));
  let est,cod=[];
- if(La.length&&Ld.length){const k=cods(Ld);const com=La.filter(z=>k.has(z.x.c));
+ /* v705: varias alarmas sumadas → se validan TODAS (más las que dé la avería en campo, sin repetir) */
+ if(La.length>1){const k=cods(La);est="ok";cod=La.concat(Ld.filter(z=>!k.has(z.x.c)))}
+ else if(La.length&&Ld.length){const k=cods(Ld);const com=La.filter(z=>k.has(z.x.c));
   if(com.length){est="ok";cod=com}else{est="dif";cod=Ld}}
  else if(La.length){est="ok";cod=La}
  else if(Ld.length){est=al?"noal":"ded";cod=Ld}
@@ -50,7 +56,7 @@ function analiza(){
  /* v704: los componentes de la alarma salen de los PLANOS (rcsIntervienen: canal del PLC → elemento → borneros → módulo),
     no del parecido de texto (004 ya no da el láser ET-B9). Los elementos de campo incorporados acotan; los que no lo están
     se proponen desde los planos. */
- const I=[];cod.forEach(z=>{try{(typeof rcsIntervienen=="function"?rcsIntervienen(z.x):[]).forEach(o=>{if(!I.some(q=>q.id==o.id))I.push(o)})}catch(e){}});
+ let I=[];try{I=typeof rcsIntervUnion=="function"?rcsIntervUnion(cod.map(z=>z.x)):[]}catch(e){}
  const Icampo=I.filter(o=>o.rol=="campo");
  const Cd=uniq(campo(ob)),Ca=Icampo.length?uniq(Icampo.filter(o=>o.c).map(o=>o.c)):uniq(cod.flatMap(z=>deAl(z.x))),Ct=Icampo.length?[]:uniq(campo([ob,al,foto].filter(Boolean).join(" ")));
  let C;
@@ -75,19 +81,20 @@ function analiza(){
 
 /* ---------- pintado ---------- */
 const EST={ok:["✅","ALARMA VALIDADA","La alarma coincide con el manual RCS y con la avería en campo."],
+ okn:["✅","ALARMAS VALIDADAS","Todas las alarmas están en el manual RCS; sus componentes se suman."],
  ded:["✅","ALARMA DEDUCIDA DE LA AVERÍA EN CAMPO","No se ha escrito alarma: el código sale de lo que se detecta."],
  dif:["⚠️","LA ALARMA NO COINCIDE CON LA AVERÍA","Manda la avería en campo; revisa la alarma de la Magelis."],
  noal:["⚠️","ALARMA NO RECONOCIDA EN EL MANUAL RCS","Revisa el número o el texto de la alarma."],
  foto:["✅","ALARMA LEÍDA DE LA FOTO (complementaria)","No hay nada escrito: se toma lo leído en la Magelis."],
  nada:["ℹ️","SIN CÓDIGO DEL MANUAL RCS","Lo descrito no corresponde a ninguna alarma concreta del manual."]};
 const cajaAl=z=>{try{return typeof rcsCaja=="function"?rcsCaja(z,true):`<div class="rcsb"><b>${E(z.x.c)}</b> ${E(z.x.t)}</div>`}catch(e){return""}};
-function bloqueAlarma(A){const [ic,t,s]=EST[A.est];const mal=A.est=="dif"||A.est=="noal";
+function bloqueAlarma(A){const [ic,t0,s]=EST[A.est=="ok"&&A.cod.length>1?"okn":A.est];const t=A.est=="ok"&&A.cod.length>1?`${t0} (${A.cod.length})`:t0;const mal=A.est=="dif"||A.est=="noal";
  let h=`<div class="svh${mal?" svmal":A.est=="nada"?" svnada":""}"><span>${ic}</span><span><b>${t}</b><small>${E(s)}</small></span></div>`;
  if(A.est=="dif")h+=`<div class="svl">Alarma indicada:</div>${A.La.map(cajaAl).join("")}<div class="svl">Según la avería en campo (manda):${A.cod.length?"":" sin código del manual; componente según lo descrito ↓"}</div>`;
  if(A.est=="noal")h+=`<div class="svl">Escrita: «${E(A.al)}»${A.cod.length?" · según la avería en campo:":""}</div>`;
  h+=A.cod.map(cajaAl).join("");
  /* v704: componentes de campo que intervienen (según planos), igual que al elegir la alarma */
- if((A.I||[]).length&&A.cod.length==1&&typeof rcsBloqueInterv=="function")h+=rcsBloqueInterv(A.cod[0].x,A.I);
+ if((A.I||[]).length&&A.cod.length&&typeof rcsBloqueInterv=="function")h+=rcsBloqueInterv(A.cod[0].x,A.I,A.cod.length>1);
  /* componente: chip que baja a la ficha */
  if(A.C.length==1){const c=A.C[0];h+=`<button type="button" class="svchip" onclick="sosValCmp()"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}<small>🔩 Componente a intervenir · ver ficha ↓</small></button>`}
  else if(A.C.length>1)h+=`<button type="button" class="svchip svvar" onclick="sosValCmp()">🔩 ${A.C.length} componentes posibles · elegir ↓</button>`;
@@ -105,6 +112,33 @@ function bloqueComp(A){let b;
   <button type="button" class="sec" style="width:100%" onclick="typeof compCatalogo=='function'&&compCatalogo()">CATÁLOGO DE COMPONENTES</button>`;
  return`<div class="ubh ubcmp" id="sv_cmp">🔩 COMPONENTE A INTERVENIR<small>${A.C.length==1?"Ficha técnica del componente":"Especificaciones técnicas"}</small></div><div class="ubb ubbcmp">${b}</div>`}
 
+/* ---------- v705: 1 · SACAR EN SERVICIO YA según PLANOS, alarma por alarma ----------
+   Con alarmas validadas, el bloque 1 empieza por lo que dicen los planos para cada una (rcsSacar): puente provisional en la
+   entrada del módulo amarillo (con su croquis), setas y medidas 4-20 mA que no se puentean, advertencias que resuelve el
+   operador. El croquis sale de los planos (no del texto mezclado de varias alarmas); en las que no tienen puente de seguridad
+   se dibuja el que da el texto de ESA alarma sola. Lo que el análisis por texto proponía queda debajo, plegado. */
+const TIT={puente:"🔌 Puente provisional en el módulo de seguridad",seta:"🛑 Parada de emergencia · no se puentea",ana:"📈 Medida analógica · no se puentea",
+ nopte:"⛔ Entrada de seguridad · no se puentea",op:"🟡 La resuelve el operador · no es avería",rem:"🔵 Puesto remoto",txt:"⚡ Actuación"};
+function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcsSacar(x)}catch(e){return null}}).filter(Boolean);if(!R.length)return null;
+ const mk=d=>({id:"sosv_"+d.length,pos:"",tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:"",com:"",obs:"",orden:"SOS",fecha:""});
+ const cro=[];R.forEach(r=>{if(r.tipo=="puente")r.cro.forEach(o=>cro.push(o));
+  else if(r.tipo=="txt"||r.tipo=="op"){try{if(typeof _croqLista=="function")_croqLista(mk(r.x.c+" "+r.x.t)).forEach(o=>{if(!cro.some(q=>q.mod==o.mod&&q.b1==o.b1&&q.b2==o.b2))cro.push(Object.assign({},o,{d:r.x.c+" · "+(o.d||"")}))})}catch(e){}}});
+ const lin=R.map(r=>{let p="";
+  if(r.tipo=="puente")p=r.cro.map(o=>`<div class="puac">En <b>MANUAL</b> y con un compañero vigilando: <b>puente provisional en ${E(o.mod)} ${E(o.b1)} (${E(o.k1)}) ↔ ${E(o.b2)} (${E(o.k2)})</b>${o.el&&o.el.length?` · libera ${E(o.el.join(" / "))}`:""}. Mover en sentido contrario para salir de la seguridad y avisar a CGA.</div>`).join("")
+   +`<div class="puac">${E(r.txt.replace(/^Módulo safety amarillo .*?vigilando\)?\.\s*/,""))}</div><div class="puac">Prueba: quitar el puente, modo OFF → ON y comprobar en la Magelis que la ${E(r.x.c)} no vuelve a entrar.</div>`;
+  else p=`<div class="puac">${E(r.txt)}</div>`;
+  return`<div class="svsa"><div class="svsah"><b>${E(r.x.c)}</b> ${E(r.x.t)} · <span>${TIT[r.tipo]||TIT.txt}</span></div>${p}</div>`}).join("");
+ const croH=cro.length&&typeof croquisPuente=="function"?`<div class="card gcroq ubcro svcro"><div class="gcrh">🔌 Croquis del puente provisional según planos · módulo ${E([...new Set(cro.map(o=>o.mod))].join(" / "))}${cro.length>1?` · ${cro.length} puentes (desliza)`:""}</div><div class="gcrs">${cro.map(o=>{try{return`<div class="gcri">${croquisPuente(o,5)}</div>`}catch(e){return""}}).join("")}</div></div>`:"";
+ return{croH,cardH:`<div class="card pucard svsac"><div class="pucab">📐 SEGÚN PLANOS · ${R.length>1?R.length+" alarmas, una por una":"alarma "+E(R[0].x.c)}</div>${lin}</div>`}}
+function ponSacar(A,res){const b1=res.querySelector(".ubb1");if(!b1||!A.cod.length||A.est=="nada"||A.est=="noal")return;
+ b1.querySelectorAll(".svsac,.svcro,details.svtxt").forEach(x=>{if(x.matches("details.svtxt"))[...x.childNodes].forEach(c=>{if(c.tagName!="SUMMARY")b1.appendChild(c)});x.remove()});
+ const S=sacarHTML(A);if(!S)return;
+ const resto=[...b1.childNodes].filter(n=>!(n.nodeType==3&&!n.textContent.trim()));
+ const d=document.createElement("div");d.innerHTML=S.croH+S.cardH;const nuevos=[...d.childNodes];
+ /* lo propuesto por el texto mezclado queda plegado debajo (el croquis de texto se sustituye por el de planos) */
+ if(resto.length){const det=document.createElement("details");det.className="ubfold svtxt";det.innerHTML="<summary>Más indicaciones según el texto (complementarias)</summary>";
+  resto.forEach(n=>{if(S.croH&&n.classList&&n.classList.contains("ubcro"))n.remove();else det.appendChild(n)});if(det.childNodes.length>1)b1.appendChild(det)}
+ nuevos.reverse().forEach(n=>b1.prepend(n))}
 window.__sosValAnaliza=analiza;
 window.sosValCmp=()=>{const h=$("sv_cmp");if(h)h.scrollIntoView({block:"start",behavior:"smooth"})};
 function pon(){const res=$("sr_res");if(!res||!res.querySelector(".ub1"))return;
@@ -114,6 +148,7 @@ function pon(){const res=$("sr_res");if(!res||!res.querySelector(".ub1"))return;
  d.innerHTML=bloqueAlarma(A);res.insertBefore(d.firstChild,res.firstChild);
  const h2=res.querySelector(".ub2");d.innerHTML=bloqueComp(A);
  while(d.firstChild){h2?res.insertBefore(d.firstChild,h2):res.appendChild(d.firstChild)}
+ try{ponSacar(A,res)}catch(e){console.warn("sos-valida sacar",e)}
  res.querySelectorAll("#sv_al button.rcsi").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],"Alarma validada")});
  res.querySelectorAll(".svb").forEach(b=>b.onclick=()=>{const c=A.C.find(z=>clave(z)==b.dataset.k);const f=$("sv_fi");if(!c||!f)return;
   res.querySelectorAll(".svb").forEach(x=>x.classList.toggle("on",x===b));f.innerHTML=fichaH(c)})}
@@ -132,6 +167,8 @@ const st=document.createElement("style");st.textContent=`
 .svchip{display:block;width:100%!important;margin:6px 0 0!important;padding:8px 9px!important;text-align:left;font-size:14px!important;line-height:1.3;border:2px solid #455a64!important;border-radius:8px!important}
 .svchip small{display:block;font-size:12px;font-weight:700;color:#1fa64a;margin-top:2px}.svchip.svvar{font-weight:700}
 .svok{font-size:13px;font-weight:600;margin:2px 0 6px}
+.svsa{border-top:1px solid #8884;padding-top:6px;margin-top:6px}.svsa:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.svsah{font-size:13.5px;margin-bottom:2px}.svsah span{font-weight:700;color:var(--mu,#78909c)}
 .svbs{display:flex;flex-direction:column;gap:4px}.svb.on{border-color:#1fa64a!important;border-left-color:#1fa64a!important}`;
 document.head.appendChild(st);
 })();
