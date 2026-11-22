@@ -24,9 +24,11 @@ window.repOT=function(id){try{localStorage.setItem("insc_"+id,localStorage.getIt
  if(typeof insOT=="function")insOT(id);
  let k=0;const ir=()=>{const x=document.getElementById("insc-ov");if(x){x.open=true;x.scrollIntoView({block:"start",behavior:"smooth"})}else if(++k<20)setTimeout(ir,150)};setTimeout(ir,200)};
 /* se retoca la tarjeta ya pintada (los botones y la fila de datos los terminan otras partes de la app sobre el DOM) */
-function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelector('[onclick*="editar("]')||{getAttribute:()=>""}).getAttribute("onclick").match(/\('([^']+)'\)/);
+function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelector('[onclick*="sosVa("]')||c.querySelector('[onclick*="editar("]')||{getAttribute:()=>""}).getAttribute("onclick").match(/\('([^']+)'\)/);
  const oid=id?id[1]:null;
  c.querySelectorAll('.cacr .gvar,.cacr button[onclick^="insOT("],.cacr .gplc').forEach(b=>b.remove());
+ /* v694: fuera también «Foto PLC» de la tarjeta (se hace en la guía · Cotejar PLC y en Resolución IA, y se guarda en la OT); si la fila queda vacía, se quita */
+ {const fp=c.querySelector('.cacr .gcam,.cacr [onclick^="gFotoOT("]');if(fp)fp.remove();const ca0=c.querySelector(".obd>.cacts");if(ca0&&!ca0.querySelector("button"))ca0.style.display="none"}
  const cr=c.querySelector(".cacr");
  if(false&&cr&&oid&&!cr.querySelector(".grep")){const b=document.createElement("button");b.type="button";b.className="sec gwr grep";b.title="Reparación";b.setAttribute("aria-label","Reparación: inspección cable a cable origen → destino");
   b.innerHTML=LLAVE+"<small>REPARACIÓN</small>";b.onclick=e=>{e.stopPropagation();repOT(oid)};const cam=cr.querySelector(".gcam,.gfb2");cam?cam.after(b):cr.append(b)}
