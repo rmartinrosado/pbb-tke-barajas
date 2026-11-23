@@ -489,8 +489,8 @@ function bloqueInterv(x,L,varias){if(!L.length)return`<div class="rcscf rcsnada"
    :`<div class="rcscb rcsi rcsi-${o.rol} rcsnf"><span class="cmpid">${E(o.id)}</span> ${E(o.nom||"Según planos")}<small>${E(sub)} · 📐 de planos (sin ficha)</small></div>`}).join("")).join("")}</details>`}
 /* v803: ubicación de un elemento: la del catálogo; si no la tiene, por el prefijo de su código */
 /* v803: croquis de simulación (puente provisional / resistencia / soltar cable según planos) justo después de la caja de la alarma validada */
-function croSim(X){let h="";try{if(typeof window.rcsSacarHTML=="function"){const S=window.rcsSacarHTML(X);if(S&&S.croH)h+=`<div class="rcscro">${S.croH}</div>`}}catch(e){}
- return h+croGuia(X)}
+function croSim(X,conGuia){let h="";try{if(typeof window.rcsSacarHTML=="function"){const S=window.rcsSacarHTML(X);if(S&&S.croH)h+=`<div class="rcscro">${S.croH}</div>`}}catch(e){}
+ return h+(conGuia?croGuia(X):"")}
 /* v812: simulaciones y croquis de la guía de campo (CROQ: almena, brazo, hidráulica, megafonía…) de los ELEMENTOS DE CAMPO que
    intervienen en la alarma: se incrustan después de las cajas rojas de las alarmas (p. ej. 005 → almena con límite y contaje) */
 window.rcsCroGuia=X=>croGuia((X||[]).map(x=>typeof x=="string"?porCod(x):x).filter(Boolean));
@@ -550,7 +550,7 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
   if(!X.length){s.innerHTML="";delete s.dataset.cod;return}
   const L=window.rcsIntervUnion(X);
   s.innerHTML=(X.length>1?`<div class="rcscft rcsnal">📋 ${X.length} alarmas para el análisis</div>`:"")+
-   X.map(x=>`<div class="rcsacu">${caja({x},true)}<button type="button" class="rcsqx" data-c="${E(x.c)}" aria-label="Quitar la alarma ${E(x.c)}">✕</button></div>`).join("")+croSim(X)+bloqueInterv(X[0],L,X.length>1);
+   X.map(x=>`<div class="rcsacu">${caja({x},true)}<button type="button" class="rcsqx" data-c="${E(x.c)}" aria-label="Quitar la alarma ${E(x.c)}">✕</button></div>`).join("")+croSim(X,false)/* v815: en el SOS la simulación sale solo en «Alarma validada» */+bloqueInterv(X[0],L,X.length>1);
   s.dataset.cod=X.map(x=>x.c).join(",");
   s.querySelectorAll(".rcsqx").forEach(b=>b.onclick=e=>{e.stopPropagation();quita(b.dataset.c)});
   s.querySelectorAll("button.rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],"Alarmas "+s.dataset.cod)})};
@@ -600,7 +600,7 @@ function otPicker(anchor,pre,X0,tit){const d=document.createElement("div");d.cla
  const pinta=()=>{const v=q.value.trim();l.innerHTML=v?(busca(v).map(itAl).join("")||`<div class="rcsnada">Sin alarmas para «${E(v)}»</div>`):todasAl();l.classList.add("on");l.scrollTop=0};
  const cierra=()=>{l.innerHTML="";l.classList.remove("on")};
  const pintaSel=()=>{const X=d.sel;if(!X.length){s.innerHTML="";return}
-  s.innerHTML=(X.length>1?`<div class="rcscft rcsnal">📋 ${X.length} alarmas en la OT</div>`:"")+X.map(x=>`<div class="rcsacu">${caja({x},true)}<button type="button" class="rcsqx" data-c="${E(x.c)}" aria-label="Quitar la alarma ${E(x.c)}">✕</button></div>`).join("")+croSim(X)+bloqueInterv(X[0],window.rcsIntervUnion(X),X.length>1);
+  s.innerHTML=(X.length>1?`<div class="rcscft rcsnal">📋 ${X.length} alarmas en la OT</div>`:"")+X.map(x=>`<div class="rcsacu">${caja({x},true)}<button type="button" class="rcsqx" data-c="${E(x.c)}" aria-label="Quitar la alarma ${E(x.c)}">✕</button></div>`).join("")+croSim(X,true)+bloqueInterv(X[0],window.rcsIntervUnion(X),X.length>1);
   s.querySelectorAll(".rcsqx").forEach(b=>b.onclick=e=>{e.stopPropagation();d.sel=d.sel.filter(z=>z.c!=b.dataset.c);pintaSel()});
   s.querySelectorAll("button.rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],"Alarmas de la OT")})};
  const elige=x=>{if(!d.sel.some(z=>z.c==x.c))d.sel.push(x);else if(typeof msg=="function")msg(`La alarma ${x.c} ya está incluida`);q.value="";q.blur();cierra();pintaSel()};
