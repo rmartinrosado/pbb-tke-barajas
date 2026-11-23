@@ -505,6 +505,11 @@ window.rcsListaAl=listaAl;
 window.rcsIntervUnion=function(X){/* v710 */const M=new Map();(X||[]).forEach(x=>{if(typeof x=="string")x=porCod(x);if(!x)return;
  window.rcsIntervienen(x).forEach(o=>{const k=o.id;const p=M.get(k);if(p){if(!p.als.includes(x.c))p.als.push(x.c);o.det.forEach(d=>{if(!p.det.includes(d))p.det.push(d)});if(o.pri&&!p.pri){p.pri=true;p.papel=o.papel}}
   else M.set(k,Object.assign({},o,{det:o.det.slice(),als:[x.c]}))})});
+ /* v811: la avería escrita a mano (caja 2) también cuenta: «no marca / no cuenta el giro de ruedas, la Magelis no presenta los grados» → contaje H-B1 / H-B2 */
+ try{const ob=document.getElementById("sr_ob");const t=String(ob&&ob.value||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  if(t&&/(no (marca|cuenta|presenta|indica|da|muestra|lee)|cuenta mal|marca mal|cuenta de (mas|menos)|sin)[^.]{0,50}(angulo|grados|giro de (las )?ruedas|contaje)|contaje|(angulo|grados)[^.]{0,30}(ruedas|giro|traslac)|giro de (las )?ruedas[^.]{0,30}(no |mal)/.test(t)&&!/cabina|rotonda/.test(t)){
+   const x6=porCod("116");if(x6)window.rcsIntervienen(x6).forEach(o=>{if(!/^(H-B1|H-B2|H-W14|H-W15)$/.test(o.id)&&!(o.rol=="borna"&&M.has(o.id)))return;const p=M.get(o.id);
+    if(p){o.det.forEach(d=>{if(!p.det.includes(d))p.det.push(d)});return}M.set(o.id,Object.assign({},o,{det:o.det.concat(["según la avería en campo"]),als:["116"],pri:true}))})}}catch(e){}
  const ord=z=>(z.rol=="campo"?(z.acc?0.3:/armario/i.test(z.ubi||"")?0.6:0):z.rol=="borna"?2:3)+(z.rol=="campo"&&!z.pri?1:0);return[...M.values()].sort((a,b)=>ord(a)-ord(b))};
 function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const sel=sc.querySelector("#sr_a");if(!sel||sc.querySelector("#rcs_q"))return;
  const lab=sel.previousElementSibling;const fila=sel.closest(".soscr2");
@@ -698,3 +703,5 @@ const st=document.createElement("style");st.textContent=`
 .rcsp{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.rcsp button{width:auto!important;margin:0!important;padding:5px 10px!important;font-size:12.5px!important}`;
 document.head.appendChild(st);
 })();
+/* v811: al escribir la avería en campo (caja 2) se repintan los elementos que intervienen de la alarma validada */
+(function(){let tm=0;document.addEventListener("input",e=>{if(!e.target||e.target.id!="sr_ob")return;clearTimeout(tm);tm=setTimeout(()=>{try{window.__rcsPintaTodo&&window.__rcsPintaTodo()}catch(x){}},500)},true)})();

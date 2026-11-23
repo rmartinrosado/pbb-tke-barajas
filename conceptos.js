@@ -90,6 +90,8 @@ const FC=/final(es)? de carrera|fin de carrera|\bf\.?c\.?\b|\bfc\b|pisad|linea d
 const LIM=/\blimite|\btope\b/;
 const ELEM=/antiatrap|atrapamiento|borde|banda|bumper|zapata|porton|persiana|barrera|freno|puerta de servicio|seta/;
 const REG=[
+ /* v811: avería en campo «no marca bien el giro de ruedas / no cuenta / la Magelis no presenta los grados» = CONTAJE H-B1 / H-B2 de la almena */
+ {q:t=>/(no (marca|cuenta|presenta|indica|da|muestra|lee)|cuenta mal|marca mal|cuenta de (mas|menos)|falla?|sin)[^.]{0,50}(angulo|grados|giro de (las )?ruedas|contaje)|contaje|(angulo|grados)[^.]{0,30}(ruedas|giro|traslac)|giro de (las )?ruedas[^.]{0,30}(no |mal)/.test(t)&&!/cabina|rotonda/.test(t),box:/^limite de traslacion/},
  /* v799: «no comunica en remoto» → enlace de red con el RCS (switch E-V1), no el selector CP-S16 */
  {q:t=>/(no comunica|sin comunicacion|perdida de comunicacion|falla? (de )?comunicacion|error de comunicacion|comunicaciones|sin conexion|no conecta|sin enlace|no aparece|no se ve|desconectad)[^.]{0,40}(remot|rcs|rcc|cga|puesto|red)|(remot|rcs|rcc|cga)[^.]{0,40}(no comunica|comunicacion|sin conexion|no conecta|sin enlace|no aparece|desconectad)|mikrotik|\bswitch\b|e-?v1\b|\br01[345]\b/.test(t)&&!/camara/.test(t),
   box:/^comunicacion con el puesto remoto/,fuera:/^pupitre · selector|^pupitre encendido pero no rearma|^pupitre · joystick/,
