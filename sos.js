@@ -155,7 +155,7 @@ window.sosFotoVer=function(){if(!fotoURL)return;let o=document.getElementById("s
 /* v425: la DESCRIPCIÓN EN CAMPO (Observaciones) es el aviso de la OT y manda: se analiza primero; la alarma de la Magelis
    (lista, a mano o foto) es complementaria: se suma a la descripción para afinar y, si apunta a otro elemento, se muestra aparte. */
 window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpperCase(),res=$("#sr_res");
- const ob=((document.getElementById("sr_ob")||{}).value||"").replace(/\s+/g," ").trim();
+ let ob=((document.getElementById("sr_ob")||{}).value||"").replace(/\s+/g," ").trim();
  /* v426: la posición solo es obligatoria si no hay descripción (con descripción se busca igual, con el plano general) */
  /* v459: se puede operar SIN posición PBB (actuación según el plano general); sin nada escrito ni foto lo avisa más abajo */
  /* v447: PRIORIDAD · 1º la avería en campo y 2º la alarma (lista o a mano); la FOTO de la Magelis es complementaria:
@@ -170,6 +170,9 @@ window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpp
    else{await tess();const w=await Tesseract.createWorker("spa",1);const r=await w.recognize(foto);await w.terminate();fa=r.data.text||""}}
   catch(e){if(!ob&&!al){res.innerHTML=`<div class="gav" style="margin-top:10px">No se pudo leer la foto. Escribe la avería en campo o la alarma a mano y vuelve a pulsar.</div>`;const d=document.querySelector(".srtx");if(d)d.open=true;return}}}
  al=al.replace(/\s+/g," ").trim();fa=String(fa||"").replace(/\s+/g," ").trim();window.__sosFotoAl=fa;
+ /* v822: las alarmas y avisos leídos por la IA en la foto de la Magelis se PEGAN en la caja «Avería en campo» y entran en el análisis */
+ if(fa){const t=document.getElementById("sr_ob");if(t){const lin="Magelis: "+fa;if(!t.value.includes(fa)){t.value=(t.value.trim()?t.value.trim()+"\n":"")+lin;try{t.dispatchEvent(new Event("input",{bubbles:true}))}catch(e){}}
+  ob=t.value.replace(/\s+/g," ").trim()}}
  const mk=(d,f)=>({id:"sos_"+pos+"_"+(d+f).length,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:f||"",com:"",obs:"",orden:"SOS",fecha:""});
  const ana=ot=>{let P=[],S=null;try{P=puentesOT(ot)}catch(e){}try{S=segOT(ot)}catch(e){}const RS=typeof resetAplica=="function"&&resetAplica(ot);return{ot,P,S,RS,ok:!!(P.length||S||RS)}};
  const pinta=A=>`${A.RS&&!A.S?`<div class="card pucard">${resetHTML(A.ot)}</div>`:""}${A.S?`<div class="card pucard">${segHTML(A.ot,A.S)}</div>`:""}${A.P.length?`<div class="card pucard">${puenteHTML(A.ot,A.P)}</div>`:""}`;

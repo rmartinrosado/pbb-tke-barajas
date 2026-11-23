@@ -37,7 +37,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  let F=$i("sostf");
  if(!F){F=document.createElement("div");F.id="sostf";
   /* v722: permutados · 1 ALARMA MAGELIS (arriba) · 2 PBB Y AVERÍA */
-  F.append(panel("sostp2","1","ALARMA MAGELIS","COMPLEMENTARIA<br>ACOTA EL PROBLEMA"),panel("sostp1","2","PBB Y AVERÍA","OBLIGATORIO · LO QUE SE DETECTA"));
+  F.append(panel("sostp2","1","ALARMA MAGELIS","OBLIGATORIO<br>LO QUE SE DETECTA"),panel("sostp1","2","PBB Y AVERÍA","COMPLEMENTARIA · ACOTA EL PROBLEMA")/* v822: subtítulos permutados */);
   const ps=document.createElement("div");ps.className="sostps";ps.innerHTML=`<div class="sostpst">Al aceptar sale</div>`;F.append(ps);
   if(h)h.after(F);else c.prepend(F)}
  const B1=F.querySelector(".sostp1>.sostpb"),B2=F.querySelector(".sostp2>.sostpb"),PS=F.querySelector(".sostps");
@@ -64,11 +64,13 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* v732: una alarma por línea, sin partirla · v804: vacío, el aviso «Sin alarmas…» se ajusta al recuadro (centrado, en dos líneas) */
  if(tx){const w=tx.value.trim()?"off":"soft";if(tx.getAttribute("wrap")!==w)tx.setAttribute("wrap",w);tx.classList.toggle("srtvac",!tx.value.trim())}
  if(!document.getElementById("st804")){const st=document.createElement("style");st.id="st804";st.textContent=`#sr_t.srtvac{white-space:pre-wrap!important;overflow-x:hidden!important;text-align:center}#sr_t::placeholder{white-space:pre-wrap;text-align:center;font-size:13px;letter-spacing:.3px;line-height:1.45}`;document.head.appendChild(st)}
- if(tx&&!tx.readOnly){tx.readOnly=true;tx.tabIndex=-1;tx.setAttribute("aria-readonly","true");tx.placeholder="Sin alarmas\nelígelas con el buscador o la lista"}pon(B2,$i("sr_f"));pon(B2,$i("sr_pv"));
+ if(tx&&!tx.readOnly){tx.readOnly=true;tx.tabIndex=-1;tx.setAttribute("aria-readonly","true");tx.placeholder="Sin alarmas\nelígelas con el buscador o la lista"}{const hd2=F.querySelector(".sostp2>.sostph");pon(hd2||B2,$i("sr_f"))}pon(B2,$i("sr_pv"));
  /* pasos y ACEPTAR al final del formulario */
  /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
  const P2=F.querySelector(".sostp2");if(P2&&!P2.dataset.pl){P2.dataset.pl=1;P2.classList.add("sostcer");const hd=P2.querySelector(".sostph");
-  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostpr"></span><span class="sostpv" aria-hidden="true">▾</span>`);
+  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<label class="sostcam" for="sr_f" aria-label="Foto de la Magelis">📷 FOTO</label><span class="sostpr"></span><span class="sostpv" aria-hidden="true">▾</span>`);
+  /* v822: botón FOTO de la Magelis en la cabecera de la caja 1 (no pliega ni despliega la caja) */
+  const cam=hd.querySelector(".sostcam");if(cam)cam.addEventListener("click",e=>e.stopPropagation());
   hd.addEventListener("click",()=>{P2.classList.toggle("sostcer");if(!P2.classList.contains("sostcer"))requestAnimationFrame(()=>P2.scrollIntoView({block:"nearest",behavior:"smooth"}))})}
  resumen2();
  /* v721: los pasos 1-2-3 van en la MISMA LÍNEA que ACEPTAR (a la izquierda, compactos) */
@@ -290,3 +292,7 @@ function cabecera(){const c=sc();const h=c&&c.querySelector(".sosrh");if(!h||!$i
   f.textContent=`${DIAS[d.getDay()]} ${zz(d.getDate())}/${zz(d.getMonth()+1)}`;document.querySelector("#sheetc .sosth").textContent=`${zz(d.getHours())}:${zz(d.getMinutes())}:${zz(d.getSeconds())}`};
  pinta();if(!reloj)reloj=setInterval(pinta,1000)}
 })();
+/* v822: estilo del botón FOTO de la cabecera de la caja 1 */
+(function(){const st=document.createElement("style");st.textContent=`#sostf .sostp2>.sostph .sostcam{flex:none;margin:0 6px 0 auto;padding:7px 9px;border-radius:9px;border:1.5px solid #ffffff33;font:800 11px/1 ui-monospace,monospace;letter-spacing:.6px;cursor:pointer;white-space:nowrap}
+#sostf .sostp2>.sostph .sostcam+.sostpr{margin-left:0!important}
+@media (prefers-color-scheme:light){#sostf .sostp2>.sostph .sostcam{border-color:#0003}}`;document.head.appendChild(st)})();
