@@ -45,7 +45,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* panel 1: Posición | Componente, desplegable y chips, avería */
  const fila=c.querySelector(".soscr2");pon(B1,fila);
  const cq=$i("cmp_q");const cw=cq&&cq.closest(".rcscmp");
- if(fila&&cw&&cw.parentNode!==fila){let w=fila.querySelector(".sostcw");if(!w){w=document.createElement("div");w.className="sostcw";w.innerHTML=`<label for="cmp_q">Componente</label>`;fila.appendChild(w)}w.appendChild(cw);cq.placeholder="Si se sabe ▾"}
+ if(fila&&cw&&cw.parentNode!==fila){let w=fila.querySelector(".sostcw");if(!w){w=document.createElement("div");w.className="sostcw";w.innerHTML=`<label for="cmp_q">Componente de campo</label>`;fila.appendChild(w)}w.appendChild(cw);cq.placeholder="Si se sabe ▾"}
  pon(B1,$i("cmp_l"));
  let ch=$i("sost_cmps");if(!ch){ch=document.createElement("div");ch.id="sost_cmps"}pon(B1,ch);
  const lo=c.querySelector('label[for="sr_ob"]');pon(B1,lo);pon(B1,ob.closest(".srobsw"));
@@ -83,7 +83,8 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
   const rs=row.querySelector(".srobrst");if(rs&&!rs.dataset.st){rs.dataset.st=1;rs.innerHTML=RECARGA;rs.setAttribute("aria-label","Reiniciar el SOS");rs.title="Reiniciar el SOS"}}
  /* rótulos cortos que caben en su caja */
  if(lo&&lo.textContent!=="Avería en campo")lo.textContent="Avería en campo";
- const lp=c.querySelector(".soscpos label");if(lp&&lp.textContent!=="Posición PBB")lp.textContent="Posición PBB";
+ const lp=c.querySelector(".soscpos label");if(lp&&lp.textContent!=="Posición")lp.textContent="Posición";
+ const lcq=c.querySelector('.sostcw>label[for="cmp_q"]');if(lcq&&lcq.textContent!=="Componente de campo")lcq.textContent="Componente de campo";
  pintaChips()}
 function resumen2(){const P2=document.querySelector("#sostf .sostp2");if(!P2)return;const r=P2.querySelector(".sostpr");if(!r)return;
  const t=($i("sr_t")||{}).value||"";const n=(typeof rcsListaAl=="function"?rcsListaAl(t).length:0)||(t.trim()?t.trim().split("\n").filter(Boolean).length:0);
@@ -342,3 +343,9 @@ ${P} .srobsw textarea{padding-right:12px!important;padding-bottom:10px!important
 (function(){const P="#sheetc #sostf";const st=document.createElement("style");st.textContent=`${P} .sostcam::before,${P} .sostcam::after{content:none!important;display:none!important}
 ${P} .sostp2>.sostph .sostcol .sostcam svg{width:22px;height:22px;color:var(--tx)}
 ${P} .sostp2>.sostph .sostcol .sostcam.on svg{color:#1fa64a}`;document.head.appendChild(st)})();
+/* ===== v830: «Posición» (sin PBB) con su caja ajustada al rótulo y más baja; «Componente de campo» a la misma altura ===== */
+(function(){const P="#sheetc #sostf";const st=document.createElement("style");st.textContent=`
+${P} .soscpos{flex:0 0 auto!important;width:auto!important;max-width:34%}
+${P} .soscpos #sr_p{box-sizing:border-box;width:7.2em!important;max-width:100%;height:46px!important;min-height:0!important;padding:0 12px!important;font-size:17px!important;letter-spacing:2px!important}
+${P} .sostcw #cmp_q{box-sizing:border-box;height:46px!important;min-height:0!important;padding-top:0!important;padding-bottom:0!important}
+${P} .sostcw .rcscmp{height:auto}`;document.head.appendChild(st)})();
