@@ -144,7 +144,7 @@ function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcs
  const anH=ak.length?`<div class="card gcroq ubcro svcro"><div class="gcrh">⚡ Actuación rápida de campo · puente provisional de resistencia${ak.length>1?` · ${ak.length} croquis (desliza)`:""}</div><div class="gobss">${ak.map(k=>K[k]).join("")}</div></div>`:"";
  /* v743: 115 atraque incorrecto / 243 contacto con avión → OPCIÓN: puente provisional del contacto que da señal sin avión */
  const atq=R.some(r=>/^(115|243)$/.test(String(r.x.c)))&&typeof atqCroqOpcion=="function"?atqCroqOpcion():"";
- const opH=atq?`<div class="card gcroq ubcro svcro svopc"><div class="gcrh">🔌 OPCIÓN · puente provisional si un contacto con avión da señal SIN avión · 2 croquis (desliza)</div>
+ const opH=atq?`<div class="card gcroq ubcro svcro svopc"><div class="gcrh">✂️ OPCIÓN · soltar cable si un contacto con avión da señal SIN avión · 2 cables (desliza)</div>
   <div class="puac">1º desatracar con el <b>bypass naranja + joystick hacia ATRÁS</b> (lento). Si la 115 / 243 vuelve sin avión: mirar en P-A5 el LED <b>1.1 (C-B51 derecho)</b> o <b>4.4 (C-B52 izquierdo)</b>; desenchufar el M12 de ese sensor y, si el LED sigue encendido, soltar y aislar su hilo (<b>320</b> / <b>740</b>). Solo MANUAL y con compañero vigilando ese lado.</div>
   <div class="gobss">${atq}</div></div>`:"";
  return{croH:croH+anH+opH,cardH:`<div class="card pucard svsac"><div class="pucab">📐 SEGÚN PLANOS · ${R.length>1?R.length+" alarmas, una por una":"alarma "+E(R[0].x.c)}</div>${lin}</div>`}}
