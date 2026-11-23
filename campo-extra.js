@@ -63,18 +63,36 @@ let V=null;
 const pasosSOS=()=>{const out=[];const b1=document.querySelector("#sr_res .ubb1");if(b1){const t=(b1.querySelector(".pucab")||{}).textContent;if(t)out.push("Primera actuación. "+t);b1.querySelectorAll(".qkp,.puac").forEach(x=>{const s=x.textContent.trim();if(s&&!out.includes(s))out.push(s)})}
  const h=document.querySelector("#lp_res .lpaef h3");if(h)out.push("Reparar. "+h.textContent);document.querySelectorAll("#lp_res .lpap").forEach(x=>{const c=x.cloneNode(true);c.querySelectorAll(".medw,details,button,select").forEach(z=>z.remove());const s=c.textContent.replace(/\s+/g," ").trim();if(s)out.push(s)});
  return out.map(s=>s.replace(/→/g,", luego ").replace(/\bE-/g,"E ").replace(/\bP-/g,"P ").replace(/·/g,","))};
-const habla=()=>{if(!V)return;try{speechSynthesis.cancel()}catch(e){}const t=V.p[V.i];if(!t)return;const u=new SpeechSynthesisUtterance(`Paso ${V.i+1} de ${V.p.length}. ${t}`);u.lang="es-ES";u.rate=1;speechSynthesis.speak(u);pintaV()};
+/* v838: lectura más rápida (1,15) y sin cortes:
+   · el texto se trocea por frases (iOS y Chrome cortan las locuciones largas a los ~15 s) y se encadena;
+   · se guardan las locuciones (si el recolector las borra, no llega «onend» y la lectura se queda muda);
+   · mientras habla la app, el micrófono IGNORA lo que oye (antes se oía a sí misma: un «para», «vale» o «hecho» del texto paraba o saltaba el paso);
+   · los comandos solo valen dichos solos (frase corta), y el reconocimiento se relanza siempre que iOS lo cierra. */
+const trozos=t=>{const out=[];String(t).split(/(?<=[.;:!?])\s+/).forEach(f=>{f=f.trim();if(!f)return;
+ while(f.length>180){let k=f.lastIndexOf(",",180);if(k<60)k=f.lastIndexOf(" ",180);if(k<60)k=180;out.push(f.slice(0,k+1).trim());f=f.slice(k+1).trim()}if(f)out.push(f)});return out};
+const habla=()=>{if(!V)return;try{speechSynthesis.cancel()}catch(e){}const t=V.p[V.i];if(!t)return;
+ const id=(V.tok=(V.tok||0)+1);const T=trozos(`Paso ${V.i+1} de ${V.p.length}. ${t}`);V.u=[];V.hablando=true;
+ T.forEach((x,k)=>{const u=new SpeechSynthesisUtterance(x);u.lang="es-ES";u.rate=1.15;
+  u.onend=u.onerror=()=>{if(V&&V.tok===id&&k===T.length-1){V.hablando=false;V.fin=Date.now()}};V.u.push(u);speechSynthesis.speak(u)});
+ /* Chrome Android: pausa/reanuda para que no se corte a los 15 s */
+ clearInterval(V.ka);V.ka=setInterval(()=>{if(!V||!V.hablando)return;try{if(speechSynthesis.speaking&&!speechSynthesis.paused&&!/iPhone|iPad|Mac/.test(navigator.userAgent)){speechSynthesis.pause();speechSynthesis.resume()}if(!speechSynthesis.speaking&&!speechSynthesis.pending){V.hablando=false;V.fin=Date.now()}}catch(e){}},5000);
+ pintaV()};
+const mlEscucha=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR||!V)return;
+ try{const r=new SR();r.lang="es-ES";r.continuous=true;r.interimResults=false;r.maxAlternatives=1;
+  r.onresult=e=>{if(!V||V.rec!==r)return;if(V.hablando||Date.now()-(V.fin||0)<600)return;
+   const t=(e.results[e.results.length-1][0].transcript||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-zñ ]/g,"").trim();
+   if(!t||t.split(/\s+/).length>3)return;
+   if(/^(siguiente|sigue|avanza|vale|hecho|ok|listo)\b/.test(t))mlMueve(1);else if(/^(anterior|atras|vuelve)\b/.test(t))mlMueve(-1);else if(/^(repite|otra vez|repetir)\b/.test(t))mlMueve(0);else if(/^(para|parar|stop|termina|salir|fin)$/.test(t))mlPara()};
+  r.onend=()=>{if(V&&V.rec===r)setTimeout(()=>{if(V&&V.rec===r)mlEscucha()},300)};
+  r.onerror=ev=>{if(ev&&/not-allowed|service-not-allowed/.test(ev.error)&&V){V.rec=null;pintaV()}};
+  V.rec=r;r.start()}catch(e){}};
 function pintaV(){let o=document.getElementById("mlib");if(!V){if(o)o.remove();return}if(!o){o=document.createElement("div");o.id="mlib";document.body.appendChild(o)}
  o.innerHTML=`<div class="mlt">🔊 Manos libres · paso ${V.i+1}/${V.p.length}${V.rec?' · 🎙 di «siguiente», «anterior», «repite» o «para»':""}</div><div class="mlx">${E(V.p[V.i]||"")}</div>
  <div class="mlb"><button onclick="mlMueve(-1)">◀</button><button onclick="mlMueve(0)">🔁</button><button onclick="mlMueve(1)">▶</button><button onclick="mlPara()">✕</button></div>`}
 window.mlMueve=d=>{if(!V)return;V.i=Math.max(0,Math.min(V.p.length-1,V.i+d));habla()};
-window.mlPara=()=>{try{speechSynthesis.cancel()}catch(e){}try{V&&V.rec&&V.rec.stop()}catch(e){}V=null;pintaV()};
+window.mlPara=()=>{const r=V&&V.rec;if(V){clearInterval(V.ka);V.rec=null}try{speechSynthesis.cancel()}catch(e){}try{r&&r.stop()}catch(e){}V=null;pintaV()};
 window.manosLibres=function(){if(!("speechSynthesis" in window)){msg("Este móvil no permite leer en voz alta");return}const p=pasosSOS();if(!p.length){msg("Primero pulsa ACEPTAR para tener la actuación");return}
- V={p,i:0};const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(SR){try{const r=new SR();r.lang="es-ES";r.continuous=true;r.interimResults=false;r.onresult=e=>{const t=(e.results[e.results.length-1][0].transcript||"").toLowerCase();
-   if(/siguiente|avanza|vale|hecho/.test(t))mlMueve(1);else if(/anterior|atr[aá]s/.test(t))mlMueve(-1);else if(/repite|otra vez/.test(t))mlMueve(0);else if(/para|stop|termina|salir/.test(t))mlPara()};
-  r.onend=()=>{if(V&&V.rec===r)try{r.start()}catch(e){}};r.start();V.rec=r}catch(e){}}
- habla()};
+ if(V)mlPara();V={p,i:0};mlEscucha();habla()};
 /* =================== botones =================== */
 const pon=()=>{try{
  /* v474: «Imprimir QR» solo en modo Administrador */
