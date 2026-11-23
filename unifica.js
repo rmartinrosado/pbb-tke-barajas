@@ -138,7 +138,7 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
  const apH=ap.length?`<div class="apr"><div class="aprh">⭐ Lo que resolvió avisos parecidos</div>${ap.slice(0,3).map(x=>`<div class="apri"><b>${x.n}×</b> ${E(x.t)}${x.pos.size?` <small>(PBB ${E([...x.pos].slice(0,4).join(", "))})</small>`:""}</div>`).join("")}</div>`:"";
  res.innerHTML=`${apH}<div class="ubh ub1">🚨 1 · SACAR EN SERVICIO YA</div><div class="ubb ubb1">${cro}${b1}</div>
   <div class="ubh ub2">🔧 2 · REPARAR · actuación más eficaz</div><div class="ubb ubb2"><div id="lp_res"><div class="mu">Buscando la actuación más eficaz…</div></div></div>
-  <div class="ubh ub3">🤖 3 · ANÁLISIS CON IA</div><div class="ubb"><button class="sec srobok ub3b" onclick="sosIaPDF()"><span><b>Generar el PDF del análisis</b> · paso a paso con medidas</span><img src="claude-logo.png" alt="Claude"></button></div>`;
+  <div class="ubh ub3">🤖 3 · ANÁLISIS CON IA</div><div class="ubb"><div class="ub3sel"><button type="button" class="sec srobok ub3b ub3c" onclick="sosIaPDF('claude')" aria-label="Análisis con Claude"><img src="claude-logo-ia.png" alt="Claude"><small>PDF · tiene coste</small></button><button type="button" class="sec srobok ub3b ub3g" onclick="sosIaPDF('gemini')" aria-label="Análisis con Gemini"><svg class="ub3gs" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="ub3gG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".45" stop-color="#9b72cb"/><stop offset=".75" stop-color="#d96570"/><stop offset="1" stop-color="#f2a93b"/></linearGradient></defs><path fill="url(#ub3gG)" d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5z"/></svg><b class="ub3gt">Gemini</b><small>PDF · gratis</small></button></div></div>`;
  /* v447: lo analizado y la lectura de la foto (complementaria) al final, plegados */
  try{const lw=res.querySelector(".ubb1 #sr_leido");if(lw){lw.remove();res.appendChild(lw)}}catch(e){}
  /* bloque 2: la lupa con la descripción (y la alarma como complemento) y la posición */
@@ -220,7 +220,7 @@ const st=document.createElement("style");st.textContent=`
 .ubgo{animation:ubgo 1s ease-in-out 4}@keyframes ubgo{50%{filter:brightness(1.4);transform:scale(1.02)}}
 @keyframes ub3p{0%,100%{box-shadow:0 0 0 0 rgba(239,108,0,.9);opacity:1}50%{box-shadow:0 0 0 7px rgba(239,108,0,0);opacity:.6}}
 /* v809: sin parpadeo en el punto 3 */
-.ub3b{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px!important}.ub3b img{height:26px;border-radius:6px;background:#fff;padding:2px}
+.ub3b{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px!important}.ub3b img{height:26px;border-radius:6px;background:#fff;padding:2px}.ub3sel{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ub3sel .ub3b{flex-direction:column;gap:4px;min-height:84px;margin:0!important}.ub3sel .ub3c img{height:34px;background:#fff;padding:3px 8px;border-radius:8px}.ub3sel .ub3gs{width:30px;height:30px}.ub3sel .ub3gt{font:800 20px/1 system-ui,sans-serif;background:linear-gradient(90deg,#4285f4,#9b72cb 55%,#d96570);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:-2px}.ub3sel small{font-size:11px;opacity:.8;font-weight:700}.ub3sel .ub3b.on{outline:2.5px solid #ef6c00;outline-offset:2px}
 .fbw{display:flex;gap:6px;margin:6px 0 2px;flex-wrap:wrap}.fbw button{flex:1;min-width:110px;padding:7px 8px;margin:0;font-size:13px;font-weight:700;border-radius:8px;border:1.5px solid}
 .fbok{background:rgba(46,125,50,.12)!important;border-color:#2e7d32!important;color:#2e7d32!important}.fbno{background:rgba(198,40,40,.10)!important;border-color:#c62828!important;color:#c62828!important}
 .fbx{opacity:.45}.fbx>*:not(.fbw){text-decoration:line-through}.fbnext{outline:2.5px solid #f59e0b;outline-offset:3px;border-radius:6px}
@@ -232,19 +232,29 @@ const st=document.createElement("style");st.textContent=`
 .micb svg{width:20px;height:20px}.micb.on{background:#c62828;color:#fff;border-color:#c62828;animation:sosparp 1s infinite}`;
 document.head.appendChild(st);
 })();
-/* ===== v817: SOS punto 3 «ANÁLISIS CON IA» · genera directamente el PDF del análisis, sin subir a la caja «Avería en campo» =====
+/* ===== v818: el punto 3 elige motor: botones con los logotipos de CLAUDE y GEMINI.
+   v817: SOS punto 3 «ANÁLISIS CON IA» · genera directamente el PDF del análisis, sin subir a la caja «Avería en campo» =====
    La caja de progreso y el resultado (PDF con Descargar · Abrir · Compartir) se quedan debajo del botón del punto 3 durante
    toda la consulta; la pantalla no se mueve hacia arriba. Si la avería en campo está vacía, se analiza con la alarma. ===== */
 (function(){
 let vigila=0;
-const fija=()=>{const b=document.querySelector("#sheetc .ub3b"),c=document.getElementById("sr_ia");if(b&&c&&b.nextElementSibling!==c)b.parentNode.insertBefore(c,b.nextSibling)};
-window.sosIaPDF=function(){const t=document.getElementById("sr_ob");
+const fija=()=>{const b=document.querySelector("#sheetc .ub3sel")||document.querySelector("#sheetc .ub3b"),c=document.getElementById("sr_ia");if(b&&c&&b.nextElementSibling!==c)b.parentNode.insertBefore(c,b.nextSibling)};
+/* v818: motor elegido por el técnico (Gemini o Claude) para la consulta del SOS: se añade {motor} a la llamada consulta-sos,
+   así el aviso de consumo no se repite (Claude elegido a sabiendas) y Gemini no salta a Claude sin preguntar */
+let envuelto=false;window.__motorSOS="";
+function envuelve(){if(envuelto)return;envuelto=true;const of=window.fetch;
+ window.fetch=function(u,o){try{if(window.__motorSOS&&/\/functions\/v1\/consulta-sos(?![\w-])/.test(String(u&&u.url||u))&&o&&typeof o.body=="string"){const b=JSON.parse(o.body);
+  if(b&&typeof b=="object"&&!b.motor){b.motor=window.__motorSOS;o=Object.assign({},o,{body:JSON.stringify(b)})}}}catch(e){}return of.call(this,u,o)}}
+window.sosIaPDF=function(motor){motor=motor=="claude"?"claude":"gemini";envuelve();window.__motorSOS=motor;
+ document.querySelectorAll("#sheetc .ub3sel .ub3b").forEach(b=>b.classList.toggle("on",b.classList.contains(motor=="claude"?"ub3c":"ub3g")));
+ const t=document.getElementById("sr_ob");
  if(t&&!t.value.trim()){const am=((document.getElementById("sr_t")||{}).value||"").trim();if(am)t.value="Analizar la alarma: "+am.replace(/\n+/g," · ")}
  const y=window.scrollY;const el=document.activeElement;
  try{window.sosObClaude&&window.sosObClaude()}catch(e){console.warn(e)}
  try{if(el&&el.blur)el.blur();if(t&&document.activeElement===t)t.blur()}catch(e){}
  fija();clearInterval(vigila);let n=0;
  vigila=setInterval(()=>{fija();n++;const c=document.getElementById("sr_ia");
+  if(c&&(c.querySelector("a[download]")||c.querySelector(".gav"))&&n>2){window.__motorSOS="";}
   if(c&&c.querySelector("a[download]")){clearInterval(vigila);fija();setTimeout(()=>{fija();c.scrollIntoView({block:"center",behavior:"smooth"})},150)}
   if(n>900)clearInterval(vigila)},400)};
 })();
