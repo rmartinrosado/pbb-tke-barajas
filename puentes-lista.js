@@ -58,6 +58,8 @@ const NUN=[
 const SAL=[["E-A1","Salidas digitales armario",32,"54–57"],["E-A6","Salidas de seguridad (hacia E-K0)",8,"64–65"],["E-A7","Salidas de seguridad",8,"66–67"],["P-A1","Salidas digitales pupitre",16,"73–76"],["P-A2","Salidas digitales pupitre",16,"77–80"]];
 const ICO=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v5"/></svg>`;
 let F="todas",Q="";
+/* v786: leyenda con el módulo dibujado (color del módulo) y su LED apagado / encendido, como en los croquis */
+const LEDI=(m,on)=>`<svg class="pzled" viewBox="0 0 34 40" width="34" height="40" aria-hidden="true"><rect x="1" y="1" width="32" height="38" rx="4" fill="${m}" stroke="#0006"/><rect x="6" y="6" width="22" height="6" rx="1.5" fill="#ffffff55"/><circle cx="17" cy="25" r="7" fill="${on?"#39ff14":"#1d1d1d"}" stroke="${on?"#0a0":"#000"}" stroke-width="1.5"/>${on?'<circle cx="17" cy="25" r="10" fill="none" stroke="#39ff1477" stroke-width="3"/>':""}</svg>`;
 /* v784: buscador (módulo, bloque, LED, borna, bornero, señal, hilo, folio, tipo) */
 const NRM=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const TIPO={sol:"soltar hilo cable tijera desconectar",v24:"puente +24 v 24v limite verde",ut:"puente ut seguridad amarillo"};
@@ -73,7 +75,11 @@ function filas(L,tipo){return L.filter(r=>F=="todas"||(F=="rev"?r[6]=="rev":r[6]
 function pagina(){const n=(L)=>L.filter(r=>r[6]=="rev").length,nr=n(SOL)+n(V24)+n(UT);
  return `<div class="card pzcard"><h3 style="margin:0 0 4px">Puentes y soltar cable · entradas del PLC</h3>
  <div class="pzlead">De las <b>133 entradas digitales</b> de los dos PLC, <b>37</b> admiten actuación provisional para sacar la PBB ya: <b>12 ✂️ soltar hilo</b>, <b>11 🔌 IN ↔ +24 V</b> y <b>14 🔌 IN ↔ UT</b>. <b>${37-nr}</b> ya están en la PWA y <b class="pzrv">${nr} hay que revisarlas en campo</b>. Toca una fila para ver su croquis.</div>
- <div class="pzreg"><div>⚪ Apagada en reposo, se enciende en falso → <b>✂️ soltar y aislar el hilo</b> (nunca a +24 V)</div><div>🟢 Encendida en reposo (módulo verde), se apaga → <b>🔌 IN ↔ +24 V</b></div><div>🟡 Seguridad (módulo amarillo), se abre → <b>🔌 IN ↔ UT</b> + bypass CP-S33 antes de LOCAL</div><div>Siempre: elemento comprobado, MANUAL, compañero vigilando, autorización del Responsable de Turno, hora en la OT y retirar al reparar.</div></div>
+ <div class="pzreg">
+ <div class="pzlg">${LEDI("#5cb85c",0)}<span><b>LED apagado en reposo</b> (módulo verde) · se enciende en falso → <b>✂️ soltar y aislar el hilo</b> (nunca a +24 V)</span></div>
+ <div class="pzlg">${LEDI("#5cb85c",1)}<span><b>LED encendido en reposo</b> (módulo verde) · se apaga → <b>🔌 IN ↔ +24 V</b></span></div>
+ <div class="pzlg">${LEDI("#f2c200",1)}<span><b>Módulo amarillo de seguridad</b> (E-A8, E-A9, E-A10) · se apaga → <b>🔌 IN ↔ UT</b> + bypass CP-S33 antes de LOCAL</span></div>
+ <div class="pzlg pzsi">Siempre: elemento comprobado, MANUAL, compañero vigilando, autorización del Responsable de Turno, hora en la OT y retirar al reparar.</div></div>
  <div class="pzf">${[["todas","Todas"],["pwa","En la PWA"],["rev","⚠️ Revisar en campo"]].map(([k,t])=>`<button type="button" class="${F==k?"on":""}" onclick="pzFiltro('${k}')">${t}</button>`).join("")}</div></div>
  <div class="card pzcard pzbus"><div class="pzqw"><span>🔍</span><input id="pzq" type="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar: P-A5, bloque 2, LED 1.1, P-X92, hilo 320, contacto, folio 85…" value="${E(Q)}" oninput="pzBusca(this.value)"><button type="button" class="pzqx" onclick="pzBusca('');document.getElementById('pzq').value=''" aria-label="Borrar">✕</button></div><div id="pzqn" class="mu"></div></div>
  <div class="card pzcard pzsec"><h3 class="pzh">✂️ Soltar hilo · 12</h3><div class="mu pzx">Entradas apagadas en reposo que se encienden en falso y bloquean: comprobar que el elemento está de verdad en reposo y soltar el hilo de la borna IN.</div>${filas(SOL,"sol")}</div>
@@ -102,6 +108,7 @@ const st=document.createElement("style");st.textContent=`
 .pzf{display:flex;gap:6px;flex-wrap:wrap}.pzf button{flex:1;min-height:40px;border-radius:10px;border:1px solid var(--bd,#ffffff33);background:transparent;color:inherit;font:inherit;font-size:13px;font-weight:700}
 .pzf button.on{background:var(--ac,#ff7a1a);color:#000;border-color:transparent}
 .pzx{font-size:12.5px;margin-bottom:6px}
+.pzlg{display:flex;align-items:center;gap:10px;margin:4px 0}.pzled{flex:none}.pzsi{margin-top:8px;opacity:.85}
 .pzqw{display:flex;align-items:center;gap:8px;border:1.5px solid var(--ac,#ff7a1a);border-radius:12px;padding:0 6px 0 12px;min-height:48px}
 .pzqw span{font-size:18px}.pzqw input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;color:inherit;font:inherit;font-size:16px;padding:10px 0!important;box-shadow:none!important}
 .pzqx{border:0;background:transparent;color:inherit;font-size:18px;width:36px;height:36px;visibility:hidden}
