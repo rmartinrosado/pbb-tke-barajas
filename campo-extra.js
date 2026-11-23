@@ -79,7 +79,7 @@ const trozos=t=>{const out=[];String(t).split(/(?<=[.;:!?])\s+/).forEach(f=>{f=f
  while(f.length>180){let k=f.lastIndexOf(",",180);if(k<60)k=f.lastIndexOf(" ",180);if(k<60)k=180;out.push(f.slice(0,k+1).trim());f=f.slice(k+1).trim()}if(f)out.push(f)});return out};
 /* v839: sin símbolos ni iconos; los códigos (IT-B11, E-A2 3.1, X1:3, KM2, PLC…) se deletrean */
 const LET={A:"a",B:"be",C:"ce",D:"de",E:"e",F:"efe",G:"ge",H:"hache",I:"i",J:"jota",K:"ka",L:"ele",M:"eme",N:"ene","Ñ":"eñe",O:"o",P:"pe",Q:"cu",R:"erre",S:"ese",T:"te",U:"u",V:"uve",W:"uve doble",X:"equis",Y:"i griega",Z:"zeta"};
-const deletrea=c=>c.replace(/([A-ZÑ])/g," $1 ").replace(/[A-ZÑ]/g,x=>LET[x]||x).replace(/(\d)\.(\d)/g,"$1 punto $2").replace(/:/g," dos puntos ").replace(/\//g," barra ").replace(/[-_]/g," ").replace(/\s+/g," ").trim();
+const deletrea=c=>c.replace(/([A-ZÑ])/g," $1 ").replace(/[A-ZÑ]/g,x=>LET[x]||x).replace(/(\d)\.(\d)/g,"$1 punto $2").replace(/(\d+)\s*:/g,(m,n)=>(+n%10==2&&+n%100!=12)?n+", :":m)/* v851: pausa entre el 2 y «dos puntos» */.replace(/:/g," dos puntos ").replace(/\//g," barra ").replace(/[-_]/g," ").replace(/\s+/g," ").trim();
 /* v840: siglas que se leen como palabra */
 const PALABRA=new Set(["LED","LEDS","INT"]);
 const esCodigo=w=>{const l=w.replace(/[^A-ZÑa-zñ]/g,"");if(!l||l!==l.toUpperCase())return false;if(PALABRA.has(w))return false;
