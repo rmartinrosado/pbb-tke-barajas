@@ -64,9 +64,9 @@ function pinta(){try{if(!SEGV()||typeof inc=="undefined")return;
   const tN=/<span class="orc t([^"]*)" data-ort="1">([^<]*)<\/span>/.exec(h),tv=r.querySelector('[data-ort="1"]');
   if(r.dataset.h&&sinT(r.dataset.h)===sinT(h)&&tN&&tv){const tx=tN[2].replace(/&amp;/g,"&");if(tv.textContent!==tx)tv.textContent=tx;const cl="orc t"+tN[1];if(tv.className!==cl)tv.className=cl;r.dataset.h=h;return}
   /* si cambia algo más, se rehace pero se conservan el SOS y la llave */
-  const keep=[...r.querySelectorAll(".sosc,.grepc")];r.innerHTML=h;r.dataset.h=h;
-  const o1=r.querySelector(".orl");if(o1)keep.forEach(x=>{if(x.classList.contains("sosc"))o1.prepend(x);else o1.append(x)});
-  if(o1)o1.classList.toggle("orlsos",!!o1.querySelector(".sosc"))})}catch(e){}}
+  const keep=[...r.querySelectorAll(".sosc,.pactt,.grepc")];r.innerHTML=h;r.dataset.h=h;
+  const o1=r.querySelector(".orl");if(o1)keep.forEach(x=>{if(x.classList.contains("grepc"))o1.append(x)});keep.filter(x=>!x.classList.contains("grepc")).reverse().forEach(x=>o1.prepend(x));
+  if(o1)o1.classList.toggle("orlsos",!!o1.querySelector(".sosc,.pactt"))})}catch(e){}}
 let tm=null;new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=null;pinta()},150)}).observe(document.body,{childList:true,subtree:true});
 setInterval(pinta,30000);
 })();

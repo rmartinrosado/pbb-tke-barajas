@@ -6,11 +6,11 @@
 const LLAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
 const st=document.createElement("style");st.textContent=`
 .orl .sosc{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0!important;margin:0!important;border-radius:50%!important;border:0!important;background:transparent!important;flex:none}
-#app .card .otres{align-items:stretch!important}#app .card .otres .orl.orlsos{justify-content:center!important;align-self:stretch;width:100%;position:relative;min-height:44px}#app .card .otres .orl.orlsos>.sosc{position:absolute;left:0;top:50%;transform:translateY(-50%)}/* v747: reloj y llave siempre centrados en la línea; el SOS, aparte a la izquierda *//* v696: REPARACIÓN con el mismo estilo de pastilla que T4S (solo la llave) */
+#app .card .otres{align-items:stretch!important}/* v750: SOS y 🔌 a la izquierda; reloj y llave justificados a la derecha */#app .card .otres>.orl:first-child{justify-content:flex-end!important;align-self:stretch;width:100%}#app .card .otres .orl.orlsos{justify-content:flex-end!important;align-self:stretch;width:100%;min-height:44px}#app .card .otres .orl.orlsos>[data-ort]{margin-left:auto!important}#app .card .otres .orl>.pactt{flex:none;margin:0 0 0 2px!important;animation:none!important;font-size:18px;line-height:1;padding:3px 4px;border-radius:8px;border:1.5px solid #c62828}/* v696: REPARACIÓN con el mismo estilo de pastilla que T4S (solo la llave) */
 .otres .orl .grepc{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;color:inherit!important}
 .otres .orl .grepc svg{width:18px;height:18px;display:block}
 /* v748: llave más grande; con la OT abierta y con llegada, parpadea en amarillo como la caja */
-#app .card.ot .otres .orl .grepc{padding:7px 18px!important;border-radius:999px!important;border-width:2px!important}#app .card.ot .otres .orl .grepc svg{width:24px!important;height:24px!important}
+#app .card.ot .otres .orl .grepc{padding:2px 14px!important;border-radius:999px!important;border-width:1.5px!important;align-self:stretch}#app .card.ot .otres .orl .grepc svg{width:16px!important;height:16px!important}/* v750: misma altura que el reloj */
 #app .card.ot.otlle .otres .orl .grepc{border:2px solid #facc15!important;color:#facc15!important;animation:otLleBlink 1.4s ease-in-out infinite}
 html.lt #app .card.ot.otlle .otres .orl .grepc{border-color:#d9a400!important;color:#9a6b00!important;animation-name:otLleBlinkL!important}
 .otres .orl.orlsos{gap:5px!important}#app .card.ot .otres .orc{font-size:12px!important;padding:2px 9px!important}#app .card.ot .otres{margin-top:2px!important}#app .card.ot .ohdx>.ohsubw:has(.ohchips){flex-direction:column!important;align-items:flex-start!important;gap:5px!important;padding-top:2px}
@@ -76,7 +76,9 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  if(sos&&orl){const w=sos.parentElement;sos.classList.add("sosc");orl.prepend(sos);if(w&&/sosmid|sosw/.test(w.className)&&!w.children.length)w.remove()}
  else if(!sos&&orl){const s2=c.querySelector(".sosc");if(s2&&orl.firstElementChild!==s2)orl.prepend(s2)}
  /* v692: SOS a la izquierda del reloj, en la esquina inferior izquierda de la tarjeta */
- if(orl)orl.classList.toggle("orlsos",!!orl.querySelector(".sosc"));}
+ /* v750: el 🔌 de primera actuación al lado del SOS, sin parpadeo */
+ {const pa=c.querySelector(".pactt");if(pa&&orl){const s3=orl.querySelector(".sosc");if(s3){if(s3.nextElementSibling!==pa)s3.after(pa)}else if(orl.firstElementChild!==pa)orl.prepend(pa)}}
+ if(orl)orl.classList.toggle("orlsos",!!orl.querySelector(".sosc,.pactt"));}
 function todo(){if(!SEGV())return;document.querySelectorAll("#app .card.ot").forEach(c=>{try{fix(c)}catch(e){}})}
 const ini=()=>{const a=document.getElementById("app");if(!a)return setTimeout(ini,300);new MutationObserver(todo).observe(a,{childList:true,subtree:true});todo()};ini();
 })();
