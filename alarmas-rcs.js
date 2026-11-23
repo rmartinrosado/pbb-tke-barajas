@@ -493,6 +493,7 @@ function croSim(X){let h="";try{if(typeof window.rcsSacarHTML=="function"){const
  return h+croGuia(X)}
 /* v812: simulaciones y croquis de la guía de campo (CROQ: almena, brazo, hidráulica, megafonía…) de los ELEMENTOS DE CAMPO que
    intervienen en la alarma: se incrustan después de las cajas rojas de las alarmas (p. ej. 005 → almena con límite y contaje) */
+window.rcsCroGuia=X=>croGuia((X||[]).map(x=>typeof x=="string"?porCod(x):x).filter(Boolean));
 function croGuia(X){try{if(typeof CROQ=="undefined"||typeof gCroquisHTML!="function")return"";
  const L=window.rcsIntervUnion(X).filter(o=>o.rol=="campo").map(o=>String(o.id).toUpperCase());if(!L.length)return"";
  const R=[];Object.keys(CROQ).forEach(k=>{const C=CROQ[k];if(!C)return;let txt="";try{txt=JSON.stringify(C)}catch(e){return}

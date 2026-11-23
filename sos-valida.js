@@ -93,6 +93,8 @@ function bloqueAlarma(A){const [ic,t0,s]=EST[A.est=="ok"&&A.cod.length>1?"okn":A
  if(A.est=="dif")h+=`<div class="svl">Alarma indicada:</div>${A.La.map(cajaAl).join("")}<div class="svl">Según la avería en campo (manda):${A.cod.length?"":" sin código del manual; componente según lo descrito ↓"}</div>`;
  if(A.est=="noal")h+=`<div class="svl">Escrita: «${E(A.al)}»${A.cod.length?" · según la avería en campo:":""}</div>`;
  h+=A.cod.map(cajaAl).join("");
+ /* v813: simulaciones y croquis de la guía de campo de los elementos que intervienen, tras las cajas rojas (005 → almena) */
+ if(A.cod.length&&typeof rcsCroGuia=="function")h+=rcsCroGuia(A.cod.map(z=>z.x));
  /* v704: componentes de campo que intervienen (según planos), igual que al elegir la alarma */
  if((A.I||[]).length&&A.cod.length&&typeof rcsBloqueInterv=="function")h+=rcsBloqueInterv(A.cod[0].x,A.I,A.cod.length>1);
  /* componente: chip que baja a la ficha */
