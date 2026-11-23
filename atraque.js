@@ -53,7 +53,7 @@ const PASOS=["Fallo","Bypass","Desconectar","Aparcar","Reparar"];
 /* v742: el fallo se simula con CUALQUIERA de los dos contactos (elegir C-B51 derecho / C-B52 izquierdo), los inductivos SIN
    parpadeo (rojo fijo = señal falsa), barra de VELOCIDAD de la PBB en cada paso y módulo P-A5 más grande. */
 const LADO={R:{s:"C-B51",lado:"derecho",b:"1.1",din:"DIN01",x:"P-X92:12",h:"320",w:"P-W17",cx:142},L:{s:"C-B52",lado:"izquierdo",b:"4.4",din:"DIN08",x:"P-X92:7",h:"740",w:"P-W18",cx:94}};
-const T2=(f)=>["R","L"].map(k=>f(LADO[k],k)).join("");
+const T2=(f)=>["L","R"].map(k=>f(LADO[k],k)).join("");
 function sim(){return `<div class="atqw" data-s="1" data-l="R">
 <div class="atql"><span>Sensor que falla:</span>${T2((o,k)=>`<button type="button" class="atqlb${k=="R"?" on":""}" data-l="${k}" onclick="atqLado(this)"><b>${o.s}</b>${o.lado}</button>`)}</div>
 <div class="atqc"><button type="button" class="atqpl" onclick="atqPlay(this)" aria-label="Pausa">⏸</button><button type="button" class="atqst" onclick="atqStop(this)" aria-label="Parar">⏹</button>
@@ -142,7 +142,7 @@ const SEC={t:"Atraque incorrecto · alarma 115 y falso contacto con avión (C-B5
 Object.defineProperty(SEC,"obsCro",{get(){return `<div class="gobsh2">Tipos de atraque · manual RCS</div>${tipos()}<div class="gobsh2">Simulación · toca un paso o déjala avanzar</div>${sim()}${cotejo()}`},enumerable:true});
 /* v743: croquis del puente provisional de los contactos con avión, como OPCIÓN para «1 · Sacar en servicio ya» del SOS (115 / 243) */
 window.atqCroqOpcion=function(){if(typeof croquisPuente!="function")return"";
- return ["R","L"].map(k=>{const o=LADO[k];let s="";try{s=croquisPuente({mod:"P-A5",b1:o.b,b2:o.b,k1:`${o.din} · hilo ${o.h} · ${o.s}`,k2:"",d:`CONTACTO AVIÓN ${o.lado.toUpperCase()} ${o.s} · si da señal sin avión`,suelta:true},5)}catch(e){}return s}).filter(Boolean).join("")};
+ return ["L","R"].map(k=>{const o=LADO[k];let s="";try{s=croquisPuente({mod:"P-A5",b1:o.b,b2:o.b,k1:`${o.din} · hilo ${o.h} · ${o.s}`,k2:"",d:`CONTACTO AVIÓN ${o.lado.toUpperCase()} ${o.s} · si da señal sin avión`,suelta:true},5)}catch(e){}return s}).filter(Boolean).join("")};
 /* v746: PRIMERA ACTUACIÓN de una OT de contacto con avión / atraque incorrecto («Fallo contacto avión», 243, 115…): el puente
    provisional (soltar y aislar el hilo del contacto que da señal sin avión) en P-A5 1.1 (C-B51 derecho, hilo 320) o
    4.4 (C-B52 izquierdo, hilo 740), precedido del bypass del manual. Antes no salía porque esas entradas no tenían
@@ -156,7 +156,7 @@ if(typeof puentesOT=="function"){const oP=puentesOT;puentesOT=function(i){const 
   const txt=(typeof segNorm=="function"?segNorm:(x=>String(x).toLowerCase()))([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));if(!RX_ATQ.test(txt))return P;
   const M=typeof PLC!="undefined"?PLC.find(m=>m.id=="P-A5"):null;
   /* si la descripción dice el lado, solo ese; si no, los dos (el LED encendido dice cuál) */
-  const lados=/derech|c-?b51/.test(txt)&&!/izquier|c-?b52/.test(txt)?["P-A5|1|1"]:/izquier|c-?b52/.test(txt)&&!/derech|c-?b51/.test(txt)?["P-A5|2|4"]:["P-A5|1|1","P-A5|2|4"];
+  const lados=/derech|c-?b51/.test(txt)&&!/izquier|c-?b52/.test(txt)?["P-A5|1|1"]:/izquier|c-?b52/.test(txt)&&!/derech|c-?b51/.test(txt)?["P-A5|2|4"]:["P-A5|2|4","P-A5|1|1"];/* v773: izquierdo a la izquierda */
   const nuevos=lados.filter(key=>!P.some(p=>p.key==key)).map(key=>{const[id,k,l]=key.split("|");const Lm=M&&M.m[k-1]&&M.m[k-1][l-1];
    return{key,id,k,l,t:TXP[key],nom:Lm?Lm[0]:(key.endsWith("1|1")?"Inductivo contacto avión derecha":"Inductivo contacto avión izquierda"),b:M&&typeof pBorna=="function"?pBorna(M,+k,+l):null,f:M?M.f[k-1]:85,suelta:true,croq:(()=>{const o=LADO[key.endsWith("1|1")?"R":"L"];return{mod:"P-A5",b1:o.b,b2:o.b,k1:`${o.din} · hilo ${o.h} · ${o.s}`,k2:"",d:`CONTACTO AVIÓN ${o.lado.toUpperCase()} ${o.s} · si da señal sin avión`,suelta:true}})()}});/* v765: croq → croquis en la guía (lista de index.html) */
   return nuevos.concat(P)}catch(e){console.warn("atraque puentesOT",e)}return P}}
