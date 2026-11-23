@@ -70,9 +70,23 @@ const pasosSOS=()=>{const out=[];const b1=document.querySelector("#sr_res .ubb1"
    · los comandos solo valen dichos solos (frase corta), y el reconocimiento se relanza siempre que iOS lo cierra. */
 const trozos=t=>{const out=[];String(t).split(/(?<=[.;:!?])\s+/).forEach(f=>{f=f.trim();if(!f)return;
  while(f.length>180){let k=f.lastIndexOf(",",180);if(k<60)k=f.lastIndexOf(" ",180);if(k<60)k=180;out.push(f.slice(0,k+1).trim());f=f.slice(k+1).trim()}if(f)out.push(f)});return out};
+/* v839: sin símbolos ni iconos; los códigos (IT-B11, E-A2 3.1, X1:3, KM2, PLC…) se deletrean */
+const LET={A:"a",B:"be",C:"ce",D:"de",E:"e",F:"efe",G:"ge",H:"hache",I:"i",J:"jota",K:"ka",L:"ele",M:"eme",N:"ene","Ñ":"eñe",O:"o",P:"pe",Q:"cu",R:"erre",S:"ese",T:"te",U:"u",V:"uve",W:"uve doble",X:"equis",Y:"i griega",Z:"zeta"};
+const deletrea=c=>c.replace(/([A-ZÑ])/g," $1 ").replace(/[A-ZÑ]/g,x=>LET[x]||x).replace(/(\d)\.(\d)/g,"$1 punto $2").replace(/:/g," dos puntos ").replace(/\//g," barra ").replace(/[-_]/g," ").replace(/\s+/g," ").trim();
+const esCodigo=w=>{const l=w.replace(/[^A-ZÑa-zñ]/g,"");if(!l||l!==l.toUpperCase())return false;
+ if(/\d/.test(w))return true;            /* letras y números: IT-B11, X1, KM2 */
+ if(/[-:\/]/.test(w))return true;        /* IT-B, E-A */
+ return l.length<=3||!/[AEIOU]/.test(l)};/* siglas: PBB, PLC, SAI, HZ */
+const limpiaVoz=t=>String(t)
+ .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu," ")
+ .replace(/[▶◀▲▼►◄▸▾•●○■□★☆✓✔✕✖✗→←↑↓⇒⟶*#|~^_`<>{}\[\]]/g," ").replace(/\s*·\s*/g,", ")
+ .replace(/(\d)\s*(V|Vcc|Vdc|Vac)(?![\p{L}\d])/gu,"$1 voltios").replace(/(\d)\s*mA(?![\p{L}\d])/gu,"$1 miliamperios").replace(/(\d)\s*Hz(?![\p{L}\d])/giu,"$1 hercios")
+ .replace(/(?<![\p{L}\d])[\p{L}\d](?:[\p{L}\d.:\/-]*[\p{L}\d])?(?![\p{L}\d])/gu,w=>esCodigo(w)?deletrea(w):w)
+ .replace(/\b(\d+)\.(\d+)\b/g,"$1 punto $2")
+ .replace(/\s+([,.;:])/g,"$1").replace(/([,.;:]){2,}/g,"$1").replace(/\s+/g," ").trim();
 const habla=()=>{if(!V)return;try{speechSynthesis.cancel()}catch(e){}const t=V.p[V.i];if(!t)return;
- const id=(V.tok=(V.tok||0)+1);const T=trozos(`Paso ${V.i+1} de ${V.p.length}. ${t}`);V.u=[];V.hablando=true;
- T.forEach((x,k)=>{const u=new SpeechSynthesisUtterance(x);u.lang="es-ES";u.rate=1.15;
+ const id=(V.tok=(V.tok||0)+1);const T=trozos(`Paso ${V.i+1} de ${V.p.length}. ${limpiaVoz(t)}`);V.u=[];V.hablando=true;
+ T.forEach((x,k)=>{const u=new SpeechSynthesisUtterance(x);u.lang="es-ES";u.rate=1.09;/* v839: 5 % más lenta */
   u.onend=u.onerror=()=>{if(V&&V.tok===id&&k===T.length-1){V.hablando=false;V.fin=Date.now()}};V.u.push(u);speechSynthesis.speak(u)});
  /* Chrome Android: pausa/reanuda para que no se corte a los 15 s */
  clearInterval(V.ka);V.ka=setInterval(()=>{if(!V||!V.hablando)return;try{if(speechSynthesis.speaking&&!speechSynthesis.paused&&!/iPhone|iPad|Mac/.test(navigator.userAgent)){speechSynthesis.pause();speechSynthesis.resume()}if(!speechSynthesis.speaking&&!speechSynthesis.pending){V.hablando=false;V.fin=Date.now()}}catch(e){}},5000);
