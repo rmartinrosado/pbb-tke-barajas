@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=765;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=766;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -3099,7 +3099,7 @@ function puentesOT(i){if(!i||i.estado!="abierta")return [];const R=anaOT(i);if(!
  R.rel.forEach(x=>{const key=puKey(x.mod,x.S);if(!key||vis.has(key)||!PUENTE[key])return;if(PU_REQ[key]&&!PU_REQ[key].test(txt))return;const t=PUENTE[key];
   if(/^Solo 504\/507\/508/.test(t)&&!["504","507","508"].includes(pos))return;if(/^Solo 504 /.test(t)&&pos!="504")return;
   vis.add(key);const[id,k,l]=key.split("|");const M=PLC.find(m=>m.id==id);const L=M&&M.m[k-1]&&M.m[k-1][l-1];const b=M?pBorna(M,+k,+l):null;
-  out.push({key,id,k,l,t,nom:L?L[0]:x.S.t,b,f:M?M.f[k-1]:null,suelta:/no puentear/i.test(t)})});return out}
+  out.push({key,id,k,l,t,nom:L?L[0]:x.S.t,b,f:M?M.f[k-1]:null,suelta:/no puentear|soltar y aislar|soltar (el )?hilo/i.test(t)})});return out}
 function puenteHTML(i,P){return `<div class="pucab">🔌 PRIMERA ACTUACIÓN EN CAMPO · puente provisional para recuperar la pasarela</div>
  ${P.map(p=>`<div class="puit"><b>${esc(p.id)} · módulo ${p.k} · LED ${p.l}</b> — ${esc(p.nom)}${p.f?` <span class="mu">(folio ${p.f})</span>`:""}
   <div class="puac">${p.suelta?"🔧":"⚡"} ${esc(p.t)}</div>${p.b&&!p.suelta?`<div class="mu">Entrada del módulo: IN ${esc(p.b.in)} · alimentación/test: ${esc(p.b.v)}</div>`:""}</div>`).join("")}
@@ -5846,7 +5846,9 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   const soloNor=!!(S&&S.lim&&S.limT=="nor"&&!S.limMix),soloSeg=!!(S&&S.lim&&S.limT=="seg"&&!S.limMix);
   if(S&&S.lim){if(S.itSeg&&S.itNor)(soloNor?S.itNor.concat(S.itSeg):soloSeg?S.itSeg:S.itSeg.concat(S.itNor)).forEach(it=>deIt(it,1));else S.zs.forEach(z=>z.it.forEach(it=>deIt(it,1)))}/* v437: límite de trabajo (módulo verde) → croquis del puente en su entrada (v434 lo quitaba) */
   /* puentes de la tabla PUENTE (caja «puente provisional para recuperar la pasarela») */
-  try{if(typeof puentesOT=="function")puentesOT(i).forEach(p=>{if(p.croq){add(p.croq);return}/* v765: croquis propio (contacto avión: soltar hilo) */if(p.suelta||!p.b)return;const bi=/^(\d+\.\d)/.exec(p.b.in||""),bv=/(\d+\.\d)/.exec(p.b.v||"");if(!bi||!bv)return;if(+bv[1].split(".")[1]>4||+bi[1].split(".")[1]>4)return;
+  try{if(typeof puentesOT=="function")puentesOT(i).forEach(p=>{if(p.croq){add(p.croq);return}/* v765: croquis propio (contacto avión: soltar hilo) */if(!p.b)return;
+   /* v766: «croquis de puente» incluye el de SOLTAR CABLE: entrada del PLC que no se puentea → croquis soltar y aislar el hilo (DESCONECTAR) */
+   if(p.suelta){const bs=/^(\d+\.\d)/.exec(p.b.in||"");if(bs)add({mod:p.id,b1:bs[1],b2:bs[1],k1:sig(p.id,bs[1])||"IN",k2:"",d:p.nom,suelta:true});return}const bi=/^(\d+\.\d)/.exec(p.b.in||""),bv=/(\d+\.\d)/.exec(p.b.v||"");if(!bi||!bv)return;if(+bv[1].split(".")[1]>4||+bi[1].split(".")[1]>4)return;
    const M=PLC.find(m=>m.id==p.id),sd=M&&M.t=="SDI";if(sd&&soloNor&&!S.cont&&!(S.sen&&S.sen.length))return;if(!sd&&soloSeg&&!(S.sen&&S.sen.length))return;
    add({mod:p.id,b1:bi[1],b2:bv[1],k1:sig(p.id,bi[1])||"IN",k2:sig(p.id,bv[1])||(sd?"UT":"+24 V"),d:p.nom})})}catch(e){}
   return out};
