@@ -1,4 +1,5 @@
-/* ===== v787: botones más pequeños y cuadrados (aspect-ratio 1), ajustados al texto.
+/* ===== v788: iconos más grandes, oscurecido más suave, letras blancas.
+   v787: botones más pequeños y cuadrados (aspect-ratio 1), ajustados al texto.
    v779: barra lateral en VERTICAL (23/11/2026) =====
    La tira de botones sale en columna desde la pestaña ☰ hacia arriba: los textos ya no se cortan (dos líneas si hace falta)
    y los iconos son más grandes. Se mantiene la posición de la pestaña (nav-fija.js) y el tema consola (nav-pro.js). ===== */
@@ -12,9 +13,14 @@ html body #nav#nav.abre{transform:translate(0,calc(-100% + 72px))!important}
 html body #nav#nav button{flex:0 0 auto!important;width:100%!important;max-width:none!important;min-width:0!important;min-height:0;aspect-ratio:1/1;
  margin:3px 0!important;padding:12px 3px 5px!important;gap:3px!important;border-radius:10px!important;white-space:normal!important;overflow:visible!important;
  font-size:10.5px!important;line-height:1.1!important;hyphens:auto;text-align:center!important;word-break:normal;overflow-wrap:anywhere}
-html body #nav#nav button span{font-size:24px!important}
-html body #nav#nav button span svg{width:26px!important;height:26px!important}
-html body #nav#nav button.ninicio span svg{width:28px!important;height:28px!important}
+html body #nav#nav button span{font-size:32px!important}
+html body #nav#nav button span svg{width:34px!important;height:34px!important}
+html body #nav#nav button.ninicio span svg{width:36px!important;height:36px!important}
+/* v788: fondo oscurecido más suave y letras en blanco sobre botones oscuros (también en modo claro) */
+html body #navbg.abre{background:#00000026!important}
+html body #nav#nav button{color:#fff!important}
+html.lt body #nav#nav button:not(.on){background:linear-gradient(180deg,#2a2e3a,#1b1e27)!important;border-color:#ffffff1f!important}
+html.lt body #nav#nav{background:linear-gradient(135deg,#1a1d25f2,#111319f2) padding-box,linear-gradient(135deg,#ff7a1a,#8e44ff 55%,#1e88e5) border-box!important}
 html body #nav#nav button.on::after{left:auto!important;right:-1px!important;top:25%!important;bottom:25%!important;width:3px!important;height:auto!important}`;
 document.head.appendChild(st);
 })();
