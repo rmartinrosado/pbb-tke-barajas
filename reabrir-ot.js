@@ -1,9 +1,17 @@
-/* ===== v761: OT CERRADA → candado abierto encima de «CERRADA» para reabrirla con un toque (23/11/2026) =====
+/* ===== v764: OT ABIERTA → candado CERRADO encima de «ABIERTA» que abre el Cierre CGA (resolver).
+   v761: OT CERRADA → candado abierto encima de «CERRADA» para reabrirla con un toque (23/11/2026) =====
    v762: solo se borra la hora de cierre; se mantienen llegada, actuación y observaciones.
    Solo técnico y administrador (los que pueden editar OT). ===== */
 (function(){"use strict";
 const CAND=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.8-1.2"/><circle cx="12" cy="16" r="1.4" fill="currentColor"/></svg>`;
+const CERR=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/><circle cx="12" cy="16" r="1.4" fill="currentColor"/></svg>`;
 const st=document.createElement("style");st.textContent=`
+#app .card.ot span.ab.reabw{position:relative;overflow:visible!important}
+#app .card.ot .otcerr{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:44px;height:36px;padding:0;margin:0;
+ display:flex;align-items:center;justify-content:center;border-radius:10px;border:1.5px solid #e53935;background:#e5393522;color:#ff6b6b;cursor:pointer;z-index:3}
+#app .card.ot .otcerr svg{width:22px;height:22px;display:block}
+#app .card.ot .otcerr:active{transform:translateX(-50%) scale(.92)}
+html.lt #app .card.ot .otcerr{background:#ffebee;color:#c62828}
 #app .card.ot span.ce.reabw{position:relative;overflow:visible!important}
 #app .card.ot .otreab{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:44px;height:36px;padding:0;margin:0;
  display:flex;align-items:center;justify-content:center;border-radius:10px;border:1.5px solid #2e9e44;background:#2e9e4422;color:#4cd964;cursor:pointer;z-index:3}
@@ -15,13 +23,15 @@ const puede=()=>{try{return !!(admin||tecnico)}catch(e){return false}};
 function pon(){
  const app=document.getElementById("app");if(!app)return;const ok=puede();
  app.querySelectorAll(".card.ot").forEach(c=>{
-  const ce=c.querySelector(".row span.ce");const b=c.querySelector(".otreab");
-  if(!ce||!ok){if(b)b.remove();return}
   const id=c.dataset.oid;let o=null;try{o=inc.find(x=>String(x.id)==String(id))}catch(e){}
-  if(!o||o.estado!="cerrada"){if(b)b.remove();return}
-  if(b&&b.parentNode===ce)return;if(b)b.remove();
-  ce.classList.add("reabw");
-  ce.insertAdjacentHTML("beforeend",`<button type="button" class="otreab" title="Reabrir OT" aria-label="Reabrir OT" data-reab="${String(id).replace(/"/g,"")}">${CAND}</button>`)})}
+  const ce=c.querySelector(".row span.ce"),ab=c.querySelector(".row span.ab");
+  const quiere=!ok||!o?null:o.estado=="cerrada"&&ce?{el:ce,cl:"otreab",ico:CAND,t:"Reabrir OT"}:o.estado=="abierta"&&ab?{el:ab,cl:"otcerr",ico:CERR,t:"Cerrar OT"}:null;
+  c.querySelectorAll(".otreab,.otcerr").forEach(b=>{if(!quiere||b.parentNode!==quiere.el||!b.classList.contains(quiere.cl))b.remove()});
+  if(!quiere||quiere.el.querySelector("."+quiere.cl))return;
+  quiere.el.classList.add("reabw");
+  quiere.el.insertAdjacentHTML("beforeend",`<button type="button" class="${quiere.cl}" title="${quiere.t}" aria-label="${quiere.t}" data-reab="${String(id).replace(/"/g,"")}">${quiere.ico}</button>`)})}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".otcerr");if(!b)return;e.stopPropagation();e.preventDefault();
+ try{resolver(b.dataset.reab)}catch(x){console.warn("cerrar OT",x)}},true);
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".otreab");if(!b)return;e.stopPropagation();e.preventDefault();
  let i=null;try{i=inc.find(x=>String(x.id)==b.dataset.reab)}catch(x){}if(!i||i.estado!="cerrada")return;
  if(!confirm(`🔓 ¿Reabrir la OT ${i.orden||""} · PBB ${i.pos}?\n\nQuedará ABIERTA y solo se borra la hora de cierre (se mantienen llegada, actuación y observaciones).`))return;
