@@ -86,7 +86,7 @@ window.avBorra=async function(id){if(!confirm("¿Olvidar este alias?"))return;co
 let ck={k:"",t:0,n:0};
 /* botones de administrador en Inicio (debajo de «PANEL DE CONTROL») */
 /* v682: los botones salen en el menú «Gestión» de la cabecera; aquí solo se calcula el nº de avisos pendientes (insignia de Gestión) */
-window.avPendientes=()=>{try{return pendientes().length}catch(e){return 0}};
+window.avPendientes=()=>{try{const n=pendientes().length;window.__avN=n;ck={k:ck.k,t:Date.now(),n};return n}catch(e){return 0}};
 const pon=()=>{try{if(!admin)return;const k=(typeof inc!="undefined"?inc.length+"/"+inc.filter(x=>x&&x.noRec).length:0)+"|"+(window.__alAp||[]).length+"|"+ign().size;
  if(k!==ck.k||Date.now()-ck.t>60000){ck={k,t:Date.now(),n:pendientes().length}}window.__avN=ck.n;const old=document.getElementById("adtools");if(old)old.remove();return}catch(e){}};
 const ponViejo=()=>{try{if(view!="dash"||!admin)return;const a=document.getElementById("app");if(!a)return;let t=document.getElementById("adtools");
