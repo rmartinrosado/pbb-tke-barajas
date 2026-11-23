@@ -79,7 +79,10 @@ const esCodigo=w=>{const l=w.replace(/[^A-ZÑa-zñ]/g,"");if(!l||l!==l.toUpperCa
  if(/\d/.test(w))return true;            /* letras y números: IT-B11, X1, KM2 */
  if(/[-:\/]/.test(w))return true;        /* IT-B, E-A */
  return l.length<=3||!/[AEIOU]/.test(l)};/* siglas: PBB, PLC, SAI, HZ */
-const limpiaVoz=t=>String(t)/* v845: lo de dentro del paréntesis se lee como aclaración: «, es decir, … ,» con pausa */.replace(/\s*\(\s*([^()]*?)\s*\)\s*([.,;:!?]?)/g,(m,d,p)=>d.trim()?`, es decir, ${d.trim()}${p||","} `:(p?p+" ":" ")).replace(/[()]/g," ").replace(/(^|\s)[-+](?=[A-ZÑ])/gu,"$1").replace(/(?<![\p{L}\d])magelis(?![\p{L}\d])/giu,"mallelis")/* v841: pronunciación */.replace(/(?<![\p{L}\d])LEDS?(?![\p{L}\d])/gu,w=>w.toLowerCase())
+/* v846: un color solo dentro del paréntesis lleva «el»: «bornero X (azul)» → «bornero equis, es decir, el azul» */
+const COL="azul|rojo|negro|marr[oó]n|gris|blanco|verde|amarillo|naranja|violeta|morado|rosa|celeste|beige";
+const conEl=d=>new RegExp(`^(${COL})(\\s*[-/ ]\\s*(${COL}))?(\\s+(claro|oscuro))?$`,"i").test(d)?"el "+d:d;
+const limpiaVoz=t=>String(t)/* v845: lo de dentro del paréntesis se lee como aclaración: «, es decir, … ,» con pausa */.replace(/\s*\(\s*([^()]*?)\s*\)\s*([.,;:!?]?)/g,(m,d,p)=>d.trim()?`, es decir, ${conEl(d.trim())}${p||","} `:(p?p+" ":" ")).replace(/[()]/g," ").replace(/(^|\s)[-+](?=[A-ZÑ])/gu,"$1").replace(/(?<![\p{L}\d])magelis(?![\p{L}\d])/giu,"mallelis")/* v841: pronunciación */.replace(/(?<![\p{L}\d])LEDS?(?![\p{L}\d])/gu,w=>w.toLowerCase())
  .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu," ")
  .replace(/[▶◀▲▼►◄▸▾•●○■□★☆✓✔✕✖✗→←↑↓⇒⟶*#|~^_`<>{}\[\]]/g," ").replace(/\s*·\s*/g,", ")
  .replace(/(\d)\s*(V|Vcc|Vdc|Vac)(?![\p{L}\d])/gu,"$1 voltios").replace(/(\d)\s*mA(?![\p{L}\d])/gu,"$1 miliamperios").replace(/(\d)\s*Hz(?![\p{L}\d])/giu,"$1 hercios")
