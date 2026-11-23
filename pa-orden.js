@@ -53,9 +53,9 @@ function croq(){const c=document.getElementById("gcroq");if(!c){document.querySe
  const h=c.querySelector(".gcrh");if(!h)return;let t=h.querySelector(".pacrt");
  const tit=(g&&g.querySelector(".pucab")?T(g.querySelector(".pucab")):"PRIMERA ACTUACIÓN EN CAMPO").replace(/^[^A-ZÁÉÍÓÚ]+/,"");
  if(!t){/* el «🔌» se queda delante del título; el texto original («Croquis del puente provisional…») pasa a la línea de debajo */
-  const fn=h.firstChild;if(fn&&fn.nodeType==3)fn.nodeValue=fn.nodeValue.replace(/^\s*🔌\s*/,"");
+  const fn=h.firstChild;if(fn&&fn.nodeType==3)fn.nodeValue=fn.nodeValue.replace(/^\s*(🔌|✂️)+\s*/,"");
   t=document.createElement("div");t.className="pacrt";h.prepend(t)}
- const want="🔌 "+tit;if(t.textContent!==want)t.textContent=want;
+ const want=(c.dataset.ic||"🔌")+" "+tit;if(t.textContent!==want)t.textContent=want;
  /* v676: el título rojo ya va en el croquis: se quita el repetido de la caja de abajo (el que va antes de la llave) */
  const pc=g&&g.querySelector(":scope>.pucab");if(pc)pc.classList.add("pahid")}
 /* v688: sin retardo de 120 ms (las cajas ya no saltan de sitio tras pintarse) */

@@ -132,7 +132,7 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
  let cro="";if(T=="PAS"&&!REM&&typeof window._croqLista=="function"&&typeof croquisPuente=="function"){try{
   const mk=(d,f)=>({id:"sosc_"+pos,pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:f||"",com:"",obs:"",orden:"SOS",fecha:""});
   let L=ob?_croqLista(mk(ob,"")):[];if(!L.length)L=_croqLista(mk(ob||al,ob?al:""));
-  if(L.length)cro=`<div class="card gcroq ubcro"><div class="gcrh">🔌 Croquis del puente provisional · módulo ${E([...new Set(L.map(o=>o.mod))].join(" / "))}${L.length>1?` · ${L.length} posibles (desliza)`:""}</div><div class="gcrs">${L.map(o=>`<div class="gcri">${croquisPuente(o,5)}</div>`).join("")}</div></div>`}catch(e){}}
+  if(L.length)cro=`<div class="card gcroq ubcro"><div class="gcrh">${window.croqTit?croqTit(L).ic+" "+croqTit(L).t:"🔌 Croquis del puente provisional"} · módulo ${E([...new Set(L.map(o=>o.mod))].join(" / "))}${L.length>1?` · ${L.length} posibles (desliza)`:""}</div><div class="gcrs">${L.map(o=>`<div class="gcri">${croquisPuente(o,5)}</div>`).join("")}</div></div>`}catch(e){}}
  if(BLQ(ob+" "+al))cro="";/* v431: en los bloqueos el croquis va en la 2ª opción (PLC) */
  const ap=parecidos(ob||al,T);
  const apH=ap.length?`<div class="apr"><div class="aprh">⭐ Lo que resolvió avisos parecidos</div>${ap.slice(0,3).map(x=>`<div class="apri"><b>${x.n}×</b> ${E(x.t)}${x.pos.size?` <small>(PBB ${E([...x.pos].slice(0,4).join(", "))})</small>`:""}</div>`).join("")}</div>`:"";
