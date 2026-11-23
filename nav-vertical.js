@@ -13,9 +13,9 @@ html body #nav#nav.abre{transform:translate(0,calc(-100% + 72px))!important}
 html body #nav#nav button{flex:0 0 auto!important;width:100%!important;max-width:none!important;min-width:0!important;min-height:0;aspect-ratio:1/1;
  margin:3px 0!important;padding:12px 3px 5px!important;gap:3px!important;border-radius:10px!important;white-space:normal!important;overflow:visible!important;
  font-size:10.5px!important;line-height:1.1!important;hyphens:auto;text-align:center!important;word-break:normal;overflow-wrap:anywhere}
-html body #nav#nav button span{font-size:32px!important}
-html body #nav#nav button span svg{width:34px!important;height:34px!important}
-html body #nav#nav button.ninicio span svg{width:36px!important;height:36px!important}
+html body #nav#nav button span{font-size:38px!important}
+html body #nav#nav button span svg{width:40px!important;height:40px!important}
+html body #nav#nav button.ninicio span svg{width:42px!important;height:42px!important}
 /* v788: fondo oscurecido más suave y letras en blanco sobre botones oscuros (también en modo claro) */
 html body #navbg.abre{background:#00000026!important}
 html body #nav#nav button{color:#fff!important}
