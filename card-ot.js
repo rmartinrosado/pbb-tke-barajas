@@ -5,7 +5,7 @@
 (function(){"use strict";
 const LLAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
 const st=document.createElement("style");st.textContent=`
-#app .card.ot .sosb,#app .card.ot .sosc{display:none!important}#app .card .otres .orl>.pactt{cursor:pointer}#app .card .otres .orl>.pactt.pactpte{animation:pactBl 1.1s ease-in-out infinite!important}
+#app .card.ot .sosb,#app .card.ot .sosc{display:none!important}#app .card .otres .orl>.pactt{cursor:pointer}#app .card .otres .orl>.pactt2{flex:none;margin:0 0 0 2px;font-size:18px;line-height:1;padding:3px 4px;border-radius:8px;border:1.5px solid #c62828;cursor:pointer}#app .card .otres .orl>.pactt.pactpte{animation:pactBl 1.1s ease-in-out infinite!important}
 @keyframes pactBl{0%,100%{opacity:1;box-shadow:0 0 0 0 #ff5252aa}50%{opacity:.35;box-shadow:0 0 10px 2px #ff5252aa}}
 
 .orl .sosc{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0!important;margin:0!important;border-radius:50%!important;border:0!important;background:transparent!important;flex:none}
@@ -91,15 +91,17 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
    let k="";try{const o=inc.find(x=>x.id==id);if(o&&o.estado=="abierta"){let L=[];try{if(typeof _croqLista=="function")L=_croqLista(o)||[]}catch(e){}
      let P=[];try{if(typeof puentesOT=="function")P=puentesOT(o)||[]}catch(e){}
      const pte=L.some(x=>!x.suelta)||P.some(x=>!x.suelta&&!x.croq&&x.b),cor=L.some(x=>x.suelta)||P.some(x=>x.suelta||x.croq);
-     k=pte?"pte":cor?"cor":""}}catch(e){}
+     k=pte&&cor?"dos":pte?"pte":cor?"cor":""}}catch(e){}
    if(pa.textContent.trim()!="⚡"){const ic=k=="cor"?"✂️":"🔌";if(pa.textContent.trim()!=ic)pa.textContent=ic}
-   pa.classList.toggle("pactpte",k=="pte");pa.classList.toggle("pactcor",k=="cor")}}
+   pa.classList.toggle("pactpte",k=="pte"||k=="dos");pa.classList.toggle("pactcor",k=="cor");
+   /* v768: puente y soltar cable a la vez → 🔌 parpadeando + ✂️ */
+   let t2=c.querySelector(".pactt2");if(k=="dos"){if(!t2){pa.insertAdjacentHTML("afterend",'<span class="pactt2" role="button" title="Actuación directa · soltar cable">✂️</span>');t2=c.querySelector(".pactt2")}t2.dataset.oid=id;if(pa.nextElementSibling!==t2)pa.after(t2)}else if(t2)t2.remove()}}
  if(orl)orl.classList.toggle("orlsos",!!orl.querySelector(".sosc,.pactt"));}
 function todo(){if(!SEGV())return;document.querySelectorAll("#app .card.ot").forEach(c=>{try{fix(c)}catch(e){}})}
 const ini=()=>{const a=document.getElementById("app");if(!a)return setTimeout(ini,300);new MutationObserver(todo).observe(a,{childList:true,subtree:true});todo()};ini();
 })();
 
 /* v767: el 🔌 / ✂️ de la caja abre la actuación directa (antes el botón SOS) */
-document.addEventListener("click",e=>{const p=e.target.closest&&e.target.closest("#app .card .pactt");if(!p)return;e.stopPropagation();e.preventDefault();
+document.addEventListener("click",e=>{const p=e.target.closest&&e.target.closest("#app .card .pactt,#app .card .pactt2");if(!p)return;e.stopPropagation();e.preventDefault();
  const id=p.dataset.oid||(p.closest(".card")||{}).dataset&&p.closest(".card").dataset.oid;if(!id)return;
  try{if(typeof otRapVa=="function")otRapVa(id);else sosVa(id)}catch(x){try{sosVa(id)}catch(y){}}},true);
