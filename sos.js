@@ -201,3 +201,11 @@ const st=document.createElement("style");st.textContent=`.grid.sosgrid{grid-temp
 .sosrh{display:flex;gap:10px;align-items:center;margin-bottom:6px}.sosrh img{width:44px;height:44px;flex:none}
 .srfotol .mgbox{margin-top:6px}.srfoto{display:block;text-align:center;padding:12px;margin-top:4px;cursor:pointer}.srtx{margin-top:8px}.srtx summary{cursor:pointer;font-size:13px}`;document.head.appendChild(st);
 })();
+/* ===== v823: SOS · «Análisis del texto» va justo debajo de «Texto analizado»; los dos con la misma letra y en gris ===== */
+(function(){
+const mueve=()=>{const r=document.getElementById("sr_res");if(!r)return;const le=r.querySelector("#sr_leido>details.srtx");const an=r.querySelector("details.lpaan");
+ if(le&&an&&le.nextElementSibling!==an)le.after(an)};
+new MutationObserver(()=>mueve()).observe(document.body,{childList:true,subtree:true});
+const st=document.createElement("style");st.textContent=`#sr_res #sr_leido>details.srtx,#sr_res #sr_leido>details.lpaan{margin:8px 0 0}
+#sr_res #sr_leido>details.srtx>summary,#sr_res #sr_leido>details.lpaan>summary{color:var(--mu,#8a93a3)!important;font:700 13px/1.4 system-ui,-apple-system,sans-serif!important;letter-spacing:0!important;text-transform:none!important;cursor:pointer}
+#sr_res #sr_leido>details.srtx>summary *,#sr_res #sr_leido>details.lpaan>summary *{color:inherit!important;font:inherit!important}`;document.head.appendChild(st)})();
