@@ -43,7 +43,9 @@ const arranca=()=>{parchaRPC();parchaAdmin();parchaAlarma();
 new MutationObserver(()=>{auto();parchaAlarma()}).observe(document.body,{childList:true,subtree:true});
 let n=0;const iv=setInterval(()=>{arranca();auto();if(++n>120&&entrado)clearInterval(iv)},250);
 addEventListener("pageshow",e=>{if(e.persisted){entrado=false;arranca()}});
-/* aviso discreto */
-const st=document.createElement("style");st.textContent=`body::after{content:"DESARROLLO";position:fixed;left:50%;bottom:2px;transform:translateX(-50%);z-index:99999;pointer-events:none;
- font:800 9px/1 ui-monospace,monospace;letter-spacing:2px;color:#fff;background:#c62828cc;padding:2px 6px;border-radius:5px}`;document.head.appendChild(st);
+/* aviso: etiqueta DESARROLLO (v754: elemento propio; body::after lo anulaba otra regla de la app) */
+const st=document.createElement("style");st.textContent=`#devtag{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 4px);transform:translateX(-50%);z-index:2147483647;pointer-events:none;
+ font:800 10px/1 ui-monospace,Menlo,monospace;letter-spacing:2px;color:#fff;background:#c62828;padding:3px 8px;border-radius:6px;box-shadow:0 2px 8px #0006}`;document.head.appendChild(st);
+const tag=()=>{if(!document.body)return;let d=$i("devtag");if(!d){d=document.createElement("div");d.id="devtag";d.textContent="DESARROLLO";document.body.appendChild(d)}else if(d!==document.body.lastElementChild&&d.nextElementSibling&&d.nextElementSibling.id!="devtag"){}};
+tag();setInterval(tag,2000);
 })();
