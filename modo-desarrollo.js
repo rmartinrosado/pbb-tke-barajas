@@ -1,4 +1,8 @@
 /* ===== v753: MODO DESARROLLO (23/11/2026) =====
+   ⚠️ PENDIENTE AL PASAR A PRODUCCIÓN (pedido por Raúl el 23/11/2026), además de DESARROLLO=false:
+   1) IA: solo el ADMINISTRADOR puede aceptar el «CONSUMO DE CLAUDE» (ia-motor.js); los técnicos se quedan solo con Gemini.
+   2) Edge functions de IA (consulta-sos, leer-ia, leer-hoja, leer-magelis, leer-mantenimiento): responder solo a usuarios
+      con sesión iniciada (comprobar el JWT del usuario, no basta la clave pública anon).
    Mientras la PWA está en desarrollo (Raúl):
    · Sin accesos con contraseña ni códigos dentro de la app: sin candado de Face ID al abrir, sin contraseña de administrador
      y sin códigos de técnico / integrantes / cierre de turno (se validan solos).
