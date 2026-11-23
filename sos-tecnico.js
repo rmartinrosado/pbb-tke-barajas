@@ -318,3 +318,11 @@ ${P} .sostp2:not(.sostcer)>.sostph .sostcol .sostpr{border-color:#ef6c00!importa
 (function(){const st=document.createElement("style");st.textContent=`#sheetc #sostf label.srfoto{display:none!important}`;document.head.appendChild(st);
  const oculta=()=>{document.querySelectorAll("#sheetc #sostf .sostpb label").forEach(l=>{if(/^\s*Foto de la Magelis/i.test(l.textContent||""))l.style.display="none"})};
  new MutationObserver(oculta).observe(document.body,{childList:true,subtree:true})})();
+/* ===== v826: papelera y micrófono en la MISMA LÍNEA (abajo a la derecha de «Avería en campo», el texto usa todo el ancho);
+   en la caja 1, campana y foto también en la misma línea y en las mismas columnas (campana = papelera · foto = micrófono) ===== */
+(function(){const P="#sheetc #sostf";const st=document.createElement("style");st.textContent=`
+${P} .srobsw textarea{padding-right:12px!important;padding-bottom:64px!important;min-height:132px!important}
+${P} .srobsw button{top:auto!important;bottom:8px!important}
+${P} .srobsw button.srobdel{right:64px!important}
+${P} .srobsw button.micb{right:8px!important}
+${P} .sostp2>.sostph .sostcol{flex-direction:row!important;gap:8px!important;align-self:center}`;document.head.appendChild(st)})();
