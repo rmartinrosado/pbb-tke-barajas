@@ -57,13 +57,16 @@ const NUN=[
  ["Reservas",5,"E-A9 4.1 · P-A4 1.1 · P-A5 4.4 · P-A6 4.3 / 4.4","Sin señal"]];
 const SAL=[["E-A1","Salidas digitales armario",32,"54–57"],["E-A6","Salidas de seguridad (hacia E-K0)",8,"64–65"],["E-A7","Salidas de seguridad",8,"66–67"],["P-A1","Salidas digitales pupitre",16,"73–76"],["P-A2","Salidas digitales pupitre",16,"77–80"]];
 const ICO=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v5"/></svg>`;
-let F="todas";
+let F="todas",Q="";
+/* v784: buscador (módulo, bloque, LED, borna, bornero, señal, hilo, folio, tipo) */
+const NRM=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const TIPO={sol:"soltar hilo cable tijera desconectar",v24:"puente +24 v 24v limite verde",ut:"puente ut seguridad amarillo"};
 /* v780: bornero donde se conecta el componente de campo (último bornero antes del elemento, según CABLEADO rev. J) */
 const BORX={"P-A5|4.4":"P-X92:7","E-A8|2.1":"H-X51:21-22"};
 function bor(m,b){if(BORX[m+"|"+b])return BORX[m+"|"+b];try{const C=window.CABLEADO||{};const e=Object.values(C).find(x=>x.m==m&&x.b==b);if(!e)return "";
  const i=e.n.findIndex(n=>n.k=="E"),pre=(i<0?e.n:e.n.slice(0,i)).filter(n=>n.k=="B"),l=pre[pre.length-1];return l?String(l.t).replace(/^\+/,"")+":"+l.p:""}catch(x){return ""}}
 const croqO=(r,tipo)=>tipo=="sol"?{mod:r[0],b1:r[2],b2:r[2],k1:"IN "+r[2],k2:"",d:r[4],suelta:true}:{mod:r[0],b1:r[2],b2:r[3],k1:"IN "+r[2],k2:tipo=="ut"?"UT "+r[3]:"+24 V "+r[3],d:r[4]};
-function filas(L,tipo){return L.filter(r=>F=="todas"||(F=="rev"?r[6]=="rev":r[6]=="pwa")).map((r,i)=>`<details class="pzr${r[6]=="rev"?" pzrev":""}" data-t="${tipo}" data-i="${L.indexOf(r)}"><summary>
+function filas(L,tipo){return L.filter(r=>F=="todas"||(F=="rev"?r[6]=="rev":r[6]=="pwa")).map((r,i)=>`<details class="pzr${r[6]=="rev"?" pzrev":""}" data-t="${tipo}" data-i="${L.indexOf(r)}" data-q="${E(NRM([r[0],"bloque "+String(r[1]).split(".")[0],"led "+r[1],"in "+r[2],r[3],bor(r[0],r[2]),r[4],"folio "+r[5],r[6]=="rev"?"revisar campo":"pwa",TIPO[tipo]].join(" ")))}"><summary>
  <span class="pzm">${E(r[0])}<i class="pzbq">bloque ${E(String(r[1]).split(".")[0])}</i><small>LED ${E(r[1])}</small>${(b=>b?`<span class="pzbor">${E(b)}</span>`:"")(bor(r[0],r[2]))}</span>
  <span class="pzb">${tipo=="sol"?"✂️ IN "+E(r[2]):"🔌 "+E(r[2])+" ↔ "+E(r[3])}</span>
  <span class="pzs">${E(r[4])}<small>folio ${r[5]}${r[6]=="rev"?' · <b class="pzrv">⚠️ REVISAR EN CAMPO</b>':" · en la PWA"}</small></span></summary><div class="pzc"></div></details>`).join("")||`<div class="mu" style="padding:8px">Nada con este filtro.</div>`}
@@ -72,14 +75,23 @@ function pagina(){const n=(L)=>L.filter(r=>r[6]=="rev").length,nr=n(SOL)+n(V24)+
  <div class="pzlead">De las <b>133 entradas digitales</b> de los dos PLC, <b>37</b> admiten actuación provisional para sacar la PBB ya: <b>12 ✂️ soltar hilo</b>, <b>11 🔌 IN ↔ +24 V</b> y <b>14 🔌 IN ↔ UT</b>. <b>${37-nr}</b> ya están en la PWA y <b class="pzrv">${nr} hay que revisarlas en campo</b>. Toca una fila para ver su croquis.</div>
  <div class="pzreg"><div>⚪ Apagada en reposo, se enciende en falso → <b>✂️ soltar y aislar el hilo</b> (nunca a +24 V)</div><div>🟢 Encendida en reposo (módulo verde), se apaga → <b>🔌 IN ↔ +24 V</b></div><div>🟡 Seguridad (módulo amarillo), se abre → <b>🔌 IN ↔ UT</b> + bypass CP-S33 antes de LOCAL</div><div>Siempre: elemento comprobado, MANUAL, compañero vigilando, autorización del Responsable de Turno, hora en la OT y retirar al reparar.</div></div>
  <div class="pzf">${[["todas","Todas"],["pwa","En la PWA"],["rev","⚠️ Revisar en campo"]].map(([k,t])=>`<button type="button" class="${F==k?"on":""}" onclick="pzFiltro('${k}')">${t}</button>`).join("")}</div></div>
- <div class="card pzcard"><h3 class="pzh">✂️ Soltar hilo · 12</h3><div class="mu pzx">Entradas apagadas en reposo que se encienden en falso y bloquean: comprobar que el elemento está de verdad en reposo y soltar el hilo de la borna IN.</div>${filas(SOL,"sol")}</div>
- <div class="card pzcard"><h3 class="pzh">🔌 Puente IN ↔ +24 V · 11 <small>módulos verdes</small></h3><div class="mu pzx">Límites de trabajo y sensores de contacto cerrado: puente IN ↔ +24 V del canal y sacar la PBB en sentido contrario.</div>${filas(V24,"v24")}</div>
- <div class="card pzcard"><h3 class="pzh">🔌 Puente IN ↔ UT · 14 <small>módulos amarillos</small></h3><div class="mu pzx">Entradas de seguridad: puente IN ↔ UT, bypass CP-S33 antes de encender en LOCAL y mover en sentido contrario (procedimiento PBB 546).</div>${filas(UT,"ut")}</div>
+ <div class="card pzcard pzbus"><div class="pzqw"><span>🔍</span><input id="pzq" type="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar: P-A5, bloque 2, LED 1.1, P-X92, hilo 320, contacto, folio 85…" value="${E(Q)}" oninput="pzBusca(this.value)"><button type="button" class="pzqx" onclick="pzBusca('');document.getElementById('pzq').value=''" aria-label="Borrar">✕</button></div><div id="pzqn" class="mu"></div></div>
+ <div class="card pzcard pzsec"><h3 class="pzh">✂️ Soltar hilo · 12</h3><div class="mu pzx">Entradas apagadas en reposo que se encienden en falso y bloquean: comprobar que el elemento está de verdad en reposo y soltar el hilo de la borna IN.</div>${filas(SOL,"sol")}</div>
+ <div class="card pzcard pzsec"><h3 class="pzh">🔌 Puente IN ↔ +24 V · 11 <small>módulos verdes</small></h3><div class="mu pzx">Límites de trabajo y sensores de contacto cerrado: puente IN ↔ +24 V del canal y sacar la PBB en sentido contrario.</div>${filas(V24,"v24")}</div>
+ <div class="card pzcard pzsec"><h3 class="pzh">🔌 Puente IN ↔ UT · 14 <small>módulos amarillos</small></h3><div class="mu pzx">Entradas de seguridad: puente IN ↔ UT, bypass CP-S33 antes de encender en LOCAL y mover en sentido contrario (procedimiento PBB 546).</div>${filas(UT,"ut")}</div>
  <details class="card pzcard pznun"><summary><h3 class="pzh" style="display:inline">⛔ Nunca se puentean ni se sueltan · 96 entradas</h3></summary>
-  ${NUN.map(g=>`<div class="pzng"><b>${E(g[0])} · ${g[1]}</b><div>${E(g[2])}</div><small>${E(g[3])}</small></div>`).join("")}
-  <div class="pzng"><b>Salidas · nunca</b><div>${SAL.map(s=>`${s[0]} ${E(s[1])} (${s[2]} canales, folios ${s[3]})`).join(" · ")}</div><small>Forzar una salida mueve un actuador sin el control del PLC</small></div></details>
+  ${NUN.map(g=>`<div class="pzng" data-q="${E(NRM(g.join(" ")+" nunca"))}"><b>${E(g[0])} · ${g[1]}</b><div>${E(g[2])}</div><small>${E(g[3])}</small></div>`).join("")}
+  <div class="pzng" data-q="${E(NRM("salidas nunca "+SAL.map(x=>x.join(" ")).join(" ")))}"><b>Salidas · nunca</b><div>${SAL.map(s=>`${s[0]} ${E(s[1])} (${s[2]} canales, folios ${s[3]})`).join(" · ")}</div><small>Forzar una salida mueve un actuador sin el control del PLC</small></div></details>
  <div class="mu pzfu">Fuente: tablas PLC, PUENTE y CABLEADO de la PWA · ESQUEMA GENERAL rev. J, folios 52–88. No vale para la 507 ni para la 504 / 508 sin cotejar sus planos.</div>`}
-window.pzFiltro=k=>{F=k;const a=document.getElementById("app");if(a&&view=="pte"){a.innerHTML=pagina()}};
+window.pzFiltro=k=>{F=k;const a=document.getElementById("app");if(a&&view=="pte"){a.innerHTML=pagina();aplica()}};
+function aplica(){const a=document.getElementById("app");if(!a)return;const T=NRM(Q).split(/\s+/).filter(Boolean),ok=el=>T.every(t=>(el.dataset.q||"").includes(t));
+ let n=0;a.querySelectorAll(".pzr").forEach(r=>{const v=!T.length||ok(r);r.style.display=v?"":"none";if(v)n++});
+ a.querySelectorAll(".pzsec").forEach(c=>{c.style.display=!T.length||c.querySelector('.pzr:not([style*="none"])')?"":"none"});
+ let m=0;a.querySelectorAll(".pzng").forEach(g=>{const v=!T.length||ok(g);g.style.display=v?"":"none";if(v&&T.length)m++});
+ const nu=a.querySelector(".pznun");if(nu){nu.style.display=!T.length||m?"":"none";if(T.length&&m)nu.open=true}
+ const q=document.getElementById("pzqn");if(q)q.textContent=T.length?(n+m?`${n} entrada${n==1?"":"s"} con actuación${m?` · ${m} grupo${m==1?"":"s"} de «nunca»`:""}`:"Sin resultados"):"";
+ const x=a.querySelector(".pzqx");if(x)x.style.visibility=T.length?"visible":"hidden"}
+window.pzBusca=v=>{Q=v||"";aplica()};
 document.addEventListener("toggle",e=>{const d=e.target;if(!d||!d.classList||!d.classList.contains("pzr")||!d.open)return;const c=d.querySelector(".pzc");if(!c||c.dataset.ok)return;
  const L={sol:SOL,v24:V24,ut:UT}[d.dataset.t],r=L&&L[+d.dataset.i];if(!r)return;let s="";try{if(typeof croquisPuente=="function")s=croquisPuente(croqO(r,d.dataset.t),5)}catch(x){}
  c.innerHTML=(r[6]=="rev"?`<div class="pzav">⚠️ Sin actuación validada: confirmar en campo que su fallo bloquea el movimiento y que esta actuación recupera la PBB antes de aplicarla.</div>`:"")+(s||`<div class="mu">Croquis no disponible para este módulo.</div>`);c.dataset.ok=1},true);
@@ -90,6 +102,10 @@ const st=document.createElement("style");st.textContent=`
 .pzf{display:flex;gap:6px;flex-wrap:wrap}.pzf button{flex:1;min-height:40px;border-radius:10px;border:1px solid var(--bd,#ffffff33);background:transparent;color:inherit;font:inherit;font-size:13px;font-weight:700}
 .pzf button.on{background:var(--ac,#ff7a1a);color:#000;border-color:transparent}
 .pzx{font-size:12.5px;margin-bottom:6px}
+.pzqw{display:flex;align-items:center;gap:8px;border:1.5px solid var(--ac,#ff7a1a);border-radius:12px;padding:0 6px 0 12px;min-height:48px}
+.pzqw span{font-size:18px}.pzqw input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;color:inherit;font:inherit;font-size:16px;padding:10px 0!important;box-shadow:none!important}
+.pzqx{border:0;background:transparent;color:inherit;font-size:18px;width:36px;height:36px;visibility:hidden}
+#pzqn{font-size:12.5px;margin:6px 4px 0;min-height:0}#pzqn:empty{display:none}
 .pzr{border:1px solid var(--bd,#ffffff22);border-radius:10px;margin:6px 0;overflow:hidden}
 .pzr>summary{display:grid;grid-template-columns:98px 104px minmax(0,1fr);gap:8px;align-items:center;padding:8px;cursor:pointer;list-style:none}
 .pzr>summary::-webkit-details-marker{display:none}
@@ -110,7 +126,7 @@ document.head.appendChild(st);
 /* vista «pte»: el render original pinta como «dash» y luego se sustituye el contenido */
 const oR=window.render;window.render=function(){if(typeof view=="undefined"||view!="pte")return oR.apply(this,arguments);
  view="dash";let r;try{r=oR.apply(this,arguments)}finally{view="pte"}
- const a=document.getElementById("app");if(a)a.innerHTML=pagina();try{boton()}catch(e){}return r};
+ const a=document.getElementById("app");if(a){a.innerHTML=pagina();try{aplica()}catch(e){}}try{boton()}catch(e){}return r};
 function boton(){const n=document.getElementById("nav");if(!n)return;let ok=false;try{ok=!!(tecnico||admin)}catch(e){}
  let b=n.querySelector("#navpte");if(!ok){if(b)b.remove();return}
  const g=[...n.querySelectorAll("button")].find(x=>/go\('tec'\)/.test(x.getAttribute("onclick")||""));
