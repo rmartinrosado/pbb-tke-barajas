@@ -24,6 +24,17 @@ const nrm=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
 const nueva=c=>{if(!PAS.s.some(x=>x.t==c.t))PAS.s.push(c)};
 
 /* ---------- cajas nuevas de la guía PAS ---------- */
+/* v799: «No comunica en remoto» = enlace de red con el puesto remoto (RCS / CGA): switch MikroTik E-V1, no el selector CP-S16 */
+nueva({t:"Comunicación con el puesto remoto (RCS / CGA) · switch MikroTik E-V1",ef:1,g:[93,48,30,92,94],
+ a:"La PBB no aparece o no responde en el puesto remoto. El PLC E-A0 y la Magelis CP-A1 salen a la red por el switch MikroTik CRS112 E-V1 del armario E (puerto X10 → PLC E-A0 · X9 → Magelis CP-A1 · enlace al switch del CBTH). El switch se alimenta por E-Q18 (6 A 30 mA) → fuente 48 V PoE E-X4.1, que también da las cámaras RCS. El selector CP-S16 solo cambia el modo (REMOTO / LOCAL): no es la comunicación.",
+ p:[
+ "1º · ACOTAR · Con el selector CP-S16 en LOCAL, ¿la PBB maniobra desde el pupitre? Sí → la pasarela funciona y el fallo es del enlace con el puesto remoto. Preguntar a CGA qué alarma ve (R013 «Error de comunicación segura», R014 «… no segura», R015 «Error de comunicaciones») y si hay OTRAS PBB sin comunicar: varias a la vez → red del aeropuerto / RCC, no la pasarela.",
+ "2º · ¿Se ven las cámaras de esta PBB en el RCS? Tampoco → el switch E-V1 está sin alimentación o sin enlace: armario E, E-Q18 (6 A 30 mA) cerrado y fuente 48 V PoE E-X4.1 con su LED encendido. E-Q18 disparado → buscar la derivación (cámara o cable PoE) antes de rearmar.",
+ "3º · SWITCH MikroTik E-V1 · LED de alimentación encendido y LED de enlace (link/act) de cada puerto: X10 → PLC E-A0 · X9 → Magelis CP-A1 · enlace de salida al switch del CBTH (pasamuros RJ45 E-RJ451 del armario E, folio 93). Puerto sin enlace → conector RJ45 suelto o dañado: reconectar y revisar el cable.",
+ "4º · REINICIO DEL SWITCH avisando antes a CGA (se cortan también las cámaras): abrir E-Q18, esperar 10 s, cerrar y dar 1-2 minutos a que arranque. Comprobar con CGA si recupera la comunicación.",
+ "5º · PLC E-A0 · cabecera del armario E: módulo 1 LED 1 encendido (alimentación y bus, por E-Q30.1 / E-Q30.2). PLC en fallo (Magelis 089 «Fallo PLC» o 118 «Fallo en tarjetas STB») → seguir en «PLC y comunicaciones».",
+ "6º · CIERRE · Todo correcto en la pasarela (switch con enlace en X10 y en la salida al CBTH, PLC sin fallo) y sigue sin comunicar → incidencia de la red del aeropuerto o del RCC: dejar la PBB operativa en LOCAL, comunicarlo a CGA y pasar la OT a «Espera de condiciones»."],
+ r:"Esquema general rev. J folio 93 (cámaras y red RCS, pasamuros E-RJ451) · 48 (switch E-V1) · 30 (E-Q18) · 92 (fuente 48 V PoE E-X4.1) · 94 (PLC y comunicaciones) · manual RCS (alarmas R013-R015)"});
 nueva({t:"Final de carrera de seguridad pisado · línea de seguridad activada · módulo safety E-A8",ef:1,g:[68,68,68,68],
  a:"Un FC de seguridad PISADO abre la cadena de seguridad: caen los contactores E-K0 / E-K0.1 y la Magelis indica «LÍNEA DE SEGURIDAD ACTIVADA». Solo en MANUAL, despacio y con un compañero vigilando.",
  p:[
@@ -79,6 +90,10 @@ const FC=/final(es)? de carrera|fin de carrera|\bf\.?c\.?\b|\bfc\b|pisad|linea d
 const LIM=/\blimite|\btope\b/;
 const ELEM=/antiatrap|atrapamiento|borde|banda|bumper|zapata|porton|persiana|barrera|freno|puerta de servicio|seta/;
 const REG=[
+ /* v799: «no comunica en remoto» → enlace de red con el RCS (switch E-V1), no el selector CP-S16 */
+ {q:t=>/(no comunica|sin comunicacion|perdida de comunicacion|falla? (de )?comunicacion|error de comunicacion|comunicaciones|sin conexion|no conecta|sin enlace|no aparece|no se ve|desconectad)[^.]{0,40}(remot|rcs|rcc|cga|puesto|red)|(remot|rcs|rcc|cga)[^.]{0,40}(no comunica|comunicacion|sin conexion|no conecta|sin enlace|no aparece|desconectad)|mikrotik|\bswitch\b|e-?v1\b|\br01[345]\b/.test(t)&&!/camara/.test(t),
+  box:/^comunicacion con el puesto remoto/,fuera:/^pupitre · selector|^pupitre encendido pero no rearma|^pupitre · joystick/,
+  relFuera:/remoto|modo (auto|manual|local)/i,elem:["E-V1","E-Q18","E-X4.1","E-X4","E-RJ451","E-A0","CP-A1"]},
  {q:t=>/(manguera|cable)( de)?( (del? )?(400 ?hz|400|hz))?[^.]{0,25}(extendid|fuera|sin recoger|no recog|desenrollad)|recogedor|enroll|enrrol|bloque\w*[^.]{0,30}(manguera|cable (de )?400)|(manguera|cable (de )?400)[^.]{0,30}bloque/.test(t),box:/^manguera 400 hz extendida/,fuera:/^limite de traslacion|^final de carrera de seguridad|carro de aire|^bloqueo carro|^interbloqueo con la pasarela/},
  {q:t=>FC.test(t)&&!ELEM.test(t),box:/^final de carrera de seguridad pisado/,fuera:/^limite de extension \/ retraccion|^limite de inclinacion superior/},
  {q:t=>LIM.test(t)&&/inclinac/.test(t)&&!FC.test(t),box:/^limite de inclinacion superior/,fuera:/^limite de traslacion|^rotonda · detectores|^final de carrera de seguridad/},
@@ -111,6 +126,9 @@ if(typeof anaOT=="function"){const o=anaOT;window.anaOT=anaOT=function(i){const 
   if(!r||r.tipo!="PAS"||!i||!r.guia)return r;const t=nrm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));const A=activas(t);if(!A.length)return r;
   const tit=g=>nrm((PAS.s[g.si]&&PAS.s[g.si].t)||g.t||"");
   A.forEach(R=>{const f=fueraDe(R,t);if(f)r.guia=r.guia.filter(g=>!f.test(tit(g)));
-   if(R.box){const si=PAS.s.findIndex(x=>R.box.test(nrm(x.t)));if(si>=0)r.guia=[{si,t:PAS.s[si].t,sc:99}].concat(r.guia.filter(g=>g.si!=si))}});
+   if(R.box){const si=PAS.s.findIndex(x=>R.box.test(nrm(x.t)));if(si>=0)r.guia=[{si,t:PAS.s[si].t,sc:99}].concat(r.guia.filter(g=>g.si!=si))}
+   /* v799: señales PLC y elementos que no corresponden / que mandan en ese aviso */
+   if(R.relFuera&&r.rel){r.rel=r.rel.filter(x=>!R.relFuera.test((x.S&&x.S.t)||""));r.mods=[...new Set(r.rel.map(x=>x.mod))]}
+   if(R.elem)r.elem=R.elem.concat((r.elem||[]).filter(e=>!R.elem.includes(e)&&!/^(CP-S16|E-A10|EP-W4|E-X68\.1|P-X92\.1|P-X59)$/.test(e)))});
   r.guia=r.guia.slice(0,4)}catch(e){}return r}}
 })();
