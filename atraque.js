@@ -94,7 +94,7 @@ function sim(){return `<div class="atqw" data-s="1" data-l="R">
    <text x="6" y="117" class="aqm">${o.s} · hilo ${o.h}</text></g>`)}
   <text x="30" y="53" class="aqt2">1.1 C-B51</text><text x="30" y="81" class="aqt2">4.4 C-B52</text></g>
  <!-- barra de velocidad -->
- <g transform="translate(246,186)"><text x="0" y="8" class="aqm">VELOCIDAD</text><text x="90" y="8" text-anchor="end" class="aqt2 aqal v1">0 · BLOQ.</text><text x="90" y="8" text-anchor="end" class="aqt2 aqbyo v2">LENTA</text><text x="90" y="8" text-anchor="end" class="aqt2 v3">0</text><text x="90" y="8" text-anchor="end" class="aqt2 aqok v4 v5">NORMAL</text>
+ <g transform="translate(246,186)"><text x="0" y="8" class="aqm">VEL.</text><text x="90" y="8" text-anchor="end" class="aqt2 aqal v1">0 · BLOQ.</text><text x="90" y="8" text-anchor="end" class="aqt2 aqbyo v2">LENTA</text><text x="90" y="8" text-anchor="end" class="aqt2 v3">0</text><text x="90" y="8" text-anchor="end" class="aqt2 aqok v4 v5">NORMAL</text>
   <rect x="0" y="12" width="90" height="10" rx="5" class="aqspb"/><rect x="0" y="12" width="90" height="10" rx="5" class="aqspf"/></g>
  <g transform="translate(172,214)"><rect x="0" y="0" width="164" height="96" rx="6" class="aqmag"/><text x="8" y="14" class="aqm aqmw">MAGELIS · DISPLAY</text>
   <g class="v1"><g class="aqbl"><text x="8" y="30" class="aqt aqal">115 ATRAQUE INCORRECTO</text><text x="8" y="43" class="aqt aqwn">243 contacto con avión</text></g>
@@ -164,17 +164,18 @@ L.push(SEC); /* al final: otras partes guardan las cajas por su número de orden
 
 /* ---------- pasos de la simulación ---------- */
 const N=PASOS.length;
-const pon=(w,n)=>{w.dataset.s=String(n);w.querySelectorAll(".atqbt").forEach(b=>b.classList.toggle("on",+b.dataset.n===n))};
+const pon=(w,n)=>{if(w.dataset.s===String(n))return;w.dataset.s=String(n);w.querySelectorAll(".atqbt").forEach(b=>b.classList.toggle("on",+b.dataset.n===n))};
 window.atqLado=function(b){const w=b.closest(".atqw");if(!w)return;w.dataset.l=b.dataset.l;w.querySelectorAll(".atqlb").forEach(x=>x.classList.toggle("on",x===b))};
 /* v744: barra de control de la animación · ▶/⏸ play-pausa, ⏹ parar (vuelve al paso 1) y velocidad (lenta … rápida) */
 const VEL={1:[6500,"lenta"],2:[4800,"×0,75"],3:[3600,"normal"],4:[2400,"×1,5"],5:[1400,"rápida"]};
-const playOn=(w,on)=>{w.dataset.man=on?"":"1";if(on)delete w.dataset.man;w.dataset.t="0";const b=w.querySelector(".atqpl");if(b){b.textContent=on?"⏸":"▶";b.setAttribute("aria-label",on?"Pausa":"Reproducir");b.classList.toggle("on",!on)}};
+const TT=new WeakMap();
+const playOn=(w,on)=>{w.dataset.man=on?"":"1";if(on)delete w.dataset.man;TT.set(w,0);const b=w.querySelector(".atqpl");if(b){b.textContent=on?"⏸":"▶";b.setAttribute("aria-label",on?"Pausa":"Reproducir");b.classList.toggle("on",!on)}};
 window.atqPaso=function(b){const w=b.closest(".atqw");if(!w)return;playOn(w,false);pon(w,+b.dataset.n)};
 window.atqPlay=function(b){const w=b.closest(".atqw");if(!w)return;playOn(w,w.dataset.man==="1")};
 window.atqStop=function(b){const w=b.closest(".atqw");if(!w)return;playOn(w,false);pon(w,1)};
 window.atqVel=function(r){const w=r.closest(".atqw");if(!w)return;const v=VEL[r.value]||VEL[3];w.dataset.vel=v[0];const t=w.querySelector(".atqvt");if(t)t.textContent=v[1]};
-setInterval(()=>{document.querySelectorAll(".atqw:not([data-man])").forEach(w=>{if(!w.offsetParent)return;const t=(+w.dataset.t||0)+250;
- if(t>=(+w.dataset.vel||3600)){w.dataset.t="0";pon(w,(+w.dataset.s%N)+1)}else w.dataset.t=String(t)})},250);
+setInterval(()=>{document.querySelectorAll(".atqw:not([data-man])").forEach(w=>{if(!w.offsetParent)return;const t=(TT.get(w)||0)+250;
+ if(t>=(+w.dataset.vel||3600)){TT.set(w,0);pon(w,(+w.dataset.s%N)+1)}else TT.set(w,t)})},250);
 const st=document.createElement("style");st.textContent=`
 .atqw{margin:6px 0 10px}.atqb{display:flex;gap:4px;margin-bottom:6px}
 .atqbt{flex:1;min-width:0;min-height:46px;margin:0!important;padding:4px 1px!important;border-radius:10px!important;border:1.5px solid color-mix(in srgb,var(--tx) 16%,transparent)!important;
@@ -196,7 +197,7 @@ const st=document.createElement("style");st.textContent=`
 .atqv .aqjo{fill:#eceff1;stroke:#90a4ae}.atqv .aqji{fill:#fff;stroke:#90a4ae}.atqv .aqja{stroke:#37474f;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}.atqv .aqjt{fill:#78909c}
 .atqv .aqbyp{fill:#f5a623}.atqv .aqbyt{fill:none;stroke:#263238;stroke-width:2;stroke-linejoin:round}.atqv .aqbyx{fill:#263238!important;font-size:10px;font-weight:900}.atqv .aqbyc{fill:none;stroke:#263238;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .atqv .aqtor{fill:#607d8b}.atqv .aqtorl{stroke:#607d8b;stroke-width:2}
-.atqv .aqbl{animation:atqBl 1s steps(1,end) infinite}
+.atqv .aqbl{animation:none}/* v752: sin parpadeos en la simulación */
 @keyframes atqBl{50%{opacity:.15}}@keyframes atqLed{50%{fill:#2e7d32}}
 .atqv .v1,.atqv .v2,.atqv .v3,.atqv .v4,.atqv .v5{display:none}
 .atqw[data-s="1"] .v1,.atqw[data-s="2"] .v2,.atqw[data-s="3"] .v3,.atqw[data-s="4"] .v4,.atqw[data-s="5"] .v5{display:inline}
