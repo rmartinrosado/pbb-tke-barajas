@@ -360,3 +360,12 @@ ${P} .sostcw .rcscmp{height:auto}`;document.head.appendChild(st)})();
  const st=document.createElement("style");st.textContent=`#sheetc #sostf label.srfoto>span{display:inline-flex;align-items:center;gap:8px}
 #sheetc #sostf label.srfoto .srcam{width:22px;height:22px;flex:none;color:var(--tx)}
 #sheetc #sostf label.srfoto small{display:block}`;document.head.appendChild(st)})();
+/* ===== v853: iconos propios de ALARMA (hexágono rojo) y AVISO (triángulo amarillo) al lado de la CAMPANA de la caja 1 ===== */
+(function(){const P="#sheetc #sostf";
+const pon=()=>{const col=document.querySelector(P+" .sostp2>.sostph .sostcol");if(!col)return;const bell=col.querySelector(".sostpr");if(!bell||col.querySelector(".sostleg"))return;
+ bell.insertAdjacentHTML("beforebegin",`<span class="sostleg" aria-hidden="true"><img src="iconos/alarma.png" alt=""><img src="iconos/advertencia.png" alt=""></span>`)};
+new MutationObserver(pon).observe(document.body,{childList:true,subtree:true});pon();
+const st=document.createElement("style");st.textContent=`
+${P} .sostp2>.sostph .sostcol{align-items:center!important}
+${P} .sostp2>.sostph .sostcol .sostleg{display:inline-flex;align-items:center;gap:6px;height:44px;pointer-events:none}
+${P} .sostp2>.sostph .sostcol .sostleg img{width:28px;height:28px;display:block;object-fit:contain}`;document.head.appendChild(st)})();
