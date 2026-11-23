@@ -318,11 +318,21 @@ ${P} .sostp2:not(.sostcer)>.sostph .sostcol .sostpr{border-color:#ef6c00!importa
 (function(){const st=document.createElement("style");st.textContent=`#sheetc #sostf label.srfoto{display:none!important}`;document.head.appendChild(st);
  const oculta=()=>{document.querySelectorAll("#sheetc #sostf .sostpb label").forEach(l=>{if(/^\s*Foto de la Magelis/i.test(l.textContent||""))l.style.display="none"})};
  new MutationObserver(oculta).observe(document.body,{childList:true,subtree:true})})();
-/* ===== v826: papelera y micrófono en la MISMA LÍNEA (abajo a la derecha de «Avería en campo», el texto usa todo el ancho);
-   en la caja 1, campana y foto también en la misma línea y en las mismas columnas (campana = papelera · foto = micrófono) ===== */
-(function(){const P="#sheetc #sostf";const st=document.createElement("style");st.textContent=`
-${P} .srobsw textarea{padding-right:12px!important;padding-bottom:64px!important;min-height:132px!important}
-${P} .srobsw button{top:auto!important;bottom:8px!important}
-${P} .srobsw button.srobdel{right:64px!important}
-${P} .srobsw button.micb{right:8px!important}
-${P} .sostp2>.sostph .sostcol{flex-direction:row!important;gap:8px!important;align-self:center}`;document.head.appendChild(st)})();
+/* ===== v827: botones a la DERECHA del SUBTÍTULO, en la misma línea:
+   caja 1 → campana + foto · caja 2 → micrófono + papelera (salen del recuadro de «Avería en campo», el texto usa todo el ancho) ===== */
+(function(){const P="#sheetc #sostf";
+const mueve=()=>{const h2=document.querySelector(P+" .sostp1>.sostph");if(!h2)return;
+ let col=h2.querySelector(".sostcol2");if(!col){col=document.createElement("span");col.className="sostcol sostcol2";h2.appendChild(col)}
+ const mic=document.querySelector(P+" .srobsw .micb"),del=document.querySelector(P+" .srobsw .srobdel");
+ if(mic&&mic.parentNode!==col)col.appendChild(mic);if(del&&del.parentNode!==col)col.appendChild(del)};
+new MutationObserver(mueve).observe(document.body,{childList:true,subtree:true});
+const st=document.createElement("style");st.textContent=`
+${P} .sostp2>.sostph,${P} .sostp1>.sostph{align-items:flex-end!important}
+${P} .sostp2>.sostph .sostpn,${P} .sostp1>.sostph .sostpn{align-self:center}
+${P} .sostph .sostcol{flex-direction:row!important;gap:8px!important;margin-left:auto;margin-right:0!important;flex:none;display:flex}
+${P} .sostp1>.sostph .sostcol2 button{position:static!important;box-sizing:border-box;width:44px!important;height:44px!important;padding:0!important;margin:0!important;display:grid!important;place-items:center;border-radius:12px!important;border:1.5px solid #ffffff2b!important;background:var(--card)!important;color:var(--tx)!important;box-shadow:none!important}
+${P} .sostp1>.sostph .sostcol2 button svg{width:22px!important;height:22px!important}
+${P} .sostp1>.sostph .sostcol2 .micb.on{background:#c62828!important;color:#fff!important;border-color:#c62828!important}
+${P} .sostp2>.sostph .sostcol .sostpr,${P} .sostp2>.sostph .sostcol .sostcam{width:44px!important;height:44px!important}
+${P} .srobsw textarea{padding-right:12px!important;padding-bottom:10px!important}
+@media (prefers-color-scheme:light){${P} .sostp1>.sostph .sostcol2 button{border-color:#0002!important}}`;document.head.appendChild(st)})();
