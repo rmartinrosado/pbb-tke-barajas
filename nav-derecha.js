@@ -1,4 +1,5 @@
-/* ===== v797: botones más pequeños y con el tema de la barra izquierda (cuadrícula, números 01-0n, LED del modo activo).
+/* ===== v798: «ACTUALIZAR» cabe en su botón (letra algo más pequeña y sin espaciado).
+   v797: botones más pequeños y con el tema de la barra izquierda (cuadrícula, números 01-0n, LED del modo activo).
    v796: la barra derecha salía aplastada (heredaba «bottom:0» de las reglas generales de <nav>): ahora es un bloque propio con su altura.
    v795: barra lateral DERECHA (23/11/2026) =====
    Los botones de la parte superior (Técnico · Operador · Admin · Gestión · Actualizar, o Turno) salen ahora de una pestaña
@@ -26,7 +27,7 @@ const st=document.createElement("style");st.textContent=`
  justify-content:center;gap:4px;font:700 8.5px/1.1 var(--tkmo,ui-monospace,monospace);letter-spacing:.4px;text-transform:uppercase;text-align:center;
  cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 12px -6px #000,0 1px 0 #ffffff12 inset;transition:transform .14s}
 #navd .hki:active{transform:scale(.94)}
-#navd .hki span{white-space:normal;overflow-wrap:anywhere;color:#fff}
+#navd .hki span{white-space:nowrap;overflow:visible;max-width:none;letter-spacing:-.3px;font-size:7.8px;color:#fff}
 #navd .hki svg{width:28px;height:28px;stroke:${OR};stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
 #navd .hki i.tkn{position:absolute;top:3px;left:5px;font:600 8px var(--tkmo,ui-monospace,monospace);color:#8b93a7;font-style:normal;letter-spacing:0}
 #navd .hki.on{border:1.5px solid transparent;background:linear-gradient(180deg,#2a1d12,#16131a) padding-box,linear-gradient(135deg,${OR},${PU}) border-box;

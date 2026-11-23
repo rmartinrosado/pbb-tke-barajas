@@ -24,3 +24,11 @@ html.lt body #nav#nav{background:linear-gradient(135deg,#1a1d25f2,#111319f2) pad
 html body #nav#nav button.on::after{left:auto!important;right:-1px!important;top:25%!important;bottom:25%!important;width:3px!important;height:auto!important}`;
 document.head.appendChild(st);
 })();
+
+/* ===== v798: barra izquierda con el MISMO tamaño de botones que la derecha (100 px de ancho, iconos de 28 px) ===== */
+(function(){"use strict";const st=document.createElement("style");st.textContent=`
+html body #nav#nav{width:100px!important;max-width:100px!important;padding:8px 6px 8px 32px!important}
+html body #nav#nav button{padding:13px 2px 5px!important;gap:4px!important;font-size:7.8px!important;letter-spacing:-.3px!important;white-space:nowrap!important}
+html body #nav#nav button span{font-size:28px!important}
+html body #nav#nav button span svg,html body #nav#nav button.ninicio span svg{width:28px!important;height:28px!important}
+html body #nav#nav button i.tkn{font-size:8px!important}`;document.head.appendChild(st)})();
