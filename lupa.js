@@ -142,12 +142,14 @@ window.lupaPinta=function(k,an){if(an)LA=an;const res=document.getElementById("l
   const h=(S?segHTML(c.ot,S):"")+(Pu&&Pu.length?puenteHTML(c.ot,Pu):"");if(h)prim=`<details class="lpapr"><summary>⚠️ Primera actuación en campo (seguridad)</summary><div class="card pucard">${h}</div></details>`}catch(e){}}
  const alt=LC.map((x,ix)=>ix==k?"":`<button class="anag" onclick="lupaPinta(${ix},null)">📋 ${E(GUIA.tipos[x.T].n||x.T)} · ${E(x.s.t)}</button>`).join("");
  const vg=(typeof tecnico!="undefined"&&tecnico)||(typeof admin!="undefined"&&admin);
- res.innerHTML=`<div class="lpaef"><span class="gefb">⭐ Actuación más eficaz</span><div class="lpasy">${E(G.n||c.T)}</div>${SB&&SB.tit?`<h3>${E(SB.tit)}</h3><div class="mu" style="font-size:12px;margin:-4px 0 4px">Caja de la guía: ${E(c.s.t)}</div>`:`<h3>${E(c.s.t)}</h3>`}${SB?SB.sel:""}
+ /* v821: en el SOS «Actuación más eficaz» y «Otras actuaciones relacionadas» salen plegadas (se abren al tocar el rótulo) */
+ const PL=!!window.__lupaEnSOS;
+ res.innerHTML=`${PL?`<details class="lpaef lpaefd"><summary><span class="gefb">⭐ Actuación más eficaz</span><b class="lpaefs">${E(SB&&SB.tit||c.s.t)}</b></summary>`:`<div class="lpaef"><span class="gefb">⭐ Actuación más eficaz</span>`}<div class="lpasy">${E(G.n||c.T)}</div>${SB&&SB.tit?`<h3>${E(SB.tit)}</h3><div class="mu" style="font-size:12px;margin:-4px 0 4px">Caja de la guía: ${E(c.s.t)}</div>`:`<h3>${E(c.s.t)}</h3>`}${SB?SB.sel:""}
   ${P.acc.map((p,ix)=>{let cx="";try{const C=window.croquisPaso&&!(SB&&SB.gen.has(p))&&croquisPaso(p,"");if(C)cx=`<details class="elusd cxd"${C.n?" open":""}><summary>🔌 Croquis entre borneros${C.n?` · ${C.n} conexión${C.n>1?"es":""} borna a borna`:" · recorrido"}</summary><div class="cxin">${C.html}</div></details>`}catch(e){}
    return `<div class="lpap"><b>${ix+1}.</b><span>${E(p)}${cx}</span></div>`}).join("")}
   ${P.inf.length?`<details class="gelem"><summary>Elementos y referencias (${P.inf.length})</summary>${P.inf.map(p=>`<div class="gelit"><span>${E(typeof gInfoTxt=="function"?gInfoTxt(p):p)}</span></div>`).join("")}</details>`:""}
-  ${vg?`<button class="sec" style="width:100%;margin-top:8px" onclick="lupaGuia('${c.T}',${c.si})">Abrir en la guía de campo</button>`:""}</div>
-  ${(()=>{try{return borneros(c,RB,P.acc.concat(P.inf))}catch(e){return ""}})()}${prim}${alt?`<div class="anal" style="margin-top:10px">Otras actuaciones relacionadas</div><div class="anass">${alt}</div>`:""}${an?ana:(document.querySelector("#lp_res .lpaan")||{}).outerHTML||""}<div id="lp_cas">${(document.getElementById("lp_cas")||{}).innerHTML||""}</div>`;
+  ${vg?`<button class="sec" style="width:100%;margin-top:8px" onclick="lupaGuia('${c.T}',${c.si})">Abrir en la guía de campo</button>`:""}${PL?"</details>":"</div>"}
+  ${(()=>{try{return borneros(c,RB,P.acc.concat(P.inf))}catch(e){return ""}})()}${prim}${alt?(PL?`<details class="lpaotd"><summary class="anal">Otras actuaciones relacionadas (${LC.length-1})</summary><div class="anass">${alt}</div></details>`:`<div class="anal" style="margin-top:10px">Otras actuaciones relacionadas</div><div class="anass">${alt}</div>`):""}${an?ana:(document.querySelector("#lp_res .lpaan")||{}).outerHTML||""}<div id="lp_cas">${(document.getElementById("lp_cas")||{}).innerHTML||""}</div>`;
  if(window.__lupaEnSOS){}else if(an!==undefined&&an!==null)res.scrollIntoView({block:"start",behavior:"smooth"});else{const e=res.querySelector(".lpaef");if(e)e.scrollIntoView({block:"start",behavior:"smooth"})}};
 async function casos(txt){if(typeof casosParecidos!="function")return;let l=[];try{l=await casosParecidos(txt)}catch(e){}
  const c=document.getElementById("lp_cas");if(!c||txt!==LT)return;c.innerHTML=l.length&&typeof casosHTML=="function"?`<div style="margin-top:10px">${casosHTML(l,"")}</div>`:""}
@@ -188,3 +190,10 @@ const st=document.createElement("style");st.textContent=`
 .lbm summary{cursor:pointer}.lbm .imt{font-weight:800;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#f0a020}.lbv{font-weight:700}
 .lbm ol{margin:4px 0 0;padding-left:16px}.lbm li::marker{color:#f0a020;font-weight:700}.lbsg{font-size:10.5px;color:var(--mu);margin-top:3px}`;document.head.appendChild(st);
 })();
+/* v821: estilo de los plegables del SOS */
+(function(){const st=document.createElement("style");st.textContent=`details.lpaefd>summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+details.lpaefd>summary::-webkit-details-marker,details.lpaotd>summary::-webkit-details-marker{display:none}
+details.lpaefd>summary .lpaefs{font-size:15px;line-height:1.3}
+details.lpaefd>summary::after{content:"▼ tocar para ver los pasos";font-size:11px;font-weight:700;opacity:.65;letter-spacing:.3px}details.lpaefd[open]>summary::after{content:"▲ plegar"}
+details.lpaotd{margin-top:10px}details.lpaotd>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px}
+details.lpaotd>summary::after{content:"▼";font-size:10px;margin-left:4px}details.lpaotd[open]>summary::after{content:"▲"}`;document.head.appendChild(st)})();
