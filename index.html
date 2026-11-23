@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=832;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=833;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -91,8 +91,11 @@ setTimeout(function(){try{var b=document.body;if(!b||(b.innerText||"").replace(/
  var fin=function(){if(hecho)return;hecho=true;a.classList.add("fuera");setTimeout(function(){try{a.remove()}catch(e){}},300)};
  try{new MutationObserver(function(){ult=Date.now()}).observe(document.documentElement,{subtree:true,childList:true})}catch(e){}
  var iv=setInterval(function(){var lk=document.getElementById("lock"),lg=document.getElementById("login");
-  var hay=!!document.getElementById("pfix")||!!(document.querySelector("#hk .hk1"))&&!!document.querySelector("#app>*")||(lk&&getComputedStyle(lk).display!="none")||!!lg||!!document.querySelector("#sheet[style*=flex]");
-  if((hay&&Date.now()-ult>200)||Date.now()-t0>8000){clearInterval(iv);fin()}},60);})();</script>
+  /* v833: con 4G lenta la app pintaba la pantalla BASE antigua (cabecera v100, A·O·T) antes de cargar todos sus archivos y el
+     fondo se retiraba a los 8 s: ahora espera a que TODO esté cargado (readyState complete) y a la cabecera nueva; máx. 30 s */
+  var comp=document.readyState=="complete";
+  var hay=comp&&(!!document.getElementById("pfix")||!!(document.querySelector("#hk .hk1"))&&!!document.querySelector("#app>*")||(lk&&getComputedStyle(lk).display!="none")||!!lg||!!document.querySelector("#sheet[style*=flex]"));
+  if((hay&&Date.now()-ult>250)||Date.now()-t0>30000){clearInterval(iv);fin()}},80);})();</script>
 <div id="splash"><img src="splash.jpg" alt="TKE MAINTENANCE"><div class="spr"><span class="spv" id="spv"></span><div class="spb"><i id="spi"></i></div><span class="spp" id="spp">0%</span></div></div>
 <script>try{if(/[?&]recupera=1/.test(location.search)||/type=recovery/.test(location.hash))sessionStorage.setItem("pbb_recupera",String(Date.now()))}catch(e){}window.__recupera=(()=>{try{const t=+sessionStorage.getItem("pbb_recupera")||0;return t&&Date.now()-t<15*60000}catch(e){return false}})();</script><script>/* v394: pantalla de carga rápida: dura lo que tarda en cargar la app (5 s de progreso) y la versión solo se muestra
  cuando está confirmada que es la última (window.__vOK), así nunca aparece un número de versión anterior. */
