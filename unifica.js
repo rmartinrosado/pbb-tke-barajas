@@ -138,7 +138,7 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
  const apH=ap.length?`<div class="apr"><div class="aprh">⭐ Lo que resolvió avisos parecidos</div>${ap.slice(0,3).map(x=>`<div class="apri"><b>${x.n}×</b> ${E(x.t)}${x.pos.size?` <small>(PBB ${E([...x.pos].slice(0,4).join(", "))})</small>`:""}</div>`).join("")}</div>`:"";
  res.innerHTML=`${apH}<div class="ubh ub1">🚨 1 · SACAR EN SERVICIO YA</div><div class="ubb ubb1">${cro}${b1}</div>
   <div class="ubh ub2">🔧 2 · REPARAR · actuación más eficaz</div><div class="ubb ubb2"><div id="lp_res"><div class="mu">Buscando la actuación más eficaz…</div></div></div>
-  <div class="ubh ub3">🤖 3 · ANÁLISIS PROFUNDO</div><div class="ubb"><button class="sec srobok ub3b" onclick="sosObClaude()"><span><b>Analizar con Claude</b> · paso a paso con medidas</span><img src="claude-logo.png" alt="Claude"></button></div>`;
+  <div class="ubh ub3">🤖 3 · ANÁLISIS CON IA</div><div class="ubb"><button class="sec srobok ub3b" onclick="sosIaPDF()"><span><b>Generar el PDF del análisis</b> · paso a paso con medidas</span><img src="claude-logo.png" alt="Claude"></button></div>`;
  /* v447: lo analizado y la lectura de la foto (complementaria) al final, plegados */
  try{const lw=res.querySelector(".ubb1 #sr_leido");if(lw){lw.remove();res.appendChild(lw)}}catch(e){}
  /* bloque 2: la lupa con la descripción (y la alarma como complemento) y la posición */
@@ -214,7 +214,7 @@ if(SR)new MutationObserver(()=>{micEn(document.getElementById("sr_ob"));micEn(do
 
 const st=document.createElement("style");st.textContent=`
 .ubh{margin:14px 0 6px;padding:8px 10px;border-radius:9px;font-weight:800;font-size:13.5px;letter-spacing:.4px;color:#fff}
-.ub1{background:#c62828}.ub2{background:#ef6c00}.ub3{background:#ef6c00}/* v808: el punto 3 en naranja como el 2 */.ubb{padding:0 2px}
+.ub1{background:#ef6c00}/* v817: 1 en naranja como el 2 */.ub2{background:#ef6c00}.ub3{background:#ef6c00}/* v808: el punto 3 en naranja como el 2 */.ubb{padding:0 2px}
 .ubfold{margin:8px 0;border:1px solid var(--bd,#555);border-radius:10px;padding:6px 8px}.ubfold>summary{cursor:pointer;font-weight:700;font-size:13px}
 .ubok{margin:6px 0;padding:8px;border:2px solid #2e7d32;border-radius:10px;background:rgba(46,125,50,.10)}.ubokh{font-weight:800;color:#2e7d32;font-size:13px;margin-bottom:4px}
 .ubgo{animation:ubgo 1s ease-in-out 4}@keyframes ubgo{50%{filter:brightness(1.4);transform:scale(1.02)}}
@@ -231,4 +231,20 @@ const st=document.createElement("style");st.textContent=`
 .micb{position:absolute;right:8px;top:52px;width:38px;height:38px;padding:0;margin:0;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid var(--bd,#888);background:transparent;color:inherit}
 .micb svg{width:20px;height:20px}.micb.on{background:#c62828;color:#fff;border-color:#c62828;animation:sosparp 1s infinite}`;
 document.head.appendChild(st);
+})();
+/* ===== v817: SOS punto 3 «ANÁLISIS CON IA» · genera directamente el PDF del análisis, sin subir a la caja «Avería en campo» =====
+   La caja de progreso y el resultado (PDF con Descargar · Abrir · Compartir) se quedan debajo del botón del punto 3 durante
+   toda la consulta; la pantalla no se mueve hacia arriba. Si la avería en campo está vacía, se analiza con la alarma. ===== */
+(function(){
+let vigila=0;
+const fija=()=>{const b=document.querySelector("#sheetc .ub3b"),c=document.getElementById("sr_ia");if(b&&c&&b.nextElementSibling!==c)b.parentNode.insertBefore(c,b.nextSibling)};
+window.sosIaPDF=function(){const t=document.getElementById("sr_ob");
+ if(t&&!t.value.trim()){const am=((document.getElementById("sr_t")||{}).value||"").trim();if(am)t.value="Analizar la alarma: "+am.replace(/\n+/g," · ")}
+ const y=window.scrollY;const el=document.activeElement;
+ try{window.sosObClaude&&window.sosObClaude()}catch(e){console.warn(e)}
+ try{if(el&&el.blur)el.blur();if(t&&document.activeElement===t)t.blur()}catch(e){}
+ fija();clearInterval(vigila);let n=0;
+ vigila=setInterval(()=>{fija();n++;const c=document.getElementById("sr_ia");
+  if(c&&c.querySelector("a[download]")){clearInterval(vigila);fija();setTimeout(()=>{fija();c.scrollIntoView({block:"center",behavior:"smooth"})},150)}
+  if(n>900)clearInterval(vigila)},400)};
 })();
