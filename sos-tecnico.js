@@ -55,7 +55,10 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  pon(B2,c.querySelector(".soscr3"));
  /* v724: «Seleccionar alarma» y «Alarma registrada» (las líneas no se editan: se suman con el buscador o la lista y se quitan con ✕) */
  /* v730: «Foto Display-Magelis» */
- {const fb=c.querySelector("label.srfoto>span");if(fb&&/^📷 Foto Magelis$/.test(fb.textContent.trim()))fb.textContent="📷 Foto Display-Magelis";const lb=c.querySelector("label.srfoto");if(lb&&lb.dataset.ori&&/Foto Magelis</.test(lb.dataset.ori))lb.dataset.ori=lb.dataset.ori.replace("Foto Magelis<","Foto Display-Magelis<")}
+ {/* v831: «Foto Magelis» con el icono de cámara de trazo blanco y «(complementaria)» debajo */
+  const CAM='<svg class="srcam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg>';const fx=h=>String(h).replace(/📷\s*Foto (Display-)?Magelis/g,CAM+"Foto Magelis");
+  const fb=c.querySelector("label.srfoto>span");if(fb&&!fb.querySelector(".srcam")&&/Foto (Display-)?Magelis/.test(fb.textContent))fb.innerHTML=fx(fb.innerHTML);
+  const lb=c.querySelector("label.srfoto");if(lb&&lb.dataset.ori&&/📷\s*Foto (Display-)?Magelis/.test(lb.dataset.ori))lb.dataset.ori=fx(lb.dataset.ori)}
  const sa=$i("sr_a");if(sa&&sa.options[0]&&sa.options[0].text!=="Seleccionar alarma")sa.options[0].text="Seleccionar alarma";
  const dt=c.querySelector("details.srtx"),tx=$i("sr_t");
  if(dt){const sm=dt.querySelector("summary");/* v727: en una línea, con el número de alarmas registradas */
@@ -68,7 +71,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* pasos y ACEPTAR al final del formulario */
  /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
  const P2=F.querySelector(".sostp2");if(P2&&!P2.dataset.pl){P2.dataset.pl=1;P2.classList.add("sostcer");const hd=P2.querySelector(".sostph");
-  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostcol"><span class="sostpr" role="button" tabindex="0" aria-label="Desplegar la caja de alarmas"></span><label class="sostcam" for="sr_f" aria-label="Foto de la Magelis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></label></span>`);
+  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostcol"><span class="sostpr" role="button" tabindex="0" aria-label="Desplegar la caja de alarmas"></span></span>`);
   /* v822: botón FOTO de la Magelis en la cabecera de la caja 1 (no pliega ni despliega la caja) */
   const cam=hd.querySelector(".sostcam");if(cam)cam.addEventListener("click",e=>e.stopPropagation());
   /* v824: solo la CAMPANA despliega / pliega la caja 1 (la cabecera ya no) */
@@ -316,7 +319,7 @@ ${P} .sostp2>.sostph .sostcol .sostpr.on,${P} .sostp2>.sostph .sostcol .sostcam.
 ${P} .sostp2:not(.sostcer)>.sostph .sostcol .sostpr{border-color:#ef6c00!important}
 @media (prefers-color-scheme:light){${P} .sostp2>.sostph .sostcol .sostpr,${P} .sostp2>.sostph .sostcol .sostcam{border-color:#0002!important}}`;document.head.appendChild(st)})();
 /* ===== v825: en la caja 1 queda solo el icono 📷 de la cabecera: fuera el botón «Foto Display-Magelis» y su rótulo ===== */
-(function(){const st=document.createElement("style");st.textContent=`#sheetc #sostf label.srfoto{display:none!important}`;document.head.appendChild(st);
+(function(){const st=document.createElement("style");st.textContent=`#sheetc #sostf .sostcam{display:none!important}`;document.head.appendChild(st);
  const oculta=()=>{document.querySelectorAll("#sheetc #sostf .sostpb label").forEach(l=>{if(/^\s*Foto de la Magelis/i.test(l.textContent||""))l.style.display="none"})};
  new MutationObserver(oculta).observe(document.body,{childList:true,subtree:true})})();
 /* ===== v827: botones a la DERECHA del SUBTÍTULO, en la misma línea:
@@ -349,3 +352,10 @@ ${P} .soscpos{flex:0 0 auto!important;width:auto!important;max-width:34%}
 ${P} .soscpos #sr_p{box-sizing:border-box;width:7.2em!important;max-width:100%;height:46px!important;min-height:0!important;padding:0 12px!important;font-size:17px!important;letter-spacing:2px!important}
 ${P} .sostcw #cmp_q{box-sizing:border-box;height:46px!important;min-height:0!important;padding-top:0!important;padding-bottom:0!important}
 ${P} .sostcw .rcscmp{height:auto}`;document.head.appendChild(st)})();
+/* ===== v831: caja 1 SIEMPRE plegada al abrir el SOS; campana sola a la derecha; botón «Foto Magelis» con icono de trazo ===== */
+(function(){const pliega=()=>{const P2=document.querySelector("#sostf .sostp2");if(P2)P2.classList.add("sostcer")};
+ const o=window.sosRap;if(typeof o=="function")window.sosRap=function(){const r=o.apply(this,arguments);try{pliega();setTimeout(pliega,0)}catch(e){}return r};
+ let ab=false;setInterval(()=>{const a=!!document.querySelector("#sheetc #sostf");if(a&&!ab)pliega();ab=a},300);
+ const st=document.createElement("style");st.textContent=`#sheetc #sostf label.srfoto>span{display:inline-flex;align-items:center;gap:8px}
+#sheetc #sostf label.srfoto .srcam{width:22px;height:22px;flex:none;color:var(--tx)}
+#sheetc #sostf label.srfoto small{display:block}`;document.head.appendChild(st)})();
