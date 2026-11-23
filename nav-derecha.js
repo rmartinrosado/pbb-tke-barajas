@@ -1,4 +1,5 @@
-/* ===== v795: barra lateral DERECHA (23/11/2026) =====
+/* ===== v796: la barra derecha salía aplastada (heredaba «bottom:0» de las reglas generales de <nav>): ahora es un bloque propio con su altura.
+   v795: barra lateral DERECHA (23/11/2026) =====
    Los botones de la parte superior (Técnico · Operador · Admin · Gestión · Actualizar, o Turno) salen ahora de una pestaña
    fija en el borde derecho, abajo, igual que la barra de la izquierda pero en espejo. Hacen exactamente lo mismo que antes
    (son los mismos botones de la cabecera, copiados). En la cabecera se quedan el modo exterior (☀) y el apagado.
@@ -9,7 +10,7 @@
 const OR="var(--tkor,#ff7a1a)",PU="var(--tkpu,#9b3dff)";
 const st=document.createElement("style");st.textContent=`
 #hk .hk2{display:none!important}
-#navd{position:fixed;right:0;left:auto;z-index:41;width:122px;max-height:calc(var(--nvb,100vh) - 150px);overflow-x:hidden;overflow-y:auto;
+#navd{position:fixed;right:0;left:auto;bottom:auto!important;height:auto!important;min-height:0;border-top:0;z-index:41;width:122px;box-sizing:border-box;max-height:calc(var(--nvb,100vh) - 150px);overflow-x:hidden;overflow-y:auto;
  top:calc(var(--nvb,100vh) - 24px - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:stretch;
  padding:8px 36px 8px 6px;border:1.5px solid transparent;border-right:0;border-radius:18px 0 0 18px;
  background:linear-gradient(225deg,#12141bf2,#0b0c11f2) padding-box,linear-gradient(225deg,${OR},${PU} 55%,#1e88e5) border-box;
@@ -40,7 +41,7 @@ html.nvkb #navd,html.nvkb #navdtab,html.nvkb #navdbg{visibility:hidden!important
 @media (prefers-reduced-motion:reduce){#navdtab::after{animation:none}}`;
 document.head.appendChild(st);
 
-const nav=document.createElement("nav");nav.id="navd";nav.setAttribute("aria-label","Modos y opciones");
+const nav=document.createElement("div");nav.setAttribute("role","navigation");nav.id="navd";nav.setAttribute("aria-label","Modos y opciones");
 const bg=document.createElement("div");bg.id="navdbg";
 const tab=document.createElement("button");tab.type="button";tab.id="navdtab";tab.title="Modos";tab.setAttribute("aria-label","Abrir modos y opciones");tab.setAttribute("aria-expanded","false");
 tab.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>';
