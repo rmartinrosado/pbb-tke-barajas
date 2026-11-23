@@ -9,6 +9,10 @@ const st=document.createElement("style");st.textContent=`
 #app .card .otres{align-items:stretch!important}#app .card .otres .orl.orlsos{justify-content:center!important;align-self:stretch;width:100%;position:relative;min-height:44px}#app .card .otres .orl.orlsos>.sosc{position:absolute;left:0;top:50%;transform:translateY(-50%)}/* v747: reloj y llave siempre centrados en la línea; el SOS, aparte a la izquierda *//* v696: REPARACIÓN con el mismo estilo de pastilla que T4S (solo la llave) */
 .otres .orl .grepc{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;color:inherit!important}
 .otres .orl .grepc svg{width:18px;height:18px;display:block}
+/* v748: llave más grande; con la OT abierta y con llegada, parpadea en amarillo como la caja */
+#app .card.ot .otres .orl .grepc{padding:7px 18px!important;border-radius:999px!important;border-width:2px!important}#app .card.ot .otres .orl .grepc svg{width:24px!important;height:24px!important}
+#app .card.ot.otlle .otres .orl .grepc{border:2px solid #facc15!important;color:#facc15!important;animation:otLleBlink 1.4s ease-in-out infinite}
+html.lt #app .card.ot.otlle .otres .orl .grepc{border-color:#d9a400!important;color:#9a6b00!important;animation-name:otLleBlinkL!important}
 .otres .orl.orlsos{gap:5px!important}#app .card.ot .otres .orc{font-size:12px!important;padding:2px 9px!important}#app .card.ot .otres{margin-top:2px!important}#app .card.ot .ohdx>.ohsubw:has(.ohchips){flex-direction:column!important;align-items:flex-start!important;gap:5px!important;padding-top:2px}
 /* v700: botones de la tarjeta (lápiz, papeleras, WhatsApp, borrar actuación…) con el mismo tamaño y formato */
 #app .card.ot .otcol button,#app .card.ot .obd button.gbdel,#app .card.ot .obd button.gdl2,#app .card.ot .obd .gblqf button{
@@ -63,11 +67,8 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
   if(o2&&oid&&!o2.querySelector(".grepc")){const b=document.createElement("button");b.type="button";b.className="orc grepc";b.title="Guía de campo de la OT";b.setAttribute("aria-label","Guía de campo de la OT con cotejo de planos y primera actuación");
    b.innerHTML=LLAVE;b.onclick=e=>{e.stopPropagation();repOT(oid)};o2.append(b)}
   const ob=o2&&o2.querySelector(".grepc");if(ob&&!ob.classList.contains("orc")){ob.classList.add("orc");ob.innerHTML=LLAVE}}
- /* v697: la mano señala la llave (va en .otres, fuera de la fila que recorta, y se coloca sobre el botón) */
- {const ot=c.querySelector(".otres"),bt=ot&&ot.querySelector(".grepc");
-  if(ot&&bt&&window.OT_DEDO){let m=ot.querySelector(":scope>.repdedo");if(!m){ot.insertAdjacentHTML("beforeend",window.OT_DEDO.replace('class="otdedo"','class="otdedo repdedo"'));m=ot.querySelector(":scope>.repdedo")}
-   const pon=()=>{if(!m.isConnected)return;const a=ot.getBoundingClientRect(),r=bt.getBoundingClientRect();if(!r.width)return;
-    m.style.left=(r.left-a.left+r.width*0.3)+"px";m.style.top=(r.top-a.top+r.height*0.45)+"px"};requestAnimationFrame(pon)}}
+ /* v748: sin la mano sobre la llave */
+ c.querySelectorAll(".repdedo").forEach(x=>x.remove());
  }
  const rp=null&&c.querySelector(".cacr .grep");if(rp&&!rp.parentElement.classList.contains("grepw")){const w=document.createElement("span");w.className="grepw";rp.before(w);w.append(rp)}
  const gw=c.querySelector(".grepw");if(gw&&!gw.querySelector(".repdedo")&&window.OT_DEDO)gw.insertAdjacentHTML("beforeend",window.OT_DEDO.replace('class="otdedo"','class="otdedo repdedo"'));
