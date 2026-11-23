@@ -68,7 +68,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* pasos y ACEPTAR al final del formulario */
  /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
  const P2=F.querySelector(".sostp2");if(P2&&!P2.dataset.pl){P2.dataset.pl=1;P2.classList.add("sostcer");const hd=P2.querySelector(".sostph");
-  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostcol"><span class="sostpr" role="button" tabindex="0" aria-label="Desplegar la caja de alarmas"></span><label class="sostcam" for="sr_f" aria-label="Foto de la Magelis">📷</label></span>`);
+  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostcol"><span class="sostpr" role="button" tabindex="0" aria-label="Desplegar la caja de alarmas"></span><label class="sostcam" for="sr_f" aria-label="Foto de la Magelis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></label></span>`);
   /* v822: botón FOTO de la Magelis en la cabecera de la caja 1 (no pliega ni despliega la caja) */
   const cam=hd.querySelector(".sostcam");if(cam)cam.addEventListener("click",e=>e.stopPropagation());
   /* v824: solo la CAMPANA despliega / pliega la caja 1 (la cabecera ya no) */
@@ -324,7 +324,7 @@ ${P} .sostp2:not(.sostcer)>.sostph .sostcol .sostpr{border-color:#ef6c00!importa
 const mueve=()=>{const h2=document.querySelector(P+" .sostp1>.sostph");if(!h2)return;
  let col=h2.querySelector(".sostcol2");if(!col){col=document.createElement("span");col.className="sostcol sostcol2";h2.appendChild(col)}
  const mic=document.querySelector(P+" .srobsw .micb"),del=document.querySelector(P+" .srobsw .srobdel");
- if(mic&&mic.parentNode!==col)col.appendChild(mic);if(del&&del.parentNode!==col)col.appendChild(del)};
+ if(mic&&mic.parentNode!==col){col.querySelectorAll(".micb").forEach(x=>x.remove());col.prepend(mic)}if(del&&del.parentNode!==col)col.appendChild(del)};
 new MutationObserver(mueve).observe(document.body,{childList:true,subtree:true});
 const st=document.createElement("style");st.textContent=`
 ${P} .sostp2>.sostph,${P} .sostp1>.sostph{align-items:flex-end!important}
@@ -338,3 +338,7 @@ ${P} .srobsw textarea{padding-right:12px!important;padding-bottom:10px!important
 @media (prefers-color-scheme:light){${P} .sostp1>.sostph .sostcol2 button{border-color:#0002!important}}`;document.head.appendChild(st)})();
 /* v828: «ACOTA EL PROBLEMA» debajo de «COMPLEMENTARIA» en la caja 2 */
 (function(){const f=()=>{const sm=document.querySelector("#sostf .sostp1 .sostpt small");if(sm&&/COMPLEMENTARIA · ACOTA/.test(sm.textContent))sm.innerHTML="COMPLEMENTARIA<br>ACOTA EL PROBLEMA"};new MutationObserver(f).observe(document.body,{childList:true,subtree:true})})();
+/* v829: icono de la cámara dibujado con trazo blanco como la papelera; sin el punto de color de los rótulos */
+(function(){const P="#sheetc #sostf";const st=document.createElement("style");st.textContent=`${P} .sostcam::before,${P} .sostcam::after{content:none!important;display:none!important}
+${P} .sostp2>.sostph .sostcol .sostcam svg{width:22px;height:22px;color:var(--tx)}
+${P} .sostp2>.sostph .sostcol .sostcam.on svg{color:#1fa64a}`;document.head.appendChild(st)})();

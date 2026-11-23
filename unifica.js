@@ -207,9 +207,18 @@ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const MIC=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>`;
 function micEn(ta){if(!SR||!ta||ta.dataset.mic)return;ta.dataset.mic="1";const b=document.createElement("button");b.type="button";b.className="micb";b.title="Dictar por voz";b.setAttribute("aria-label","Dictar por voz");b.innerHTML=MIC;
  const w=ta.parentElement;if(getComputedStyle(w).position=="static")w.style.position="relative";w.appendChild(b);let rec=null;
- b.onclick=e=>{e.preventDefault();if(rec){try{rec.stop()}catch(x){}return}rec=new SR();rec.lang="es-ES";rec.interimResults=false;rec.continuous=false;
-  b.classList.add("on");rec.onresult=ev=>{const t=[...ev.results].map(r=>r[0].transcript).join(" ").trim();if(t){ta.value=(ta.value.trim()?ta.value.trim()+" ":"")+t;ta.dispatchEvent(new Event("input",{bubbles:true}))}};
-  rec.onend=()=>{b.classList.remove("on");rec=null};rec.onerror=()=>{b.classList.remove("on");rec=null;msg("No se ha podido dictar: usa el micrófono del teclado")};try{rec.start()}catch(x){b.classList.remove("on");rec=null}}}
+ /* v829: el iPhone a veces no avisa del fin del dictado (onend) y el siguiente toque solo «paraba» una grabación muerta:
+    un toque grababa y el siguiente no. Ahora el estado lo marca el botón: si está en rojo, para; si no, descarta lo anterior
+    y graba siempre; vigilante de 15 s por si el fin no llega. */
+ let vig=0;const libre=()=>{clearTimeout(vig);b.classList.remove("on");rec=null};
+ b.onclick=e=>{e.preventDefault();e.stopPropagation();
+  if(rec&&b.classList.contains("on")){const r=rec;try{r.stop()}catch(x){}setTimeout(()=>{if(rec===r)libre()},1200);return}
+  if(rec){try{rec.abort()}catch(x){}rec=null}
+  const r=new SR();rec=r;r.lang="es-ES";r.interimResults=false;r.continuous=false;
+  b.classList.add("on");r.onresult=ev=>{const t=[...ev.results].map(x=>x[0].transcript).join(" ").trim();if(t){ta.value=(ta.value.trim()?ta.value.trim()+" ":"")+t;ta.dispatchEvent(new Event("input",{bubbles:true}))}};
+  r.onend=()=>{if(rec===r)libre()};r.onerror=ev=>{if(rec!==r)return;libre();if(ev&&/not-allowed|service-not-allowed/.test(ev.error||""))msg("Permite el micrófono para dictar (o usa el micrófono del teclado)");else if(ev&&ev.error&&!/no-speech|aborted/.test(ev.error))msg("No se ha podido dictar: vuelve a tocar el micrófono")};
+  clearTimeout(vig);vig=setTimeout(()=>{if(rec===r){try{r.stop()}catch(x){}setTimeout(()=>{if(rec===r)libre()},1200)}},15000);
+  try{r.start()}catch(x){libre()}}}
 if(SR)new MutationObserver(()=>{micEn(document.getElementById("sr_ob"));micEn(document.getElementById("f_desc"))}).observe(document.body,{childList:true,subtree:true});
 
 const st=document.createElement("style");st.textContent=`
