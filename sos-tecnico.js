@@ -352,8 +352,9 @@ ${P} .soscpos{flex:0 0 auto!important;width:auto!important;max-width:34%}
 ${P} .soscpos #sr_p{box-sizing:border-box;width:7.2em!important;max-width:100%;height:46px!important;min-height:0!important;padding:0 12px!important;font-size:17px!important;letter-spacing:2px!important}
 ${P} .sostcw #cmp_q{box-sizing:border-box;height:46px!important;min-height:0!important;padding-top:0!important;padding-bottom:0!important}
 ${P} .sostcw .rcscmp{height:auto}`;document.head.appendChild(st)})();
-/* ===== v831: caja 1 SIEMPRE plegada al abrir el SOS; campana sola a la derecha; botón «Foto Magelis» con icono de trazo ===== */
-(function(){const pliega=()=>{const P2=document.querySelector("#sostf .sostp2");if(P2)P2.classList.add("sostcer")};
+/* ===== v831: caja 1 al abrir el SOS (v832: desplegada); campana sola a la derecha; botón «Foto Magelis» con icono de trazo ===== */
+/* v832: corregido · la caja 1 SIEMPRE DESPLEGADA al abrir el SOS (la campana la pliega si se quiere) */
+(function(){const pliega=()=>{const P2=document.querySelector("#sostf .sostp2");if(P2)P2.classList.remove("sostcer")};
  const o=window.sosRap;if(typeof o=="function")window.sosRap=function(){const r=o.apply(this,arguments);try{pliega();setTimeout(pliega,0)}catch(e){}return r};
  let ab=false;setInterval(()=>{const a=!!document.querySelector("#sheetc #sostf");if(a&&!ab)pliega();ab=a},300);
  const st=document.createElement("style");st.textContent=`#sheetc #sostf label.srfoto>span{display:inline-flex;align-items:center;gap:8px}
