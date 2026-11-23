@@ -57,7 +57,16 @@ function pinta(){try{if(!SEGV()||typeof inc=="undefined")return;
   if(!h){if(r)r.remove();return}
   if(!r){r=document.createElement("div");r.className="otres";hd.insertAdjacentElement("afterend",r);
    r.addEventListener("click",e=>{e.stopPropagation();hd.click()})}
-  if(r.dataset.h!==h){r.innerHTML=h;r.dataset.h=h}})}catch(e){}}
+  if(r.dataset.h===h)return;
+  /* v749: cada minuto solo cambia el reloj: se actualiza ese texto sin rehacer la fila. Antes se rehacía entera y se
+     perdían el SOS y la llave que card-ot.js coloca en ella → el SOS desaparecía y la pantalla parpadeaba. */
+  const sinT=x=>x.replace(/<span class="orc t[^"]*" data-ort="1">[^<]*<\/span>/,"");
+  const tN=/<span class="orc t([^"]*)" data-ort="1">([^<]*)<\/span>/.exec(h),tv=r.querySelector('[data-ort="1"]');
+  if(r.dataset.h&&sinT(r.dataset.h)===sinT(h)&&tN&&tv){const tx=tN[2].replace(/&amp;/g,"&");if(tv.textContent!==tx)tv.textContent=tx;const cl="orc t"+tN[1];if(tv.className!==cl)tv.className=cl;r.dataset.h=h;return}
+  /* si cambia algo más, se rehace pero se conservan el SOS y la llave */
+  const keep=[...r.querySelectorAll(".sosc,.grepc")];r.innerHTML=h;r.dataset.h=h;
+  const o1=r.querySelector(".orl");if(o1)keep.forEach(x=>{if(x.classList.contains("sosc"))o1.prepend(x);else o1.append(x)});
+  if(o1)o1.classList.toggle("orlsos",!!o1.querySelector(".sosc"))})}catch(e){}}
 let tm=null;new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=null;pinta()},150)}).observe(document.body,{childList:true,subtree:true});
 setInterval(pinta,30000);
 })();

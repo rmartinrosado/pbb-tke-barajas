@@ -211,7 +211,7 @@ window.m400Va=function(id){const i=inc.find(x=>x.id==id);if(!i)return;gOT=id;if(
  if(view!="tec")go("tec");else vTec();setTimeout(()=>{pinta();const d=document.getElementById("gm400");if(d)d.scrollIntoView({block:"start",behavior:"smooth"})},200)};
 try{if(typeof window.card=="function"){const oc=window.card;window.card=function(i){let h=oc.apply(this,arguments);if(!aplica(i)||i.estado!="abierta"||/class="pact"/.test(h))return h;
  const ban=`<div class="pact" role="button" tabindex="0" onclick="event.stopPropagation();m400Va('${i.id}')"><span class="pacti">🔌</span><span>PRIMERA ACTUACIÓN EN CAMPO<small>manguera 400 Hz extendida · enrollar desde el AO</small></span><span class="pactv">›</span></div>`;
- h=h.replace(/(<b>PBB [^<]*<span class="tag">[^<]*<\/span>)/,`$1<span class="pactt" title="Primera actuación en campo">🔌</span>`);
+ h=h.replace(/(<b>(?:PBB [^<]*|<span class="pnum"[^>]*>[^<]*<\/span>\s*)<span class="tag">[^<]*<\/span>)/,`$1<span class="pactt" title="Primera actuación en campo">🔌</span>`);
  const re=/(<div class="mu">Inicio [\s\S]*?<\/div>)/;return re.test(h)?h.replace(re,"$1"+ban):h.replace(/(<p style="margin:6px 0">[\s\S]*?<\/p>)/,"$1"+ban)}}}catch(e){}
 
 const st=document.createElement("style");st.textContent=`
