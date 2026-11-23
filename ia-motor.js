@@ -9,7 +9,7 @@
 "use strict";
 const FN=/\/functions\/v1\/(leer-ia|consulta-sos|leer-hoja|leer-magelis|leer-mantenimiento)(?![\w-])/;
 const NOM={"leer-ia":"la lectura con IA","consulta-sos":"la consulta IA (SOS / Resolución IA)","leer-hoja":"la lectura de la hoja de OT","leer-magelis":"la lectura de la foto de la Magelis","leer-mantenimiento":"la lectura del programa de Mantenimiento"};
-const pide=(fn,err)=>confirm(`⚠️ CONSUMO DE CLAUDE\n\nGemini (gratis) no ha dado resultado en ${NOM[fn]||"la consulta IA"}${err?":\n«"+String(err).replace(/\s+/g," ").slice(0,170)+"»":"."}\n\n¿Aceptas repetirla con Claude (API de Anthropic, tiene coste por uso)?`);
+const pide=(fn,err)=>confirm(`⚠️ CONSUMO DE CLAUDE\n\nGemini (gratis) no ha dado resultado en ${NOM[fn]||"la consulta IA"}${err?":\n«"+String(err).replace(/\s+/g," ").slice(0,170)+"»":"."}\n\n${(window.__claveIA||{}).anthropic?"¿Aceptas repetirla con Claude usando TU clave (····"+window.__claveIA.anthropic+"): el coste va a TU cuenta de Anthropic?":"¿Aceptas repetirla con Claude (API de Anthropic, tiene coste por uso)?\n\nPuedes poner tu propia clave en 🔑 Clave IA."}`);
 const con=(b,m)=>JSON.stringify(Object.assign({},b,{motor:m}));
 
 /* --- llamadas con fetch (leer-ia, consulta-sos) --- */

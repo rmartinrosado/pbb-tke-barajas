@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-// v351 (v362: tiempos máximos por modelo y sin datos; v364: modo croquis; v373: gemini-3.8-flash, sin 2.5-flash retirado; v377: croquis estricto; v379: Claude primero y Gemini de reserva si Claude falla o agota su uso) · Consulta IA del SOS (actuación directa) en segundo plano.
+// v351 (v362: tiempos máximos por modelo y sin datos; v364: modo croquis; v373: gemini-3.8-flash, sin 2.5-flash retirado; v377: croquis estricto; v379: Claude primero y Gemini de reserva si Claude falla o agota su uso; v403: procedimiento FC de seguridad validado en campo; v617: posiciones del selector CP-S16; v760: clave IA propia del usuario) · Consulta IA del SOS (actuación directa) en segundo plano.
 // La PWA manda el texto de la consulta (posición, alarma, observaciones) y el CONTEXTO ya preparado en el móvil:
 // guía de campo, comprobaciones por sistema, primera actuación, casos parecidos y las páginas de los planos
 // (texto extraído del bucket «planos», tabla kb_paginas) que mejor encajan con lo detectado.
@@ -157,6 +157,25 @@ async function croquis(ka: string, kg: string, texto: string, info: string): Pro
   throw new Error(err || "sin respuesta");
 }
 
+// v760: clave IA PROPIA del usuario (Vault «ia_<proveedor>_<uid>», se guarda desde la PWA en «Mi clave IA»).
+// Si el usuario tiene la suya, el consumo va a SU cuenta; si no, se usa la clave central.
+function uidDe(req: Request): string {
+  try {
+    const t = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").split(".")[1] || "";
+    const b = t.replace(/-/g, "+").replace(/_/g, "/"), p = JSON.parse(atob(b + "===".slice((b.length + 3) % 4)));
+    return p.role === "authenticated" && typeof p.sub === "string" ? p.sub : "";
+  } catch { return ""; }
+}
+async function propia(req: Request, p: string): Promise<string> {
+  const id = uidDe(req); if (!id) return "";
+  try {
+    const u = Deno.env.get("SUPABASE_URL"), k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"); if (!u || !k) return "";
+    const r = await fetch(`${u}/rest/v1/rpc/ia_clave_usuario`, { method: "POST", headers: { apikey: k, Authorization: `Bearer ${k}`, "Content-Type": "application/json" }, body: JSON.stringify({ u: id, p }) });
+    if (!r.ok) return "";
+    const v = await r.json(); return typeof v === "string" ? v : "";
+  } catch { return ""; }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     const h = req.headers.get("access-control-request-headers");
@@ -168,8 +187,8 @@ Deno.serve(async (req) => {
   if (contexto.length > 400_000) contexto = contexto.slice(0, 400_000);
   const usuario = `DOCUMENTACIÓN DEL PROYECTO PBB TKE (seleccionada para esta consulta):\n\n${contexto}\n\n==============================\nCONSULTA DEL TÉCNICO:\n\n${pregunta}`;
 
-  let ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY");
-  let kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
+  let ka = (await propia(req, "anthropic")) || Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY");
+  let kg = (await propia(req, "gemini")) || Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
   if (motor === "gemini") ka = ""; else if (motor === "claude") kg = ""; /* v522: motor elegido en la PWA (Gemini gratis primero; Claude solo aceptando el coste) */
   if (!ka && !kg) return json({ error: "sin_clave", mensaje: "Falta ANTHROPIC_API_KEY (o GEMINI_API_KEY de reserva) en los secretos de Supabase" }, 503);
 

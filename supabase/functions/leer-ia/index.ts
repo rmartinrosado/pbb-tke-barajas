@@ -41,9 +41,28 @@ async function conGemini(key: string, img: string, tipo: string, prompt: string)
   throw new Error(err || "Gemini sin respuesta");
 }
 
+// v760: clave IA PROPIA del usuario (Vault «ia_<proveedor>_<uid>», se guarda desde la PWA en «Mi clave IA»).
+// Si el usuario tiene la suya, el consumo va a SU cuenta; si no, se usa la clave central.
+function uidDe(req: Request): string {
+  try {
+    const t = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").split(".")[1] || "";
+    const b = t.replace(/-/g, "+").replace(/_/g, "/"), p = JSON.parse(atob(b + "===".slice((b.length + 3) % 4)));
+    return p.role === "authenticated" && typeof p.sub === "string" ? p.sub : "";
+  } catch { return ""; }
+}
+async function propia(req: Request, p: string): Promise<string> {
+  const id = uidDe(req); if (!id) return "";
+  try {
+    const u = Deno.env.get("SUPABASE_URL"), k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"); if (!u || !k) return "";
+    const r = await fetch(`${u}/rest/v1/rpc/ia_clave_usuario`, { method: "POST", headers: { apikey: k, Authorization: `Bearer ${k}`, "Content-Type": "application/json" }, body: JSON.stringify({ u: id, p }) });
+    if (!r.ok) return "";
+    const v = await r.json(); return typeof v === "string" ? v : "";
+  } catch { return ""; }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") { const h = req.headers.get("access-control-request-headers"); return new Response("ok", { headers: h ? { ...cors, "Access-Control-Allow-Headers": h } : cors }); }
-  const ka = Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
+  const ka = (await propia(req, "anthropic")) || Deno.env.get("ANTHROPIC_API_KEY") || await deVault("ANTHROPIC_API_KEY"), kg = (await propia(req, "gemini")) || Deno.env.get("GEMINI_API_KEY") || await deVault("GEMINI_API_KEY");
   if (!ka && !kg) return json({ error: "sin_clave" }, 503);
   try {
     const { img, tipo, prompt, motor } = await req.json(); if (!prompt) return json({ error: "faltan_datos" }, 400);
