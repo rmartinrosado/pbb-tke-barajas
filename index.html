@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=764;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=765;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -5846,7 +5846,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   const soloNor=!!(S&&S.lim&&S.limT=="nor"&&!S.limMix),soloSeg=!!(S&&S.lim&&S.limT=="seg"&&!S.limMix);
   if(S&&S.lim){if(S.itSeg&&S.itNor)(soloNor?S.itNor.concat(S.itSeg):soloSeg?S.itSeg:S.itSeg.concat(S.itNor)).forEach(it=>deIt(it,1));else S.zs.forEach(z=>z.it.forEach(it=>deIt(it,1)))}/* v437: límite de trabajo (módulo verde) → croquis del puente en su entrada (v434 lo quitaba) */
   /* puentes de la tabla PUENTE (caja «puente provisional para recuperar la pasarela») */
-  try{if(typeof puentesOT=="function")puentesOT(i).forEach(p=>{if(p.suelta||!p.b)return;const bi=/^(\d+\.\d)/.exec(p.b.in||""),bv=/(\d+\.\d)/.exec(p.b.v||"");if(!bi||!bv)return;if(+bv[1].split(".")[1]>4||+bi[1].split(".")[1]>4)return;
+  try{if(typeof puentesOT=="function")puentesOT(i).forEach(p=>{if(p.croq){add(p.croq);return}/* v765: croquis propio (contacto avión: soltar hilo) */if(p.suelta||!p.b)return;const bi=/^(\d+\.\d)/.exec(p.b.in||""),bv=/(\d+\.\d)/.exec(p.b.v||"");if(!bi||!bv)return;if(+bv[1].split(".")[1]>4||+bi[1].split(".")[1]>4)return;
    const M=PLC.find(m=>m.id==p.id),sd=M&&M.t=="SDI";if(sd&&soloNor&&!S.cont&&!(S.sen&&S.sen.length))return;if(!sd&&soloSeg&&!(S.sen&&S.sen.length))return;
    add({mod:p.id,b1:bi[1],b2:bv[1],k1:sig(p.id,bi[1])||"IN",k2:sig(p.id,bv[1])||(sd?"UT":"+24 V"),d:p.nom})})}catch(e){}
   return out};
@@ -5952,6 +5952,6 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 <script src="reorg.js?v=695"></script>
 <script src="seg-pro.js?v=695"></script>
 <script src="sos-ins.js?v=684"></script>
-<script src="card-ot.js?v=750"></script><script src="guia-pa.js?v=751"></script><script src="sos-tecnico.js?v=733"></script><script src="atraque.js?v=752"></script><script src="modo-desarrollo.js?v=754"></script><script src="clave-ia.js?v=760"></script><script src="reabrir-ot.js?v=764"></script>
+<script src="card-ot.js?v=750"></script><script src="guia-pa.js?v=751"></script><script src="sos-tecnico.js?v=733"></script><script src="atraque.js?v=765"></script><script src="modo-desarrollo.js?v=754"></script><script src="clave-ia.js?v=760"></script><script src="reabrir-ot.js?v=764"></script>
 <script src="consultando.js?v=665"></script>
 </body></html>

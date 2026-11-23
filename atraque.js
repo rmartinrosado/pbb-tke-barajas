@@ -158,7 +158,7 @@ if(typeof puentesOT=="function"){const oP=puentesOT;puentesOT=function(i){const 
   /* si la descripción dice el lado, solo ese; si no, los dos (el LED encendido dice cuál) */
   const lados=/derech|c-?b51/.test(txt)&&!/izquier|c-?b52/.test(txt)?["P-A5|1|1"]:/izquier|c-?b52/.test(txt)&&!/derech|c-?b51/.test(txt)?["P-A5|2|4"]:["P-A5|1|1","P-A5|2|4"];
   const nuevos=lados.filter(key=>!P.some(p=>p.key==key)).map(key=>{const[id,k,l]=key.split("|");const Lm=M&&M.m[k-1]&&M.m[k-1][l-1];
-   return{key,id,k,l,t:TXP[key],nom:Lm?Lm[0]:(key.endsWith("1|1")?"Inductivo contacto avión derecha":"Inductivo contacto avión izquierda"),b:M&&typeof pBorna=="function"?pBorna(M,+k,+l):null,f:M?M.f[k-1]:85,suelta:true}});
+   return{key,id,k,l,t:TXP[key],nom:Lm?Lm[0]:(key.endsWith("1|1")?"Inductivo contacto avión derecha":"Inductivo contacto avión izquierda"),b:M&&typeof pBorna=="function"?pBorna(M,+k,+l):null,f:M?M.f[k-1]:85,suelta:true,croq:(()=>{const o=LADO[key.endsWith("1|1")?"R":"L"];return{mod:"P-A5",b1:o.b,b2:o.b,k1:`${o.din} · hilo ${o.h} · ${o.s}`,k2:"",d:`CONTACTO AVIÓN ${o.lado.toUpperCase()} ${o.s} · si da señal sin avión`,suelta:true}})()}});/* v765: croq → croquis en la guía (lista de index.html) */
   return nuevos.concat(P)}catch(e){console.warn("atraque puentesOT",e)}return P}}
 L.push(SEC); /* al final: otras partes guardan las cajas por su número de orden (v738) */
 
