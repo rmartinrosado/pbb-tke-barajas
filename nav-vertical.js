@@ -32,3 +32,28 @@ html body #nav#nav button{padding:13px 2px 5px!important;gap:4px!important;font-
 html body #nav#nav button span{font-size:28px!important}
 html body #nav#nav button span svg,html body #nav#nav button.ninicio span svg{width:28px!important;height:28px!important}
 html body #nav#nav button i.tkn{font-size:8px!important}`;document.head.appendChild(st)})();
+
+/* ===== v800: cierre de la barra izquierda en CASCADA (23/11/2026) =====
+   Al cerrar, los botones se van uno tras otro de arriba abajo (se desvanecen, bajan y se desplazan a la izquierda con un ligero
+   desenfoque) y después se recoge el panel. Al abrir, entran también escalonados. Respeta «reducir movimiento» del teléfono. ===== */
+(function(){"use strict";
+const st=document.createElement("style");st.textContent=`
+html body #nav#nav{transition:transform .34s cubic-bezier(.55,0,.75,.2) .40s,visibility 0s linear .76s,box-shadow .3s ease .4s!important}
+html body #nav#nav.abre{transition:transform .32s cubic-bezier(.16,1,.3,1),visibility 0s,box-shadow .3s ease!important}
+html body #nav#nav>button{will-change:transform,opacity;
+ transition:opacity .26s ease calc(var(--nvi,0)*38ms),transform .34s cubic-bezier(.55,0,.75,.2) calc(var(--nvi,0)*38ms),filter .26s ease calc(var(--nvi,0)*38ms)!important}
+html body #nav#nav:not(.abre)>button{opacity:0!important;transform:translate(-26px,22px) scale(.86) rotate(-3deg)!important;filter:blur(2px)}
+html body #nav#nav.abre>button{opacity:1;transform:none;filter:none;
+ transition:opacity .3s ease calc(var(--nvi,0)*30ms + 90ms),transform .42s cubic-bezier(.16,1,.3,1) calc(var(--nvi,0)*30ms + 90ms),filter .3s ease calc(var(--nvi,0)*30ms + 90ms)!important}
+html body #nav#nav.abre>button:active{transform:scale(.94)!important;transition-delay:0s!important}
+html body #nav#nav::after{content:"";position:absolute;left:0;right:0;top:0;height:0;pointer-events:none;border-radius:inherit;
+ background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--tkor,#ff7a1a) 22%,transparent) 70%,transparent);opacity:0}
+html body #nav#nav:not(.abre)::after{animation:nvCasc .42s ease-in forwards}
+@keyframes nvCasc{0%{top:0;height:30%;opacity:.9}100%{top:100%;height:30%;opacity:0}}
+@media (prefers-reduced-motion:reduce){html body #nav#nav,html body #nav#nav>button{transition-duration:.01s!important;transition-delay:0s!important}
+ html body #nav#nav:not(.abre)::after{animation:none}}`;
+document.head.appendChild(st);
+/* índice de cada botón para el escalonado (la barra se rehace al cambiar de modo) */
+const num=()=>{const n=document.getElementById("nav");if(!n)return;[...n.children].forEach((b,k)=>{if(b.style.getPropertyValue("--nvi")!==String(k))b.style.setProperty("--nvi",k)})};
+num();setInterval(num,1000);
+})();
