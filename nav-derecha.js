@@ -100,16 +100,16 @@ addEventListener("popstate",()=>{let i=0;try{const s=history.state;i=s&&typeof s
  if(i>cur){try{history.back()}catch(e){}return}cur=i},true);
 })();
 
-/* ===== v801: cierre en CASCADA también en la barra derecha (espejo de la izquierda, 20 ms entre botones) ===== */
+/* ===== v802: cierre en CASCADA también en la barra derecha (espejo de la izquierda, 40 ms entre botones) ===== */
 (function(){"use strict";
 const st=document.createElement("style");st.textContent=`
-html body #navd#navd{transition:transform .34s cubic-bezier(.55,0,.75,.2) .30s,visibility 0s linear .66s!important}
+html body #navd#navd{transition:transform .34s cubic-bezier(.55,0,.75,.2) .46s,visibility 0s linear .82s!important}
 html body #navd#navd.abre{transition:transform .32s cubic-bezier(.16,1,.3,1),visibility 0s!important}
 html body #navd#navd>.hki{will-change:transform,opacity;
- transition:opacity .26s ease calc(var(--nvi,0)*20ms),transform .34s cubic-bezier(.55,0,.75,.2) calc(var(--nvi,0)*20ms),filter .26s ease calc(var(--nvi,0)*20ms)!important}
+ transition:opacity .26s ease calc(var(--nvi,0)*40ms),transform .34s cubic-bezier(.55,0,.75,.2) calc(var(--nvi,0)*40ms),filter .26s ease calc(var(--nvi,0)*40ms)!important}
 html body #navd#navd:not(.abre)>.hki{opacity:0!important;transform:translate(26px,22px) scale(.86) rotate(3deg)!important;filter:blur(2px)}
 html body #navd#navd.abre>.hki{opacity:1;transform:none;filter:none;
- transition:opacity .3s ease calc(var(--nvi,0)*20ms + 90ms),transform .42s cubic-bezier(.16,1,.3,1) calc(var(--nvi,0)*20ms + 90ms),filter .3s ease calc(var(--nvi,0)*20ms + 90ms)!important}
+ transition:opacity .3s ease calc(var(--nvi,0)*40ms + 90ms),transform .42s cubic-bezier(.16,1,.3,1) calc(var(--nvi,0)*40ms + 90ms),filter .3s ease calc(var(--nvi,0)*40ms + 90ms)!important}
 html body #navd#navd.abre>.hki:active{transform:scale(.94)!important;transition-delay:0s!important}
 html body #navd#navd::after{content:"";position:absolute;left:0;right:0;top:0;height:0;pointer-events:none;border-radius:inherit;
  background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--tkor,#ff7a1a) 22%,transparent) 70%,transparent);opacity:0}
