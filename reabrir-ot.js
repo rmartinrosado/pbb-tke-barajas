@@ -25,7 +25,7 @@ function pon(){
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".otreab");if(!b)return;e.stopPropagation();e.preventDefault();
  let i=null;try{i=inc.find(x=>String(x.id)==b.dataset.reab)}catch(x){}if(!i||i.estado!="cerrada")return;
  if(!confirm(`🔓 ¿Reabrir la OT ${i.orden||""} · PBB ${i.pos}?\n\nQuedará ABIERTA y solo se borra la hora de cierre (se mantienen llegada, actuación y observaciones).`))return;
- i.estado="abierta";i.hCie="";
+ i.estado="abierta";i.hCie="";delete i.fCie;
  try{sv("pbb_inc",inc)}catch(x){}try{render()}catch(x){}
  try{if(navigator.vibrate)navigator.vibrate(30)}catch(x){}try{msg("OT reabierta")}catch(x){}},true);
 let t=0;const mo=new MutationObserver(()=>{clearTimeout(t);t=setTimeout(pon,60)});
