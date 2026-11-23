@@ -61,8 +61,10 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  if(dt){const sm=dt.querySelector("summary");/* v727: en una línea, con el número de alarmas registradas */
   const nA=tx?(typeof rcsListaAl=="function"?rcsListaAl(tx.value).length:tx.value.split("\n").filter(z=>z.trim()).length):0;
   const hA=`<span class="sostart">Alarma registrada</span><span class="sostarn${nA?" on":""}">${nA}</span>`;if(sm&&sm.innerHTML!==hA)sm.innerHTML=hA}
- if(tx&&tx.getAttribute("wrap")!=="off")tx.setAttribute("wrap","off");/* v732: una alarma por línea, sin partirla */
- if(tx&&!tx.readOnly){tx.readOnly=true;tx.tabIndex=-1;tx.setAttribute("aria-readonly","true");tx.placeholder="Sin alarmas · elígelas con el buscador o la lista"}pon(B2,$i("sr_f"));pon(B2,$i("sr_pv"));
+ /* v732: una alarma por línea, sin partirla · v804: vacío, el aviso «Sin alarmas…» se ajusta al recuadro (centrado, en dos líneas) */
+ if(tx){const w=tx.value.trim()?"off":"soft";if(tx.getAttribute("wrap")!==w)tx.setAttribute("wrap",w);tx.classList.toggle("srtvac",!tx.value.trim())}
+ if(!document.getElementById("st804")){const st=document.createElement("style");st.id="st804";st.textContent=`#sr_t.srtvac{white-space:pre-wrap!important;overflow-x:hidden!important;text-align:center}#sr_t::placeholder{white-space:pre-wrap;text-align:center;font-size:13px;letter-spacing:.3px;line-height:1.45}`;document.head.appendChild(st)}
+ if(tx&&!tx.readOnly){tx.readOnly=true;tx.tabIndex=-1;tx.setAttribute("aria-readonly","true");tx.placeholder="Sin alarmas\nelígelas con el buscador o la lista"}pon(B2,$i("sr_f"));pon(B2,$i("sr_pv"));
  /* pasos y ACEPTAR al final del formulario */
  /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
  const P2=F.querySelector(".sostp2");if(P2&&!P2.dataset.pl){P2.dataset.pl=1;P2.classList.add("sostcer");const hd=P2.querySelector(".sostph");
