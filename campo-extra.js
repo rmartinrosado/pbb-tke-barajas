@@ -60,9 +60,16 @@ window.qrPBB=async function(){try{await cargaQR()}catch(e){msg("No se pudo carga
  ["click","dblclick","touchend"].forEach(t=>o.addEventListener(t,e=>e.stopPropagation()));document.body.appendChild(o)};
 /* =================== MANOS LIBRES =================== */
 let V=null;
-const pasosSOS=()=>{const out=[];const b1=document.querySelector("#sr_res .ubb1");if(b1){const t=(b1.querySelector(".pucab")||{}).textContent;if(t)out.push("Primera actuación. "+t);b1.querySelectorAll(".qkp,.puac").forEach(x=>{const s=x.textContent.trim();if(s&&!out.includes(s))out.push(s)})}
- const h=document.querySelector("#lp_res .lpaef h3");if(h)out.push("Reparar. "+h.textContent);document.querySelectorAll("#lp_res .lpap").forEach(x=>{const c=x.cloneNode(true);c.querySelectorAll(".medw,details,button,select").forEach(z=>z.remove());const s=c.textContent.replace(/\s+/g," ").trim();if(s)out.push(s)});
- return out.map(s=>s.replace(/→/g,", luego ").replace(/\bE-/g,"E ").replace(/\bP-/g,"P ").replace(/·/g,","))};
+/* v849: Manos libres empieza en el PUNTO 1 de la «Actuación más eficaz» (sin primera actuación ni título) y en orden 1, 2, 3…;
+   de cada paso solo se lee el enunciado: los subpuntos (a) b) c)…, listas, croquis, medidas, botones) no se leen */
+const subFuera=t=>{let x=String(t);const k=x.search(/(?:^|[\s:;,.])(?:[a-h]\)|\d{1,2}\.\d{1,2}\)|[ivx]{1,3}\))\s/);if(k>0)x=x.slice(0,k);
+ return x.replace(/[\s:;,–-]+$/,"").trim()};
+const pasosSOS=()=>{const L=[...document.querySelectorAll("#lp_res .lpaef .lpap")].map(x=>{const n=parseInt(((x.querySelector(":scope>b")||{}).textContent||"").trim())||999;
+  const c=x.cloneNode(true);c.querySelectorAll(":scope>b,.medw,details,button,select,ul,ol,.fbw,.mu,small,table,figure,svg").forEach(z=>z.remove());
+  return {n,s:subFuera(c.textContent.replace(/\s+/g," ").trim())}}).filter(z=>z.s);
+ if(!L.length){const out=[];const b1=document.querySelector("#sr_res .ubb1");if(b1)b1.querySelectorAll(".qkp,.puac").forEach(x=>{const s=subFuera(x.textContent.trim());if(s&&!out.includes(s))out.push(s)});return out.map(s=>s.replace(/→/g,", luego ").replace(/·/g,","))}
+ L.sort((a,b)=>a.n-b.n);
+ return L.map(z=>z.s.replace(/→/g,", luego ").replace(/·/g,","))};
 /* v838: lectura más rápida (1,15) y sin cortes:
    · el texto se trocea por frases (iOS y Chrome cortan las locuciones largas a los ~15 s) y se encadena;
    · se guardan las locuciones (si el recolector las borra, no llega «onend» y la lectura se queda muda);
