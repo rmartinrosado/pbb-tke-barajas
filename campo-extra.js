@@ -74,7 +74,7 @@ const trozos=t=>{const out=[];String(t).split(/(?<=[.;:!?])\s+/).forEach(f=>{f=f
 const LET={A:"a",B:"be",C:"ce",D:"de",E:"e",F:"efe",G:"ge",H:"hache",I:"i",J:"jota",K:"ka",L:"ele",M:"eme",N:"ene","Ñ":"eñe",O:"o",P:"pe",Q:"cu",R:"erre",S:"ese",T:"te",U:"u",V:"uve",W:"uve doble",X:"equis",Y:"i griega",Z:"zeta"};
 const deletrea=c=>c.replace(/([A-ZÑ])/g," $1 ").replace(/[A-ZÑ]/g,x=>LET[x]||x).replace(/(\d)\.(\d)/g,"$1 punto $2").replace(/:/g," dos puntos ").replace(/\//g," barra ").replace(/[-_]/g," ").replace(/\s+/g," ").trim();
 /* v840: siglas que se leen como palabra */
-const PALABRA=new Set(["LED","LEDS"]);
+const PALABRA=new Set(["LED","LEDS","INT"]);
 const esCodigo=w=>{const l=w.replace(/[^A-ZÑa-zñ]/g,"");if(!l||l!==l.toUpperCase())return false;if(PALABRA.has(w))return false;
  if(/\d/.test(w))return true;            /* letras y números: IT-B11, X1, KM2 */
  if(/[-:\/]/.test(w))return true;        /* IT-B, E-A */
@@ -82,7 +82,7 @@ const esCodigo=w=>{const l=w.replace(/[^A-ZÑa-zñ]/g,"");if(!l||l!==l.toUpperCa
 /* v846: un color solo dentro del paréntesis lleva «el»: «bornero X (azul)» → «bornero equis, es decir, el azul» */
 const COL="azul|rojo|negro|marr[oó]n|gris|blanco|verde|amarillo|naranja|violeta|morado|rosa|celeste|beige";
 const conEl=d=>new RegExp(`^(${COL})(\\s*[-/ ]\\s*(${COL}))?(\\s+(claro|oscuro))?$`,"i").test(d)?"el "+d:d;
-const limpiaVoz=t=>String(t)/* v847: IN y OUT en inglés (también IN3, OUT-2…) */.replace(/(?<![\p{L}\d])(IN|OUT)[-_]?(\d*)(?![\p{L}])/gu,(m,w,n)=>(w=="IN"?"in":"aut")+(n?" "+n:""))/* v845: lo de dentro del paréntesis se lee como aclaración: «, es decir, … ,» con pausa */.replace(/\s*\(\s*([^()]*?)\s*\)\s*([.,;:!?]?)/g,(m,d,p)=>d.trim()?`, es decir, ${conEl(d.trim())}${p||","} `:(p?p+" ":" ")).replace(/[()]/g," ").replace(/(^|\s)[-+](?=[A-ZÑ])/gu,"$1").replace(/(?<![\p{L}\d])magelis(?![\p{L}\d])/giu,"mallelis")/* v841: pronunciación */.replace(/(?<![\p{L}\d])LEDS?(?![\p{L}\d])/gu,w=>w.toLowerCase())
+const limpiaVoz=t=>String(t)/* v847: IN y OUT en inglés (también IN3, OUT-2…) */.replace(/(?<![\p{L}\d])(IN|OUT)[-_]?(\d*)(?![\p{L}])/gu,(m,w,n)=>(w=="IN"?"in":"aut")+(n?" "+n:""))/* v845: lo de dentro del paréntesis se lee como aclaración: «, es decir, … ,» con pausa */.replace(/\s*\(\s*([^()]*?)\s*\)\s*([.,;:!?]?)/g,(m,d,p)=>d.trim()?`, es decir, ${conEl(d.trim())}${p||","} `:(p?p+" ":" ")).replace(/[()]/g," ").replace(/(^|\s)[-+](?=[A-ZÑ])/gu,"$1").replace(/(?<![\p{L}\d])magelis(?![\p{L}\d])/giu,"mallelis")/* v841: pronunciación */.replace(/(?<![\p{L}\d])(LEDS?|INT)(?![\p{L}])/gu,w=>w.toLowerCase())/* v848: INT como palabra */
  .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu," ")
  .replace(/[▶◀▲▼►◄▸▾•●○■□★☆✓✔✕✖✗→←↑↓⇒⟶*#|~^_`<>{}\[\]]/g," ").replace(/\s*·\s*/g,", ")
  .replace(/(\d)\s*(V|Vcc|Vdc|Vac)(?![\p{L}\d])/gu,"$1 voltios").replace(/(\d)\s*mA(?![\p{L}\d])/gu,"$1 miliamperios").replace(/(\d)\s*Hz(?![\p{L}\d])/giu,"$1 hercios")
