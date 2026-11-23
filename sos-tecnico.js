@@ -315,6 +315,6 @@ ${P} .sostp2>.sostph .sostcol .sostpr.on,${P} .sostp2>.sostph .sostcol .sostcam.
 ${P} .sostp2:not(.sostcer)>.sostph .sostcol .sostpr{border-color:#ef6c00!important}
 @media (prefers-color-scheme:light){${P} .sostp2>.sostph .sostcol .sostpr,${P} .sostp2>.sostph .sostcol .sostcam{border-color:#0002!important}}`;document.head.appendChild(st)})();
 /* ===== v825: en la caja 1 queda solo el icono 📷 de la cabecera: fuera el botón «Foto Display-Magelis» y su rótulo ===== */
-(function(){const st=document.createElement("style");st.textContent=`#sheetc #sostf label.srfoto,#sheetc #sostf label.srfoto+label,#sheetc #sostf .sostpb label:not([for]):has(+label.srfoto){display:none!important}`;document.head.appendChild(st);
+(function(){const st=document.createElement("style");st.textContent=`#sheetc #sostf label.srfoto{display:none!important}`;document.head.appendChild(st);
  const oculta=()=>{document.querySelectorAll("#sheetc #sostf .sostpb label").forEach(l=>{if(/^\s*Foto de la Magelis/i.test(l.textContent||""))l.style.display="none"})};
  new MutationObserver(oculta).observe(document.body,{childList:true,subtree:true})})();
