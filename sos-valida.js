@@ -94,6 +94,8 @@ function bloqueAlarma(A){const [ic,t0,s]=EST[A.est=="ok"&&A.cod.length>1?"okn":A
  if(A.est=="noal")h+=`<div class="svl">Escrita: «${E(A.al)}»${A.cod.length?" · según la avería en campo:":""}</div>`;
  h+=A.cod.map(cajaAl).join("");
  /* v813: simulaciones y croquis de la guía de campo de los elementos que intervienen, tras las cajas rojas (005 → almena) */
+ /* v816: el croquis del puente provisional (según planos) justo después de las cajas rojas, antes de la simulación */
+ if(A.cod.length){try{const S=sacarHTML(A);if(S&&S.croH)h+=`<div class="rcscro svcroal">${S.croH}</div>`}catch(e){}}
  if(A.cod.length&&typeof rcsCroGuia=="function")h+=rcsCroGuia(A.cod.map(z=>z.x));
  /* v704: componentes de campo que intervienen (según planos), igual que al elegir la alarma */
  if((A.I||[]).length&&A.cod.length&&typeof rcsBloqueInterv=="function")h+=rcsBloqueInterv(A.cod[0].x,A.I,A.cod.length>1);
@@ -171,6 +173,8 @@ function pon(){const res=$("sr_res");if(!res||!res.querySelector(".ub1"))return;
  const h2=res.querySelector(".ub2");d.innerHTML=bloqueComp(A);
  while(d.firstChild){h2?res.insertBefore(d.firstChild,h2):res.appendChild(d.firstChild)}
  try{ponSacar(A,res)}catch(e){console.warn("sos-valida sacar",e)}
+ /* v816: el croquis ya está arriba, tras la alarma: no se repite en «1 · En servicio ya» */
+ try{if(res.querySelector("#sv_al .svcroal .svcro"))res.querySelectorAll(".ubb1 .svcro").forEach(x=>x.remove())}catch(e){}
  res.querySelectorAll("#sv_al button.rcsi").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],"Alarma validada")});
  res.querySelectorAll(".svb").forEach(b=>b.onclick=()=>{const c=A.C.find(z=>clave(z)==b.dataset.k);const f=$("sv_fi");if(!c||!f)return;
   res.querySelectorAll(".svb").forEach(x=>x.classList.toggle("on",x===b));f.innerHTML=fichaH(c)})}
