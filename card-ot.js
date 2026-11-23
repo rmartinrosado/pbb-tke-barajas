@@ -7,7 +7,7 @@ const LLAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 const st=document.createElement("style");st.textContent=`
 #app .card.ot .sosb,#app .card.ot .sosc{display:none!important}#app .card .otres .orl>.pactt{cursor:pointer}
 /* v770: el tiempo centrado en la caja */
-#app .card.ot .otres .orl.orlsos{position:relative}#app .card.ot .otres .orl.orlsos>[data-ort]{position:absolute!important;left:50%;top:50%;transform:translate(-50%,-50%);margin:0!important}
+#app .card.ot .otres .orl.orlsos{position:relative;justify-content:flex-start!important}#app .card.ot .otres .orl.orlsos>[data-ort]{position:absolute!important;left:50%;top:50%;transform:translate(-50%,-50%);margin:0!important}
 #app .card.ot .otres .orl .grepc.grjunto{flex:none;align-self:center!important;margin:0 0 0 2px!important;padding:3px 4px!important;border-radius:8px!important;border-width:1.5px!important;font-size:18px;line-height:1;box-sizing:content-box;min-width:18px;height:auto!important}
 #app .card.ot .otres .orl .grepc.grjunto svg{width:18px!important;height:18px!important}#app .card .otres .orl>.pactt2{flex:none;margin:0 0 0 2px;font-size:18px;line-height:1;padding:3px 4px;border-radius:8px;border:1.5px solid #c62828;cursor:pointer}#app .card .otres .orl>.pactt.pactpte{animation:pactBl 1.1s ease-in-out infinite!important}
 @keyframes pactBl{0%,100%{opacity:1;box-shadow:0 0 0 0 #ff5252aa}50%{opacity:.35;box-shadow:0 0 10px 2px #ff5252aa}}
