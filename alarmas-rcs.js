@@ -489,7 +489,19 @@ function bloqueInterv(x,L,varias){if(!L.length)return`<div class="rcscf rcsnada"
    :`<div class="rcscb rcsi rcsi-${o.rol} rcsnf"><span class="cmpid">${E(o.id)}</span> ${E(o.nom||"Según planos")}<small>${E(sub)} · 📐 de planos (sin ficha)</small></div>`}).join("")).join("")}</details>`}
 /* v803: ubicación de un elemento: la del catálogo; si no la tiene, por el prefijo de su código */
 /* v803: croquis de simulación (puente provisional / resistencia / soltar cable según planos) justo después de la caja de la alarma validada */
-function croSim(X){try{if(typeof window.rcsSacarHTML!="function")return"";const S=window.rcsSacarHTML(X);return S&&S.croH?`<div class="rcscro">${S.croH}</div>`:""}catch(e){return""}}
+function croSim(X){let h="";try{if(typeof window.rcsSacarHTML=="function"){const S=window.rcsSacarHTML(X);if(S&&S.croH)h+=`<div class="rcscro">${S.croH}</div>`}}catch(e){}
+ return h+croGuia(X)}
+/* v812: simulaciones y croquis de la guía de campo (CROQ: almena, brazo, hidráulica, megafonía…) de los ELEMENTOS DE CAMPO que
+   intervienen en la alarma: se incrustan después de las cajas rojas de las alarmas (p. ej. 005 → almena con límite y contaje) */
+function croGuia(X){try{if(typeof CROQ=="undefined"||typeof gCroquisHTML!="function")return"";
+ const L=window.rcsIntervUnion(X).filter(o=>o.rol=="campo").map(o=>String(o.id).toUpperCase());if(!L.length)return"";
+ const R=[];Object.keys(CROQ).forEach(k=>{const C=CROQ[k];if(!C)return;let txt="";try{txt=JSON.stringify(C)}catch(e){return}
+  const ids=[...new Set((txt.match(/\b[A-Z]{1,3}-[A-Z]{1,2}\d+(?:\.\d+)?\b/g)||[]).filter(id=>!/-X\d|^[EP]-A\d|-W\d|-Q\d/.test(id)))];
+  /* rangos «H-B1…H-B4» */
+  (txt.match(/\b([A-Z]{1,3}-[A-Z]{1,2})(\d+)\s*(?:…|\.\.\.|-|a)\s*\1?(\d+)\b/g)||[]).forEach(r=>{const m=/([A-Z]{1,3}-[A-Z]{1,2})(\d+)\D+(\d+)/.exec(r);if(m)for(let n=+m[2];n<=+m[3]&&n-+m[2]<12;n++)ids.push(m[1]+n)});
+  const hit=L.filter(id=>ids.includes(id)).length;if(hit)R.push({k,hit,sim:!!C.sim})});
+ R.sort((a,b)=>b.hit-a.hit||(b.sim-a.sim));
+ return R.slice(0,2).map(r=>`<div class="rcscro rcsgcro">${gCroquisHTML(r.k,"PAS")}</div>`).join("")}catch(e){console.warn("croGuia",e);return""}}
 function ubiDe(o){let u=String(o.ubi||"").trim();const id=String(o.id||"").toUpperCase().replace(/^[+=]/,"");
  if(!u){u=/^E\d?-/.test(id)?"Armario eléctrico":/^P-/.test(id)?"Pupitre":/^CP-/.test(id)?"Pupitre":/^C-/.test(id)?"Cabina":/^H-/.test(id)?"Elevación":/^(ET|IT|MT)-/.test(id)?"Túneles":/^T-/.test(id)?"Tren de ruedas":/^(R|CO)-/.test(id)?"Rotonda":/^SS-/.test(id)?"Puerta de servicio":/^EP-|^EC-|^EIT-|^ER-/.test(id)?"Mangueras":"Otros"}
  return u.charAt(0).toUpperCase()+u.slice(1)}
