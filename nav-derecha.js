@@ -1,4 +1,5 @@
-/* ===== v796: la barra derecha salía aplastada (heredaba «bottom:0» de las reglas generales de <nav>): ahora es un bloque propio con su altura.
+/* ===== v797: botones más pequeños y con el tema de la barra izquierda (cuadrícula, números 01-0n, LED del modo activo).
+   v796: la barra derecha salía aplastada (heredaba «bottom:0» de las reglas generales de <nav>): ahora es un bloque propio con su altura.
    v795: barra lateral DERECHA (23/11/2026) =====
    Los botones de la parte superior (Técnico · Operador · Admin · Gestión · Actualizar, o Turno) salen ahora de una pestaña
    fija en el borde derecho, abajo, igual que la barra de la izquierda pero en espejo. Hacen exactamente lo mismo que antes
@@ -10,24 +11,30 @@
 const OR="var(--tkor,#ff7a1a)",PU="var(--tkpu,#9b3dff)";
 const st=document.createElement("style");st.textContent=`
 #hk .hk2{display:none!important}
-#navd{position:fixed;right:0;left:auto;bottom:auto!important;height:auto!important;min-height:0;border-top:0;z-index:41;width:122px;box-sizing:border-box;max-height:calc(var(--nvb,100vh) - 150px);overflow-x:hidden;overflow-y:auto;
+#navd{position:fixed;right:0;left:auto;bottom:auto!important;height:auto!important;min-height:0;border-top:0;z-index:41;width:100px;box-sizing:border-box;max-height:calc(var(--nvb,100vh) - 150px);overflow-x:hidden;overflow-y:auto;
  top:calc(var(--nvb,100vh) - 24px - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:stretch;
- padding:8px 36px 8px 6px;border:1.5px solid transparent;border-right:0;border-radius:18px 0 0 18px;
+ padding:8px 32px 8px 6px;border:1.5px solid transparent;border-right:0;border-radius:18px 0 0 18px;
  background:linear-gradient(225deg,#12141bf2,#0b0c11f2) padding-box,linear-gradient(225deg,${OR},${PU} 55%,#1e88e5) border-box;
  -webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);box-shadow:-6px 8px 30px -8px #000c,0 0 24px -10px ${PU};
  transform:translate(102%,-100%);transition:transform .25s ease;visibility:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 #navd::-webkit-scrollbar{display:none}
 #navd.abre{transform:translate(0,-100%);visibility:visible}
-#navd .hki{position:relative;flex:0 0 auto;width:100%;aspect-ratio:1/1;height:auto;margin:3px 0;padding:12px 3px 5px;border-radius:10px;
- border:1px solid #ffffff1f;background:linear-gradient(180deg,#2a2e3a,#1b1e27);color:#fff;display:flex;flex-direction:column;align-items:center;
- justify-content:center;gap:5px;font:600 10.5px/1.1 system-ui,sans-serif;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;
- box-shadow:0 4px 12px -6px #000,0 1px 0 #ffffff12 inset}
+#navd::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.07;
+ background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:18px 18px}
+#navd .hki{position:relative;flex:0 0 auto;width:100%;aspect-ratio:1/1;height:auto;margin:3px 0;padding:13px 2px 5px;border-radius:10px;
+ border:1px solid #ffffff1f;background:linear-gradient(180deg,#2a2e3a,#1b1e27);color:#e9ecf1;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:4px;font:700 8.5px/1.1 var(--tkmo,ui-monospace,monospace);letter-spacing:.4px;text-transform:uppercase;text-align:center;
+ cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 12px -6px #000,0 1px 0 #ffffff12 inset;transition:transform .14s}
 #navd .hki:active{transform:scale(.94)}
-#navd .hki span{white-space:normal;overflow-wrap:anywhere}
-#navd .hki svg{width:40px;height:40px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
-#navd .hki.on{color:${OR};border:1.5px solid transparent;background:linear-gradient(180deg,#2a1d12,#16131a) padding-box,linear-gradient(135deg,${OR},${PU}) border-box;
+#navd .hki span{white-space:normal;overflow-wrap:anywhere;color:#fff}
+#navd .hki svg{width:28px;height:28px;stroke:${OR};stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#navd .hki i.tkn{position:absolute;top:3px;left:5px;font:600 8px var(--tkmo,ui-monospace,monospace);color:#8b93a7;font-style:normal;letter-spacing:0}
+#navd .hki.on{border:1.5px solid transparent;background:linear-gradient(180deg,#2a1d12,#16131a) padding-box,linear-gradient(135deg,${OR},${PU}) border-box;
  box-shadow:0 8px 20px -8px ${OR},inset 0 0 18px -8px ${OR}}
-#navd .hki.ok{color:#2fd36b;border-color:#2f8a4a}
+#navd .hki.on span{color:${OR}}
+#navd .hki.on svg{filter:drop-shadow(0 0 6px color-mix(in srgb,${OR} 70%,transparent))}
+#navd .hki.on::after{content:"";position:absolute;left:-1px;top:25%;bottom:25%;width:3px;border-radius:3px;background:linear-gradient(180deg,${OR},${PU});box-shadow:0 0 8px ${OR}}
+#navd .hki.ok svg{stroke:#2fd36b}#navd .hki.ok span{color:#2fd36b}
 #navdtab{position:fixed;right:0;left:auto;z-index:42;width:30px;height:72px;padding:0;border:0;border-radius:16px 0 0 16px;
  top:calc(var(--nvb,100vh) - 72px - 24px - env(safe-area-inset-bottom,0px));
  background:linear-gradient(200deg,${OR},${PU});color:#fff;box-shadow:-4px 4px 18px -4px ${PU},0 0 0 1px #fff3 inset;
@@ -61,7 +68,7 @@ nav.addEventListener("click",e=>{const b=e.target.closest("button");if(b)setTime
 let ult=null;
 function copia(){try{
  const f=document.querySelector("#hk .hk2");const h=f?f.innerHTML:"";
- if(h!==ult){ult=h;nav.innerHTML=h}
+ if(h!==ult){ult=h;nav.innerHTML=h;[...nav.querySelectorAll(".hki")].forEach((b,k)=>{const n=document.createElement("i");n.className="tkn";n.textContent=String(k+1).padStart(2,"0");b.prepend(n)})}
  tab.classList.toggle("ver",!!h);if(!h)cierra();
  const hd=document.querySelector("header");if(hd)document.documentElement.style.setProperty("--hkh",Math.round(hd.getBoundingClientRect().height)+"px");
 }catch(e){}}
