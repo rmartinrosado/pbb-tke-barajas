@@ -120,8 +120,8 @@ const mlEscucha=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecog
   V.rec=r;r.start()}catch(e){}};
 function pintaV(){let o=document.getElementById("mlib");if(!V){if(o)o.remove();return}if(!o){o=document.createElement("div");o.id="mlib";document.body.appendChild(o)}
  o.innerHTML=`<div class="mlt">🔊 Manos libres · paso ${V.i+1}/${V.p.length}${V.rec?' · 🎙 di «siguiente», «anterior», «repite» o «para»':""}</div><div class="mlx">${E(V.p[V.i]||"")}</div>
- <div class="mlb"><button onclick="mlMueve(-1)">◀</button><button onclick="mlMueve(0)">🔁</button><button onclick="mlMueve(1)">▶</button><button onclick="mlPara()">✕</button></div>`}
-window.mlMueve=d=>{if(!V)return;V.i=Math.max(0,Math.min(V.p.length-1,V.i+d));habla()};
+ <div class="mlb"><button onclick="mlMueve(-1)">◀</button><button onclick="mlMueve(0)">🔁</button><button onclick="mlMueve(1)"${V.i>=V.p.length-1?' disabled class="mloff" aria-disabled="true"':""}>▶</button><button onclick="mlPara()">✕</button></div>`}
+window.mlMueve=d=>{if(!V)return;if(d>0&&V.i>=V.p.length-1)return;/* v850: en el último paso no deja seguir */V.i=Math.max(0,Math.min(V.p.length-1,V.i+d));habla()};
 window.mlPara=()=>{const r=V&&V.rec;if(V){clearInterval(V.ka);V.rec=null}try{speechSynthesis.cancel()}catch(e){}try{r&&r.stop()}catch(e){}V=null;pintaV()};
 window.manosLibres=function(){if(!("speechSynthesis" in window)){msg("Este móvil no permite leer en voz alta");return}const p=pasosSOS();if(!p.length){msg("Primero pulsa ACEPTAR para tener la actuación");return}
  if(V)mlPara();V={p,i:0};mlEscucha();habla()};
@@ -179,3 +179,6 @@ window.__mlIco='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stro
  background:rgba(255,255,255,.18)!important;border:1.5px solid rgba(255,255,255,.7)!important;border-radius:9px!important;box-shadow:none!important;white-space:nowrap}
 #sr_res .ub2 .mlbt svg{flex:none;display:block;width:20px;height:20px;filter:drop-shadow(0 0 1px rgba(0,0,0,.35))}`;document.head.appendChild(st);
  new MutationObserver(()=>{document.querySelectorAll("#sr_res .ub2 .mlbt").forEach(b=>{if(!b.querySelector("svg")||b.dataset.ico!="837"){b.dataset.ico="837";b.innerHTML=window.__mlIco+"<span>Manos libres</span>"}})}).observe(document.body,{childList:true,subtree:true})})();
+
+/* v850: ▶ desactivado en el último paso */
+(function(){const st=document.createElement("style");st.textContent=`#mlib button.mloff,#mlib button[disabled]{opacity:.3!important;pointer-events:none!important;filter:grayscale(1)}`;document.head.appendChild(st)})();
