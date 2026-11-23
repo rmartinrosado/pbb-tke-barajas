@@ -73,11 +73,13 @@ const trozos=t=>{const out=[];String(t).split(/(?<=[.;:!?])\s+/).forEach(f=>{f=f
 /* v839: sin símbolos ni iconos; los códigos (IT-B11, E-A2 3.1, X1:3, KM2, PLC…) se deletrean */
 const LET={A:"a",B:"be",C:"ce",D:"de",E:"e",F:"efe",G:"ge",H:"hache",I:"i",J:"jota",K:"ka",L:"ele",M:"eme",N:"ene","Ñ":"eñe",O:"o",P:"pe",Q:"cu",R:"erre",S:"ese",T:"te",U:"u",V:"uve",W:"uve doble",X:"equis",Y:"i griega",Z:"zeta"};
 const deletrea=c=>c.replace(/([A-ZÑ])/g," $1 ").replace(/[A-ZÑ]/g,x=>LET[x]||x).replace(/(\d)\.(\d)/g,"$1 punto $2").replace(/:/g," dos puntos ").replace(/\//g," barra ").replace(/[-_]/g," ").replace(/\s+/g," ").trim();
-const esCodigo=w=>{const l=w.replace(/[^A-ZÑa-zñ]/g,"");if(!l||l!==l.toUpperCase())return false;
+/* v840: siglas que se leen como palabra */
+const PALABRA=new Set(["LED","LEDS"]);
+const esCodigo=w=>{const l=w.replace(/[^A-ZÑa-zñ]/g,"");if(!l||l!==l.toUpperCase())return false;if(PALABRA.has(w))return false;
  if(/\d/.test(w))return true;            /* letras y números: IT-B11, X1, KM2 */
  if(/[-:\/]/.test(w))return true;        /* IT-B, E-A */
  return l.length<=3||!/[AEIOU]/.test(l)};/* siglas: PBB, PLC, SAI, HZ */
-const limpiaVoz=t=>String(t)
+const limpiaVoz=t=>String(t).replace(/(?<![\p{L}\d])LEDS?(?![\p{L}\d])/gu,w=>w.toLowerCase())
  .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu," ")
  .replace(/[▶◀▲▼►◄▸▾•●○■□★☆✓✔✕✖✗→←↑↓⇒⟶*#|~^_`<>{}\[\]]/g," ").replace(/\s*·\s*/g,", ")
  .replace(/(\d)\s*(V|Vcc|Vdc|Vac)(?![\p{L}\d])/gu,"$1 voltios").replace(/(\d)\s*mA(?![\p{L}\d])/gu,"$1 miliamperios").replace(/(\d)\s*Hz(?![\p{L}\d])/giu,"$1 hercios")
