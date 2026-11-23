@@ -23,7 +23,7 @@ function entraAdmin(){if(typeof rol=="undefined"||rol!="admin")return;admin=true
 /* ---------- candado al abrir ---------- */
 let hecho=false;
 function candado(){if(document.getElementById("fidlk"))return;const o=document.createElement("div");o.id="fidlk";
- o.innerHTML=`<div class="fidb"><div class="fidi">🔒</div><div class="fidt">PBB TKE Maintenance</div><div class="fidu">${(typeof esc=="function"?esc:String)(user.email)}</div>
+ o.innerHTML=`<div class="fidb"><div class="fidi">🔒</div><div class="fidt">TKE MAINTENANCE</div><div class="fidu">${(typeof esc=="function"?esc:String)(user.email)}</div>
  <button type="button" class="fidp" id="fid_go">${cred()?"Entrar con Face ID":"Activar Face ID y entrar"}</button>
  <button type="button" class="fids" id="fid_pw">Usar contraseña</button><div class="fidm" id="fid_m"></div></div>`;
  ["click","dblclick","touchend"].forEach(t=>o.addEventListener(t,e=>e.stopPropagation()));document.body.appendChild(o);

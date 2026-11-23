@@ -9,7 +9,7 @@ const C="pbb-tke-v537"; /* v537: caché nueva → se borra la copia de «index.h
 self.addEventListener("install", e => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)));await self.clients.claim()})()));
 /* v656: sin red y sin copia guardada, en vez de una pantalla en blanco (Response.error) se muestra un aviso con «Reintentar» */
-const ERR=()=>new Response('<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PBB TKE</title></head><body style="margin:0;background:#0e1014;color:#fff;font:16px -apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:14px;text-align:center;padding:24px"><b style="font-size:19px">PBB TKE Maintenance</b><div>Sin conexión con el servidor de la app.</div><button onclick="location.replace(location.pathname.replace(/[^/]*$/,\'\')+\'?v=\'+Date.now())" style="font-size:17px;padding:12px 22px;border-radius:10px;border:0;background:#f60;color:#fff;font-weight:800">Reintentar</button></body></html>',{status:200,headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
+const ERR=()=>new Response('<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PBB TKE</title></head><body style="margin:0;background:#0e1014;color:#fff;font:16px -apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:14px;text-align:center;padding:24px"><b style="font-size:19px">TKE MAINTENANCE</b><div>Sin conexión con el servidor de la app.</div><button onclick="location.replace(location.pathname.replace(/[^/]*$/,\'\')+\'?v=\'+Date.now())" style="font-size:17px;padding:12px 22px;border-radius:10px;border:0;background:#f60;color:#fff;font-weight:800">Reintentar</button></body></html>',{status:200,headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
 const CDN=/^(cdn\.jsdelivr\.net|unpkg\.com)$/;
 self.addEventListener("fetch", e => {
   const q=e.request;if(q.method!=="GET")return;let u;try{u=new URL(q.url)}catch(x){return}
@@ -50,7 +50,7 @@ self.addEventListener("fetch", e => {
 self.addEventListener("push", e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { title: "PBB TKE", body: e.data ? e.data.text() : "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "PBB TKE Maintenance", {
+  e.waitUntil(self.registration.showNotification(d.title || "TKE MAINTENANCE", {
     body: d.body || "",
     tag: d.tag || "pbb",
     renotify: true,

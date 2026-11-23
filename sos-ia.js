@@ -301,7 +301,7 @@ async function haceePdf(S){await cargaJsPDF();const {jsPDF}=window.jspdf;const d
  if(S.croquis&&window.pdfCroquis){try{window.pdfCroquis(d,S.croquis,{cab,W,H,M,PR,AC,GR,fnt,pS})}catch(e){console.warn("croquis",e)}}
  /* pie con número de página */
  const N=d.getNumberOfPages();for(let n=1;n<=N;n++){d.setPage(n);d.setDrawColor(...AC);d.setLineWidth(.4);d.line(M,H-11,W-M,H-11);fnt(0,0,7.3);d.setTextColor(...GR);
-  d.text(pS("PBB TKE Maintenance · Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar siempre en campo."),M,H-7);d.text(`Pág. ${n}/${N}`,W-M,H-7,{align:"right"});d.setTextColor(0,0,0)}
+  d.text(pS("TKE MAINTENANCE · Análisis IA cotejado con la documentación del proyecto PBB TKE. Verificar siempre en campo."),M,H-7);d.text(`Pág. ${n}/${N}`,W-M,H-7,{align:"right"});d.setTextColor(0,0,0)}
  return d.output("blob")}
 window.sosIaPdf=haceePdf;
 /* v364: croquis de conexión (JSON) a partir de la resolución, con la función consulta-sos en modo «croquis» */
