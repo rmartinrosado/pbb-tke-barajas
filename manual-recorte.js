@@ -1,4 +1,5 @@
-/* ===== v805: recorte de la hoja del manual RCS bajo «Manual pág. N» y «Explicación pág. N» (23/11/2026) =====
+/* ===== v806: listado a dos columnas → solo la columna y la fila de la alarma resaltada; explicación desde su rótulo y dibujo.
+   v805: recorte de la hoja del manual RCS bajo «Manual pág. N» y «Explicación pág. N» (23/11/2026) =====
    En la caja de cada alarma (SOS, guía, registro) se presenta, debajo de cada botón, la imagen recortada de esa página del
    «Manual RCS» subido en Planos:
     · Manual (listado de alarmas, pág. 108-110): la franja de la hoja donde está el número de la alarma.
@@ -31,16 +32,28 @@ async function recorte(n,cod,txt,lista){const k=n+"|"+cod+"|"+(lista?1:0);if(IMG
  const p=(async()=>{const pdf=await manual();if(!pdf||n<1||n>pdf.numPages)return null;const pg=await pdf.getPage(n);
   const sc=2;const vp=pg.getViewport({scale:sc});const cv=document.createElement("canvas");cv.width=vp.width;cv.height=vp.height;
   await pg.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
-  let y=null;try{const tc=await pg.getTextContent();const it=tc.items.filter(i=>i.str&&i.str.trim());
+  /* v806: listado a DOS columnas (pág. 108-110): solo la columna de la alarma, su fila resaltada y dos filas arriba y abajo.
+     Explicación: desde el rótulo que más palabras comparte con la alarma (p. ej. «Límite de giro de la unidad de traslación»)
+     hasta su dibujo; si no hay rótulo, la hoja entera sin márgenes. */
+  const W=cv.width,H=cv.height,lh=H*15/841.89;let hit=null,mode="";
+  try{const tc=await pg.getTextContent();const it=tc.items.filter(i=>i.str&&i.str.trim());
    const c0=String(cod).replace(/^R/i,"");const reC=new RegExp("^\\s*"+(/^R/i.test(cod)?"R\\s*0*":"0*")+c0.replace(/^0+(?=\d)/,"")+"(?![\\d.,])","i");
-   let hit=it.find(i=>reC.test(i.str));
-   if(!hit&&txt){const W=nrm(txt).split(/[^a-z0-9ñ]+/).filter(w=>w.length>4);let best=null,bs=0;
-    it.forEach(i=>{const s=nrm(i.str);const n2=W.filter(w=>s.includes(w)).length;if(n2>bs){bs=n2;best=i}});if(bs>=2||(bs>=1&&W.length<=2))hit=best}
-   if(hit){const t=pdfjsLib.Util.transform(vp.transform,hit.transform);y=t[5]}}catch(e){}
-  let y0=0,h=cv.height;
-  if(y!=null){const lh=cv.height*0.022;y0=Math.max(0,Math.round(y-lh*2.2));h=Math.min(cv.height-y0,Math.round(lh*(lista?6:9)))}
-  else if(lista)return null; /* en el listado sin el número localizado no se presenta una hoja equivocada */
-  const o=document.createElement("canvas");o.width=cv.width;o.height=h;o.getContext("2d").drawImage(cv,0,y0,cv.width,h,0,0,cv.width,h);
+   if(lista){hit=it.find(i=>reC.test(i.str));mode="fila"}
+   else{const Wd=nrm(txt).split(/[^a-z0-9ñ]+/).filter(w=>w.length>=4&&!/^(alarma|advertencia|fallo|activad[oa])$/.test(w));let bs=0;
+    it.forEach(i=>{const s2=nrm(i.str);const k2=Wd.filter(w=>s2.includes(w)).length;const fz=Math.abs(i.transform[3]||0);
+     if(k2>bs||(k2==bs&&k2>0&&hit&&fz>Math.abs(hit.transform[3]||0))){bs=k2;hit=i}});
+    if(!(bs>=2||(bs>=1&&Wd.length<=1)))hit=null;mode="rot"}}catch(e){hit=null}
+  if(lista&&!hit)return null; /* en el listado sin el número localizado no se presenta una hoja equivocada */
+  let x0=0,y0=0,w=W,h=H,fila=null;
+  if(hit){const t=pdfjsLib.Util.transform(vp.transform,hit.transform);const x=t[4],y=t[5];
+   if(mode=="fila"){x0=Math.max(0,x-W*.012);w=Math.min(W-x0,W*.42);y0=Math.max(0,y-lh*2.75);h=Math.min(H-y0,lh*5.5);fila=[x0,y-lh*.78,w,lh]}
+   else{const xe=x+(hit.width||0)*sc;y0=Math.max(0,y-lh*1.45);h=Math.min(H-y0,H*.5);
+    /* rótulo en una mitad de la hoja (dibujos a dos columnas) → solo esa mitad */
+    if(xe<W*.56){x0=W*.04;w=W*.52}else if(x>W*.44){x0=W*.46;w=W*.52}else{x0=W*.05;w=W*.9}}}
+  else{x0=W*.05;w=W*.9;y0=H*.04;h=H*.92}
+  const o=document.createElement("canvas");o.width=Math.round(w);o.height=Math.round(h);const g=o.getContext("2d");g.drawImage(cv,x0,y0,w,h,0,0,w,h);
+  if(fila){g.fillStyle="rgba(255,122,26,.22)";g.fillRect(0,fila[1]-y0,fila[2],fila[3]);g.fillStyle="#ff7a1a";g.fillRect(0,fila[1]-y0,5,fila[3])}
+  const y=hit?1:null;
   return{src:o.toDataURL("image/jpeg",.85),entera:y==null}})().catch(()=>null);
  IMG.set(k,p);p.then(r=>{if(!r)IMG.delete(k)});return p}
 
