@@ -122,10 +122,10 @@ document.head.appendChild(st);
 })();
 
 /* ===== v835: botón «Manos libres» ajustado a la altura de la caja del título y con icono de ondas a trazo blanco ===== */
-window.__mlIco='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5h3l4-3.5v12l-4-3.5h-3z"/><path d="M14 9.2c1 .8 1.5 1.8 1.5 2.8s-.5 2-1.5 2.8"/><path d="M16.8 6.6c1.8 1.4 2.7 3.3 2.7 5.4s-.9 4-2.7 5.4"/><path d="M19.5 4c2.4 2 3.5 4.9 3.5 8s-1.1 6-3.5 8"/></svg>';
+window.__mlIco='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4M9 21h6"/><path d="M3 8.5v5M21 8.5v5"/></svg>'; /* v836: icono de dictado por voz (micrófono con ondas) */
 (function(){const st=document.createElement("style");st.textContent=`
 #sr_res .ub2 .mlbt{top:5px!important;bottom:5px!important;right:6px!important;transform:none!important;height:auto!important;min-height:0!important;max-height:none!important;
  box-sizing:border-box;display:inline-flex!important;align-items:center;gap:6px;padding:0 10px!important;line-height:1!important;font-size:12.5px!important;font-weight:700!important;
  background:rgba(255,255,255,.18)!important;border:1.5px solid rgba(255,255,255,.7)!important;border-radius:9px!important;box-shadow:none!important;white-space:nowrap}
 #sr_res .ub2 .mlbt svg{flex:none;display:block}`;document.head.appendChild(st);
- new MutationObserver(()=>{document.querySelectorAll("#sr_res .ub2 .mlbt").forEach(b=>{if(!b.querySelector("svg"))b.innerHTML=window.__mlIco+"<span>Manos libres</span>"})}).observe(document.body,{childList:true,subtree:true})})();
+ new MutationObserver(()=>{document.querySelectorAll("#sr_res .ub2 .mlbt").forEach(b=>{if(!b.querySelector("svg")||b.dataset.ico!="836"){b.dataset.ico="836";b.innerHTML=window.__mlIco+"<span>Manos libres</span>"}})}).observe(document.body,{childList:true,subtree:true})})();
