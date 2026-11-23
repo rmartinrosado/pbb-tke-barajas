@@ -37,8 +37,11 @@ window.repOT=function(id){const i=Array.isArray(inc)&&inc.find(x=>x.id==id);if(!
  try{if(typeof closeSheet=="function")closeSheet()}catch(e){}
  gOT=id;try{if(typeof gSyncOT!="undefined")gSyncOT=id}catch(e){}
  try{gTipo=GUIA.tipos[i.tipo]?i.tipo:"PAS"}catch(e){}
- go("tec");
- let k=0;const sube=()=>{const p=document.getElementById("gpaplan")||document.getElementById("gpcot");if(p){p.scrollIntoView({block:"start",behavior:"smooth"});return}if(++k<25)setTimeout(sube,150)};setTimeout(sube,250);
+ /* v751: la llave lleva a la GUÍA DE CAMPO completa de la OT, desde arriba (primera actuación delante): antes, si se había
+    entrado antes por el SOS, seguía en modo SOS (solo el puente) y además saltaba al cotejo de planos a media página */
+ try{if(typeof sosOff=="function")sosOff()}catch(e){}
+ if(typeof view!="undefined"&&view=="tec"&&typeof vTec=="function")vTec();else go("tec");
+ scrollTo(0,0);
  /* v713: inspección cable a cable COMPLETA (origen → destino) y recálculo de la IA siempre al entrar por la llave:
     primero Gemini (gratis); si no da resultado, el botón ofrece Claude con su aviso de coste. El cotejo de planos va en el mismo recálculo. */
  try{localStorage.setItem("insc_"+id,localStorage.getItem("insc_"+id)||String(Date.now()))}catch(e){}

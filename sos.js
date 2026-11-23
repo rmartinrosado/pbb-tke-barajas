@@ -18,6 +18,8 @@ const oC=card;card=function(i){let h=oC(i);if(!SEGV()||!tiene(i))return h;
  const a=h.indexOf("ABIERTA");if(a<0)return h;const e=h.indexOf("</div>",a);return e<0?h:h.slice(0,e+6)+`<div class="sosw">${b}</div>`+h.slice(e+6)};
 window.sosVa=function(id){const i=inc.find(x=>x.id==id);if(!i)return;sosOn=true;gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;
  if(typeof gTipoOT=="function")gTipo=gTipoOT(i);if(view!="tec")go("tec");else vTec();scrollTo(0,0)};
+/* v751: salir del modo SOS sin repintar (la llave de la tarjeta abre la guía completa de la OT) */
+window.sosOff=function(){sosOn=false;const a=document.getElementById("app");if(a)a.classList.remove("sosmode");["sosbar","soscasos"].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()})};
 window.sosSal=function(){sosOn=false;const a=document.getElementById("app");if(a)a.classList.remove("sosmode");vTec();scrollTo(0,0)};
 /* v120: al salir del SOS (Inicio u otra sección de la tira) se quita el modo SOS de #app; antes la clase sosmode
  se quedaba puesta y ocultaba todo el contenido de Inicio. */
