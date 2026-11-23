@@ -99,3 +99,25 @@ history.pushState=function(s,t,u){n=Math.max(n,cur)+1;cur=n;let s2=s;try{s2=(s&&
 addEventListener("popstate",()=>{let i=0;try{const s=history.state;i=s&&typeof s.__i=="number"?s.__i:0}catch(e){}
  if(i>cur){try{history.back()}catch(e){}return}cur=i},true);
 })();
+
+/* ===== v801: cierre en CASCADA también en la barra derecha (espejo de la izquierda, 20 ms entre botones) ===== */
+(function(){"use strict";
+const st=document.createElement("style");st.textContent=`
+html body #navd#navd{transition:transform .34s cubic-bezier(.55,0,.75,.2) .30s,visibility 0s linear .66s!important}
+html body #navd#navd.abre{transition:transform .32s cubic-bezier(.16,1,.3,1),visibility 0s!important}
+html body #navd#navd>.hki{will-change:transform,opacity;
+ transition:opacity .26s ease calc(var(--nvi,0)*20ms),transform .34s cubic-bezier(.55,0,.75,.2) calc(var(--nvi,0)*20ms),filter .26s ease calc(var(--nvi,0)*20ms)!important}
+html body #navd#navd:not(.abre)>.hki{opacity:0!important;transform:translate(26px,22px) scale(.86) rotate(3deg)!important;filter:blur(2px)}
+html body #navd#navd.abre>.hki{opacity:1;transform:none;filter:none;
+ transition:opacity .3s ease calc(var(--nvi,0)*20ms + 90ms),transform .42s cubic-bezier(.16,1,.3,1) calc(var(--nvi,0)*20ms + 90ms),filter .3s ease calc(var(--nvi,0)*20ms + 90ms)!important}
+html body #navd#navd.abre>.hki:active{transform:scale(.94)!important;transition-delay:0s!important}
+html body #navd#navd::after{content:"";position:absolute;left:0;right:0;top:0;height:0;pointer-events:none;border-radius:inherit;
+ background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--tkor,#ff7a1a) 22%,transparent) 70%,transparent);opacity:0}
+html body #navd#navd:not(.abre)::after{animation:nvdCasc .42s ease-in forwards}
+@keyframes nvdCasc{0%{top:0;height:30%;opacity:.9}100%{top:100%;height:30%;opacity:0}}
+@media (prefers-reduced-motion:reduce){html body #navd#navd,html body #navd#navd>.hki{transition-duration:.01s!important;transition-delay:0s!important}
+ html body #navd#navd:not(.abre)::after{animation:none}}`;
+document.head.appendChild(st);
+const num=()=>{const n=document.getElementById("navd");if(!n)return;[...n.children].forEach((b,k)=>{if(b.style.getPropertyValue("--nvi")!==String(k))b.style.setProperty("--nvi",k)})};
+num();setInterval(num,500);
+})();
