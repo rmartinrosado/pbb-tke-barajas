@@ -86,8 +86,12 @@ const limpiaVoz=t=>String(t).replace(/(?<![\p{L}\d])magelis(?![\p{L}\d])/giu,"ma
  .replace(/(?<![\p{L}\d])[\p{L}\d](?:[\p{L}\d.:\/-]*[\p{L}\d])?(?![\p{L}\d])/gu,w=>esCodigo(w)?deletrea(w):w)
  .replace(/\b(\d+)\.(\d+)\b/g,"$1 punto $2")
  .replace(/\s+([,.;:])/g,"$1").replace(/([,.;:]){2,}/g,"$1").replace(/\s+/g," ").trim();
+/* v842: solo se lee la numeración principal «Paso X de N»; la numeración propia del texto (3., 3.1, 2), a), 1º…) no se lee */
+const NUM=String.raw`(?:\d{1,2}(?:\.\d{1,2})*[.)º°]?|[a-z]\))`;
+const sinSubnum=t=>{let x=String(t).trim();const ini=new RegExp("^"+NUM+"\\s*[-·:]?\\s+","u");let k=0;while(ini.test(x)&&k++<4)x=x.replace(ini,"");
+ return x.replace(new RegExp("([.;:!?]\\s+|^|\\s[-·]\\s)"+NUM+"\\s+(?=\\p{Lu})","gu"),"$1")};
 const habla=()=>{if(!V)return;try{speechSynthesis.cancel()}catch(e){}const t=V.p[V.i];if(!t)return;
- const id=(V.tok=(V.tok||0)+1);const T=trozos(`Paso ${V.i+1} de ${V.p.length}. ${limpiaVoz(t)}`);V.u=[];V.hablando=true;
+ const id=(V.tok=(V.tok||0)+1);const T=trozos(`Paso ${V.i+1} de ${V.p.length}. ${limpiaVoz(sinSubnum(t))}`);V.u=[];V.hablando=true;
  T.forEach((x,k)=>{const u=new SpeechSynthesisUtterance(x);u.lang="es-ES";u.rate=1.09;/* v839: 5 % más lenta */
   u.onend=u.onerror=()=>{if(V&&V.tok===id&&k===T.length-1){V.hablando=false;V.fin=Date.now()}};V.u.push(u);speechSynthesis.speak(u)});
  /* Chrome Android: pausa/reanuda para que no se corte a los 15 s */
