@@ -59,7 +59,7 @@ const SAL=[["E-A1","Salidas digitales armario",32,"54–57"],["E-A6","Salidas de
 const ICO=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v5"/></svg>`;
 let F="todas";
 /* v780: bornero donde se conecta el componente de campo (último bornero antes del elemento, según CABLEADO rev. J) */
-const BORX={"P-A5|4.4":"P-X92:7"};
+const BORX={"P-A5|4.4":"P-X92:7","E-A8|2.1":"H-X51:21-22"};
 function bor(m,b){if(BORX[m+"|"+b])return BORX[m+"|"+b];try{const C=window.CABLEADO||{};const e=Object.values(C).find(x=>x.m==m&&x.b==b);if(!e)return "";
  const i=e.n.findIndex(n=>n.k=="E"),pre=(i<0?e.n:e.n.slice(0,i)).filter(n=>n.k=="B"),l=pre[pre.length-1];return l?String(l.t).replace(/^\+/,"")+":"+l.p:""}catch(x){return ""}}
 const croqO=(r,tipo)=>tipo=="sol"?{mod:r[0],b1:r[2],b2:r[2],k1:"IN "+r[2],k2:"",d:r[4],suelta:true}:{mod:r[0],b1:r[2],b2:r[3],k1:"IN "+r[2],k2:tipo=="ut"?"UT "+r[3]:"+24 V "+r[3],d:r[4]};
