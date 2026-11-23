@@ -91,7 +91,7 @@ const limpiaVoz=t=>String(t).replace(/(^|\s)[-+](?=[A-ZÑ])/gu,"$1").replace(/(?
    los números de bornes, borneros y componentes (X1:3, 12, -K2, bornes 3 y 4…) se leen siempre. */
 const NUM=String.raw`(?:\d{1,2}(?:\.\d{1,2})+\.?|\d{1,2}[.)º°]|[a-z]\))`;
 const sinSubnum=t=>{let x=String(t).trim();const ini=new RegExp("^"+NUM+"(?=\\s)\\s*[-·]?\\s*(?=\\S)","u");let k=0;while(ini.test(x)&&k++<4)x=x.replace(ini,"");
- return x.replace(new RegExp("([.;!?]\\s+)"+NUM+"\\s+(?=\\p{Lu})","gu"),"$1")};
+ return x};/* v844: en mitad del texto NO se quita nada: «3.1» tras un punto es un componente y se lee «3 punto 1» */
 const habla=()=>{if(!V)return;try{speechSynthesis.cancel()}catch(e){}const t=V.p[V.i];if(!t)return;
  const id=(V.tok=(V.tok||0)+1);const T=trozos(`Paso ${V.i+1} de ${V.p.length}. ${limpiaVoz(sinSubnum(t))}`);V.u=[];V.hablando=true;
  T.forEach((x,k)=>{const u=new SpeechSynthesisUtterance(x);u.lang="es-ES";u.rate=1.09;/* v839: 5 % más lenta */
