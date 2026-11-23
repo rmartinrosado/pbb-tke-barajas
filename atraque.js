@@ -1,4 +1,5 @@
-/* ===== v744: barra de control de la animación (play / pausa / parar y velocidad).
+/* ===== v746: primera actuación (puente provisional de los contactos con avión) en OT de contacto con avión / atraque.
+   ===== v744: barra de control de la animación (play / pausa / parar y velocidad).
    ===== v742: fallo con cualquiera de los dos contactos (elegir derecho / izquierdo), inductivos sin parpadeo, barra de
    velocidad y P-A5 más grande.
    ===== v741: simulación redibujada como el icono de atraque de la Magelis (avión de morro y PBB con fuelle, cabina, rotonda
@@ -142,6 +143,23 @@ Object.defineProperty(SEC,"obsCro",{get(){return `<div class="gobsh2">Tipos de a
 /* v743: croquis del puente provisional de los contactos con avión, como OPCIÓN para «1 · Sacar en servicio ya» del SOS (115 / 243) */
 window.atqCroqOpcion=function(){if(typeof croquisPuente!="function")return"";
  return ["R","L"].map(k=>{const o=LADO[k];let s="";try{s=croquisPuente({mod:"P-A5",b1:o.b,b2:o.b,k1:`${o.din} · hilo ${o.h} · ${o.s}`,k2:"",d:`CONTACTO AVIÓN ${o.lado.toUpperCase()} ${o.s} · si da señal sin avión`,suelta:true},5)}catch(e){}return s}).filter(Boolean).join("")};
+/* v746: PRIMERA ACTUACIÓN de una OT de contacto con avión / atraque incorrecto («Fallo contacto avión», 243, 115…): el puente
+   provisional (soltar y aislar el hilo del contacto que da señal sin avión) en P-A5 1.1 (C-B51 derecho, hilo 320) o
+   4.4 (C-B52 izquierdo, hilo 740), precedido del bypass del manual. Antes no salía porque esas entradas no tenían
+   texto de puente (PUENTE) y la OT se quedaba sin primera actuación. */
+const RX_ATQ=/contacto[^.]{0,25}avion|avion[^.]{0,25}contacto|atraque|desatrac|\b(115|243)\b|c-?b5[12]\b/;
+const TXP={"P-A5|1|1":"Contacto avión DERECHO C-B51 que da señal SIN avión (243 / 115, «desatracar: joystick hacia atrás»): 1º separar la PBB con el bypass naranja + joystick ATRÁS, lento (manual RCS pág. 85). Si la alarma vuelve: con el LED 1 del módulo 1 de P-A5 encendido sin avión, desenchufar el conector M12 de C-B51; si el LED sigue encendido, soltar y aislar el hilo 320 de la borna IN 1.1 de P-A5 (no puentear). Solo MANUAL y con un compañero vigilando el lado derecho.",
+ "P-A5|2|4":"Contacto avión IZQUIERDO C-B52 que da señal SIN avión (243 / 115, «desatracar: joystick hacia atrás»): 1º separar la PBB con el bypass naranja + joystick ATRÁS, lento (manual RCS pág. 85). Si la alarma vuelve: con el LED 4 del módulo 2 de P-A5 encendido sin avión, desenchufar el conector M12 de C-B52; si el LED sigue encendido, soltar y aislar el hilo 740 de la borna IN 4.4 de P-A5 (no puentear). Solo MANUAL y con un compañero vigilando el lado izquierdo."};
+try{if(typeof PUENTE=="object"){Object.assign(PUENTE,TXP)}if(typeof PU_REQ=="object"){PU_REQ["P-A5|1|1"]=RX_ATQ;PU_REQ["P-A5|2|4"]=RX_ATQ}}catch(e){}
+if(typeof puentesOT=="function"){const oP=puentesOT;puentesOT=function(i){const P=oP(i)||[];try{
+  if(!i||i.estado!="abierta"||(typeof otEsPAS=="function"&&!otEsPAS(i)))return P;
+  const txt=(typeof segNorm=="function"?segNorm:(x=>String(x).toLowerCase()))([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));if(!RX_ATQ.test(txt))return P;
+  const M=typeof PLC!="undefined"?PLC.find(m=>m.id=="P-A5"):null;
+  /* si la descripción dice el lado, solo ese; si no, los dos (el LED encendido dice cuál) */
+  const lados=/derech|c-?b51/.test(txt)&&!/izquier|c-?b52/.test(txt)?["P-A5|1|1"]:/izquier|c-?b52/.test(txt)&&!/derech|c-?b51/.test(txt)?["P-A5|2|4"]:["P-A5|1|1","P-A5|2|4"];
+  const nuevos=lados.filter(key=>!P.some(p=>p.key==key)).map(key=>{const[id,k,l]=key.split("|");const Lm=M&&M.m[k-1]&&M.m[k-1][l-1];
+   return{key,id,k,l,t:TXP[key],nom:Lm?Lm[0]:(key.endsWith("1|1")?"Inductivo contacto avión derecha":"Inductivo contacto avión izquierda"),b:M&&typeof pBorna=="function"?pBorna(M,+k,+l):null,f:M?M.f[k-1]:85,suelta:true}});
+  return nuevos.concat(P)}catch(e){console.warn("atraque puentesOT",e)}return P}}
 L.push(SEC); /* al final: otras partes guardan las cajas por su número de orden (v738) */
 
 /* ---------- pasos de la simulación ---------- */
