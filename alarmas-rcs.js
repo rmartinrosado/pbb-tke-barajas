@@ -479,10 +479,20 @@ window.rcsSacar=function(x){if(typeof x=="string")x=porCod(x);if(!x)return null;
 /* bloque «Componentes de campo que intervienen» (SOS y validación) */
 function bloqueInterv(x,L,varias){if(!L.length)return`<div class="rcscf rcsnada">🔩 Sin componentes de campo asociados a la alarma ${E(x.c)} en los planos.</div>`;
  /* v726: plegado por defecto (se despliega al tocar el rótulo) */
- return`<details class="rcscf"><summary class="rcscft">🔩 Elementos que intervienen <span class="rcscfn">${L.length}</span></summary>${L.map(o=>{
-  const sub=[varias&&o.als?"alarma "+o.als.join(" / "):"",o.papel,o.det.join(" · "),o.ubi,o.folio?"folio "+o.folio:""].filter(Boolean).join(" · ");
+ /* v803: agrupados por UBICACIÓN (campo primero, luego armario eléctrico y pupitre) */
+ const grp=new Map();L.forEach(o=>{const u=ubiDe(o);if(!grp.has(u))grp.set(u,[]);grp.get(u).push(o)});
+ const OU=u=>/armario el/i.test(u)?8:/pupitre/i.test(u)?9:/otros/i.test(u)?10:0;
+ const G2=[...grp.entries()].map((e,k)=>[e[0],e[1],OU(e[0])*100+k]).sort((a,b)=>a[2]-b[2]);
+ return`<details class="rcscf"><summary class="rcscft">🔩 Elementos que intervienen <span class="rcscfn">${L.length}</span></summary>${G2.map(([u,LL])=>`<div class="rcsgrp"><span>📍 ${E(u)}</span><b>${LL.length}</b></div>`+LL.map(o=>{
+  const sub=[varias&&o.als?"alarma "+o.als.join(" / "):"",o.papel,o.det.join(" · "),o.folio?"folio "+o.folio:""].filter(Boolean).join(" · ");
   return o.c?`<button type="button" class="rcscb rcsi rcsi-${o.rol}" data-k="${E(ckClave(o.c))}"><span class="cmpid">${E(o.id)}</span> ${E(o.nom)}<small>${E(sub)} · ver ficha ›</small></button>`
-   :`<div class="rcscb rcsi rcsi-${o.rol} rcsnf"><span class="cmpid">${E(o.id)}</span> ${E(o.nom||"Según planos")}<small>${E(sub)} · 📐 de planos (sin ficha)</small></div>`}).join("")}</details>`}
+   :`<div class="rcscb rcsi rcsi-${o.rol} rcsnf"><span class="cmpid">${E(o.id)}</span> ${E(o.nom||"Según planos")}<small>${E(sub)} · 📐 de planos (sin ficha)</small></div>`}).join("")).join("")}</details>`}
+/* v803: ubicación de un elemento: la del catálogo; si no la tiene, por el prefijo de su código */
+/* v803: croquis de simulación (puente provisional / resistencia / soltar cable según planos) justo después de la caja de la alarma validada */
+function croSim(X){try{if(typeof window.rcsSacarHTML!="function")return"";const S=window.rcsSacarHTML(X);return S&&S.croH?`<div class="rcscro">${S.croH}</div>`:""}catch(e){return""}}
+function ubiDe(o){let u=String(o.ubi||"").trim();const id=String(o.id||"").toUpperCase().replace(/^[+=]/,"");
+ if(!u){u=/^E\d?-/.test(id)?"Armario eléctrico":/^P-/.test(id)?"Pupitre":/^CP-/.test(id)?"Pupitre":/^C-/.test(id)?"Cabina":/^H-/.test(id)?"Elevación":/^(ET|IT|MT)-/.test(id)?"Túneles":/^T-/.test(id)?"Tren de ruedas":/^(R|CO)-/.test(id)?"Rotonda":/^SS-/.test(id)?"Puerta de servicio":/^EP-|^EC-|^EIT-|^ER-/.test(id)?"Mangueras":"Otros"}
+ return u.charAt(0).toUpperCase()+u.slice(1)}
 window.rcsBloqueInterv=(x,L,varias)=>bloqueInterv(typeof x=="string"?porCod(x):x,L||window.rcsIntervienen(x),varias);
 const itAl=x=>`<button type="button" class="rcsit rcs${x.f}" data-c="${x.c}">${FN[x.f][0]} <b>${x.c}</b> ${E(x.t)}</button>`;
 const todasAl=()=>[["A",ICO("A")+" Alarmas"],["W",ICO("W")+" Advertencias"],["R","🔵 Puesto remoto"]].map(([f,t])=>`<div class="rcslg">${t}</div>`+CAT.filter(x=>x.f==f).map(itAl).join("")).join("");
@@ -521,7 +531,7 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
   if(!X.length){s.innerHTML="";delete s.dataset.cod;return}
   const L=window.rcsIntervUnion(X);
   s.innerHTML=(X.length>1?`<div class="rcscft rcsnal">📋 ${X.length} alarmas para el análisis</div>`:"")+
-   X.map(x=>`<div class="rcsacu">${caja({x},true)}<button type="button" class="rcsqx" data-c="${E(x.c)}" aria-label="Quitar la alarma ${E(x.c)}">✕</button></div>`).join("")+bloqueInterv(X[0],L,X.length>1);
+   X.map(x=>`<div class="rcsacu">${caja({x},true)}<button type="button" class="rcsqx" data-c="${E(x.c)}" aria-label="Quitar la alarma ${E(x.c)}">✕</button></div>`).join("")+croSim(X)+bloqueInterv(X[0],L,X.length>1);
   s.dataset.cod=X.map(x=>x.c).join(",");
   s.querySelectorAll(".rcsqx").forEach(b=>b.onclick=e=>{e.stopPropagation();quita(b.dataset.c)});
   s.querySelectorAll("button.rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],"Alarmas "+s.dataset.cod)})};
@@ -571,7 +581,7 @@ function otPicker(anchor,pre,X0,tit){const d=document.createElement("div");d.cla
  const pinta=()=>{const v=q.value.trim();l.innerHTML=v?(busca(v).map(itAl).join("")||`<div class="rcsnada">Sin alarmas para «${E(v)}»</div>`):todasAl();l.classList.add("on");l.scrollTop=0};
  const cierra=()=>{l.innerHTML="";l.classList.remove("on")};
  const pintaSel=()=>{const X=d.sel;if(!X.length){s.innerHTML="";return}
-  s.innerHTML=(X.length>1?`<div class="rcscft rcsnal">📋 ${X.length} alarmas en la OT</div>`:"")+X.map(x=>`<div class="rcsacu">${caja({x},true)}<button type="button" class="rcsqx" data-c="${E(x.c)}" aria-label="Quitar la alarma ${E(x.c)}">✕</button></div>`).join("")+bloqueInterv(X[0],window.rcsIntervUnion(X),X.length>1);
+  s.innerHTML=(X.length>1?`<div class="rcscft rcsnal">📋 ${X.length} alarmas en la OT</div>`:"")+X.map(x=>`<div class="rcsacu">${caja({x},true)}<button type="button" class="rcsqx" data-c="${E(x.c)}" aria-label="Quitar la alarma ${E(x.c)}">✕</button></div>`).join("")+croSim(X)+bloqueInterv(X[0],window.rcsIntervUnion(X),X.length>1);
   s.querySelectorAll(".rcsqx").forEach(b=>b.onclick=e=>{e.stopPropagation();d.sel=d.sel.filter(z=>z.c!=b.dataset.c);pintaSel()});
   s.querySelectorAll("button.rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],"Alarmas de la OT")})};
  const elige=x=>{if(!d.sel.some(z=>z.c==x.c))d.sel.push(x);else if(typeof msg=="function")msg(`La alarma ${x.c} ya está incluida`);q.value="";q.blur();cierra();pintaSel()};
@@ -662,7 +672,7 @@ const st=document.createElement("style");st.textContent=`
 #cmp_l{display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .rcscb{display:block;width:100%!important;margin:0 0 4px!important;padding:8px 9px!important;text-align:left;font-size:13.5px!important;line-height:1.3;border-left:5px solid #455a64!important;border-radius:6px!important}
 .rcscb small{display:block;font-size:11.5px;opacity:.75;font-weight:500}.rcscb .cmpid{display:inline-block;background:#455a64;color:#fff;border-radius:6px;padding:1px 7px;margin-right:4px;font-family:ui-monospace,monospace}
-.rcscf{margin-top:6px}details.rcscf>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:48px;padding:6px 10px;margin:0 0 4px!important;border:1.5px solid color-mix(in srgb,var(--tx) 16%,transparent);border-radius:12px;background:color-mix(in srgb,var(--bg) 70%,var(--card))}details.rcscf>summary::-webkit-details-marker{display:none}details.rcscf>summary::after{content:"▾";margin-left:auto;font-size:16px;opacity:.7;transition:transform .2s}details.rcscf[open]>summary::after{transform:rotate(180deg)}.rcscfn{display:inline-grid;place-items:center;min-width:24px;height:22px;padding:0 6px;border-radius:11px;background:#455a64;color:#fff;font-size:11.5px}.rcsi-campo{border-left-color:#1fa64a!important}.rcsi-borna{border-left-color:#78909c!important}.rcsi-modulo{border-left-color:#f9a825!important}
+.rcscf{margin-top:6px}.rcscro{margin:8px 0 4px}.rcscro .card{margin:0 0 8px}.rcsgrp{display:flex;align-items:center;justify-content:space-between;margin:10px 2px 4px;padding:4px 8px;border-left:3px solid var(--tkor,#ff7a1a);background:linear-gradient(90deg,color-mix(in srgb,var(--tkor,#ff7a1a) 14%,transparent),transparent);border-radius:4px;font:800 11.5px/1.3 var(--tkmo,monospace);letter-spacing:.6px;text-transform:uppercase;color:#455a64}.rcsgrp b{font-size:11px;color:var(--tkor,#ff7a1a)}details.rcscf>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:48px;padding:6px 10px;margin:0 0 4px!important;border:1.5px solid color-mix(in srgb,var(--tx) 16%,transparent);border-radius:12px;background:color-mix(in srgb,var(--bg) 70%,var(--card))}details.rcscf>summary::-webkit-details-marker{display:none}details.rcscf>summary::after{content:"▾";margin-left:auto;font-size:16px;opacity:.7;transition:transform .2s}details.rcscf[open]>summary::after{transform:rotate(180deg)}.rcscfn{display:inline-grid;place-items:center;min-width:24px;height:22px;padding:0 6px;border-radius:11px;background:#455a64;color:#fff;font-size:11.5px}.rcsi-campo{border-left-color:#1fa64a!important}.rcsi-borna{border-left-color:#78909c!important}.rcsi-modulo{border-left-color:#f9a825!important}
 .rcsacu{position:relative}.rcsacu .rcsb{padding-right:34px}.rcsqx{position:absolute;top:6px;right:4px;width:28px!important;height:28px!important;padding:0!important;margin:0!important;border-radius:50%!important;font-size:14px!important;line-height:1;background:#0002!important;border:0!important}
 .rcsnal{margin:8px 0 2px;color:#1fa64a}
 .otrcs{margin-top:4px}.otalm{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:6px 0}.otalt{font-size:11.5px;font-weight:800;color:var(--mu,#78909c)}
