@@ -68,9 +68,12 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* pasos y ACEPTAR al final del formulario */
  /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
  const P2=F.querySelector(".sostp2");if(P2&&!P2.dataset.pl){P2.dataset.pl=1;P2.classList.add("sostcer");const hd=P2.querySelector(".sostph");
-  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<label class="sostcam" for="sr_f" aria-label="Foto de la Magelis">📷 FOTO</label><span class="sostpr"></span><span class="sostpv" aria-hidden="true">▾</span>`);
+  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostcol"><span class="sostpr" role="button" tabindex="0" aria-label="Desplegar la caja de alarmas"></span><label class="sostcam" for="sr_f" aria-label="Foto de la Magelis">📷</label></span>`);
   /* v822: botón FOTO de la Magelis en la cabecera de la caja 1 (no pliega ni despliega la caja) */
   const cam=hd.querySelector(".sostcam");if(cam)cam.addEventListener("click",e=>e.stopPropagation());
+  /* v824: solo la CAMPANA despliega / pliega la caja 1 (la cabecera ya no) */
+  hd.removeAttribute("role");hd.removeAttribute("tabindex");
+  hd.addEventListener("click",e=>{if(!(e.target.closest&&e.target.closest(".sostpr")))e.stopImmediatePropagation()},true);
   hd.addEventListener("click",()=>{P2.classList.toggle("sostcer");if(!P2.classList.contains("sostcer"))requestAnimationFrame(()=>P2.scrollIntoView({block:"nearest",behavior:"smooth"}))})}
  resumen2();
  /* v721: los pasos 1-2-3 van en la MISMA LÍNEA que ACEPTAR (a la izquierda, compactos) */
@@ -85,7 +88,8 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
 function resumen2(){const P2=document.querySelector("#sostf .sostp2");if(!P2)return;const r=P2.querySelector(".sostpr");if(!r)return;
  const t=($i("sr_t")||{}).value||"";const n=(typeof rcsListaAl=="function"?rcsListaAl(t).length:0)||(t.trim()?t.trim().split("\n").filter(Boolean).length:0);
  const lb=document.querySelector("#sheetc label.srfoto");const fo=!!(lb&&lb.classList.contains("srfok"));
- const x=[n?`🔔 ${n}`:"",fo?"📷":""].filter(Boolean).join(" · ")||"AÑADIR";if(r.textContent!==x)r.textContent=x;r.classList.toggle("on",!!(n||fo))}
+ const x=n?`🔔${n}`:"🔔";if(r.textContent!==x)r.textContent=x;r.classList.toggle("on",!!n);
+ const cm=P2.querySelector(".sostcam");if(cm)cm.classList.toggle("on",fo)}
 document.addEventListener("input",e=>{if(e.target&&e.target.id=="sr_t")resumen2()});
 /* ---------- componente: desplegable, elegir, chips ---------- */
 const RECARGA=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>`;
@@ -296,3 +300,17 @@ function cabecera(){const c=sc();const h=c&&c.querySelector(".sosrh");if(!h||!$i
 (function(){const st=document.createElement("style");st.textContent=`#sostf .sostp2>.sostph .sostcam{flex:none;margin:0 6px 0 auto;padding:7px 9px;border-radius:9px;border:1.5px solid #ffffff33;font:800 11px/1 ui-monospace,monospace;letter-spacing:.6px;cursor:pointer;white-space:nowrap}
 #sostf .sostp2>.sostph .sostcam+.sostpr{margin-left:0!important}
 @media (prefers-color-scheme:light){#sostf .sostp2>.sostph .sostcam{border-color:#0003}}`;document.head.appendChild(st)})();
+/* ===== v824: caja 1 recolocada · título completo, sin flecha; columna derecha con CAMPANA (despliega) y FOTO del mismo tamaño,
+   alineadas con la papelera y el micrófono de «Avería en campo» (48 × 48, a 8 px del borde interior) ===== */
+(function(){const P="#sheetc #sostf";const st=document.createElement("style");st.textContent=`
+${P} .sostp2 .sostpv{display:none!important}
+${P} .sostp2>.sostph{align-items:flex-start!important;padding-right:14px!important;cursor:default!important}
+${P} .sostp2>.sostph>*:not(.sostcol){min-width:0}
+${P} .sostp2>.sostph .sostpt,${P} .sostp2>.sostph b,${P} .sostp2>.sostph small{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+${P} .sostp2>.sostph .sostcol{flex:none;margin-left:auto;margin-right:8px;display:flex;flex-direction:column;gap:8px}
+${P} .sostp2>.sostph .sostcol .sostpr,${P} .sostp2>.sostph .sostcol .sostcam{box-sizing:border-box;width:48px!important;height:48px!important;padding:0!important;margin:0!important;display:grid!important;place-items:center;border-radius:12px!important;border:1.5px solid #ffffff2b!important;background:var(--card)!important;font:800 13px/1 ui-monospace,monospace!important;letter-spacing:0!important;cursor:pointer;color:var(--tx)!important;white-space:nowrap}
+${P} .sostp2>.sostph .sostcol .sostcam{font-size:20px!important}
+${P} .sostp2>.sostph .sostcol .sostpr{font-size:14px!important}
+${P} .sostp2>.sostph .sostcol .sostpr.on,${P} .sostp2>.sostph .sostcol .sostcam.on{border-color:#1fa64a!important;color:#1fa64a!important;background:color-mix(in srgb,#1fa64a 12%,var(--card))!important}
+${P} .sostp2:not(.sostcer)>.sostph .sostcol .sostpr{border-color:#ef6c00!important}
+@media (prefers-color-scheme:light){${P} .sostp2>.sostph .sostcol .sostpr,${P} .sostp2>.sostph .sostcol .sostcam{border-color:#0002!important}}`;document.head.appendChild(st)})();
