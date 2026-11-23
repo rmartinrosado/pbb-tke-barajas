@@ -204,7 +204,9 @@ const st=document.createElement("style");st.textContent=`.grid.sosgrid{grid-temp
 /* ===== v823: SOS · «Análisis del texto» va justo debajo de «Texto analizado»; los dos con la misma letra y en gris ===== */
 (function(){
 const mueve=()=>{const r=document.getElementById("sr_res");if(!r)return;const le=r.querySelector("#sr_leido>details.srtx");const an=r.querySelector("details.lpaan");
- if(le&&an&&le.nextElementSibling!==an)le.after(an)};
+ const all=r.querySelectorAll("details.lpaan");if(all.length>1){const nuevo=[...all].find(x=>!x.closest("#sr_leido"));if(nuevo)all.forEach(x=>{if(x!==nuevo)x.remove()})}
+ const a2=[...r.querySelectorAll("details.lpaan")].find(x=>!x.closest("#sr_leido"))||an;
+ if(le&&a2&&le.nextElementSibling!==a2)le.after(a2)};
 new MutationObserver(()=>mueve()).observe(document.body,{childList:true,subtree:true});
 const st=document.createElement("style");st.textContent=`#sr_res #sr_leido>details.srtx,#sr_res #sr_leido>details.lpaan{margin:8px 0 0}
 #sr_res #sr_leido>details.srtx>summary,#sr_res #sr_leido>details.lpaan>summary{color:var(--mu,#8a93a3)!important;font:700 13px/1.4 system-ui,-apple-system,sans-serif!important;letter-spacing:0!important;text-transform:none!important;cursor:pointer}
