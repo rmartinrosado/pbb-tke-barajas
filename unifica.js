@@ -214,11 +214,11 @@ if(SR)new MutationObserver(()=>{micEn(document.getElementById("sr_ob"));micEn(do
 
 const st=document.createElement("style");st.textContent=`
 .ubh{margin:14px 0 6px;padding:8px 10px;border-radius:9px;font-weight:800;font-size:13.5px;letter-spacing:.4px;color:#fff}
-.ub1{background:#c62828}.ub2{background:#ef6c00}.ub3{background:#5b3fa0}.ubb{padding:0 2px}
+.ub1{background:#c62828}.ub2{background:#ef6c00}.ub3{background:#ef6c00}/* v808: el punto 3 en naranja como el 2 */.ubb{padding:0 2px}
 .ubfold{margin:8px 0;border:1px solid var(--bd,#555);border-radius:10px;padding:6px 8px}.ubfold>summary{cursor:pointer;font-weight:700;font-size:13px}
 .ubok{margin:6px 0;padding:8px;border:2px solid #2e7d32;border-radius:10px;background:rgba(46,125,50,.10)}.ubokh{font-weight:800;color:#2e7d32;font-size:13px;margin-bottom:4px}
 .ubgo{animation:ubgo 1s ease-in-out 4}@keyframes ubgo{50%{filter:brightness(1.4);transform:scale(1.02)}}
-@keyframes ub3p{0%,100%{box-shadow:0 0 0 0 rgba(124,77,255,.9);opacity:1}50%{box-shadow:0 0 0 7px rgba(124,77,255,0);opacity:.6}}
+@keyframes ub3p{0%,100%{box-shadow:0 0 0 0 rgba(239,108,0,.9);opacity:1}50%{box-shadow:0 0 0 7px rgba(239,108,0,0);opacity:.6}}
 .ub3b{animation:ub3p 1.2s ease-in-out infinite}.ub3{animation:ub3p 1.2s ease-in-out infinite}
 .ub3b{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px!important}.ub3b img{height:26px;border-radius:6px;background:#fff;padding:2px}
 .fbw{display:flex;gap:6px;margin:6px 0 2px;flex-wrap:wrap}.fbw button{flex:1;min-width:110px;padding:7px 8px;margin:0;font-size:13px;font-weight:700;border-radius:8px;border:1.5px solid}
