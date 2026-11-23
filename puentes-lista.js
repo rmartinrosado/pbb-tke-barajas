@@ -64,7 +64,7 @@ function bor(m,b){if(BORX[m+"|"+b])return BORX[m+"|"+b];try{const C=window.CABLE
  const i=e.n.findIndex(n=>n.k=="E"),pre=(i<0?e.n:e.n.slice(0,i)).filter(n=>n.k=="B"),l=pre[pre.length-1];return l?String(l.t).replace(/^\+/,"")+":"+l.p:""}catch(x){return ""}}
 const croqO=(r,tipo)=>tipo=="sol"?{mod:r[0],b1:r[2],b2:r[2],k1:"IN "+r[2],k2:"",d:r[4],suelta:true}:{mod:r[0],b1:r[2],b2:r[3],k1:"IN "+r[2],k2:tipo=="ut"?"UT "+r[3]:"+24 V "+r[3],d:r[4]};
 function filas(L,tipo){return L.filter(r=>F=="todas"||(F=="rev"?r[6]=="rev":r[6]=="pwa")).map((r,i)=>`<details class="pzr${r[6]=="rev"?" pzrev":""}" data-t="${tipo}" data-i="${L.indexOf(r)}"><summary>
- <span class="pzm">${E(r[0])}<small>LED ${E(r[1])}</small>${(b=>b?`<span class="pzbor">${E(b)}</span>`:"")(bor(r[0],r[2]))}</span>
+ <span class="pzm">${E(r[0])}<i class="pzbq">bloque ${E(String(r[1]).split(".")[0])}</i><small>LED ${E(r[1])}</small>${(b=>b?`<span class="pzbor">${E(b)}</span>`:"")(bor(r[0],r[2]))}</span>
  <span class="pzb">${tipo=="sol"?"✂️ IN "+E(r[2]):"🔌 "+E(r[2])+" ↔ "+E(r[3])}</span>
  <span class="pzs">${E(r[4])}<small>folio ${r[5]}${r[6]=="rev"?' · <b class="pzrv">⚠️ REVISAR EN CAMPO</b>':" · en la PWA"}</small></span></summary><div class="pzc"></div></details>`).join("")||`<div class="mu" style="padding:8px">Nada con este filtro.</div>`}
 function pagina(){const n=(L)=>L.filter(r=>r[6]=="rev").length,nr=n(SOL)+n(V24)+n(UT);
@@ -91,12 +91,13 @@ const st=document.createElement("style");st.textContent=`
 .pzf button.on{background:var(--ac,#ff7a1a);color:#000;border-color:transparent}
 .pzx{font-size:12.5px;margin-bottom:6px}
 .pzr{border:1px solid var(--bd,#ffffff22);border-radius:10px;margin:6px 0;overflow:hidden}
-.pzr>summary{display:grid;grid-template-columns:86px 104px minmax(0,1fr);gap:8px;align-items:center;padding:8px;cursor:pointer;list-style:none}
+.pzr>summary{display:grid;grid-template-columns:98px 104px minmax(0,1fr);gap:8px;align-items:center;padding:8px;cursor:pointer;list-style:none}
 .pzr>summary::-webkit-details-marker{display:none}
 .pzm{font-weight:800;font-family:var(--tkmo,ui-monospace,monospace);font-size:13px}.pzm small{display:block;font-weight:600;opacity:.7;font-size:11px}
 .pzb{font-family:var(--tkmo,ui-monospace,monospace);font-weight:800;font-size:12.5px;white-space:nowrap;letter-spacing:-.2px}
+.pzbq{font-style:normal;font-weight:700;font-size:10px;opacity:.75;margin-left:4px;white-space:nowrap}
 .pzbor{display:inline-block;margin-top:4px;padding:2px 5px;border-radius:6px;background:#8a8f9a33;border:1px solid #8a8f9a66;font-size:10px;font-weight:700;white-space:nowrap;max-width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}
-.pzr[data-t=sol]>summary{grid-template-columns:86px 80px minmax(0,1fr)}
+.pzr[data-t=sol]>summary{grid-template-columns:98px 80px minmax(0,1fr)}
 .pzr>summary::before,.pzr>summary::after{display:none!important;content:none!important}
 .pzs{font-size:13px;line-height:1.3}.pzs small{display:block;opacity:.75;font-size:11.5px;margin-top:2px}
 .pzr.pzrev{border:2px solid #f5a400;background:#f5a4000f}
