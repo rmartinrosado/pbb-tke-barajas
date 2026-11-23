@@ -93,7 +93,7 @@ const pon=()=>{try{
  const sc=document.getElementById("sheetc");if(sc&&!sc.querySelector(".infcie")){const bc=sc.querySelector('button[onclick^="cerrar("],button[onclick^="acGuarda("]');
   if(bc){const id=((bc.getAttribute("onclick")||"").match(/\(\s*'([^']+)'/)||[])[1];if(id){const b=document.createElement("button");b.type="button";b.className="sec infcie";b.textContent="📄 Informe de la OT (PDF)";
    b.onclick=e=>{e.stopPropagation();const g=x=>(document.getElementById(x)||{}).value;const o=inc.find(z=>z.id==id);if(o){const t={...o};if(g("r_a")!=null)t.act=g("r_a");if(g("r_o")!=null)t.obs=g("r_o");if(g("r_i"))t.hIni=g("r_i");if(g("r_l"))t.hLle=g("r_l");if(g("r_c"))t.hCie=g("r_c");try{const vc=document.querySelector("#sheetc .vchk");if(vc){const v={};vc.querySelectorAll("input").forEach(x=>v[x.dataset.k]=x.checked);t.verif=v}}catch(e){}otInformeDe(t)}};bc.before(b)}}}
- const h2=document.querySelector("#sr_res .ub2");if(h2&&!h2.querySelector(".mlbt")){const b=document.createElement("button");b.type="button";b.className="mlbt";b.textContent="🔊 Manos libres";b.onclick=e=>{e.stopPropagation();manosLibres()};h2.appendChild(b)}
+ const h2=document.querySelector("#sr_res .ub2");if(h2&&!h2.querySelector(".mlbt")){const b=document.createElement("button");b.type="button";b.className="mlbt";b.innerHTML=window.__mlIco+"<span>Manos libres</span>";b.onclick=e=>{e.stopPropagation();manosLibres()};h2.appendChild(b)}
 }catch(e){}};
 let tm=null;new MutationObserver(()=>{if(!tm)tm=setTimeout(()=>{tm=null;pon()},250)}).observe(document.documentElement,{childList:true,subtree:true});
 const st=document.createElement("style");st.textContent=`
@@ -120,3 +120,12 @@ html{touch-action:manipulation}
 .mlb{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}.mlb button{margin:0!important;padding:14px 0!important;font-size:22px!important;border-radius:10px;background:#374151!important;color:#fff!important;border:0!important}`;
 document.head.appendChild(st);
 })();
+
+/* ===== v835: botón «Manos libres» ajustado a la altura de la caja del título y con icono de ondas a trazo blanco ===== */
+window.__mlIco='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5h3l4-3.5v12l-4-3.5h-3z"/><path d="M14 9.2c1 .8 1.5 1.8 1.5 2.8s-.5 2-1.5 2.8"/><path d="M16.8 6.6c1.8 1.4 2.7 3.3 2.7 5.4s-.9 4-2.7 5.4"/><path d="M19.5 4c2.4 2 3.5 4.9 3.5 8s-1.1 6-3.5 8"/></svg>';
+(function(){const st=document.createElement("style");st.textContent=`
+#sr_res .ub2 .mlbt{top:5px!important;bottom:5px!important;right:6px!important;transform:none!important;height:auto!important;min-height:0!important;max-height:none!important;
+ box-sizing:border-box;display:inline-flex!important;align-items:center;gap:6px;padding:0 10px!important;line-height:1!important;font-size:12.5px!important;font-weight:700!important;
+ background:rgba(255,255,255,.18)!important;border:1.5px solid rgba(255,255,255,.7)!important;border-radius:9px!important;box-shadow:none!important;white-space:nowrap}
+#sr_res .ub2 .mlbt svg{flex:none;display:block}`;document.head.appendChild(st);
+ new MutationObserver(()=>{document.querySelectorAll("#sr_res .ub2 .mlbt").forEach(b=>{if(!b.querySelector("svg"))b.innerHTML=window.__mlIco+"<span>Manos libres</span>"})}).observe(document.body,{childList:true,subtree:true})})();
