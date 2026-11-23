@@ -5,6 +5,9 @@
 (function(){"use strict";
 const LLAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
 const st=document.createElement("style");st.textContent=`
+#app .card.ot .sosb,#app .card.ot .sosc{display:none!important}#app .card .otres .orl>.pactt{cursor:pointer}#app .card .otres .orl>.pactt.pactpte{animation:pactBl 1.1s ease-in-out infinite!important}
+@keyframes pactBl{0%,100%{opacity:1;box-shadow:0 0 0 0 #ff5252aa}50%{opacity:.35;box-shadow:0 0 10px 2px #ff5252aa}}
+
 .orl .sosc{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0!important;margin:0!important;border-radius:50%!important;border:0!important;background:transparent!important;flex:none}
 #app .card .otres{align-items:stretch!important}/* v750: SOS y 🔌 a la izquierda; reloj y llave justificados a la derecha */#app .card .otres>.orl:first-child{justify-content:flex-end!important;align-self:stretch;width:100%}#app .card .otres .orl.orlsos{justify-content:flex-end!important;align-self:stretch;width:100%;min-height:44px}#app .card .otres .orl.orlsos>[data-ort]{margin-left:auto!important}#app .card .otres .orl>.pactt{flex:none;margin:0 0 0 2px!important;animation:none!important;font-size:18px;line-height:1;padding:3px 4px;border-radius:8px;border:1.5px solid #c62828}/* v696: REPARACIÓN con el mismo estilo de pastilla que T4S (solo la llave) */
 .otres .orl .grepc{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;color:inherit!important}
@@ -78,7 +81,25 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  /* v692: SOS a la izquierda del reloj, en la esquina inferior izquierda de la tarjeta */
  /* v750: el 🔌 de primera actuación al lado del SOS, sin parpadeo */
  {const pa=c.querySelector(".pactt");if(pa&&orl){const s3=orl.querySelector(".sosc");if(s3){if(s3.nextElementSibling!==pa)s3.after(pa)}else if(orl.firstElementChild!==pa)orl.prepend(pa)}}
+ /* v767: sin icono SOS en la caja; su actuación directa va al 🔌. 🔌 parpadeando si la resolución lleva PUENTE en el PLC;
+    ✂️ (mismo tamaño) si la actuación directa es SOLTAR CABLE */
+ {const id=c.dataset.oid||oid;const s4=c.querySelector(".sosc,.sosb");
+  if(s4&&orl){let pa=c.querySelector(".pactt");if(!pa){orl.insertAdjacentHTML("afterbegin",'<span class="pactt" title="Primera actuación en campo">🔌</span>');pa=orl.querySelector(".pactt")}
+   s4.remove();if(orl.firstElementChild!==pa)orl.prepend(pa)}
+  const pa=c.querySelector(".pactt");
+  if(pa){pa.setAttribute("role","button");pa.dataset.oid=id;pa.title="Actuación directa (SOS)";
+   let k="";try{const o=inc.find(x=>x.id==id);if(o&&o.estado=="abierta"){let L=[];try{if(typeof _croqLista=="function")L=_croqLista(o)||[]}catch(e){}
+     let P=[];try{if(typeof puentesOT=="function")P=puentesOT(o)||[]}catch(e){}
+     const pte=L.some(x=>!x.suelta)||P.some(x=>!x.suelta&&!x.croq&&x.b),cor=L.some(x=>x.suelta)||P.some(x=>x.suelta||x.croq);
+     k=pte?"pte":cor?"cor":""}}catch(e){}
+   if(pa.textContent.trim()!="⚡"){const ic=k=="cor"?"✂️":"🔌";if(pa.textContent.trim()!=ic)pa.textContent=ic}
+   pa.classList.toggle("pactpte",k=="pte");pa.classList.toggle("pactcor",k=="cor")}}
  if(orl)orl.classList.toggle("orlsos",!!orl.querySelector(".sosc,.pactt"));}
 function todo(){if(!SEGV())return;document.querySelectorAll("#app .card.ot").forEach(c=>{try{fix(c)}catch(e){}})}
 const ini=()=>{const a=document.getElementById("app");if(!a)return setTimeout(ini,300);new MutationObserver(todo).observe(a,{childList:true,subtree:true});todo()};ini();
 })();
+
+/* v767: el 🔌 / ✂️ de la caja abre la actuación directa (antes el botón SOS) */
+document.addEventListener("click",e=>{const p=e.target.closest&&e.target.closest("#app .card .pactt");if(!p)return;e.stopPropagation();e.preventDefault();
+ const id=p.dataset.oid||(p.closest(".card")||{}).dataset&&p.closest(".card").dataset.oid;if(!id)return;
+ try{if(typeof otRapVa=="function")otRapVa(id);else sosVa(id)}catch(x){try{sosVa(id)}catch(y){}}},true);
