@@ -6,48 +6,54 @@
 if(typeof GUIA=="undefined"||!GUIA.tipos||!GUIA.tipos.PAS)return;
 const S=GUIA.tipos.PAS.s;if(S.some(x=>/^Bordes de seguridad de ruedas/.test(x.t)))return;
 S.push({t:"Bordes de seguridad de ruedas (T-B5 / T-B6) activados",ef:1,g:[41,68],p:[
- "QUÉ HAY: bordes sensibles del carro de ruedas T-B5 (delantero) y T-B6 (trasero) en serie por el conector T-CON10 (mangueras T1-W1 / T1-W2) → manguera H-W18 → borna H-X51:21-22 (elevación) → manguera EH-W1 → borna E-X55:21-22 (armario E) → relé GELBAU E-U5 (Z1 / Z2) → entrada safety E-A8 2.1 (IN02S, salida de test 2.2 UT2).",
+ "QUÉ HAY (v874): en el carro de ruedas los dos bordes forman un ANILLO ABIERTO alrededor del carro: T-B5 DELANTERO y T-B6 TRASERO en serie. Hay 4 conectores (2 parejas macho / hembra): CON-ELEV entre la manguera H-W18 de la caja de elevación y el DELANTERO, y T-CON10 entre el DELANTERO y el TRASERO. El trasero solo conecta con el delantero; el delantero lleva también el retorno del trasero hasta la caja de elevación.",
+ "RUTA ORIGEN → DESTINO: E-A8 2.1 / 2.2 (hilos 260 / 622) ← E-U5 13-14 · E-U5 Z1 / Z2 → E-X55:21-22 (armario E) → manguera EH-W1 (24×1,5) → H-X51:21-22 (caja bornero de elevación) → manguera H-W18 (3×1,5, BN / BK) → CON-ELEV ♂/♀ → T-B5 DELANTERO (T1-W1) → T-CON10 ♂/♀ → T-B6 TRASERO (T1-W2) → vuelve por el delantero y H-W18 a H-X51:22. Pinout de los conectores por confirmar en campo.",
  "PRIORIDAD 1 · Mirar el carro de ruedas: algo apoyado o enganchado en un borde (calzo, manguera, objeto, borde aplastado o despegado). Retirarlo y rearmar.",
- "PRIORIDAD 2 · Relé GELBAU E-U5 452.46 (armario E), LED: STRIP ACTIVATED = borde pisado o aplastado · CIRCUIT FAULT = cable o borde cortado · OUTPUT ACTIVATED = circuito correcto.",
- "PRUEBA SIN HERRAMIENTAS · con OUTPUT ACTIVATED encendido en E-U5, pisar el borde DELANTERO T-B5 en varios puntos: debe encenderse STRIP ACTIVATED y apagarse al soltar. Repetir con el TRASERO T-B6. El que no responde, o deja STRIP ACTIVATED / CIRCUIT FAULT encendido sin pisarlo, es el averiado.",
- "MEDIDA BORDE A BORDE · PBB parada, selector en MANUAL. Abrir el conector T-CON10 del carro de ruedas y separar las dos mangueras (identificarlas siguiéndolas: T1-W1 = DELANTERO T-B5 · T1-W2 = TRASERO T-B6; unidos entre sí por el hilo 239).",
- "Polímetro en Ω entre los dos hilos de cada borde: anotar el valor en REPOSO y PISANDO. BUENO: valor estable en reposo que cambia al pisar y vuelve al soltar. AVERIADO: abierto (OL), en corto fijo o muy distinto del otro. Mover el cable mientras se mide: si el valor salta, cable roto por el giro de ruedas.",
- "Si los dos bordes miden bien → la avería está aguas arriba: conector T-CON10 (agua, pines), manguera H-W18, bornas H-X51:21-22 o E-X55:21-22.",
- "POLÍMETRO · SIN TENSIÓN: PBB parada y MANUAL; en V DC comprobar que no hay tensión entre los dos hilos; soltar Z1 / Z2 del E-U5 (o abrir el T-CON10) y volver a comprobar ≈0 V. Medir Ω con tensión falsea la lectura y puede dañar el polímetro.",
- "POLÍMETRO · CONFIGURACIÓN: puntas en COM (negra) y VΩ (roja), nunca en A / mA. Selector en Ω: autorango, o rango manual 20 kΩ si el borde lleva resistencia (8,2 kΩ típ.) y 200 Ω si el bueno da ≈0 Ω. Juntar puntas: 0,1-0,5 Ω (restarlo); separadas: OL. No usar el zumbador para comparar bordes (con 8,2 kΩ no pita aunque esté bien) ni la posición de diodo. MIN/MAX activado y mover el cable: si salta a OL un instante, hilo roto. Aislamiento orientativo: rango de Ω más alto, cada hilo contra PE = OL.",
- "AL TERMINAR: volver a conectar Z1 / Z2 (y el T-CON10). En V DC, E-A8 2.1 contra 0 V ≈ 24 V con el bucle sano y LED de E-A8 2.1 encendido. Rearmar el E-U5 y la PBB.",
- "MEDIDA POR TRAMOS (sin ir al carro): PBB parada, MANUAL y Z1 / Z2 sueltos del E-U5. En Ω: 1) E-X55:21-22 (armario E) = bucle entero (EH-W1 + H-W18 + los dos bordes). 2) H-X51:21-22 (caja de elevación) = sin EH-W1. Bien en H-X51 y mal en E-X55 → manguera EH-W1. 3) T-CON10, borde a borde. Bordes bien y mal en H-X51 → manguera H-W18 o el conector.",
- "Borneros intermedios entre el PLC y los bordes (rev. J, folio 41): E-A8 2.1 / 2.2 ← hilos 260 / 622 ← E-U5 13-14 · E-U5 Z1 / Z2 → E-X55:21-22 (armario E) → EH-W1 (24×1,5) → H-X51:21-22 (caja de elevación) → H-W18 (3×1,5, BN / BK) → T-CON10 (pines 1 · 3 · 2; 239 une los bordes; pinout por confirmar) → T1-W1 / T1-W2.",
- "ANULAR SOLO EL QUE FALLA (provisional) · En el T-CON10, en lugar del borde averiado poner lo mismo que mide el BUENO en reposo: ≈0 Ω → PUENTE de hilo entre los dos hilos del averiado · resistencia (típico 8,2 kΩ, ver etiqueta del borde o del relé) → RESISTENCIA del mismo valor. Rearmar E-U5 y la PBB: OUTPUT ACTIVATED encendido y alarma 010 borrada.",
- "Sin polímetro: puente en lugar del DELANTERO → si la alarma se va, es el delantero; si no, quitarlo y probar en lugar del TRASERO.",
- "Comprobar que el borde que queda sigue parando la PBB al pisarlo. Compañero vigilando el lado anulado en cada traslación, aviso a CGA, anotarlo en la OT, etiqueta en el T-CON10 y quitarlo al cambiar el borde. Nunca anular los dos: si fallan ambos, solo el puente E-A8 2.1-2.2 para sacar la PBB.",
- "PBB 507 (folio 62): T-B61 delantero y T-B51 trasero con relé Gelbau E1-U8 (LED rojo = pisado · amarillo = fallo de circuito, conectores T-GER1/2/3 · verde = salida activa). Mismo método.",
- "Conector T-CON10 y mangueras T1-W1 / T1-W2 / H-W18: agua, pines sueltos o cable pellizcado por el giro de las ruedas.",
+ "PRIORIDAD 2 · Relé GELBAU E-U5 452.46 (armario E), LED: STRIP ACTIVATED = borde pisado o aplastado · CIRCUIT FAULT = cable, conector o borde cortado · OUTPUT ACTIVATED = circuito correcto.",
+ "PRUEBA SIN HERRAMIENTAS · con OUTPUT ACTIVATED encendido en E-U5, pisar el DELANTERO T-B5 en varios puntos: debe encenderse STRIP ACTIVATED y apagarse al soltar. Repetir con el TRASERO T-B6. El que no responde, o deja STRIP ACTIVATED / CIRCUIT FAULT encendido sin pisarlo, es el averiado.",
+ "POLÍMETRO · SIN TENSIÓN: PBB parada y MANUAL; en V DC comprobar que no hay tensión entre los dos hilos; soltar Z1 / Z2 del E-U5 (o abrir CON-ELEV) y volver a comprobar ≈0 V. Medir Ω con tensión falsea la lectura y puede dañar el polímetro.",
+ "POLÍMETRO · CONFIGURACIÓN: puntas en COM (negra) y VΩ (roja), nunca en A / mA. Selector en Ω: autorango, o rango manual 20 kΩ si el borde lleva resistencia (8,2 kΩ típ.) y 200 Ω si el bueno da ≈0 Ω. Juntar puntas: 0,1-0,5 Ω (restarlo); separadas: OL. No usar el zumbador para comparar bordes ni la posición de diodo. MIN/MAX activado y mover el cable: si salta a OL un instante, hilo roto. Aislamiento orientativo: rango de Ω más alto, cada hilo contra PE = OL.",
+ "MEDIDA POR TRAMOS (Z1 / Z2 sueltos, en Ω): 1) E-X55:21-22 (armario E) = todo. 2) H-X51:21-22 (caja de elevación) = sin EH-W1. 3) CON-ELEV abierto, lado bordes = DELANTERO + T-CON10 + TRASERO. Bien en 3 y mal en 2 → manguera H-W18 o CON-ELEV. Bien en 2 y mal en 1 → manguera EH-W1.",
+ "TRASERO SOLO: abrir T-CON10 y medir en la mitad del TRASERO (T1-W2), en reposo y pisando.",
+ "DELANTERO SOLO: con T-CON10 abierto, poner un PUENTE en la mitad del DELANTERO del T-CON10 (los pines que van al trasero) y medir en CON-ELEV abierto, lado bordes, en reposo y pisando. Sin el puente el lado del delantero da siempre OL (el anillo queda abierto).",
+ "Valor BUENO: estable en reposo, cambia al pisar y vuelve al soltar. AVERIADO: OL, en corto fijo o muy distinto del otro. Mover el cable con MIN/MAX: si salta, cable roto por el giro de ruedas.",
+ "ANULAR EL TRASERO (provisional): en el T-CON10, desconectar el trasero y en la mitad del DELANTERO poner lo mismo que mide el bueno en reposo: ≈0 Ω → PUENTE · resistencia (8,2 kΩ típ.) → RESISTENCIA del mismo valor. Rearmar E-U5 y PBB.",
+ "ANULAR EL DELANTERO (provisional): el retorno del trasero pasa por el delantero, así que no vale un puente en CON-ELEV (anularía los dos). Hace falta un LATIGUILLO de salto: macho de CON-ELEV ↔ hembra de T-CON10, con el valor del delantero bueno (puente o resistencia) en serie, que deja el trasero conectado. Es la función «delantero» de la caja RB-1.",
+ "Sin polímetro: con T-CON10 abierto y puente / resistencia en la mitad del delantero: si la alarma se va → era el TRASERO. Si sigue → delantero, H-W18 o CON-ELEV: medir por tramos.",
+ "Comprobar que el borde que queda sigue parando la PBB al pisarlo. Compañero vigilando el lado anulado en cada traslación, aviso a CGA, anotarlo en la OT, etiqueta en el conector y quitarlo al cambiar el borde. Nunca anular los dos: si fallan ambos, solo el puente E-A8 2.1-2.2 para sacar la PBB.",
+ "AL TERMINAR: conectar Z1 / Z2, CON-ELEV y T-CON10. En V DC, E-A8 2.1 contra 0 V ≈ 24 V con el bucle sano y LED de E-A8 2.1 encendido. Rearmar el E-U5 y la PBB.",
+ "Conectores CON-ELEV y T-CON10 y mangueras H-W18 / T1-W1 / T1-W2: agua, pines sueltos o cable pellizcado por el giro de las ruedas.",
  "LED E-A8 2.1 en reposo: ENCENDIDO. Apagado con E-U5 correcto → hilos 260 / 622 entre E-U5 (13-14) y E-A8 2.1-2.2 (folio 68).",
- "Para sacar en servicio: puente provisional en E-A8 2.1-2.2 (croquis en el bloque 1), con el borde comprobado a la vista y el compañero vigilando. Anotarlo en la OT y quitarlo al reparar."],
+ "PBB 507 (folio 62): T-B61 delantero y T-B51 trasero con relé Gelbau E1-U8 (LED rojo = pisado · amarillo = fallo de circuito, conectores T-GER1/2/3 · verde = salida activa). Mismo método.",
+ "Para sacar en servicio con los dos: puente provisional en E-A8 2.1-2.2 (croquis en el bloque 1), con los bordes a la vista y el compañero vigilando. Anotarlo en la OT y quitarlo al reparar."],
  r:"Folios 41 (bordes y E-U5) y 68 (E-A8 DIS02)",cro:1});
 })();
 
 /* ===== v869: croquis del T-CON10 en la caja de bordes de ruedas: cómo están en serie y cómo anular SOLO el que falla ===== */
 (function(){
-const SVG=`<svg viewBox="0 0 360 330" class="brsvg" role="img" aria-label="Croquis de los bordes de ruedas en serie por el T-CON10 y anulación del averiado">
-<style>.brsvg text{font:600 10px Menlo,Consolas,monospace;fill:var(--tx,#111)}.brsvg .m{fill:var(--mu,#666);font-weight:400}.brsvg .w{fill:none;stroke:#d11a10;stroke-width:2.2}.brsvg .j{fill:none;stroke:#1565c0;stroke-width:2.4}.brsvg .bx{fill:var(--card,#fff);stroke:var(--tx,#111);stroke-width:1.3}.brsvg .ed{fill:#f2b705;stroke:#7a5a00;stroke-width:1.3}.brsvg .ok{fill:#2e7d32}</style>
-<rect class="bx" x="6" y="8" width="150" height="58" rx="6"/><text x="14" y="25">E-U5 Gelbau 452.46</text><text x="14" y="40" class="m">armario E</text><text x="14" y="56" class="m">13-14 → E-A8 2.1/2.2</text>
-<rect class="bx" x="190" y="8" width="104" height="44" rx="6"/><text x="198" y="26">E-X55:21-22</text><text x="198" y="42" class="m">armario E</text><text x="238" y="62" class="m">EH-W1</text><rect class="bx" x="236" y="66" width="118" height="30" rx="6"/><text x="244" y="85">H-X51:21-22</text>
-<path class="w" d="M156 24H190M156 38H190"/><path class="w" d="M294 22H316V66M294 38H304V66"/><path class="w" d="M316 96V112M304 96V112"/><text x="252" y="108" class="m">H-W18</text>
-<rect class="bx" x="230" y="112" width="124" height="44" rx="6"/><text x="240" y="129">T-CON10</text><text x="240" y="143" class="m">pines 1 · 3 · 2</text>
-<path class="j" d="M272 150H314"/><text x="40" y="180" class="m" style="fill:#1565c0">hilo 239: T-B5 ↔ T-B6 (en serie)</text>
-<path class="w" d="M244 156V196H190M272 156V184H196V196"/>
-<rect class="ed" x="40" y="190" width="150" height="24" rx="5"/><text x="50" y="206">T-B5 DELANTERO</text><text x="200" y="210" class="m">T1-W1</text>
-<path class="w" d="M314 156V244H190M340 156V256H196V244"/>
-<rect class="ed" x="40" y="236" width="150" height="24" rx="5"/><text x="50" y="252">T-B6 TRASERO</text><text x="200" y="272" class="m">T1-W2</text>
-<text x="6" y="292">Anular SOLO el averiado, en el T-CON10:</text>
-<rect class="ok" x="6" y="300" width="10" height="10" rx="2"/><text x="20" y="309" class="m">bueno ≈0 Ω → PUENTE en su lugar</text>
-<rect class="ok" x="6" y="316" width="10" height="10" rx="2"/><text x="20" y="325" class="m">bueno = R (8,2 kΩ típ.) → RESISTENCIA igual</text>
+const SVG=`<svg viewBox="0 0 360 400" class="brsvg" role="img" aria-label="Croquis de los bordes de ruedas en anillo abierto con sus conectores">
+<style>.brsvg text{font:600 10px Menlo,Consolas,monospace;fill:var(--tx,#111)}.brsvg .m{fill:var(--mu,#666);font-weight:400}.brsvg .w{fill:none;stroke:#d11a10;stroke-width:2.2}.brsvg .rt{fill:none;stroke:#1565c0;stroke-width:1.6;stroke-dasharray:4 3}.brsvg .bx{fill:var(--card,#fff);stroke:var(--tx,#111);stroke-width:1.3}.brsvg .ed{fill:none;stroke:#f2b705;stroke-width:9;stroke-linecap:round}.brsvg .cn{fill:#37474f;stroke:#111}.brsvg .ok{fill:#2e7d32}</style>
+<rect class="bx" x="6" y="8" width="150" height="50" rx="6"/><text x="14" y="25">E-U5 Gelbau 452.46</text><text x="14" y="40" class="m">armario E · Z1/Z2</text><text x="14" y="52" class="m">13-14 → E-A8 2.1/2.2</text>
+<rect class="bx" x="200" y="8" width="154" height="34" rx="6"/><text x="208" y="23">E-X55:21-22</text><text x="208" y="36" class="m">armario E (bornero)</text>
+<path class="w" d="M156 24H200M156 34H200"/>
+<path class="w" d="M270 42V70M282 42V70"/><text x="290" y="60" class="m">EH-W1</text>
+<rect class="bx" x="200" y="70" width="154" height="34" rx="6"/><text x="208" y="85">H-X51:21-22</text><text x="208" y="98" class="m">caja bornero elevación</text>
+<path class="w" d="M220 104V128H104V168M232 104V136H116V168"/><text x="122" y="124" class="m">H-W18 3×1,5 BN/BK</text>
+<rect class="cn" x="92" y="168" width="18" height="14" rx="2"/><rect class="cn" x="112" y="168" width="18" height="14" rx="2" style="fill:#78909c"/>
+<text x="6" y="178">CON-ELEV</text><text x="6" y="190" class="m">♂ / ♀ (1 y 2)</text>
+<rect x="150" y="235" width="60" height="44" rx="6" style="fill:#455a64;stroke:#111"/><circle cx="160" cy="283" r="7" style="fill:#111"/><circle cx="200" cy="283" r="7" style="fill:#111"/><text x="180" y="262" text-anchor="middle" style="fill:#fff">carro</text>
+<path class="ed" d="M121 196A70 70 0 0 1 247 222"/><text x="132" y="160" style="fill:#b8860b">T-B5 DELANTERO · T1-W1</text>
+<path class="rt" d="M244 226A62 62 0 0 0 124 200"/><text x="150" y="212" class="m" style="fill:#1565c0">retorno del trasero</text>
+<rect class="cn" x="244" y="222" width="18" height="14" rx="2"/><rect class="cn" x="244" y="238" width="18" height="14" rx="2" style="fill:#78909c"/>
+<text x="268" y="234">T-CON10</text><text x="268" y="246" class="m">♂ / ♀ (3 y 4)</text>
+<path class="ed" d="M250 258A70 70 0 1 1 114 282"/><text x="140" y="356" style="fill:#b8860b">T-B6 TRASERO · T1-W2</text>
+<text x="60" y="292" class="m">anillo</text><text x="60" y="304" class="m">abierto</text>
+<text x="6" y="374">Anular TRASERO: T-CON10, puente/R lado del.</text>
+<text x="6" y="390">Anular DELANTERO: latiguillo CON-ELEV↔T-CON10</text>
 </svg>`;
 const T="Bordes de seguridad de ruedas (T-B5 / T-B6)";
 const pon=()=>{document.querySelectorAll("details").forEach(d=>{const s=d.querySelector("summary");if(!s||!s.textContent.includes(T)||d.querySelector(".brcro"))return;
- d.insertAdjacentHTML("beforeend",`<div class="brcro"><div class="brcrh">🔌 Croquis · bordes en serie por el T-CON10 (folio 41)</div>${SVG}</div>`)})};
+ d.insertAdjacentHTML("beforeend",`<div class="brcro"><div class="brcrh">🔌 Croquis · bordes en anillo abierto · 4 conectores · ruta (folio 41)</div>${SVG}</div>`)})};
 new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});try{pon()}catch(e){}
 const st=document.createElement("style");st.textContent=`.brcro{margin:10px 0 4px;padding:8px;border:1.5px solid #f2b705;border-radius:10px;background:color-mix(in srgb,#f2b705 7%,transparent)}.brcrh{font-weight:800;font-size:13px;margin-bottom:6px}.brcro svg{width:100%;height:auto;display:block}`;document.head.appendChild(st);
 })();
