@@ -8,20 +8,23 @@
 (function(){
 "use strict";
 const T="Bordes de seguridad de ruedas (T-B5 / T-B6)";
-const ST={b5:"ok",b6:"ok",oculto:false,med:null};
-const NOM={b5:"T-B5 DELANTERO",b6:"T-B6 TRASERO"};
-const est=()=>{const v=[ST.b5,ST.b6];if(v.includes("cortado"))return"fault";if(v.includes("pisado"))return"strip";return"ok"};
-const lectura=k=>{const s=ST[k];return s=="ok"?"R reposo · estable ✓":s=="pisado"?"cambia al pisar (fijo) ✗":s=="cortado"?"OL · abierto ✗":"= valor del bueno (anulado)"};
+const ST={b5:"ok",b6:"ok",eh:"ok",hw:"ok",oculto:false,med:null};
+const NOM={b5:"T-B5 DELANTERO",b6:"T-B6 TRASERO",eh:"manguera EH-W1",hw:"manguera H-W18",x55:"E-X55:21-22 (armario E)",x51:"H-X51:21-22 (caja elevación)"};
+/* v872: borneros intermedios E-X55:21-22 (armario E) y H-X51:21-22 (caja de elevación) y mangueras EH-W1 / H-W18: medida por tramos */
+const est=()=>{const v=[ST.b5,ST.b6,ST.eh,ST.hw];if(v.includes("cortado"))return"fault";if(v.includes("pisado"))return"strip";return"ok"};
+const tramo=L=>{const v=L.map(k=>ST[k]);if(v.includes("cortado"))return"OL · abierto ✗ (la avería está en este tramo)";if(v.includes("pisado"))return"valor de borde pisado ✗";return"R del bucle · estable ✓ (tramo bueno)"};
+const lectura=k=>{if(k=="x55")return tramo(["eh","hw","b5","b6"]);if(k=="x51")return tramo(["hw","b5","b6"]);
+ const s=ST[k];return s=="ok"?"R reposo · estable ✓":s=="pisado"?"cambia al pisar (fijo) ✗":s=="cortado"?"OL · abierto ✗":"= valor del bueno (anulado)"};
 function svg(){const e=est(),fl=e=="ok";
- const col=k=>ST[k]=="pisado"?"#e53935":ST[k]=="cortado"?"#f2b705":ST[k]=="anulado"?"#1565c0":"#f2b705";
+ const col=k=>ST[k]=="pisado"?"#e53935":ST[k]=="anulado"?"#1565c0":"#f2b705";
  const ed=(k,y)=>{const s=ST[k],vis=ST.oculto&&s!="anulado"?"ok":s;
-  return `<g class="bsed" data-k="${k}"><rect x="40" y="${y}" width="160" height="26" rx="6" fill="${ST.oculto&&s!="anulado"?"#f2b705":col(k)}" stroke="#5a4300" stroke-width="1.3"/>
-  <text x="50" y="${y+17}" fill="#111" font-weight="800">${NOM[k]}${s=="anulado"?" · ANULADO":""}</text>
-  ${vis=="pisado"?`<path d="M120 ${y-14}l0 12m-6-6l6 6l6-6" stroke="#e53935" stroke-width="3" fill="none"/>`:""}
-  ${vis=="cortado"?`<text x="206" y="${y+18}" fill="#f2b705" font-size="16">✂</text>`:""}</g>`};
- const brk5=ST.b5=="cortado"&&!ST.oculto,brk6=ST.b6=="cortado"&&!ST.oculto;
- const cls=fl?"bsflow":"bsstop";
- return `<svg viewBox="0 0 360 300" class="bssvg" role="img" aria-label="Simulación de los bordes de ruedas en serie">
+  return `<g><rect x="30" y="${y}" width="160" height="26" rx="6" fill="${ST.oculto&&s!="anulado"?"#f2b705":col(k)}" stroke="#5a4300" stroke-width="1.3"/>
+  <text x="40" y="${y+17}" fill="#111" font-weight="800">${NOM[k]}${s=="anulado"?" · ANULADO":""}</text>
+  ${vis=="pisado"?`<path d="M110 ${y-14}l0 12m-6-6l6 6l6-6" stroke="#e53935" stroke-width="3" fill="none"/>`:""}
+  ${vis=="cortado"?`<text x="194" y="${y+18}" fill="#f2b705" font-size="16">✂</text>`:""}</g>`};
+ const cut=k=>ST[k]=="cortado"&&!ST.oculto;const cls=fl?"bsflow":"bsstop";const w=k=>`bsw ${cut(k)?"bsstop bscut":cls}`;
+ const pr=k=>ST.med==k?`<path d="M0 0l-10 16M10 0l10 16" stroke="#f2b705" stroke-width="2.5"/>`:"";
+ return `<svg viewBox="0 0 360 350" class="bssvg" role="img" aria-label="Simulación de los bordes de ruedas en serie">
  <rect x="6" y="6" width="150" height="74" rx="8" class="bsbx"/><text x="14" y="22" font-weight="800">E-U5 Gelbau</text>
  <circle cx="20" cy="38" r="5" fill="${e=="strip"?"#e53935":"#444"}" class="${e=="strip"?"bsblink":""}"/><text x="30" y="42" class="bsm">STRIP ACTIVATED</text>
  <circle cx="20" cy="54" r="5" fill="${e=="fault"?"#f2b705":"#444"}" class="${e=="fault"?"bsblink":""}"/><text x="30" y="58" class="bsm">CIRCUIT FAULT</text>
@@ -29,17 +32,22 @@ function svg(){const e=est(),fl=e=="ok";
  <rect x="200" y="6" width="152" height="74" rx="8" class="bsbx"/><text x="208" y="22" font-weight="800">E-A8 2.1 · Magelis</text>
  <circle cx="214" cy="40" r="6" fill="${e=="ok"?"#2e7d32":"#444"}"/><text x="226" y="44" class="bsm">LED E-A8 2.1 ${e=="ok"?"ON":"OFF"}</text>
  <text x="208" y="66" font-weight="800" fill="${e=="ok"?"#2e7d32":"#e53935"}">${e=="ok"?"Sin alarma":"⚠ 010 Bumper traslación"}</text>
- <path d="M156 44H200" class="bsw ${e=="ok"?cls:"bsstop"}"/>
- <path d="M60 80V104H300V122" class="bsw ${cls}"/><path d="M90 80V96H280V122" class="bsw ${cls}"/>
- <text x="150" y="92" class="bsm">H-W18 · E-X55:21-22</text>
- <rect x="230" y="122" width="124" height="38" rx="7" class="bsbx"/><text x="240" y="139" font-weight="800">T-CON10</text><text x="240" y="153" class="bsm">carro de ruedas</text>
- <path d="M244 160V183H200" class="bsw ${cls}"/>
- <path d="M272 160V172H214V196H200" class="bsw ${brk5?"bsstop bscut":cls}"/>
- <path d="M272 160H314" stroke="#1565c0" stroke-width="2.6"/><text x="236" y="176" class="bsm" fill="#1565c0">239</text>
- <path d="M314 160V229H200" class="bsw ${brk6?"bsstop bscut":cls}"/>
- <path d="M340 160V250H214V242H200" class="bsw ${cls}"/>
- ${ed("b5",170)}${ed("b6",216)}
- ${ST.med?`<g><rect x="6" y="262" width="348" height="32" rx="8" fill="#111" stroke="#f2b705"/><text x="16" y="282" fill="#f2b705" font-weight="800">🔍 Polímetro ${NOM[ST.med]}: ${lectura(ST.med)}</text></g>`:""}
+ <path d="M156 44H200" class="bsw ${e=="ok"?cls:"bsstop"}"/><text x="160" y="38" class="bsm">260/622</text>
+ <path d="M50 80V104M74 80V104" class="bsw ${cls}"/><text x="80" y="96" class="bsm">Z1/Z2</text>
+ <rect x="6" y="104" width="104" height="38" rx="7" class="bsbx" stroke="${ST.med=="x55"?"#f2b705":""}"/><text x="14" y="120" font-weight="800">E-X55:21-22</text><text x="14" y="134" class="bsm">armario E</text>
+ <g transform="translate(58,146)">${pr("x55")}</g>
+ <path d="M110 116H128M110 130H128" class="${w("eh")}"/><text x="112" y="152" class="bsm" fill="${cut("eh")?"#f2b705":""}">EH-W1</text>
+ <rect x="128" y="104" width="104" height="38" rx="7" class="bsbx" stroke="${ST.med=="x51"?"#f2b705":""}"/><text x="136" y="120" font-weight="800">H-X51:21-22</text><text x="136" y="134" class="bsm">caja elevación</text>
+ <g transform="translate(180,146)">${pr("x51")}</g>
+ <path d="M232 116H300V164M232 130H286V164" class="${w("hw")}"/><text x="240" y="152" class="bsm" fill="${cut("hw")?"#f2b705":""}">H-W18</text>
+ <rect x="236" y="164" width="118" height="38" rx="7" class="bsbx"/><text x="246" y="181" font-weight="800">T-CON10</text><text x="246" y="195" class="bsm">pines 1 · 3 · 2</text>
+ <path d="M248 202V225H190" class="bsw ${cls}"/>
+ <path d="M272 202V214H204V237H190" class="bsw ${cut("b5")?"bsstop bscut":cls}"/>
+ <path d="M272 202H314" stroke="#1565c0" stroke-width="2.6"/><text x="222" y="212" class="bsm" fill="#64b5f6">239</text>
+ <path d="M314 202V269H190" class="bsw ${cut("b6")?"bsstop bscut":cls}"/>
+ <path d="M340 202V290H204V281H190" class="bsw ${cls}"/>
+ ${ed("b5",218)}${ed("b6",262)}
+ ${ST.med?`<g><rect x="6" y="306" width="348" height="38" rx="8" fill="#111" stroke="#f2b705"/><text x="14" y="322" fill="#f2b705" font-weight="800">🔍 Ω en ${NOM[ST.med]}:</text><text x="14" y="337" fill="#f2b705">${lectura(ST.med)}</text></g>`:""}
  </svg>`}
 /* v871: caja de pruebas RB-1 dibujada en la simulación: intercalada en el T-CON10, selector por borde BORDE / PUENTE / RESIST.
    (sigue al simulador: al anular un borde su selector pasa a PUENTE / RESIST.; al medir, las puntas van a sus bornas de 4 mm) */
@@ -68,8 +76,8 @@ function pinta(w){const e=est();
  w.querySelector(".bsmsg").textContent=(ST.oculto&&e!="ok"?"Avería oculta: mide cada borde en el T-CON10 para encontrarla. ":"")+msg;
  w.querySelectorAll("[data-a]").forEach(b=>{const [a,k]=b.dataset.a.split(":");if(a=="anula")b.disabled=ST[k]=="anulado"||(k=="b5"?ST.b6:ST.b5)=="anulado"})}
 function accion(w,a,k){
- if(a=="reset"){ST.b5=ST.b6="ok";ST.oculto=false;ST.med=null}
- else if(a=="azar"){ST.b5=ST.b6="ok";ST.med=null;const q=Math.random()<.5?"b5":"b6";ST[q]=Math.random()<.5?"pisado":"cortado";ST.oculto=true}
+ if(a=="reset"){ST.b5=ST.b6="ok";ST.eh=ST.hw="ok";ST.oculto=false;ST.med=null}
+ else if(a=="azar"){ST.b5=ST.b6="ok";ST.eh=ST.hw="ok";ST.med=null;const q=["b5","b6","b5","b6","eh","hw"][Math.floor(Math.random()*6)];ST[q]=(q=="eh"||q=="hw")?"cortado":Math.random()<.5?"pisado":"cortado";ST.oculto=true}
  else if(a=="pisa"){if(ST.oculto){/* prueba a ciegas: pisar el bueno 1,5 s y soltar; el averiado no cambia nada */
    if(ST[k]=="ok"){ST[k]="pisado";pinta(w);setTimeout(()=>{if(ST[k]=="pisado"){ST[k]="ok";pinta(w)}},1500)}
    else{const m=w.querySelector(".bsmsg");pinta(w);if(m)m.textContent=`Pisas el ${NOM[k]}: los LED del E-U5 no cambian → sospechoso.`}return}
@@ -77,7 +85,7 @@ function accion(w,a,k){
  else if(a=="corta"){ST.oculto=false;ST[k]=ST[k]=="cortado"?"ok":"cortado"}
  else if(a=="med"){ST.med=k}
  else if(a=="anula"){ST[k]="anulado";ST.med=null;
-  const ok=est()=="ok";setTimeout(()=>{const m=w.querySelector(".bsmsg");if(m)m.textContent=ok?`✔ ${NOM[k]} anulado (puente o resistencia = bueno): alarma 010 borrada. Comprueba que el otro borde sigue parando la PBB al pisarlo.`:`✘ Has anulado el ${NOM[k]} pero la avería sigue: era el OTRO borde. Quita la anulación (Reiniciar) y mide de nuevo.`},20)}
+  const ok=est()=="ok";setTimeout(()=>{const m=w.querySelector(".bsmsg");if(m)m.textContent=ok?`✔ ${NOM[k]} anulado (puente o resistencia = bueno): alarma 010 borrada. Comprueba que el otro borde sigue parando la PBB al pisarlo.`:`✘ Has anulado el ${NOM[k]} pero la avería sigue: no está en ese borde (el otro borde o una manguera). Reinicia y mide por tramos: E-X55 → H-X51 → T-CON10.`},20)}
  pinta(w)}
 const ACC=`<details class="bsacc"><summary>🧰 Accesorio de campo · caja de pruebas y anulación de bordes</summary>
 <div class="bsacct">
@@ -105,13 +113,16 @@ function monta(d){if(d.querySelector(".bsim"))return;
  <div class="bsvis"></div><div class="bsmsg"></div>
  <div class="bsrow"><b>Pisar</b><button type="button" data-a="pisa:b5">Delantero</button><button type="button" data-a="pisa:b6">Trasero</button></div>
  <div class="bsrow"><b>Cortar</b><button type="button" data-a="corta:b5">Delantero</button><button type="button" data-a="corta:b6">Trasero</button></div>
+ <div class="bsrow"><b>Cortar</b><button type="button" data-a="corta:eh">EH-W1</button><button type="button" data-a="corta:hw">H-W18</button></div>
+ <div class="bsrow"><b>Tramo</b><button type="button" data-a="med:x55">E-X55:21-22</button><button type="button" data-a="med:x51">H-X51:21-22</button></div>
  <div class="bsrow"><b>Medir</b><button type="button" data-a="med:b5">T1-W1 delantero</button><button type="button" data-a="med:b6">T1-W2 trasero</button></div>
  <div class="bsrow"><b>Anular</b><button type="button" data-a="anula:b5">Delantero</button><button type="button" data-a="anula:b6">Trasero</button></div>
  <div class="bsrow bsrow2"><button type="button" class="bsaz" data-a="azar">🎲 Avería al azar</button><button type="button" data-a="reset">↺ Reiniciar</button></div>
  <div class="bspasos"><b>Prueba en campo para saber cuál es</b><ol>
  <li>LED de E-U5: STRIP ACTIVATED = pisado · CIRCUIT FAULT = cortado.</li>
  <li>Mirar y pisar cada borde a lo largo: el bueno enciende y apaga STRIP ACTIVATED; el averiado no responde o lo deja fijo.</li>
- <li>PBB parada y en MANUAL: abrir el T-CON10 y medir en Ω cada borde por separado (T1-W1 y T1-W2), en reposo y pisando.</li>
+ <li>Medida por tramos desde el armario (PBB parada, MANUAL, Z1/Z2 sueltos del E-U5), en Ω: <b>E-X55:21-22</b> (armario E: bucle entero) → <b>H-X51:21-22</b> (caja de elevación: sin EH-W1). Bien en H-X51 y mal en E-X55 → manguera EH-W1.</li>
+ <li>Abrir el T-CON10 y medir en Ω cada borde por separado (T1-W1 y T1-W2), en reposo y pisando. Bordes bien y mal en H-X51 → manguera H-W18 o el propio conector.</li>
  <li>El que da OL, un valor fijo al pisar o muy distinto del otro es el averiado.</li>
  <li>Anular SOLO ese: puente si el bueno mide ≈0 Ω, o resistencia igual al bueno. Rearmar y comprobar que el otro sigue parando la PBB.</li></ol></div>${ACC}`;
  const cro=d.querySelector(".brcro");(cro||d).insertAdjacentElement(cro?"afterend":"beforeend",w);
