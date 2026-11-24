@@ -77,21 +77,22 @@ const N=[
  ["man","cable T1-W2"],
  ["ed","DESTINO · T-B6 TRASERO","fin del anillo (abierto)"]];
 function arbol(){let h='<div class="brruta"><div class="brrh">🧭 Ruta ORIGEN → DESTINO · cada nivel cuelga del anterior</div>';let lv=0;
- N.forEach(n=>{if(n[0]=="hi"||n[0]=="man"){h+=`<div class="brrl" style="margin-left:${lv*14+8}px"><span>⬇</span> ${n[1]}</div>`;return}
-  h+=`<div class="brrn brr-${n[0]}" style="margin-left:${lv*14}px"><b>${lv?"└▶ ":""}${n[1]}</b>${n[2]?`<small>${n[2]}</small>`:""}</div>`;lv++});
- h+=`<div class="brrl brrret" style="margin-left:${(lv-1)*14}px">↶ retorno del trasero por dentro del delantero → CON-ELEV → H-W18 → H-X51:22 → E-X55:22 → E-U5 Z2</div>`;
+ N.forEach(n=>{if(n[0]=="hi"||n[0]=="man"){h+=`<div class="brrl" style="margin-left:${lv*9+6}px"><span>⬇</span> ${n[1]}</div>`;return}
+  h+=`<div class="brrn brr-${n[0]}" style="margin-left:${lv*9}px"><b>${lv?"└▶ ":""}${n[1]}</b>${n[2]?`<small>${n[2]}</small>`:""}</div>`;lv++});
+ h+=`<div class="brrl brrret" style="margin-left:${(lv-1)*9}px">↶ retorno del trasero por dentro del delantero → CON-ELEV → H-W18 → H-X51:22 → E-X55:22 → E-U5 Z2</div>`;
  h+=`<div class="brrn2">Si falla un nivel, todo lo que cuelga por debajo deja de llegar al PLC: mide de arriba abajo (E-X55 → H-X51 → CON-ELEV → T-CON10).</div></div>`;return h}
+/* v879: el árbol va DEBAJO del paso, a todo el ancho y centrado (antes quedaba al lado del texto, muy estrecho) */
 const pon=()=>document.querySelectorAll("label.gpaso,.lpap").forEach(el=>{if(!el.textContent.includes("RUTA ORIGEN → DESTINO"))return;
- const nx=el.nextElementSibling;if(el.querySelector(".brruta")||(nx&&nx.classList.contains("brruta")))return;
- if(el.matches("label"))el.insertAdjacentHTML("afterend",arbol());else el.insertAdjacentHTML("beforeend",arbol())});
+ const ref=el.closest("li")||el;const nx=ref.nextElementSibling;if(ref.querySelector(".brruta")||(nx&&nx.classList.contains("brruta")))return;
+ ref.querySelectorAll(".brruta").forEach(x=>x.remove());ref.insertAdjacentHTML("afterend",arbol())});
 new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});try{pon()}catch(e){}
 const st=document.createElement("style");st.textContent=`
-.brruta{margin:6px 0 10px;padding:9px 8px;border:1.5px solid #64b5f6;border-radius:10px;background:color-mix(in srgb,#64b5f6 7%,transparent);font-size:12.5px}
-.brrh{font-weight:800;margin-bottom:6px}
-.brrn{position:relative;padding:5px 8px;margin-top:2px;border-left:4px solid #888;border-radius:6px;background:color-mix(in srgb,var(--tx,#888) 6%,transparent)}
-.brrn b{display:block}.brrn small{opacity:.75;font-size:11.5px}
+.brruta{display:block;box-sizing:border-box;width:100%;max-width:440px;margin:6px auto 12px;padding:8px 8px;border:1.5px solid #64b5f6;border-radius:10px;background:color-mix(in srgb,#64b5f6 7%,transparent);font-size:11.5px;line-height:1.25}
+.brrh{font-weight:800;margin-bottom:5px;font-size:12px}
+.brrn{position:relative;padding:3px 7px;margin-top:1px;border-left:4px solid #888;border-radius:6px;background:color-mix(in srgb,var(--tx,#888) 6%,transparent)}
+.brrn b{display:block;font-size:11.5px}.brrn small{opacity:.75;font-size:10.5px}
 .brr-plc{border-left-color:#2e7d32}.brr-rel{border-left-color:#8e24aa}.brr-bor{border-left-color:#78909c}.brr-con{border-left-color:#ef6c00}.brr-ed{border-left-color:#f2b705}
-.brrl{padding:2px 0 2px 6px;border-left:2px dashed #64b5f6;color:#1e88e5;font-size:11.5px;font-weight:700}
+.brrl{padding:1px 0 1px 6px;border-left:2px dashed #64b5f6;color:#1e88e5;font-size:10.5px;font-weight:700}
 .brrret{border-left-color:#1565c0;margin-top:4px}
-.brrn2{margin-top:8px;font-size:12px;font-weight:700}`;document.head.appendChild(st);
+.brrn2{margin-top:6px;font-size:11px;font-weight:700}`;document.head.appendChild(st);
 })();
