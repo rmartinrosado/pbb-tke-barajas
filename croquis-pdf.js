@@ -47,6 +47,8 @@
   const nuevaPag=t=>{d.addPage();cab();let y=24;d.setFillColor(...PR);d.roundedRect(M,y-5,W-2*M,8,1.5,1.5,"F");fnt(1,0,11);d.setTextColor(255,255,255);
    d.text(pS(t),M+3,y);d.setTextColor(0,0,0);y+=6;return y};
   let y=nuevaPag("Croquis de conexion por bloques · origen -> destino");
+  /* v858: el puente provisional (dibujo a 1/4) va arriba, en la misma hoja */
+  if(o.puentes&&o.puentes.length&&window.pdfBandaPuentes){try{y=window.pdfBandaPuentes(d,o.puentes,o,y)}catch(e){console.warn("banda puente",e)}}
   fnt(1,0,10);d.setTextColor(...PR);d.text(corta(d,pS(C.titulo||C.elemento||"Elemento a inspeccionar"),W-2*M),M,y+2);d.setTextColor(0,0,0);y+=5.5;
   if(C.local){fnt(1,0,7.5);d.setTextColor(230,81,0);d.text(pS("Croquis automático sin IA: referencias extraídas de la resolución (cupo de IA agotado). Confirmar en el plano."),M,y);y+=4.2}
   fnt(0,0,8);d.setTextColor(...GR);const sub=[C.elemento&&C.titulo?("Elemento: "+C.elemento):"",C.tension?("Tension: "+C.tension):"",C.plano?("Plano: "+C.plano):""].filter(Boolean).join("   ·   ");
