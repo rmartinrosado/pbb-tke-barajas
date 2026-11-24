@@ -50,3 +50,27 @@ window.setTimeout=function(fn,ms){if(window.__moD>0&&typeof fn=="function"&&(+ms
  return sT.apply(window,arguments)};
 window.clearTimeout=function(id){if(FK.has(id)){FK.delete(id);return}return cT.apply(window,arguments)};
 })();
+/* ===== v884: temporizadores ordenados =====
+ Hay ~60 temporizadores que revisan la pantalla cada 0,25–2 s (refresco de OT, relojes, avisos, fichas de Supabase…).
+ Ahora, los de 200 ms o más:
+ · NO se ejecutan mientras el dedo está tocando la pantalla ni justo al soltar (0,35 s), ni mientras se teclea (0,5 s desde
+   la última letra): esa vuelta se salta y la siguiente llega a su hora. El dedo y el teclado van primero.
+ · NO se ejecutan con la app en segundo plano (pantalla apagada u otra app): ahorran batería.
+ · Los que coinciden en el mismo momento se reparten en fotogramas distintos para no pintar todos de golpe.
+ Los rápidos (< 200 ms: animaciones) y los relojes de cuenta atrás no cambian. */
+(function(){const sI=window.setInterval;if(sI.__ord)return;
+ let dedo=false,suelta=0,tecla=0;const ahora=()=>performance.now();
+ addEventListener("pointerdown",()=>{dedo=true},{capture:true,passive:true});
+ const fin=()=>{dedo=false;suelta=ahora()};addEventListener("pointerup",fin,{capture:true,passive:true});addEventListener("pointercancel",fin,{capture:true,passive:true});
+ addEventListener("touchend",fin,{capture:true,passive:true});
+ addEventListener("input",()=>{tecla=ahora()},{capture:true,passive:true});addEventListener("keydown",()=>{tecla=ahora()},{capture:true,passive:true});
+ const ocupado=()=>dedo||ahora()-suelta<350||ahora()-tecla<500;
+ const rAF=window.requestAnimationFrame?window.requestAnimationFrame.bind(window):(f=>setTimeout(f,16));
+ let cola=[],prog=false;
+ const reparte=()=>{prog=false;const t0=ahora();while(cola.length){if(ahora()-t0>8){prog=true;rAF(reparte);return}const f=cola.shift();try{f()}catch(e){console.warn(e)}}};
+ const reloj=fn=>/\b(cuenta|countdown|restan|cron[oó]?|reloj|tick)\b|toLocaleTimeString|getSeconds|cuentaAtras/i.test(String(fn).slice(0,400));
+ window.setInterval=function(fn,ms){const args=[].slice.call(arguments,2);
+  if(typeof fn!="function"||(+ms||0)<200||reloj(fn))return sI.apply(window,arguments);
+  return sI.call(window,function(){if(document.hidden||ocupado())return;cola.push(()=>fn.apply(window,args));if(!prog){prog=true;rAF(reparte)}},ms)};
+ window.setInterval.__ord=1;
+})();

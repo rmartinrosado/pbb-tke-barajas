@@ -2,14 +2,14 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=883;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=884;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
     const go=()=>location.replace(location.pathname+"?v="+Date.now()+(sp.get("recupera")?"&recupera=1":"")+location.hash);
     (window.caches?caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))).catch(()=>{}):Promise.resolve()).then(go,go);return}
    fin(window.__APPV)}).catch(()=>fin(window.__APPV));setTimeout(()=>fin(window.__APPV),2500)}catch(e){fin(window.__APPV)}});</script>
-<script src="mo-filtro.js?v=883"></script>
+<script src="mo-filtro.js?v=884"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>TKE MAINTENANCE</title>
 <link rel="apple-touch-icon" href="icon-180.png">
