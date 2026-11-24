@@ -31,29 +31,47 @@ S.push({t:"Bordes de seguridad de ruedas (T-B5 / T-B6) activados",ef:1,g:[41,68]
 
 /* ===== v869: croquis del T-CON10 en la caja de bordes de ruedas: cómo están en serie y cómo anular SOLO el que falla ===== */
 (function(){
-const SVG=`<svg viewBox="0 0 360 400" class="brsvg" role="img" aria-label="Croquis de los bordes de ruedas en anillo abierto con sus conectores">
-<style>.brsvg text{font:600 10px Menlo,Consolas,monospace;fill:var(--tx,#111)}.brsvg .m{fill:var(--mu,#666);font-weight:400}.brsvg .w{fill:none;stroke:#d11a10;stroke-width:2.2}.brsvg .rt{fill:none;stroke:#1565c0;stroke-width:1.6;stroke-dasharray:4 3}.brsvg .bx{fill:var(--card,#fff);stroke:var(--tx,#111);stroke-width:1.3}.brsvg .ed{fill:none;stroke:#f2b705;stroke-width:9;stroke-linecap:round}.brsvg .cn{fill:#37474f;stroke:#111}.brsvg .ok{fill:#2e7d32}</style>
+/* v887: croquis como la foto del tren de ruedas (igual que la simulación v885): vista TRASERA con la jaula de franjas amarillas y negras,
+   ruedas, ruedecillas y el tubo del borde a ras de suelo, y PLANTA con los dos bordes alrededor del carro (anillo sin unir) y los 4 conectores. */
+const SVG=`<svg viewBox="0 0 360 540" class="brsvg" role="img" aria-label="Croquis de los bordes de ruedas: vista trasera y planta del tren de ruedas con sus conectores">
+<style>.brsvg text{font:600 10px Menlo,Consolas,monospace;fill:var(--tx,#111)}.brsvg .m{fill:var(--mu,#666);font-weight:400}.brsvg .w{fill:none;stroke:#d11a10;stroke-width:2.2}.brsvg .rt{fill:none;stroke:#1565c0;stroke-width:1.4;stroke-dasharray:4 3}.brsvg .bx{fill:var(--card,#fff);stroke:var(--tx,#111);stroke-width:1.3}.brsvg .cn{fill:#37474f;stroke:#111}.brsvg .ti{font-weight:800;fill:#b8860b}.brsvg .dk{fill:#eceff1}</style>
 <rect class="bx" x="6" y="8" width="150" height="50" rx="6"/><text x="14" y="25">E-U5 Gelbau 452.46</text><text x="14" y="40" class="m">armario E · Z1/Z2</text><text x="14" y="52" class="m">13-14 → E-A8 2.1/2.2</text>
 <rect class="bx" x="200" y="8" width="154" height="34" rx="6"/><text x="208" y="23">E-X55:21-22</text><text x="208" y="36" class="m">armario E (bornero)</text>
 <path class="w" d="M156 24H200M156 34H200"/>
 <path class="w" d="M270 42V70M282 42V70"/><text x="290" y="60" class="m">EH-W1</text>
 <rect class="bx" x="200" y="70" width="154" height="34" rx="6"/><text x="208" y="85">H-X51:21-22</text><text x="208" y="98" class="m">caja bornero elevación</text>
-<path class="w" d="M220 104V128H104V168M232 104V136H116V168"/><text x="122" y="124" class="m">H-W18 3×1,5 BN/BK</text>
-<rect class="cn" x="92" y="168" width="18" height="14" rx="2"/><rect class="cn" x="112" y="168" width="18" height="14" rx="2" style="fill:#78909c"/>
-<text x="6" y="178">CON-ELEV</text><text x="6" y="190" class="m">♂ / ♀ (1 y 2)</text>
-<rect x="150" y="235" width="60" height="44" rx="6" style="fill:#455a64;stroke:#111"/><circle cx="160" cy="283" r="7" style="fill:#111"/><circle cx="200" cy="283" r="7" style="fill:#111"/><text x="180" y="262" text-anchor="middle" style="fill:#fff">carro</text>
-<path class="ed" d="M121 196A70 70 0 0 1 247 222"/><text x="132" y="160" style="fill:#b8860b">T-B5 DELANTERO · T1-W1</text>
-<path class="rt" d="M244 226A62 62 0 0 0 124 200"/><text x="150" y="212" class="m" style="fill:#1565c0">retorno del trasero</text>
-<rect class="cn" x="244" y="222" width="18" height="14" rx="2"/><rect class="cn" x="244" y="238" width="18" height="14" rx="2" style="fill:#78909c"/>
-<text x="268" y="234">T-CON10</text><text x="268" y="246" class="m">♂ / ♀ (3 y 4)</text>
-<path class="ed" d="M250 258A70 70 0 1 1 113 211"/><text x="140" y="356" style="fill:#b8860b">T-B6 TRASERO · T1-W2</text>
-<text x="44" y="216" class="m">sin unir</text>
-<text x="6" y="374">Anular TRASERO: T-CON10, puente/R lado del.</text>
-<text x="6" y="390">Anular DELANTERO: latiguillo CON-ELEV↔T-CON10</text>
+<path class="w" d="M346 104V330M338 104V330"/><text x="270" y="122" class="m">H-W18 3×1,5</text><text x="282" y="134" class="m">BN/BK</text>
+
+<text x="10" y="150" class="ti">VISTA TRASERA (como la foto)</text>
+<rect x="10" y="156" width="318" height="124" rx="8" fill="#20252d"/>
+<rect x="22" y="164" width="40" height="96" rx="12" fill="#0d0f12" stroke="#333"/><rect x="276" y="170" width="40" height="88" rx="12" fill="#0d0f12" stroke="#333"/>
+<rect x="62" y="170" width="214" height="78" fill="#4a5058"/>
+<path d="M62 184H276" fill="none" stroke="#111" stroke-width="6"/><path d="M62 184H276" fill="none" stroke="#f2c200" stroke-width="6" stroke-dasharray="9 9"/><path d="M100 240L276 220" fill="none" stroke="#111" stroke-width="6"/><path d="M100 240L276 220" fill="none" stroke="#f2c200" stroke-width="6" stroke-dasharray="9 9"/>
+<path d="M62 180V268M100 184V260M236 184V252M262 180V260" stroke="#15181d" stroke-width="5"/>
+<rect x="150" y="192" width="52" height="30" rx="2" fill="#c9a227"/><text x="176" y="205" text-anchor="middle" style="fill:#111;font-size:8px;font-weight:800">Peligro</text><text x="176" y="216" text-anchor="middle" style="fill:#111;font-size:7px">no entrar</text>
+<circle cx="96" cy="266" r="6" fill="#111" stroke="#555"/><circle cx="250" cy="260" r="6" fill="#111" stroke="#555"/>
+<path d="M18 274Q20 270 40 270H296Q318 270 320 260" fill="none" stroke="#1b1f25" stroke-width="11" stroke-linecap="round"/><path d="M18 274Q20 270 40 270H296Q318 270 320 260" fill="none" stroke="#cfd8dc" stroke-width="6" stroke-linecap="round"/>
+<text x="70" y="296" class="ti">T-B6 TRASERO · tubo a ras de suelo</text>
+
+<text x="10" y="318" class="ti">PLANTA del tren de ruedas</text><text x="330" y="318" text-anchor="end" class="m">▲ cabina (delante)</text>
+<rect x="104" y="360" width="152" height="108" rx="6" fill="none" stroke="#111" stroke-width="6"/><rect x="104" y="360" width="152" height="108" rx="6" fill="none" stroke="#f2c200" stroke-width="6" stroke-dasharray="9 9"/>
+<rect x="74" y="384" width="30" height="60" rx="6" fill="#0d0f12" stroke="#333"/><rect x="256" y="384" width="30" height="60" rx="6" fill="#0d0f12" stroke="#333"/>
+<circle cx="180" cy="414" r="18" fill="#5c6570" stroke="#2a2f38"/><text x="180" y="417" text-anchor="middle" class="dk" style="font-size:8px">columna</text>
+<circle cx="112" cy="368" r="5" fill="#111"/><circle cx="248" cy="368" r="5" fill="#111"/><circle cx="112" cy="460" r="5" fill="#111"/><circle cx="248" cy="460" r="5" fill="#111"/>
+<path d="M54 402V370Q54 344 84 344H276Q306 344 306 370V404" fill="none" stroke="#1b1f25" stroke-width="11" stroke-linecap="round"/><path d="M54 402V370Q54 344 84 344H276Q306 344 306 370V404" fill="none" stroke="#ff9800" stroke-width="6" stroke-linecap="round"/>
+<text x="180" y="336" text-anchor="middle" style="font-weight:800;fill:#ff9800">T-B5 DELANTERO · T1-W1</text>
+<path d="M306 424V458Q306 484 276 484H84Q54 484 54 458V420" fill="none" stroke="#1b1f25" stroke-width="11" stroke-linecap="round"/><path d="M306 424V458Q306 484 276 484H84Q54 484 54 458V420" fill="none" stroke="#cfd8dc" stroke-width="6" stroke-linecap="round"/>
+<text x="180" y="502" text-anchor="middle" style="font-weight:800">T-B6 TRASERO · T1-W2 (foto)</text>
+<path class="w" d="M346 330V398M338 330V392"/>
+<rect class="cn" x="312" y="392" width="14" height="12" rx="2"/><rect class="cn" x="327" y="392" width="14" height="12" rx="2" style="fill:#78909c"/><text x="352" y="386" text-anchor="end" style="font-size:9px;font-weight:800">CON-ELEV ♂/♀</text>
+<rect class="cn" x="26" y="405" width="14" height="12" rx="2"/><rect class="cn" x="41" y="405" width="14" height="12" rx="2" style="fill:#78909c"/><text x="6" y="400" style="font-size:9px;font-weight:800">T-CON10 ♂/♀</text>
+<path class="rt" d="M62 402V376Q62 352 88 352H272Q298 352 298 376V400"/><text x="180" y="380" text-anchor="middle" style="font-size:8px;fill:#64b5f6">↶ retorno del trasero</text>
+<text x="314" y="442" class="m" style="font-size:9px">sin</text><text x="314" y="452" class="m" style="font-size:9px">unir</text>
+<text x="6" y="518">Anular TRASERO: T-CON10, puente/R lado del.</text><text x="6" y="532">Anular DELANTERO: latiguillo CON-ELEV↔T-CON10</text>
 </svg>`;
 const T="Bordes de seguridad de ruedas (T-B5 / T-B6)";
 const pon=()=>{document.querySelectorAll("details").forEach(d=>{const s=d.querySelector("summary");if(!s||!s.textContent.includes(T)||d.querySelector(".brcro"))return;
- d.insertAdjacentHTML("beforeend",`<div class="brcro"><div class="brcrh">🔌 Croquis · bordes en anillo abierto · 4 conectores · ruta (folio 41)</div>${SVG}</div>`)})};
+ d.insertAdjacentHTML("beforeend",`<div class="brcro"><div class="brcrh">🔌 Croquis · tren de ruedas (como la foto) · bordes en anillo abierto · 4 conectores (folio 41)</div>${SVG}</div>`)})};
 new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});try{pon()}catch(e){}
 const st=document.createElement("style");st.textContent=`.brcro{margin:10px 0 4px;padding:8px;border:1.5px solid #f2b705;border-radius:10px;background:color-mix(in srgb,#f2b705 7%,transparent)}.brcrh{font-weight:800;font-size:13px;margin-bottom:6px}.brcro svg{width:100%;height:auto;display:block}`;document.head.appendChild(st);
 })();
