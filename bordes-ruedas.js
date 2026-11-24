@@ -46,8 +46,8 @@ const SVG=`<svg viewBox="0 0 360 400" class="brsvg" role="img" aria-label="Croqu
 <path class="rt" d="M244 226A62 62 0 0 0 124 200"/><text x="150" y="212" class="m" style="fill:#1565c0">retorno del trasero</text>
 <rect class="cn" x="244" y="222" width="18" height="14" rx="2"/><rect class="cn" x="244" y="238" width="18" height="14" rx="2" style="fill:#78909c"/>
 <text x="268" y="234">T-CON10</text><text x="268" y="246" class="m">♂ / ♀ (3 y 4)</text>
-<path class="ed" d="M250 258A70 70 0 1 1 114 282"/><text x="140" y="356" style="fill:#b8860b">T-B6 TRASERO · T1-W2</text>
-<text x="60" y="292" class="m">anillo</text><text x="60" y="304" class="m">abierto</text>
+<path class="ed" d="M250 258A70 70 0 1 1 113 211"/><text x="140" y="356" style="fill:#b8860b">T-B6 TRASERO · T1-W2</text>
+<text x="44" y="216" class="m">sin unir</text>
 <text x="6" y="374">Anular TRASERO: T-CON10, puente/R lado del.</text>
 <text x="6" y="390">Anular DELANTERO: latiguillo CON-ELEV↔T-CON10</text>
 </svg>`;

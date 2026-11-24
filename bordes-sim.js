@@ -46,10 +46,10 @@ function svg(){const e=est(),fl=e=="ok";const cls=fl?"bsflow":"bsstop";
  <text x="138" y="232" font-weight="800" fill="#f2b705">T-B5 DELANTERO${ST.b5=="anulado"?" · ANULADO":""}</text>${pis("b5",182,214)}
  <path d="M246 256A66 66 0 0 0 126 220" fill="none" stroke="#64b5f6" stroke-width="1.5" stroke-dasharray="4 3"/><text x="146" y="250" class="bsm" fill="#64b5f6">↶ retorno trasero</text>
  ${cn("tc",252,252,"T-CON10","♂/♀ · 3 y 4",290)}${pr(268,266,"xb6")}${ST.med=="xb5"?`<text x="290" y="300" fill="#64b5f6" font-weight="800">PUENTE</text>`:""}
- <path d="M258 272A74 74 0 1 1 112 318" fill="none" stroke="${ec("b6")}" stroke-width="10" stroke-linecap="round"${dash("b6")}/>
- <path d="M258 272A74 74 0 1 1 112 318" class="${w("b6")}" style="stroke-width:2"/>
+ <path d="M258 272A74 74 0 1 1 109 227" fill="none" stroke="${ec("b6")}" stroke-width="10" stroke-linecap="round"${dash("b6")}/>
+ <path d="M258 272A74 74 0 1 1 109 227" class="${w("b6")}" style="stroke-width:2"/>
  <text x="134" y="396" font-weight="800" fill="#f2b705">T-B6 TRASERO${ST.b6=="anulado"?" · ANULADO":""}</text>${pis("b6",180,374)}
- <text x="62" y="322" class="bsm">anillo</text><text x="62" y="334" class="bsm">abierto</text>
+ <text x="40" y="232" class="bsm">sin unir</text><path d="M84 229H100" stroke="#b6bcc8" stroke-width="1"/>
  ${ST.med=="xb5"?`<text x="6" y="230" fill="#f2b705" font-weight="800">Ω en CON-ELEV</text>`:""}
  ${ST.med?`<g><rect x="6" y="400" width="348" height="36" rx="8" fill="#111" stroke="#f2b705"/><text x="14" y="415" fill="#f2b705" font-weight="800">🔍 Ω ${NOM[ST.med]}:</text><text x="14" y="429" fill="#f2b705">${lectura(ST.med)}</text></g>`:""}
  </svg>${ST.med?pol():""}`}
@@ -74,22 +74,23 @@ function pol(){const k=ST.med,rd=lectura(k),ol=/OL/.test(rd),txt=ol?"OL":/pisado
  </svg>`}
 /* v871: caja de pruebas RB-1 dibujada en la simulación: intercalada en CON-ELEV y T-CON10, selector por borde BORDE / PUENTE / RESIST.
    (sigue al simulador: al anular un borde su selector pasa a PUENTE / RESIST.; al medir, las puntas van a sus bornas de 4 mm) */
-function rb1(){const sel=(k,x)=>{const an=ST[k]=="anulado";const ang=an?40:-40;
-  return `<g transform="translate(${x},100)"><circle r="17" fill="#2a2f38" stroke="#8b93a7" stroke-width="1.5"/>
-  <path d="M0 0L${(13*Math.sin(ang*Math.PI/180)).toFixed(1)} ${(-13*Math.cos(ang*Math.PI/180)).toFixed(1)}" stroke="${an?"#1565c0":"#2e7d32"}" stroke-width="4" stroke-linecap="round"/>
-  <text x="-22" y="4" text-anchor="end" class="bsm">BORDE</text><text x="0" y="-22" text-anchor="middle" class="bsm">PUENTE</text><text x="22" y="4" class="bsm">R</text>
-  <text x="0" y="34" text-anchor="middle" font-weight="800">${k=="b5"?"DELANTERO":"TRASERO"}</text>
-  <text x="0" y="46" text-anchor="middle" class="bsm" fill="${an?"#64b5f6":"#81c784"}">${an?"ANULADO":"BORDE"}</text>
-  <circle cx="-14" cy="62" r="5" fill="#d11a10"/><circle cx="14" cy="62" r="5" fill="#111" stroke="#888"/><text x="0" y="82" text-anchor="middle" class="bsm">${k=="b5"?"T1-W1":"T1-W2"}</text>
-  ${ST.med==k?`<path d="M-14 67l-14 26M14 67l14 26" stroke="#f2b705" stroke-width="2.5"/><text x="0" y="106" text-anchor="middle" fill="#f2b705" font-weight="800">Ω</text>`:""}</g>`};
- return `<svg viewBox="0 0 360 250" class="bssvg bsrb" role="img" aria-label="Caja de pruebas RB-1">
- <text x="10" y="18" font-weight="800">🧰 RB-1 · intercalada en CON-ELEV y T-CON10</text>
- <rect x="56" y="30" width="248" height="196" rx="12" fill="#1f232b" stroke="#f2b705" stroke-width="2"/>
- <path d="M8 50H56" stroke="#d11a10" stroke-width="4"/><text x="8" y="40" class="bsm">CON-ELEV</text><text x="8" y="66" class="bsm">♂H-W18 ♀del.</text>
- <path d="M304 50H352" stroke="#d11a10" stroke-width="4"/><text x="304" y="40" class="bsm">T-CON10</text><text x="304" y="66" class="bsm">♂del. ♀tras.</text>
- ${sel("b5",120)}${sel("b6",240)}
- <rect x="150" y="38" width="60" height="20" rx="4" fill="#111" stroke="#8b93a7"/><text x="180" y="52" text-anchor="middle" class="bsm">R: 4k7+10k</text>
- <text x="180" y="242" text-anchor="middle" class="bsm" fill="#ef9a9a">Trimmer: ajustar DESCONECTADO al valor del bueno</text>
+function rb1(){/* v881: RB-1 más pequeña y con todos los rótulos dentro del marco */
+ const sel=(k,x)=>{const an=ST[k]=="anulado";const ang=an?40:-40;
+  return `<g transform="translate(${x},92)"><circle r="15" fill="#2a2f38" stroke="#8b93a7" stroke-width="1.5"/>
+  <path d="M0 0L${(11*Math.sin(ang*Math.PI/180)).toFixed(1)} ${(-11*Math.cos(ang*Math.PI/180)).toFixed(1)}" stroke="${an?"#1565c0":"#2e7d32"}" stroke-width="4" stroke-linecap="round"/>
+  <text x="-19" y="3" text-anchor="end" class="bsm" font-size="9">BORDE</text><text x="0" y="-19" text-anchor="middle" class="bsm" font-size="9">PUENTE</text><text x="19" y="3" class="bsm" font-size="9">R</text>
+  <text x="0" y="29" text-anchor="middle" font-weight="800">${k=="b5"?"DELANTERO":"TRASERO"}</text>
+  <text x="0" y="40" text-anchor="middle" class="bsm" font-size="9" fill="${an?"#64b5f6":"#81c784"}">${an?"ANULADO":"BORDE"}</text>
+  <circle cx="-11" cy="52" r="4.5" fill="#d11a10"/><circle cx="11" cy="52" r="4.5" fill="#111" stroke="#888"/><text x="0" y="66" text-anchor="middle" class="bsm" font-size="9">${k=="b5"?"T1-W1":"T1-W2"}</text>
+  ${ST.med==k?`<path d="M-11 56l-6 8M11 56l6 8" stroke="#f2b705" stroke-width="2"/><text x="24" y="56" fill="#f2b705" font-weight="800">Ω</text>`:""}</g>`};
+ return `<svg viewBox="0 0 300 196" class="bssvg bsrb" role="img" aria-label="Caja de pruebas RB-1">
+ <text x="150" y="14" text-anchor="middle" font-weight="800">🧰 RB-1 · en CON-ELEV y T-CON10</text>
+ <path d="M0 32H12M288 32H300" stroke="#d11a10" stroke-width="4"/>
+ <rect x="12" y="22" width="276" height="150" rx="10" fill="#1f232b" stroke="#f2b705" stroke-width="2"/>
+ <text x="20" y="36" class="bsm" font-size="9">CON-ELEV ♂/♀</text><text x="280" y="36" text-anchor="end" class="bsm" font-size="9">T-CON10 ♂/♀</text>
+ <rect x="114" y="42" width="72" height="15" rx="3" fill="#111" stroke="#8b93a7"/><text x="150" y="53" text-anchor="middle" class="bsm" font-size="9">R 4k7 + 10k</text>
+ ${sel("b5",85)}${sel("b6",215)}
+ <text x="150" y="188" text-anchor="middle" class="bsm" font-size="9" fill="#ef9a9a">Trimmer: ajustar DESCONECTADO al valor del bueno</text>
  </svg>`}
 function pinta(w){const e=est();
  w.querySelector(".bsvis").innerHTML=svg();{const r=w.querySelector(".bsrbw");if(r)r.innerHTML=rb1()}/* v880: RB-1 al principio del «Accesorio de campo» */
@@ -97,12 +98,15 @@ function pinta(w){const e=est();
   strip:"Un borde pisado abre la serie: STRIP ACTIVATED, E-A8 2.1 apagada y alarma 010. Con un borde basta para parar la PBB.",
   fault:"Cable o borde cortado: CIRCUIT FAULT. El bucle no cierra aunque el otro borde esté bien."}[e];
  w.querySelector(".bsmsg").textContent=(ST.oculto&&e!="ok"?"Avería oculta: mide cada borde en el T-CON10 para encontrarla. ":"")+msg;
- w.querySelectorAll("[data-a]").forEach(b=>{const [a,k]=b.dataset.a.split(":");if(a=="anula")b.disabled=ST[k]=="anulado"||(k=="b5"?ST.b6:ST.b5)=="anulado"})}
+ w.querySelectorAll("[data-a]").forEach(b=>{const [a,k]=b.dataset.a.split(":");if(a=="anula")b.disabled=ST[k]=="anulado"||(k=="b5"?ST.b6:ST.b5)=="anulado";
+  /* v881: el botón queda MARCADO mientras su estado está activo y se libera solo cuando cambia */
+  const on=a=="pisa"?ST[k]=="pisado"&&(!ST.oculto||ST.__flash==k):a=="corta"?ST[k]=="cortado"&&!ST.oculto:a=="med"?ST.med==k:a=="anula"?ST[k]=="anulado":a=="azar"?ST.oculto:false;
+  b.classList.toggle("bson",!!on);b.setAttribute("aria-pressed",on?"true":"false")})}
 function accion(w,a,k){
  if(a=="reset"){ST.b5=ST.b6="ok";ST.eh=ST.hw=ST.ce=ST.tc="ok";ST.oculto=false;ST.med=null}
  else if(a=="azar"){ST.b5=ST.b6="ok";ST.eh=ST.hw=ST.ce=ST.tc="ok";ST.med=null;const q=["b5","b6","b5","b6","eh","hw","ce","tc"][Math.floor(Math.random()*8)];ST[q]=/^(b5|b6)$/.test(q)&&Math.random()<.5?"pisado":"cortado";ST.oculto=true}
  else if(a=="pisa"){if(ST.oculto){/* prueba a ciegas: pisar el bueno 1,5 s y soltar; el averiado no cambia nada */
-   if(ST[k]=="ok"){ST[k]="pisado";pinta(w);setTimeout(()=>{if(ST[k]=="pisado"){ST[k]="ok";pinta(w)}},1500)}
+   if(ST[k]=="ok"){ST[k]="pisado";ST.__flash=k;pinta(w);setTimeout(()=>{ST.__flash=null;if(ST[k]=="pisado"){ST[k]="ok";pinta(w)}},1500)}
    else{const m=w.querySelector(".bsmsg");pinta(w);if(m)m.textContent=`Pisas el ${NOM[k]}: los LED del E-U5 no cambian → sospechoso.`}return}
   ST[k]=ST[k]=="pisado"?"ok":"pisado"}
  else if(a=="corta"){ST.oculto=false;ST[k]=ST[k]=="cortado"?"ok":"cortado"}
@@ -157,7 +161,7 @@ new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElemen
 const st=document.createElement("style");st.textContent=`
 .bsim{margin:10px 0 4px;padding:10px;border:1.5px solid #2e7d32;border-radius:12px;background:color-mix(in srgb,#2e7d32 6%,transparent)}
 .bsh{font-weight:800;font-size:13px;margin-bottom:6px}
-.bssvg{width:100%;height:auto;display:block;background:#15181e;border-radius:10px}.bsrb{margin:0 0 10px}.bspol{margin-top:8px}
+.bssvg{width:100%;height:auto;display:block;background:#15181e;border-radius:10px}.bsrb{max-width:320px;margin:0 auto 10px}.bspol{margin-top:8px}
 .bssvg text{font:600 10px Menlo,Consolas,monospace;fill:#e9ecf1}.bssvg .bsm{font-weight:400;fill:#b6bcc8}
 .bssvg .bsbx{fill:#1f232b;stroke:#3a404c;stroke-width:1.2}
 .bssvg .bsw{fill:none;stroke:#2e7d32;stroke-width:3;stroke-dasharray:7 6}
@@ -169,6 +173,7 @@ const st=document.createElement("style");st.textContent=`
 .bsrow{display:flex;gap:6px;align-items:center;margin:5px 0}.bsrow>b{width:56px;flex:none;font-size:12px}
 .bsrow button{flex:1;margin:0!important;padding:9px 4px!important;font-size:12px!important;border-radius:9px!important}
 .bsrow2 button{flex:1}.bsrow .bsaz{border:1.5px solid #f2b705!important}
+.bsrow button.bson{background:#ef6c00!important;color:#fff!important;border-color:#ef6c00!important;font-weight:800!important;box-shadow:inset 0 2px 4px rgba(0,0,0,.35)!important}
 .bspasos{margin-top:8px;font-size:12.5px;line-height:1.4}.bspasos ol{margin:4px 0 0 18px;padding:0}
 .bsacc{margin-top:8px;border-top:1px solid var(--bd,#333);padding-top:6px}.bsacc>summary{cursor:pointer;font-weight:800;font-size:13px}
 .bsacct{font-size:12.5px;line-height:1.4;margin-top:6px}.bsacct ol,.bsacct ul{margin:4px 0 8px 18px;padding:0}
