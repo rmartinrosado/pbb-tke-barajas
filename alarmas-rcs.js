@@ -579,7 +579,16 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
   if(o&&v){o.value=[o.value.replace(/\s+$/,""),v].filter(Boolean).join("\n");const dt=o.closest("details");if(dt)dt.open=true;try{o.dispatchEvent(new Event("input",{bubbles:true}))}catch(x){}}
   q.value="";q.blur();l.innerHTML="";l.classList.remove("on");if(typeof msg=="function")msg("Añadido a «Avería en campo»: pulsa ACEPTAR para ver la actuación más eficaz");
   if(o)try{o.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}});
- l.addEventListener("click",e=>{const b=e.target.closest(".rcsit");if(!b)return;const x=porCod(b.dataset.c);if(x)elige(x)});
+ /* v867: al elegir del desplegable se añade a «Alarma registrada» y la lista vuelve a salir igual (mismo filtro y misma altura)
+    para meter más avisos o alarmas; las ya añadidas salen marcadas ✓. «Listo» la cierra. */
+ const marca=()=>{const t=ta();const Y=new Set(listaAl(t?t.value:"").map(z=>z.c));l.querySelectorAll(".rcsit").forEach(b=>b.classList.toggle("rcsya",Y.has(b.dataset.c)));
+  let ok=l.querySelector(".rcsok");if(Y.size){if(!ok){l.insertAdjacentHTML("afterbegin",`<button type="button" class="rcsok"></button>`);ok=l.querySelector(".rcsok")}ok.textContent=`✓ Listo · ${Y.size} en «Alarma registrada»`}else if(ok)ok.remove()};
+ window.__rcsMarca=marca;
+ l.addEventListener("click",e=>{if(e.target.closest(".rcsok")){e.stopPropagation();q.value="";l.innerHTML="";l.classList.remove("on");return}
+  const b=e.target.closest(".rcsit");if(!b)return;const x=porCod(b.dataset.c);if(!x)return;
+  const v=q.value,y=l.scrollTop;elige(x);q.value=v;l.innerHTML=v.trim()?(busca(v).map(itAl).join("")):todasAl();l.classList.add("on");marca();l.scrollTop=y;
+  if(typeof msg=="function")msg(`${x.c} añadida · puedes elegir más`)});
+ q.addEventListener("input",()=>setTimeout(marca,0));q.addEventListener("focus",()=>setTimeout(marca,0));
  /* --- componente --- */
  const abreC=c=>{cq.blur();cl.innerHTML="";if(typeof abreCompClaves=="function")abreCompClaves([ckClave(c)],"Componente "+c.id);else if(typeof abreCompTag=="function")abreCompTag(c.id)};
  const pintaC=enter=>{if(document.activeElement===cq){l.innerHTML="";l.classList.remove("on")}const v=cq.value.trim();if(!v){cl.innerHTML="";return}
@@ -736,3 +745,7 @@ document.head.appendChild(st);
 
 /* v864: botón de búsqueda libre bajo «Sin alarmas» */
 (function(){const st=document.createElement("style");st.textContent=`.rcslupa{display:block;width:100%;margin:6px 0 2px!important;padding:12px 10px!important;border-radius:10px!important;border:1.5px solid #ef6c00!important;background:color-mix(in srgb,#ef6c00 12%,transparent)!important;color:var(--tx)!important;font-weight:700;font-size:14px;text-align:left;cursor:pointer}`;document.head.appendChild(st)})();
+
+/* v867: lista de alarmas · ya añadidas y botón Listo */
+(function(){const st=document.createElement("style");st.textContent=`#rcs_l .rcsit.rcsya{opacity:.6;border-left-color:#2e7d32!important}#rcs_l .rcsit.rcsya::after{content:" ✓";color:#2e7d32;font-weight:900}
+#rcs_l .rcsok{position:sticky;top:0;z-index:2;display:block;width:100%;margin:0 0 4px!important;padding:11px 10px!important;border-radius:10px!important;border:0!important;background:#2e7d32!important;color:#fff!important;font-weight:800;font-size:14px;text-align:center;cursor:pointer}`;document.head.appendChild(st)})();
