@@ -21,6 +21,8 @@ const SOL=[
  ["P-A5","3.1","5.1","","Brazo autonivelador contacto",86,"rev"]];
 const V24=[
  ["E-A2","1.4","2.4","2.5","Límite inferior inclinación",58,"pwa"],
+ ["P-A6","4.2","8.1","8.2","Láser detector de ala (radar de ala) · PARO · alarmas 015 / 078 / 268: solo para sacar la PBB bloqueada a zona segura",88,"pwa"],
+ ["P-A6","4.1","7.1","7.2","Láser detector de ala (radar de ala) · velocidad lenta (si además queda en lenta)",88,"pwa"],
  ["E-A3","4.1","7.1","7.2","Límite giro traslación izquierda",61,"pwa"],
  ["E-A3","4.2","8.1","8.2","Límite giro traslación derecha",61,"pwa"],
  ["E-A3","3.2","6.1","6.2","Freno manual motor izquierdo T-S6",61,"pwa"],
@@ -51,7 +53,6 @@ const NUN=[
  ["Bypass y selector",5,"E-A8 2.1 bypass CP-S33 · E-A10 3.1 / 3.2 / 4.1 selector CP-S16 · P-A6 2.4 bypass AKS","Son los propios mandos de maniobra"],
  ["Protecciones y potencia",20,"E-A0 1.1 bus · E-A0 3.1 a 4.2 (E-K0, E-Q1, E-Q3, E-Q4, E-Q8, sobretensiones) · E-A2 1.2 / 1.3 fallo variador · E-A2 4.2 y E-A3 1.4 freno perdido · E-A3 2.4 protecciones 24 V · P-A4 3.2 / 4.1 inversores cabina · P-A4 3.3 / 3.4 / 4.2 disyuntores P-Q5 / P-Q6 / P-Q7 · P-A4 4.3 P-Q30 · P-A6 1.4 / 2.1 freno cabina","Ocultaría un disparo o un freno abierto"],
  ["Seguridad sin anular",4,"E-A10 4.2 zapata (se usa el reset) · E-A9 2.2 sirena seguridad cabina · E-A9 1.1 «OK retirada PBB» · E-A9 2.1 autorización rotonda R-S2","Tienen su propio rearme o los da el operador"],
- ["Láser detector de ala",2,"P-A6 4.1 velocidad lenta · P-A6 4.2 paro","Riesgo de golpear el ala"],
  ["Mandos y pulsadores",31,"P-A3 1.2 a 4.4 · P-A4 1.2 a 3.1 y 4.4 · P-A6 3.1 a 3.4 · E-A2 4.3 / 4.4 · E-A3 1.2 desbloqueo AO","Si queda pegado, soltar su hilo para la orden pero no saca la PBB: se cambia el mando"],
  ["Estados e información",25,"E-A0 2.1 a 2.4 y 4.3 / 4.4 · E-A2 1.1, 2.2, 2.3, 3.4, 4.1 · E-A3 2.1 a 2.3, 3.1, 3.3, 4.3, 4.4 · P-A5 2.2, 2.3, 3.4, 4.1 a 4.3 · P-A6 1.3","No bloquean o tienen su actuación propia (reset del autonivelador)"],
  ["Reservas",5,"E-A9 4.1 · P-A4 1.1 · P-A5 4.4 · P-A6 4.3 / 4.4","Sin señal"]];

@@ -84,6 +84,10 @@ document.addEventListener("click",ev=>{const b=ev.target.closest("[data-bkp]");i
 
 /* ---------- 1. Análisis de OT: «bumper» sin precisar = los dos grupos ---------- */
 try{const d=SEN_DEF.find(x=>String(x.re).includes("bumper"));if(d){d.sub[0][0]=/brazo|autonivel/;d.sub[0][2]=1;d.sub[1][0]=/cabina|lateral|izq/;d.sub[1][2]=1}}catch(e){}
+/* v854: «Bumper del ala» (alarma 015, láser / radar detector de ala) NO es un bumper de cabina ni de brazo: no saca croquis de E-A10.
+   Solo cuenta como bumper de cabina/brazo si la OT nombra cabina, brazo, autonivelador o lateral. */
+try{const d=SEN_DEF.find(x=>String(x.re).includes("bumper"));if(d){const B=/bumper|parachoque/,ALA=/\balas?\b/,GR=/cabina|brazo|autonivel|lateral|izq/;
+ d.re={test:t=>{t=String(t||"");return B.test(t)&&!(ALA.test(t)&&!GR.test(t))},toString:()=>"/bumper|parachoque/"}}}catch(e){}
 const grupoDe=it=>it&&it[0]==="E-A10"?(it[1]==="1.1"?"brazo":it[1]==="2.1"?"cabina":null):null;
 /* ---------- 2. Primera actuación (v529: 1ª opción el puente en el PLC E-A10, 2ª el bornero del pupitre con croquis) ---------- */
 if(typeof segPuente=="function"){const o=segPuente;window.segPuente=segPuente=function(it){const g=grupoDe(it);if(!g)return o.apply(this,arguments);

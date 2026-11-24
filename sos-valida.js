@@ -130,7 +130,7 @@ const ACC=t=>typeof rcsAccHTML=="function"?rcsAccHTML(t):E(t);
    (rotonda, traslación, cabina…), solo valen los puentes de entradas de ese sistema. */
 const SIS=[["rot",/rotonda/i],["tra",/traslaci|bogie|ruedas?\b/i],["cab",/cabina/i],["ext",/extensi|retracc|t[uú]nel/i],["ele",/inclinaci|elevaci|altura|subir|bajar/i],["por",/port[oó]n/i],["zap",/zapata/i],["bum",/bumper/i],["ata",/antiatrap/i],["hz",/400\s*hz|recogedor/i],["aa",/aire acond|\bA\/A\b|carro/i]];
 const sisDe=t=>SIS.filter(([,re])=>re.test(String(t||""))).map(([k])=>k);
-function mismoSis(tAl,o){const A=sisDe(tAl);if(!A.length)return true;const C=sisDe([o.d,o.k1,(o.el||[]).join(" "),o.sd].join(" "));return !C.length||C.some(k=>A.includes(k))}
+function mismoSis(tAl,o){/* v854: «Bumper del ala» (015) no es bumper de cabina ni de brazo */if(/bumper/i.test(tAl)&&/\balas?\b/i.test(tAl)&&/bumper/i.test([o.d,o.k1].join(" ")))return false;const A=sisDe(tAl);if(!A.length)return true;const C=sisDe([o.d,o.k1,(o.el||[]).join(" "),o.sd].join(" "));return !C.length||C.some(k=>A.includes(k))}
 function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcsSacar(x)}catch(e){return null}}).filter(Boolean);if(!R.length)return null;
  const mk=d=>({id:"sosv_"+d.length,pos:"",tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:d,def:"",com:"",obs:"",orden:"SOS",fecha:""});
  const cro=[];R.forEach(r=>{if(r.tipo=="puente")r.cro.forEach(o=>cro.push(o));
