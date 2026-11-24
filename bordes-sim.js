@@ -17,14 +17,17 @@ const tramo=L=>{const v=L.map(k=>ST[k]);if(v.includes("cortado"))return"OL · ab
 const lectura=k=>{if(k=="x55")return tramo(["eh","hw","ce","b5","tc","b6"]);if(k=="x51")return tramo(["hw","ce","b5","tc","b6"]);if(k=="xce")return tramo(["b5","tc","b6"]);
  const e=k=="xb5"?"b5":k=="xb6"?"b6":k;const s=ST[e];return s=="ok"?"R reposo · estable ✓":s=="pisado"?"cambia al pisar (fijo) ✗":s=="cortado"?"OL · abierto ✗":"= valor del bueno (anulado)"};
 function svg(){const e=est(),fl=e=="ok";const cls=fl?"bsflow":"bsstop";
+ /* v885: tren de ruedas como en la foto: vista TRASERA (jaula con franjas amarillas y negras, ruedas, ruedecillas y el
+    tubo del borde a ras de suelo) y vista en PLANTA con los dos bordes alrededor del carro (anillo sin unir). */
  const cut=k=>ST[k]=="cortado"&&!ST.oculto;const w=k=>`bsw ${cut(k)?"bsstop bscut":cls}`;
- const ec=k=>{const s=ST.oculto&&ST[k]!="anulado"?"ok":ST[k];return s=="pisado"?"#e53935":s=="cortado"?"#8d6e00":s=="anulado"?"#1565c0":"#f2b705"};
+ const ec=k=>{const s=ST.oculto&&ST[k]!="anulado"?"ok":ST[k];return s=="pisado"?"#e53935":s=="cortado"?"#8d6e00":s=="anulado"?"#1565c0":"#aab4bf"};
  const dash=k=>(!ST.oculto&&ST[k]=="cortado")?' stroke-dasharray="10 8"':"";
- const cn=(k,x,y,lab,sub,ax)=>`<g><rect x="${x}" y="${y}" width="16" height="13" rx="2" fill="${cut(k)?"#f2b705":"#607d8b"}" stroke="#111"/><rect x="${x+17}" y="${y}" width="16" height="13" rx="2" fill="${cut(k)?"#f2b705":"#90a4ae"}" stroke="#111"/>
-  <text x="${ax}" y="${y+10}" font-weight="800">${lab}</text><text x="${ax}" y="${y+22}" class="bsm">${sub}</text></g>`;
+ const cn=(k,x,y)=>`<rect x="${x}" y="${y}" width="14" height="12" rx="2" fill="${cut(k)?"#f2b705":"#607d8b"}" stroke="#111"/><rect x="${x+15}" y="${y}" width="14" height="12" rx="2" fill="${cut(k)?"#f2b705":"#90a4ae"}" stroke="#111"/>`;
  const pr=(x,y,k)=>ST.med==k?`<path d="M${x-8} ${y}l-8 16M${x+8} ${y}l8 16" stroke="#f2b705" stroke-width="2.5"/>`:"";
  const pis=(k,x,y)=>(!ST.oculto&&ST[k]=="pisado")||(ST.oculto&&ST[k]=="pisado"&&ST.__flash==k)?`<path d="M${x} ${y-16}v12m-6-6l6 6l6-6" stroke="#e53935" stroke-width="3" fill="none"/>`:"";
- return `<svg viewBox="0 0 360 440" class="bssvg" role="img" aria-label="Simulación de los bordes de ruedas en anillo abierto">
+ const tubo=(k,d)=>`<path d="${d}" fill="none" stroke="#1b1f25" stroke-width="11" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${ec(k)}" stroke-width="7" stroke-linecap="round"${dash(k)}/><path d="${d}" class="${w(k)}" style="stroke-width:1.6"/>`;
+ const raya=d=>`<path d="${d}" fill="none" stroke="#111" stroke-width="6"/><path d="${d}" fill="none" stroke="#f2c200" stroke-width="6" stroke-dasharray="9 9"/>`;
+ return `<svg viewBox="0 0 360 560" class="bssvg" role="img" aria-label="Simulación de los bordes de ruedas: vista trasera y planta del tren de ruedas">
  <rect x="6" y="6" width="150" height="74" rx="8" class="bsbx"/><text x="14" y="22" font-weight="800">E-U5 Gelbau</text>
  <circle cx="20" cy="38" r="5" fill="${e=="strip"?"#e53935":"#444"}" class="${e=="strip"?"bsblink":""}"/><text x="30" y="42" class="bsm">STRIP ACTIVATED</text>
  <circle cx="20" cy="54" r="5" fill="${e=="fault"?"#f2b705":"#444"}" class="${e=="fault"?"bsblink":""}"/><text x="30" y="58" class="bsm">CIRCUIT FAULT</text>
@@ -37,21 +40,36 @@ function svg(){const e=est(),fl=e=="ok";const cls=fl?"bsflow":"bsstop";
  <rect x="6" y="100" width="104" height="36" rx="7" class="bsbx"/><text x="14" y="115" font-weight="800">E-X55:21-22</text><text x="14" y="129" class="bsm">armario E</text>${pr(58,138,"x55")}
  <path d="M110 112H136M110 124H136" class="${w("eh")}"/><text x="112" y="148" class="bsm">EH-W1</text>
  <rect x="136" y="100" width="118" height="36" rx="7" class="bsbx"/><text x="144" y="115" font-weight="800">H-X51:21-22</text><text x="144" y="129" class="bsm">caja elevación</text>${pr(195,138,"x51")}
- <path d="M254 112H300V150M254 124H290V150" class="${w("hw")}"/><text x="262" y="148" class="bsm">H-W18</text>
- <path d="M300 150V160H108V184M290 150V156H100V184" class="${w("hw")}"/>
- ${cn("ce",88,184,"CON-ELEV","♂/♀ · 1 y 2",6)}${pr(104,198,"xce")}
- <rect x="150" y="268" width="60" height="42" rx="6" fill="#455a64"/><circle cx="160" cy="314" r="7" fill="#111"/><circle cx="200" cy="314" r="7" fill="#111"/><text x="180" y="294" text-anchor="middle">carro</text>
- <path d="M118 212A74 74 0 0 1 250 252" fill="none" stroke="${ec("b5")}" stroke-width="10" stroke-linecap="round"${dash("b5")}/>
- <path d="M118 212A74 74 0 0 1 250 252" class="${w("b5")}" style="stroke-width:2"/>
- <text x="138" y="232" font-weight="800" fill="#f2b705">T-B5 DELANTERO${ST.b5=="anulado"?" · ANULADO":""}</text>${pis("b5",182,214)}
- <path d="M246 256A66 66 0 0 0 126 220" fill="none" stroke="#64b5f6" stroke-width="1.5" stroke-dasharray="4 3"/><text x="146" y="250" class="bsm" fill="#64b5f6">↶ retorno trasero</text>
- ${cn("tc",252,252,"T-CON10","♂/♀ · 3 y 4",290)}${pr(268,266,"xb6")}${ST.med=="xb5"?`<text x="290" y="300" fill="#64b5f6" font-weight="800">PUENTE</text>`:""}
- <path d="M258 272A74 74 0 1 1 109 227" fill="none" stroke="${ec("b6")}" stroke-width="10" stroke-linecap="round"${dash("b6")}/>
- <path d="M258 272A74 74 0 1 1 109 227" class="${w("b6")}" style="stroke-width:2"/>
- <text x="134" y="396" font-weight="800" fill="#f2b705">T-B6 TRASERO${ST.b6=="anulado"?" · ANULADO":""}</text>${pis("b6",180,374)}
- <text x="40" y="232" class="bsm">sin unir</text><path d="M84 229H100" stroke="#b6bcc8" stroke-width="1"/>
- ${ST.med=="xb5"?`<text x="6" y="230" fill="#f2b705" font-weight="800">Ω en CON-ELEV</text>`:""}
- ${ST.med?`<g><rect x="6" y="400" width="348" height="36" rx="8" fill="#111" stroke="#f2b705"/><text x="14" y="415" fill="#f2b705" font-weight="800">🔍 Ω ${NOM[ST.med]}:</text><text x="14" y="429" fill="#f2b705">${lectura(ST.med)}</text></g>`:""}
+ <path d="M254 112H346V330M254 124H338V330" class="${w("hw")}"/><text x="262" y="148" class="bsm">H-W18</text>
+
+ <text x="10" y="166" font-weight="800" fill="#f2c200">VISTA TRASERA (como la foto)</text>
+ <rect x="10" y="172" width="318" height="122" rx="8" fill="#20252d"/>
+ <rect x="22" y="180" width="40" height="96" rx="12" fill="#0d0f12" stroke="#333"/><rect x="276" y="186" width="40" height="88" rx="12" fill="#0d0f12" stroke="#333"/>
+ <rect x="62" y="186" width="214" height="78" fill="#4a5058"/>
+ ${raya("M62 200H276")}${raya("M100 256L276 236")}
+ <path d="M62 196V284M100 200V276M236 200V268M262 196V276" stroke="#15181d" stroke-width="5"/>
+ <rect x="150" y="208" width="52" height="30" rx="2" fill="#c9a227"/><text x="176" y="221" text-anchor="middle" style="fill:#111" font-size="8" font-weight="800">Peligro</text><text x="176" y="232" text-anchor="middle" style="fill:#111" font-size="7">no entrar</text>
+ <circle cx="96" cy="282" r="6" fill="#111" stroke="#555"/><circle cx="250" cy="276" r="6" fill="#111" stroke="#555"/>
+ ${tubo("b6","M18 290Q20 286 40 286H296Q318 286 320 276")}
+ <text x="70" y="306" font-weight="800" fill="#f2c200">T-B6 TRASERO · tubo a ras de suelo${ST.b6=="anulado"?" · ANULADO":""}</text>${pis("b6",170,284)}
+
+ <text x="10" y="326" font-weight="800" fill="#f2c200">PLANTA del tren de ruedas</text>
+ <text x="330" y="326" text-anchor="end" class="bsm">▲ cabina (delante)</text>
+ <rect x="104" y="368" width="152" height="108" rx="6" fill="none" stroke="#111" stroke-width="6"/><rect x="104" y="368" width="152" height="108" rx="6" fill="none" stroke="#f2c200" stroke-width="6" stroke-dasharray="9 9"/>
+ <rect x="74" y="392" width="30" height="60" rx="6" fill="#0d0f12" stroke="#333"/><rect x="256" y="392" width="30" height="60" rx="6" fill="#0d0f12" stroke="#333"/>
+ <circle cx="180" cy="422" r="18" fill="#5c6570" stroke="#2a2f38"/><text x="180" y="425" text-anchor="middle" class="bsm" font-size="8">columna</text>
+ <circle cx="112" cy="376" r="5" fill="#111"/><circle cx="248" cy="376" r="5" fill="#111"/><circle cx="112" cy="468" r="5" fill="#111"/><circle cx="248" cy="468" r="5" fill="#111"/>
+ ${tubo("b5","M54 410V378Q54 352 84 352H276Q306 352 306 378V412")}
+ <text x="180" y="344" text-anchor="middle" font-weight="800" fill="#cfd8dc">T-B5 DELANTERO${ST.b5=="anulado"?" · ANULADO":""}</text>${pis("b5",180,352)}
+ ${tubo("b6","M306 432V466Q306 492 276 492H84Q54 492 54 466V428")}
+ <text x="124" y="508" font-weight="800" fill="#cfd8dc">T-B6 TRASERO (foto)</text>${pis("b6",180,492)}
+ <path d="M346 330V406M338 330V400" class="${w("hw")}"/>
+ ${cn("ce",312,400)}<text x="352" y="394" font-weight="800" font-size="9" text-anchor="end">CON-ELEV</text>${pr(326,414,"xce")}
+ ${cn("tc",26,413)}<text x="8" y="408" font-weight="800" font-size="9">T-CON10</text>${pr(40,427,"xb6")}
+ ${ST.med=="xb5"?`<text x="8" y="448" fill="#64b5f6" font-weight="800" font-size="9">PUENTE</text>`:""}
+ <path d="M62 410V384Q62 360 88 360H272Q298 360 298 384V408" fill="none" stroke="#64b5f6" stroke-width="1.3" stroke-dasharray="4 3"/><text x="180" y="380" text-anchor="middle" class="bsm" fill="#64b5f6" font-size="8">↶ retorno del trasero por el delantero</text>
+ <text x="314" y="450" class="bsm" font-size="9">sin</text><text x="314" y="460" class="bsm" font-size="9">unir</text>
+ ${ST.med?`<g><rect x="6" y="518" width="348" height="36" rx="8" fill="#111" stroke="#f2b705"/><text x="14" y="533" fill="#f2b705" font-weight="800">🔍 Ω ${NOM[ST.med]}:</text><text x="14" y="547" fill="#f2b705">${lectura(ST.med)}</text></g>`:""}
  </svg>${ST.med?pol():""}`}
 function pol(){const k=ST.med,rd=lectura(k),ol=/OL/.test(rd),txt=ol?"OL":/pisado|cambia/.test(rd)?"≠":/anulado/.test(rd)?"= R":"R";
  return `<svg viewBox="0 0 360 200" class="bssvg bspol" role="img" aria-label="Configuración del polímetro">
