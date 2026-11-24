@@ -48,6 +48,26 @@ function svg(){const e=est(),fl=e=="ok";
  <path d="M340 202V290H204V281H190" class="bsw ${cls}"/>
  ${ed("b5",218)}${ed("b6",262)}
  ${ST.med?`<g><rect x="6" y="306" width="348" height="38" rx="8" fill="#111" stroke="#f2b705"/><text x="14" y="322" fill="#f2b705" font-weight="800">🔍 Ω en ${NOM[ST.med]}:</text><text x="14" y="337" fill="#f2b705">${lectura(ST.med)}</text></g>`:""}
+ </svg>${ST.med?pol():""}`}
+/* v873: polímetro dibujado con la posición del selector y las puntas para cada medida */
+function pol(){const k=ST.med,rd=lectura(k),ol=/OL/.test(rd),txt=ol?"OL":/pisado|cambia/.test(rd)?"≠":/anulado/.test(rd)?"= R":"R";
+ return `<svg viewBox="0 0 360 200" class="bssvg bspol" role="img" aria-label="Configuración del polímetro">
+ <text x="10" y="18" font-weight="800">🔧 Polímetro · cómo ponerlo para esta medida</text>
+ <rect x="14" y="28" width="120" height="164" rx="14" fill="#f2b705" stroke="#5a4300" stroke-width="2"/>
+ <rect x="26" y="38" width="96" height="34" rx="4" fill="#cfe3c8" stroke="#333"/><text x="74" y="62" text-anchor="middle" style="fill:#111" font-size="17" font-weight="900">${txt}${txt=="R"||txt=="= R"?" Ω":""}</text>
+ <circle cx="74" cy="114" r="28" fill="#222" stroke="#111"/>
+ <text x="36" y="92" style="fill:#111" font-size="9" font-weight="800">V⎓</text><text x="98" y="92" style="fill:#111" font-size="9" font-weight="800">A</text><text x="104" y="122" style="fill:#c62828" font-size="11" font-weight="900">Ω</text><text x="30" y="122" style="fill:#111" font-size="9">)))</text><text x="34" y="146" style="fill:#111" font-size="9">→|</text>
+ <path d="M74 114L98 116" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+ <circle cx="40" cy="170" r="7" fill="#111"/><text x="40" y="186" text-anchor="middle" style="fill:#111" font-size="8" font-weight="800">COM</text>
+ <circle cx="74" cy="170" r="7" fill="#c62828"/><text x="74" y="186" text-anchor="middle" style="fill:#111" font-size="8" font-weight="800">VΩ</text>
+ <circle cx="108" cy="170" r="7" fill="#666"/><text x="108" y="186" text-anchor="middle" style="fill:#111" font-size="8" font-weight="800">A ✗</text>
+ <path d="M40 170C40 198 140 198 146 160" stroke="#111" stroke-width="3" fill="none"/><path d="M74 170C74 194 150 190 160 156" stroke="#c62828" stroke-width="3" fill="none"/>
+ <text x="150" y="44" font-weight="800">1. Sin tensión</text><text x="150" y="58" class="bsm">V⎓ primero: ≈0 V · Z1/Z2 sueltos</text>
+ <text x="150" y="78" font-weight="800">2. Selector en Ω</text><text x="150" y="92" class="bsm">auto · o 20 kΩ (borde con R)</text><text x="150" y="104" class="bsm">o 200 Ω (borde ≈0 Ω)</text>
+ <text x="150" y="124" font-weight="800">3. Negra COM · roja VΩ</text><text x="150" y="138" class="bsm">juntas 0,1-0,5 Ω · sueltas OL</text>
+ <text x="176" y="158" font-weight="800">4. En ${k=="x55"?"E-X55:21-22":k=="x51"?"H-X51:21-22":k=="b5"?"T1-W1 (T-CON10)":k=="b6"?"T1-W2 (T-CON10)":k.toUpperCase()}</text>
+ <text x="176" y="172" class="bsm">${k=="b5"||k=="b6"?"reposo y pisando · MIN/MAX":"bucle desde ese punto"}</text>
+ <text x="176" y="188" class="bsm" style="fill:#ef9a9a">sin zumbador ni diodo</text>
  </svg>`}
 /* v871: caja de pruebas RB-1 dibujada en la simulación: intercalada en el T-CON10, selector por borde BORDE / PUENTE / RESIST.
    (sigue al simulador: al anular un borde su selector pasa a PUENTE / RESIST.; al medir, las puntas van a sus bornas de 4 mm) */
@@ -133,7 +153,7 @@ new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElemen
 const st=document.createElement("style");st.textContent=`
 .bsim{margin:10px 0 4px;padding:10px;border:1.5px solid #2e7d32;border-radius:12px;background:color-mix(in srgb,#2e7d32 6%,transparent)}
 .bsh{font-weight:800;font-size:13px;margin-bottom:6px}
-.bssvg{width:100%;height:auto;display:block;background:#15181e;border-radius:10px}.bsrb{margin-top:8px}
+.bssvg{width:100%;height:auto;display:block;background:#15181e;border-radius:10px}.bsrb{margin-top:8px}.bspol{margin-top:8px}
 .bssvg text{font:600 10px Menlo,Consolas,monospace;fill:#e9ecf1}.bssvg .bsm{font-weight:400;fill:#b6bcc8}
 .bssvg .bsbx{fill:#1f232b;stroke:#3a404c;stroke-width:1.2}
 .bssvg .bsw{fill:none;stroke:#2e7d32;stroke-width:3;stroke-dasharray:7 6}
