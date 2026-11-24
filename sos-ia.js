@@ -297,6 +297,8 @@ async function haceePdf(S){await cargaJsPDF();const {jsPDF}=window.jspdf;const d
   if(/^>/.test(s)){const t=s.replace(/^>\s?/,"");const h=alto(runs(t),AN-8,9,4.2);sitio(h);d.setFillColor(...AC);d.rect(M,y-3.3,1.2,h,"F");par(runs(t),M+4,AN-6,9,4.2);y+=1;i++;continue}
   let p=[s];i++;while(i<L.length&&L[i].trim()&&!/^(#{1,6}\s|\||\d+[.)]\s|\s*[-*+]\s|>|```|-{3,}$)/.test(L[i].trim())){p.push(L[i].trim());i++}
   sitio(5);par(runs(p.join(" ")),M,AN,9.5,4.4);y+=1.5}
+ /* v855: imagen del puente provisional (si la hay) antes de la página del croquis */
+ if(window.pdfPuentes){try{await window.pdfPuentes(d,{cab,W,H,M,PR,AC,GR,fnt,pS})}catch(e){console.warn("puente pdf",e)}}
  /* v364: croquis de conexión por bloques al final */
  if(S.croquis&&window.pdfCroquis){try{window.pdfCroquis(d,S.croquis,{cab,W,H,M,PR,AC,GR,fnt,pS})}catch(e){console.warn("croquis",e)}}
  /* pie con número de página */
