@@ -60,7 +60,12 @@ function analiza(){
  const Icampo=I.filter(o=>o.rol=="campo");
  const Cd=uniq(campo(ob)),Ca=Icampo.length?uniq(Icampo.filter(o=>o.c).map(o=>o.c)):uniq(cod.flatMap(z=>deAl(z.x))),Ct=Icampo.length?[]:uniq(campo([ob,al,foto].filter(Boolean).join(" ")));
  let C;
- if(Cd.length&&Ca.length){const i=inter(Cd,Ca);C=i.length?i:Cd}
+ /* v882: si los PLANOS ya dicen qué elemento de campo trae la alarma (113 → IT-B10) pero aún no está incorporado, lo escrito
+    en «Avería en campo» NO propone otros componentes por parecido de texto (salían P-K51, P-K52, C-B14); solo cuentan los que
+    se nombran por su código. Así queda el elemento de los planos como componente a intervenir (ficha pendiente). */
+ const porCodigo=c=>{const t=String(ob||"").toUpperCase().replace(/\s+/g,"");return String(c.id||"").toUpperCase().split(/\s*[\/,]\s*/).some(k=>k&&t.includes(k.replace(/\s+/g,"")))};
+ if(Icampo.length&&!Ca.length&&Cd.length&&cod.length)C=Cd.filter(porCodigo);
+ else if(Cd.length&&Ca.length){const i=inter(Cd,Ca);C=i.length?i:Cd}
  else if(Cd.length)C=Cd;
  else if(Ca.length){const i=Ct.length?inter(Ca,Ct):[];C=i.length?i:Ca}
  else C=Ct;
