@@ -302,13 +302,13 @@ const FN={A:[ICO("A"),"ALARMA","Avería / seguridad: intervención en campo"],W:
 const ALIAS={"057":"medida analogica extension|laser extension","056":"medida analogica altura|ultrasonido altura","058":"medida analogica giro cabina|potenciometro cabina","059":"medida analogica giro rotonda|potenciometro rotonda",
  "115":"wrong docking|atraque incorrecto","354":"bypass atraque incorrecto","273":"estabilizadores bajados","352":"posicionando estabilizador","081":"inductivos estabilizadores",
  "017":"antiatrapamiento izquierdo tunel interior","018":"antiatrapamiento derecho tunel interior","019":"antiatrapamiento izquierdo tunel medio","020":"antiatrapamiento derecho tunel medio",
- "010":"bumper traslacion|bordes ruedas","285":"manguera agua potable","263":"400 hz conectado","272":"manguera 400 hz desenrollada|manguera 400 hz extendida","256":"hombre muerto","294":"barrera rotonda|haz cortado|fotocelula rotonda|r-b1|r-b2|r-b3|r-b4"};
+ "010":"bumper traslacion|bordes ruedas","015":"radar ala|laser ala|detector ala|deteccion ala|parada ala|bumper ala|anticolision ala","268":"radar ala vertical|laser ala vertical","348":"radar ala cerca|laser ala cerca","285":"manguera agua potable","263":"400 hz conectado","272":"manguera 400 hz desenrollada|manguera 400 hz extendida","256":"hombre muerto","294":"barrera rotonda|haz cortado|fotocelula rotonda|r-b1|r-b2|r-b3|r-b4"};
 const NO={"242":/sensor|c-?s9|enrollable/,"241":/fallo/};
 const CAT=TXT.split("\n").map(l=>{const [c,t]=l.split("|");const g=GR(c);return{c,t,f:FAM(c),g,n:nrm(t+" "+(ALIAS[c]||"").replace(/\|/g," "))}});
 window.RCS_AL=CAT;window.RCS_G=G;/* v586: grupos (qué es · qué hacer) para la primera actuación integral */
 const porCod=c=>{c=String(c).toUpperCase();if(/^\d{1,3}$/.test(c))c=c.padStart(3,"0");return CAT.find(x=>x.c==c)};
 /* ---------- sinónimos del manual (solo para el análisis; no cambian lo escrito) ---------- */
-const SIN=[[/\blongitud\b/,"extension"],[/\bti\b/,"tunel interior"],[/\btm\b/,"tunel medio"],[/\boutriggers?\b/,"estabilizadores"],[/wrong docking/,"atraque incorrecto"],[/\brcc\b/,"puesto remoto"],[/\bpwc\b/,"manguera agua potable"]];
+const SIN=[[/\blongitud\b/,"extension"],[/\bti\b/,"tunel interior"],[/\btm\b/,"tunel medio"],[/\boutriggers?\b/,"estabilizadores"],[/wrong docking/,"atraque incorrecto"],[/\brcc\b/,"puesto remoto"],[/\bpwc\b/,"manguera agua potable"],[/\bla[sz][ea]r\b/,"laser"],[/\bradar\b/,"ala"],[/\bparachoques?\b/,"bumper"],[/\bbumpers\b/,"bumper"]];/* v866: láser mal escrito (lazar, laser), radar → ala */
 const sinon=t=>{const n=nrm(t);return SIN.filter(([r])=>r.test(n)).map(([,s])=>s).join(" ")};
 /* ---------- detección de códigos en un texto ---------- */
 const STOP=new Set("de del la el en los las por con y a fallo activado activada".split(" "));
@@ -332,7 +332,7 @@ function detecta(txt){const t=nrm(txt);if(!t.trim())return[];const out=new Map()
  /* v705: las alarmas escritas con número (varias sumadas) cuentan TODAS; las deducidas por texto, como mucho 3 */
  const vistos=new Set();const num=[...out.values()].filter(o=>o.por=="num");num.forEach(o=>vistos.add(o.x.t));
  return num.concat([...out.values()].filter(o=>o.por!="num").filter(o=>{const k=o.x.t;if(vistos.has(k))return false;vistos.add(k);return true}).slice(0,3))}
-window.rcsDetecta=detecta;
+window.rcsDetecta=detecta;window.rcsBuscaTxt=q=>busca(q);
 const textoOT=i=>[i.desc,i.def,i.com,i.alMag,i.alarmas&&(typeof i.alarmas=="string"?i.alarmas:JSON.stringify(i.alarmas).replace(/[{}\[\]"]/g," "))].filter(Boolean).join(" · ");
 /* ---------- recuadro de un código ---------- */
 /* v734: si la actuación trae opciones numeradas (1º …; 2º …; 3º …) cada una va en su línea, alineada a la izquierda */
@@ -371,8 +371,17 @@ if(typeof vTec=="function"){const o=vTec;vTec=function(){
  return r}}
 /* ---------- 2) SOS: buscador de códigos ---------- */
 const busca=q=>{q=nrm(q).trim();if(!q)return[];const n=q.replace(/^r?0*/,"");
- if(/^r?\d{1,3}$/.test(q)){return CAT.filter(x=>x.c.replace(/^R?0*/,"").startsWith(n)&&(/^r/.test(q)?/^R/.test(x.c):true)).slice(0,8)}
- const ws=pal(q+" "+sinon(q));return CAT.filter(x=>ws.every(w=>x.n.includes(w)||x.n.split(/\W+/).some(v=>v.startsWith(w)))).slice(0,8)};
+ if(/^r?\d{1,3}$/.test(q)){const rc=CAT.filter(x=>x.c.replace(/^R?0*/,"").startsWith(n)&&(/^r/.test(q)?/^R/.test(x.c):true)).slice(0,8);if(rc.length)return rc}/* v866: sin código, por texto («400» → 400 Hz) */
+ const ws=pal(q+" "+sinon(q));const en=(h,w)=>w.length<=3&&!/\d/.test(w)?h.split(/\W+/).includes(w):(h.includes(w)||h.split(/\W+/).some(v=>v.startsWith(w)));/* v866: palabras cortas enteras («ala» no es «alarma») */
+ const r1=CAT.filter(x=>ws.every(w=>en(x.n,w)));if(r1.length)return r1.slice(0,8);
+ /* v866: texto escrito a mano · si no están todas las palabras en el aviso, se mira también su grupo (qué es · qué hacer:
+    «Anticolisión / ala … radar de ala en la cabina») y, si tampoco, se ordenan por cuántas palabras coinciden (ala radar → 015 Bumper del ala) */
+ const H=x=>x.h||(x.h=nrm(x.n+" "+[(G[x.g]||{}).n,(G[x.g]||{}).q,(G[x.g]||{}).a].filter(Boolean).join(" ")));
+ const r2=CAT.filter(x=>ws.every(w=>en(H(x),w)));
+ const sc=x=>ws.reduce((s,w)=>s+(en(x.n,w)?2:en(H(x),w)?1:0),0);
+ if(r2.length)return r2.sort((a,b)=>sc(b)-sc(a)).slice(0,8);
+ const W=ws.filter(w=>w.length>=3);if(!W.length)return[];
+ return CAT.map(x=>({x,s:sc(x)})).filter(o=>o.s>=2).sort((a,b)=>b.s-a.s).slice(0,8).map(o=>o.x)};
 /* v563: SOS · fila con dos buscadores: a la izquierda el COMPONENTE de campo (código o nombre) y a la derecha la ALARMA RCS.
    · Alarma: al tocar la caja sale el desplegable con todos los avisos y alarmas del manual RCS (por familias); al escribir se
      filtra. Al elegir una: se pone en «alarma a mano», sale su recuadro y se abre el componente de campo que falla (si hay
