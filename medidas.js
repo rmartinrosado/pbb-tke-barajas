@@ -47,10 +47,14 @@ function pon(el,sib){if(el.dataset.med)return;el.dataset.med=1;const t=(el.inner
   <span class="mede">esperado ${E.txt}</span><div class="medr"></div></div>`;
  if(sib)el.insertAdjacentHTML("afterend",h);else el.insertAdjacentHTML("beforeend",h);
  if(prev)setTimeout(()=>medComprueba(id),0)}
-function barre(){document.querySelectorAll(".lpap:not([data-med]),.cmpo li:not([data-med])").forEach(e=>pon(e,false));
- document.querySelectorAll("label.gpaso:not([data-med])").forEach(e=>pon(e,true))}
+/* v875: casillas de medida QUITADAS de momento en las actuaciones (actuación más eficaz del SOS / lupa y pasos de la guía):
+   el técnico aún no decide si las medidas se apuntan aquí. Para volver a ponerlas: window.MED_ACT_OFF=false. Se mantienen en Componentes de campo. */
+if(window.MED_ACT_OFF===undefined)window.MED_ACT_OFF=true;
+function barre(){const off=window.MED_ACT_OFF;document.querySelectorAll((off?"":".lpap:not([data-med]),")+".cmpo li:not([data-med])").forEach(e=>pon(e,false));
+ if(!off)document.querySelectorAll("label.gpaso:not([data-med])").forEach(e=>pon(e,true))}
 let tm=null;new MutationObserver(()=>{if(!tm)tm=setTimeout(()=>{tm=null;try{barre()}catch(e){}},250)}).observe(document.documentElement,{childList:true,subtree:true});
 const st=document.createElement("style");st.textContent=`
+html:not(.medact) .lpap .medw,html:not(.medact) .medw.medsib{display:none!important}
 .medw{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:4px 0 8px;padding:5px 7px;border:1px dashed var(--bd,#bbb);border-radius:9px;font-size:13px}
 .medsib{margin-left:26px}
 .medw input{width:84px!important;margin:0!important;padding:5px 7px!important;font-size:15px!important;min-height:0!important}
