@@ -285,7 +285,7 @@ ${P} .rcsb{border-radius:12px!important;padding:10px 12px!important}
 /* ---- resultados e historial ---- */
 ${P} #sr_res button{border-radius:12px!important;min-height:50px}
 ${P} .sht{font:900 19px/1.15 ${MO}!important;letter-spacing:2px!important;text-transform:uppercase;color:var(--tx)!important}
-${P} .shnew{min-height:58px!important;border-radius:14px!important;font:900 15px/1 ${MO}!important;letter-spacing:2px!important;border:0!important;color:#111!important;
+${P} .shnew{min-height:58px!important;border-radius:14px!important;font:900 24px/1 ${MO}!important;letter-spacing:3px!important;text-transform:uppercase;border:0!important;color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.35);
  background:linear-gradient(135deg,#ffb020,${OR} 45%,#ff4d2e)!important}
 ${P} .shi{border-radius:14px!important;padding:12px!important;background:var(--card)!important;border:1.5px solid ${BRD}!important;border-left:4px solid #ff3b30!important}
 html.ext ${P} input:not([type=file]),html.ext ${P} select,html.ext ${P} textarea{border-width:2.5px!important}

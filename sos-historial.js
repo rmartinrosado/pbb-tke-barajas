@@ -45,9 +45,9 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
 /* ---------- 2 · listado ---------- */
 const otsAbiertas=()=>{try{return (typeof inc!="undefined"?inc:[]).filter(x=>x.estado=="abierta")}catch(e){return[]}};
 function pinta(sinBajar){const c=document.getElementById("sheetc");if(!c)return;const L=lee();
- c.className="";c.innerHTML=`<div class="shh"><div class="sht">🕘 Historial de SOS</div><button type="button" class="shx" aria-label="Cerrar" onclick="closeSheet()">✕</button></div>
+ c.className="";c.innerHTML=`<div class="shh"><div class="sht">🕘 Historial de actuaciones</div><button type="button" class="shx" aria-label="Cerrar" onclick="closeSheet()">✕</button></div>
  <div class="shs">${L.length?`${L.length} SOS · compartido con todos los técnicos (los últimos ${MAX}).${sinBajar?"":" Actualizando…"}`:"Todavía no hay SOS guardados: cada vez que pulses ACEPTAR en el SOS se guarda aquí."}</div>
- <button type="button" class="pri shnew" onclick="sosRap()">🆘 Nuevo SOS</button>
+ <button type="button" class="pri shnew" onclick="sosRap()">Nuevo</button>
  ${L.map(h=>`<div class="card shi" data-id="${e_(h.id)}">
   <div class="shl1"><b>${e_(fh(h.ts))}</b><span class="shpos">PBB ${e_(h.pos||"—")}</span>${h.ot?`<span class="shot">🔗 OT ${e_(h.ot.orden||h.ot.id)}</span>`:""}</div>
   ${h.ob?`<div class="shl"><span>Avería:</span> ${e_(h.ob)}</div>`:""}
