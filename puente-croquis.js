@@ -142,7 +142,7 @@ function v5(o){
  <rect x="${X0+8}" y="${TOP+6}" width="${SW-16}" height="14" rx="2" fill="#ffffff55"/>
  <rect x="${X0+12}" y="${TOP+26}" width="${SW-24}" height="104" rx="4" fill="${Pn[0]}" stroke="${Pn[1]}"/>
  <line x1="${X0+14}" y1="${TOP+48}" x2="${X0+SW-14}" y2="${TOP+48}" stroke="${Pn[1]}"/>
- <text x="${X0+22}" y="${TOP+42}" font-size="10" ${F("#1a0d00")} font-weight="800">${esc(id)}</text><text x="${X0+SW-22}" y="${TOP+42}" font-size="9" text-anchor="end" ${F("#1a0d00")}>bloque ${blk}</text>`;
+ <text x="${X0+22}" y="${TOP+42}" font-size="10" ${F("#1a0d00")} font-weight="800">${esc(id)}</text><text x="${X0+SW-22}" y="${TOP+42}" font-size="9" text-anchor="end" ${F("#1a0d00")}>módulo ${blk}</text>`;
  for(let k=0;k<nLed;k++){const ch=safe?cols[k]:(blk-1)*4+k+1,hit=safe?(ch==n1):(k+1==ledIn),lx=X0+36+(k%2)*78,ly=TOP+70+Math.floor(k/2)*30;
   g+=`<circle class="${hit?"led":""}" cx="${lx}" cy="${ly}" r="8" fill="${hit?"var(--pk-led)":"#5d5d5d"}" stroke="#222"/><text x="${lx+14}" y="${ly+4}" font-size="11" ${F("#111")} font-weight="700">${safe?ch:k+1}</text>`}
  /* conector */
