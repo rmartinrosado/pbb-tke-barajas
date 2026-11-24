@@ -37,7 +37,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  let F=$i("sostf");
  if(!F){F=document.createElement("div");F.id="sostf";
   /* v722: permutados · 1 ALARMA MAGELIS (arriba) · 2 PBB Y AVERÍA */
-  F.append(panel("sostp2","1","ALARMA MAGELIS","OBLIGATORIO<br>LO QUE SE DETECTA"),panel("sostp1","2","PBB Y AVERÍA","COMPLEMENTARIA<br>ACOTA EL PROBLEMA")/* v822: subtítulos permutados */);
+  F.append(panel("sostp2","1","ALARMA MAGELIS","OBLIGATORIO<br>LO QUE SE DETECTA"),panel("sostp1","2","AVERÍA DETECTADA","COMPLEMENTARIA<br>ACOTA EL PROBLEMA")/* v822: subtítulos permutados */);
   const ps=document.createElement("div");ps.className="sostps";ps.innerHTML=`<div class="sostpst">Al aceptar sale</div>`;F.append(ps);
   if(h)h.after(F);else c.prepend(F)}
  const B1=F.querySelector(".sostp1>.sostpb"),B2=F.querySelector(".sostp2>.sostpb"),PS=F.querySelector(".sostps");
@@ -294,8 +294,8 @@ document.head.appendChild(st);
 /* cabecera: título con su degradado y línea de estado con reloj en vivo, como «Registrar OT» y el Panel */
 const DIAS=["dom","lun","mar","mié","jue","vie","sáb"],zz=n=>String(n).padStart(2,"0");let reloj=0;
 function cabecera(){const c=sc();const h=c&&c.querySelector(".sosrh");if(!h||!$i("sr_ob"))return;const t=h.querySelector(".sosr2t");
- if(t&&!t.querySelector("span")){t.innerHTML="<span>SOS - DIRECTO</span>"}
- if(!h.querySelector(".sostsub")){const ct=h.querySelector(".sosct");if(!ct)return;ct.insertAdjacentHTML("afterend",`<div class="sostsub"><span class="sostdot"></span><span>SOS ACTIVO</span><span>·</span><b class="sostf"></b><b class="sosth"></b></div><div class="sostscan"></div>`)}
+ if(t&&!t.querySelector("span")){t.innerHTML="<span>ACTUACIÓN</span>"}
+ if(!h.querySelector(".sostsub")){const ct=h.querySelector(".sosct");if(!ct)return;ct.insertAdjacentHTML("afterend",`<div class="sostsub"><span class="sostdot"></span><span>ACTIVO</span><span>·</span><b class="sostf"></b><b class="sosth"></b></div><div class="sostscan"></div>`)}
  const pinta=()=>{const f=document.querySelector("#sheetc .sostf");if(!f){clearInterval(reloj);reloj=0;return}const d=new Date();
   f.textContent=`${DIAS[d.getDay()]} ${zz(d.getDate())}/${zz(d.getMonth()+1)}`;document.querySelector("#sheetc .sosth").textContent=`${zz(d.getHours())}:${zz(d.getMinutes())}:${zz(d.getSeconds())}`};
  pinta();if(!reloj)reloj=setInterval(pinta,1000)}
