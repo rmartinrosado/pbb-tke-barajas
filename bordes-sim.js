@@ -41,8 +41,27 @@ function svg(){const e=est(),fl=e=="ok";
  ${ed("b5",170)}${ed("b6",216)}
  ${ST.med?`<g><rect x="6" y="262" width="348" height="32" rx="8" fill="#111" stroke="#f2b705"/><text x="16" y="282" fill="#f2b705" font-weight="800">🔍 Polímetro ${NOM[ST.med]}: ${lectura(ST.med)}</text></g>`:""}
  </svg>`}
+/* v871: caja de pruebas RB-1 dibujada en la simulación: intercalada en el T-CON10, selector por borde BORDE / PUENTE / RESIST.
+   (sigue al simulador: al anular un borde su selector pasa a PUENTE / RESIST.; al medir, las puntas van a sus bornas de 4 mm) */
+function rb1(){const sel=(k,x)=>{const an=ST[k]=="anulado";const ang=an?40:-40;
+  return `<g transform="translate(${x},100)"><circle r="17" fill="#2a2f38" stroke="#8b93a7" stroke-width="1.5"/>
+  <path d="M0 0L${(13*Math.sin(ang*Math.PI/180)).toFixed(1)} ${(-13*Math.cos(ang*Math.PI/180)).toFixed(1)}" stroke="${an?"#1565c0":"#2e7d32"}" stroke-width="4" stroke-linecap="round"/>
+  <text x="-22" y="4" text-anchor="end" class="bsm">BORDE</text><text x="0" y="-22" text-anchor="middle" class="bsm">PUENTE</text><text x="22" y="4" class="bsm">R</text>
+  <text x="0" y="34" text-anchor="middle" font-weight="800">${k=="b5"?"DELANTERO":"TRASERO"}</text>
+  <text x="0" y="46" text-anchor="middle" class="bsm" fill="${an?"#64b5f6":"#81c784"}">${an?"ANULADO":"BORDE"}</text>
+  <circle cx="-14" cy="62" r="5" fill="#d11a10"/><circle cx="14" cy="62" r="5" fill="#111" stroke="#888"/><text x="0" y="82" text-anchor="middle" class="bsm">${k=="b5"?"T1-W1":"T1-W2"}</text>
+  ${ST.med==k?`<path d="M-14 67l-14 26M14 67l14 26" stroke="#f2b705" stroke-width="2.5"/><text x="0" y="106" text-anchor="middle" fill="#f2b705" font-weight="800">Ω</text>`:""}</g>`};
+ return `<svg viewBox="0 0 360 250" class="bssvg bsrb" role="img" aria-label="Caja de pruebas RB-1">
+ <text x="10" y="18" font-weight="800">🧰 CAJA DE PRUEBAS RB-1 · intercalada en el T-CON10</text>
+ <rect x="56" y="30" width="248" height="196" rx="12" fill="#1f232b" stroke="#f2b705" stroke-width="2"/>
+ <path d="M8 50H56" stroke="#d11a10" stroke-width="4"/><text x="8" y="44" class="bsm">a H-W18</text><text x="8" y="66" class="bsm">(macho)</text>
+ <path d="M304 50H352" stroke="#d11a10" stroke-width="4"/><text x="304" y="44" class="bsm">a bordes</text><text x="304" y="66" class="bsm">(hembra)</text>
+ ${sel("b5",120)}${sel("b6",240)}
+ <rect x="150" y="38" width="60" height="20" rx="4" fill="#111" stroke="#8b93a7"/><text x="180" y="52" text-anchor="middle" class="bsm">R: 4k7+10k</text>
+ <text x="180" y="242" text-anchor="middle" class="bsm" fill="#ef9a9a">Trimmer: ajustar DESCONECTADO al valor del bueno</text>
+ </svg>`}
 function pinta(w){const e=est();
- w.querySelector(".bsvis").innerHTML=svg();
+ w.querySelector(".bsvis").innerHTML=svg()+rb1();
  const msg={ok:"Bucle cerrado: los dos bordes en reposo. El relé E-U5 da salida y E-A8 2.1 está encendida.",
   strip:"Un borde pisado abre la serie: STRIP ACTIVATED, E-A8 2.1 apagada y alarma 010. Con un borde basta para parar la PBB.",
   fault:"Cable o borde cortado: CIRCUIT FAULT. El bucle no cierra aunque el otro borde esté bien."}[e];
@@ -66,7 +85,7 @@ const ACC=`<details class="bsacc"><summary>🧰 Accesorio de campo · caja de pr
 <ol><li><b>Latiguillo PUENTE</b>: 30 cm de hilo 1,5 mm² con dos punteras o dos bornas WAGO 221 en los extremos.</li>
 <li><b>Latiguillo RESISTENCIA</b>: resistencia del valor del borde bueno (≥ 0,5 W, metálica 1 %) dentro de termorretráctil, con dos punteras. Rotulada con su valor.</li>
 <li>Etiqueta roja «BORDE ANULADO · PROVISIONAL · OT nº…» con brida para el T-CON10.</li></ol>
-<b>Caja de pruebas BR-1 (para tener en el taller)</b>
+<b>Caja de pruebas RB-1 (para tener en el taller)</b>
 <ol><li>Caja estanca IP65 pequeña con dos mangueras: una con el conector igual al T-CON10 hacia el armario (H-W18) y otra con la pareja hacia los bordes. Se intercala en el T-CON10 sin cortar nada.</li>
 <li>Por cada borde, un selector de 3 posiciones: <b>BORDE · PUENTE · RESISTENCIA</b>. En «BORDE» pasa directo, así la caja puede quedarse puesta mientras se prueba.</li>
 <li>Dos parejas de bornas de 4 mm (una por borde) para medir con el polímetro desde fuera, sin abrir nada.</li>
@@ -103,7 +122,7 @@ new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElemen
 const st=document.createElement("style");st.textContent=`
 .bsim{margin:10px 0 4px;padding:10px;border:1.5px solid #2e7d32;border-radius:12px;background:color-mix(in srgb,#2e7d32 6%,transparent)}
 .bsh{font-weight:800;font-size:13px;margin-bottom:6px}
-.bssvg{width:100%;height:auto;display:block;background:#15181e;border-radius:10px}
+.bssvg{width:100%;height:auto;display:block;background:#15181e;border-radius:10px}.bsrb{margin-top:8px}
 .bssvg text{font:600 10px Menlo,Consolas,monospace;fill:#e9ecf1}.bssvg .bsm{font-weight:400;fill:#b6bcc8}
 .bssvg .bsbx{fill:#1f232b;stroke:#3a404c;stroke-width:1.2}
 .bssvg .bsw{fill:none;stroke:#2e7d32;stroke-width:3;stroke-dasharray:7 6}
