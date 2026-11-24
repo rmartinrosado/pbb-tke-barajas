@@ -19,13 +19,19 @@ async function sube(h){if(!hayDB())return false;try{const d=Object.assign({},h);
   const {error}=await sb.from("sos_historial").upsert({id:h.id,ts:h.ts,datos:d,updated_at:new Date().toISOString()});if(error)throw error;
   const L=lee();const x=L.find(y=>y.id==h.id);if(x){delete x.pend;x.sync=1;graba(L)}return true}catch(e){return false}}
 async function borraDB(id){if(!hayDB())return;try{await sb.from("sos_historial").delete().eq("id",id)}catch(e){}}
-async function baja(){if(!hayDB())return null;try{const {data,error}=await sb.from("sos_historial").select("id,ts,datos").order("ts",{ascending:false}).limit(MAX);
-  if(error||!Array.isArray(data))return null;const R=data.map(r=>Object.assign({},r.datos||{},{id:r.id,ts:+r.ts,sync:1}));
+/* v889: con límite de tiempo (si la red se queda colgada, antes se quedaba en «Actualizando…» para siempre) y con el motivo del fallo */
+let ERR="";
+async function baja(){ERR="";if(!hayDB()){ERR="sin conexión con el servidor";return null}try{
+  const q=sb.from("sos_historial").select("id,ts,datos").order("ts",{ascending:false}).limit(MAX);
+  const {data,error}=await Promise.race([q,new Promise(r=>setTimeout(()=>r({error:{message:"el servidor no responde (10 s)"}}),10000))]);
+  if(error||!Array.isArray(data)){ERR=(error&&(error.message||error.code))||"respuesta no válida";return null}
+  /* v889: si el servidor devuelve 0 y el móvil tiene actuaciones ya subidas, no se borran (puede ser la sesión) */
+  if(!data.length&&lee().some(x=>x.sync)){ERR="el servidor no devolvió ninguna (¿sesión caducada?): se muestran las de este móvil";return null}const R=data.map(r=>Object.assign({},r.datos||{},{id:r.id,ts:+r.ts,sync:1}));
   /* locales que faltan arriba: pendientes o anteriores a v446 → se suben; los ya subidos que faltan los borró otro técnico */
   const L=lee(),pend=L.filter(x=>!x.sync&&!R.some(y=>y.id==x.id));pend.forEach(sube);
-  const M=[...pend,...R].sort((a,b)=>b.ts-a.ts).slice(0,MAX);graba(M);return M}catch(e){return null}}
+  const M=[...pend,...R].sort((a,b)=>b.ts-a.ts).slice(0,MAX);graba(M);return M}catch(e){ERR=String(e&&e.message||e);return null}}
 const txt=el=>el?el.textContent.replace(/\s+/g," ").trim():"";
-const fh=ts=>{const d=new Date(ts);return d.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})};
+const fh=ts=>{const d=new Date(+ts||Date.now());return d.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})};
 const val=id=>((document.getElementById(id)||{}).value||"").replace(/\s+/g," ").trim();
 
 /* ---------- 1 · guardar cada SOS analizado ---------- */
@@ -44,9 +50,10 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
 
 /* ---------- 2 · listado ---------- */
 const otsAbiertas=()=>{try{return (typeof inc!="undefined"?inc:[]).filter(x=>x.estado=="abierta")}catch(e){return[]}};
-function pinta(sinBajar){const c=document.getElementById("sheetc");if(!c)return;const L=lee();
+function pinta(sinBajar){try{return pinta0(sinBajar)}catch(e){const c=document.getElementById("sheetc");if(c){c.className="";c.innerHTML=`<div class="shh"><div class="sht">🕘 Historial de actuaciones</div><button type="button" class="shx" aria-label="Cerrar" onclick="closeSheet()">✕</button></div><div class="gav">No se pudo mostrar el historial: ${e_(e&&e.message||e)}</div><button type="button" class="pri shnew" onclick="sosHistorial()">Reintentar</button>`;const s=document.getElementById("sheet");if(s)s.style.display="flex"}}}
+function pinta0(sinBajar){const c=document.getElementById("sheetc");if(!c)return;const L=lee().filter(h=>h&&h.id);
  c.className="";c.innerHTML=`<div class="shh"><div class="sht">🕘 Historial de actuaciones</div><button type="button" class="shx" aria-label="Cerrar" onclick="closeSheet()">✕</button></div>
- <div class="shs">${L.length?`${L.length} ${L.length==1?"actuación":"actuaciones"} · compartidas con todos los técnicos (los últimos ${MAX}).${sinBajar?"":" Actualizando…"}`:"Todavía no hay actuaciones guardadas: cada vez que pulses ACEPTAR en una actuación se guarda aquí."}</div>
+ <div class="shs">${L.length?`${L.length} ${L.length==1?"actuación":"actuaciones"} · compartidas con todos los técnicos (los últimos ${MAX}).${sinBajar?"":" Actualizando…"}`:sinBajar?"Todavía no hay actuaciones guardadas: cada vez que pulses ACEPTAR en una actuación se guarda aquí.":"Cargando el historial…"}</div>
  <button type="button" class="pri shnew" onclick="sosRap()">Nuevo</button>
  ${L.map(h=>`<div class="card shi" data-id="${e_(h.id)}">
   <div class="shl1"><b>${e_(fh(h.ts))}</b><span class="shpos">PBB ${e_(h.pos||"—")}</span>${h.ot?`<span class="shot">🔗 OT ${e_(h.ot.orden||h.ot.id)}</span>`:""}</div>
@@ -59,7 +66,8 @@ function pinta(sinBajar){const c=document.getElementById("sheetc");if(!c)return;
   <div class="shsel"></div></div>`).join("")}`;
  c.scrollTop=0;const s=document.getElementById("sheet");if(s)s.style.display="flex";
  if(!sinBajar)baja().then(M=>{const c2=document.getElementById("sheetc");if(!c2||!c2.querySelector(".shh"))return;const y=c2.scrollTop;pinta(1);c2.scrollTop=y;
-  if(!M){const t=c2.querySelector(".shs");if(t)t.textContent+=" Sin conexión: se muestran los de este móvil."}})}
+  if(!M){const t=c2.querySelector(".shs");if(t){t.textContent+=` ⚠️ No se pudo actualizar (${ERR||"sin conexión"}): se muestran las de este móvil.`;
+   const r=document.createElement("button");r.type="button";r.className="sec";r.style.cssText="width:100%;margin:0 0 8px";r.textContent="↻ Reintentar";r.onclick=()=>pinta();t.after(r)}}})}
 window.sosHistorial=pinta;
 
 /* ---------- 3 · acciones ---------- */
