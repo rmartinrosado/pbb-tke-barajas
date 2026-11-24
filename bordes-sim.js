@@ -92,7 +92,7 @@ function rb1(){const sel=(k,x)=>{const an=ST[k]=="anulado";const ang=an?40:-40;
  <text x="180" y="242" text-anchor="middle" class="bsm" fill="#ef9a9a">Trimmer: ajustar DESCONECTADO al valor del bueno</text>
  </svg>`}
 function pinta(w){const e=est();
- w.querySelector(".bsvis").innerHTML=svg()+rb1();
+ w.querySelector(".bsvis").innerHTML=svg();{const r=w.querySelector(".bsrbw");if(r)r.innerHTML=rb1()}/* v880: RB-1 al principio del «Accesorio de campo» */
  const msg={ok:"Bucle cerrado: los dos bordes en reposo. El relé E-U5 da salida y E-A8 2.1 está encendida.",
   strip:"Un borde pisado abre la serie: STRIP ACTIVATED, E-A8 2.1 apagada y alarma 010. Con un borde basta para parar la PBB.",
   fault:"Cable o borde cortado: CIRCUIT FAULT. El bucle no cierra aunque el otro borde esté bien."}[e];
@@ -111,7 +111,7 @@ function accion(w,a,k){
   const ok=est()=="ok";setTimeout(()=>{const m=w.querySelector(".bsmsg");if(m)m.textContent=ok?`✔ ${NOM[k]} anulado (${k=="b6"?"puente / R en la mitad del delantero del T-CON10":"latiguillo CON-ELEV ↔ T-CON10 con puente / R"}): alarma 010 borrada. Comprueba que el otro borde sigue parando la PBB al pisarlo.`:`✘ Has anulado el ${NOM[k]} pero la avería sigue: no está en ese borde (el otro borde, una manguera o un conector). Reinicia y mide por tramos: E-X55 → H-X51 → CON-ELEV → trasero solo / delantero solo.`},20)}
  pinta(w)}
 const ACC=`<details class="bsacc"><summary>🧰 Accesorio de campo · caja de pruebas y anulación de bordes</summary>
-<div class="bsacct">
+<div class="bsacct"><div class="bsrbw"></div>
 <b>Opción rápida (con lo que hay en la furgoneta)</b>
 <ol><li><b>Latiguillo PUENTE</b>: 30 cm de hilo 1,5 mm² con dos punteras o dos bornas WAGO 221 en los extremos.</li>
 <li><b>Latiguillo RESISTENCIA</b>: resistencia del valor del borde bueno (≥ 0,5 W, metálica 1 %) dentro de termorretráctil, con dos punteras. Rotulada con su valor.</li>
@@ -157,7 +157,7 @@ new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElemen
 const st=document.createElement("style");st.textContent=`
 .bsim{margin:10px 0 4px;padding:10px;border:1.5px solid #2e7d32;border-radius:12px;background:color-mix(in srgb,#2e7d32 6%,transparent)}
 .bsh{font-weight:800;font-size:13px;margin-bottom:6px}
-.bssvg{width:100%;height:auto;display:block;background:#15181e;border-radius:10px}.bsrb{margin-top:8px}.bspol{margin-top:8px}
+.bssvg{width:100%;height:auto;display:block;background:#15181e;border-radius:10px}.bsrb{margin:0 0 10px}.bspol{margin-top:8px}
 .bssvg text{font:600 10px Menlo,Consolas,monospace;fill:#e9ecf1}.bssvg .bsm{font-weight:400;fill:#b6bcc8}
 .bssvg .bsbx{fill:#1f232b;stroke:#3a404c;stroke-width:1.2}
 .bssvg .bsw{fill:none;stroke:#2e7d32;stroke-width:3;stroke-dasharray:7 6}
