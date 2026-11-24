@@ -97,7 +97,12 @@ let capa=null,zSel="",abiertos=new Set(),solo=null,foco=null,focoY=0;/* v649: fo
 let qAnt=null,zAnt=null;
 function lista(){if(capa){const q=(capa.querySelector("#cn_q")||{}).value||"";if(foco&&(q!==qAnt||zSel!==zAnt)){abiertos.delete(foco);foco=null;try{if(history.state&&history.state.ficha)history.back()}catch(e){}}qAnt=q;zAnt=zSel}
  listaBase();aplicaFoco()}
-function listaBase(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{}).value||"").trim();
+/* v877: la ficha de cada componente se construye SOLO al abrirla (antes se generaban las ~85 fichas completas, con su
+   instalación origen → destino, en cada letra tecleada y el teclado se quedaba esperando). */
+const CUERPO=new Map();
+function cuerpo(c){const o=fichaOrden(c);const bx=repuesto(c,o.spec,o.mas);const i=o.fh.indexOf(">",o.fh.indexOf('<div class="cmpf"'))+1;return i>0?o.fh.slice(0,i)+bx+o.fh.slice(i):bx+o.fh}
+function rellena(d){if(!d||!d.open)return;const z=d.querySelector(":scope>.cnlazy");if(!z)return;const c=CUERPO.get(d.dataset.k);if(!c)return;try{z.outerHTML=cuerpo(c)}catch(e){z.textContent="No se pudo abrir la ficha"}}
+function listaBase(){if(!capa)return;CUERPO.clear();const q=nrm((capa.querySelector("#cn_q")||{}).value||"").trim();
  const ws=q.split(/\s+/).filter(Boolean);
  const todos=L(),zs=[...new Set(todos.map(zona))].sort((a,b)=>(a=="Otros")-(b=="Otros")||a.localeCompare(b,"es"));/* v570: zonas en orden alfabético, «Otros» al final */
  const nImp=pendientes().length;
@@ -107,7 +112,7 @@ function listaBase(){if(!capa)return;const q=nrm((capa.querySelector("#cn_q")||{
  const el=capa.querySelector("#cn_l");if(zSel==IMP){el.innerHTML=listaImp(ws);return}
  el.innerHTML=(solo?`<div class="cnsolo"><span>🚨 ${E(solo.t)}</span><button type="button" class="sec" data-todos="1">Ver todos</button></div>`:"")+`<div class="mu" style="font-size:12px;margin:6px 0">${F.length} componente${F.length==1?"":"s"}${ws.length||zSel?(F.length==1?" encontrado":" encontrados"):""}</div>`+
   (F.length?F.map(c=>{const k=String(c.baseId||c.db||c.id);const bt=c.db?(c.baseId?"↩️<br>Restaurar":"🗑<br>Eliminar"):"🔒<br>De fábrica";
-   return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${(()=>{const o=fichaOrden(c);return (()=>{const bx=repuesto(c,o.spec,o.mas);const i=o.fh.indexOf(">",o.fh.indexOf('<div class="cmpf"'))+1;return i>0?o.fh.slice(0,i)+bx+o.fh.slice(i):bx+o.fh})()})()}</details></div>`}).join("")
+   return`<div class="cnsw${c.db?"":" fab"}" data-k="${E(k)}"><button type="button" class="cnsx" data-del="${E(k)}">${bt}</button><details class="cni" data-k="${E(k)}"${abiertos.has(k)?" open":""}><summary><span class="cmpid">${E(c.id)}</span> <b>${E(c.t)}</b>${c.fab?`<small>${E(c.fab)}</small>`:""}</summary>${(CUERPO.set(k,c),abiertos.has(k)?cuerpo(c):'<div class="cnlazy"></div>')}</details></div>`}).join("")
   :`<div class="cnvac">Sin componentes para «${E(q)}».<br>Prueba con el código (p. ej. E-Q24), el nombre o el modelo.</div>`)+
   (ws.length?(()=>{/* v638: también los elementos de los planos (pendientes y ya incorporados) */cargaQui();const S=estados().filter(x=>!x.quit&&ws.every(w=>casa(x.r.join(" "),w)));
    return S.length?`<div class="cnverde" style="margin-top:12px">EN LOS PLANOS · A IMPORTAR</div>`+S.slice(0,30).map(filaImp).join(""):""})():"")}
@@ -135,7 +140,8 @@ function abre(){
   <div id="cn_z" class="cnz"></div></div><div id="cn_l" class="cnl"></div>`;
   document.body.appendChild(capa);
   const q=capa.querySelector("#cn_q");let tm=0;
-  q.addEventListener("input",()=>{clearTimeout(tm);tm=setTimeout(lista,250)});
+  let qUlt=null;q.addEventListener("input",()=>{clearTimeout(tm);tm=setTimeout(()=>{if(q.value===qUlt)return;qUlt=q.value;lista()},350)});/* v877: espera a que pare de teclear */
+  capa.querySelector("#cn_l").addEventListener("toggle",e=>{const d=e.target;if(d&&d.matches&&d.matches("details.cni"))rellena(d)},true);
   q.addEventListener("keyup",e=>{if(e.key=="Enter"){q.blur();lista()}});
   capa.querySelector("#cn_go").onclick=()=>{q.blur();lista()};
   capa.querySelector("#cn_bo").onclick=()=>{q.value="";lista()};
