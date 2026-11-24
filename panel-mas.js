@@ -19,13 +19,3 @@ const st=document.createElement("style");st.textContent=`
 :root[data-theme=dark] #app#app#app .sosk.kmas .pmas{stroke:#fff}
 html.ext #app#app#app .sosk.kmas .pmas{stroke-width:3.8}`;document.head.appendChild(st)})();
 
-/* ===== v863: la LUPA (buscar la actuación más eficaz) pasa a la barra lateral izquierda, detrás de «Comp.» ===== */
-(function(){
-const IC='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>';
-const pon=()=>{const nav=document.getElementById("nav");if(!nav||nav.querySelector("[data-lupav]")||typeof lupaAbre!="function")return;
- const ref=nav.querySelector("[data-compv]");if(!ref)return;
- const b=document.createElement("button");b.type="button";b.dataset.lupav="1";b.title="Lupa · buscar la actuación más eficaz de cualquier sistema";b.setAttribute("aria-label","Lupa: buscar la actuación más eficaz");
- b.innerHTML=`<span>${IC}</span>Lupa`;b.onclick=()=>lupaAbre();nav.insertBefore(b,ref.nextSibling)};
-try{const o=render;render=function(){const r=o.apply(this,arguments);try{pon()}catch(e){}return r}}catch(e){}
-new MutationObserver(()=>{try{pon()}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});try{pon()}catch(e){}
-})();

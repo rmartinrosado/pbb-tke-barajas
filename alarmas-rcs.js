@@ -534,7 +534,7 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
  if(fila)fila.before(d);else(lab&&lab.tagName=="LABEL"?lab:sel).before(d);
  const q=d.querySelector("#rcs_q"),l=d.querySelector("#rcs_l"),s=d.querySelector("#rcs_s"),cq=d.querySelector("#cmp_q"),cl=d.querySelector("#cmp_l");
  /* --- alarma: desplegable completo al tocar, filtrado al escribir --- */
- const pinta=()=>{cl.innerHTML="";const v=q.value.trim();l.innerHTML=v?(busca(v).map(itAl).join("")||`<div class="rcsnada">Sin alarmas para «${E(v)}»</div>`):todasAl();l.classList.add("on");l.scrollTop=0};
+ const pinta=()=>{cl.innerHTML="";const v=q.value.trim();l.innerHTML=v?(busca(v).map(itAl).join("")||`<div class="rcsnada">Sin alarmas para «${E(v)}»</div><button type="button" class="rcslupa">🔎 Buscar «${E(v)}» en todos los sistemas</button>`):todasAl();l.classList.add("on");l.scrollTop=0};/* v864: sin alarma → búsqueda libre (lo que hacía la Lupa) */
  q.addEventListener("focus",pinta);q.addEventListener("click",()=>{if(!l.classList.contains("on"))pinta()});q.addEventListener("input",pinta);
  q.addEventListener("keyup",e=>{if(e.key=="Enter"){const R=busca(q.value);if(R.length==1)elige(R[0])}});
  /* v705: las alarmas se SUMAN: cada una elegida (buscador o desplegable de la Magelis) se añade en una línea nueva de «Alarma a
@@ -565,6 +565,11 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
   const xc=Lc.length?porCod(/superior/i.test(v)&&Lc[1]?Lc[1]:Lc[0]):null;
   const D=xc?[{x:xc}]:v?detecta(v+" "+sel.value):[];
   if(D.length){elige(D[0].x);sel.value=""}});
+ /* v864: «Buscar en todos los sistemas» → el texto pasa a «Avería en campo (lo que se detecta)» y al ACEPTAR sale la actuación más eficaz de cualquier sistema */
+ l.addEventListener("click",e=>{const b=e.target.closest(".rcslupa");if(!b)return;e.stopPropagation();const v=q.value.trim();const o=sc.querySelector("#sr_ob");
+  if(o&&v){o.value=[o.value.replace(/\s+$/,""),v].filter(Boolean).join("\n");const dt=o.closest("details");if(dt)dt.open=true;try{o.dispatchEvent(new Event("input",{bubbles:true}))}catch(x){}}
+  q.value="";q.blur();l.innerHTML="";l.classList.remove("on");if(typeof msg=="function")msg("Añadido a «Avería en campo»: pulsa ACEPTAR para ver la actuación más eficaz");
+  if(o)try{o.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}});
  l.addEventListener("click",e=>{const b=e.target.closest(".rcsit");if(!b)return;const x=porCod(b.dataset.c);if(x)elige(x)});
  /* --- componente --- */
  const abreC=c=>{cq.blur();cl.innerHTML="";if(typeof abreCompClaves=="function")abreCompClaves([ckClave(c)],"Componente "+c.id);else if(typeof abreCompTag=="function")abreCompTag(c.id)};
@@ -719,3 +724,6 @@ document.head.appendChild(st);
 })();
 /* v811: al escribir la avería en campo (caja 2) se repintan los elementos que intervienen de la alarma validada */
 (function(){let tm=0;document.addEventListener("input",e=>{if(!e.target||e.target.id!="sr_ob")return;clearTimeout(tm);tm=setTimeout(()=>{try{window.__rcsPintaTodo&&window.__rcsPintaTodo()}catch(x){}},500)},true)})();
+
+/* v864: botón de búsqueda libre bajo «Sin alarmas» */
+(function(){const st=document.createElement("style");st.textContent=`.rcslupa{display:block;width:100%;margin:6px 0 2px!important;padding:12px 10px!important;border-radius:10px!important;border:1.5px solid #ef6c00!important;background:color-mix(in srgb,#ef6c00 12%,transparent)!important;color:var(--tx)!important;font-weight:700;font-size:14px;text-align:left;cursor:pointer}`;document.head.appendChild(st)})();
