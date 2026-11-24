@@ -22,6 +22,18 @@ function terminos(t){const T=String(t||""),out=new Map();
  nrm(T).split(/[^a-z0-9/]+/).forEach(w=>{if(w.length<4||/^\d+$/.test(w)||STOP.has(w))return;const r=w.slice(0,Math.min(w.length,6));
   if(!out.has(r))out.set(r,{r,w:1});Object.keys(SIN).forEach(k=>{if(w.startsWith(k))SIN[k].forEach(s=>{if(!out.has(s))out.set(s,{r:s,w:.8})})})});
  return [...out.values()].slice(0,60)}
+/* v868: «Bumper del ala» (015) es el LÁSER / RADAR DETECTOR DE ALA, no un bumper: la palabra «bumper» arrastraba a la IA
+   páginas y procedimientos de bumpers de cabina/brazo y de BORDES SENSIBLES DE RUEDAS (T-B5/T-B6, «bumper de traslación»)
+   y el croquis de conexión salía con los bordes de ruedas. Se cambia por «láser detector de ala · radar de ala» en todo lo
+   que se usa para buscar documentación, y el plano Laser_detector_de_ala va el PRIMERO (antes podía quedar fuera por tamaño). */
+const esAla=t=>{const n=nrm(t);return /\bala\b|radar|la[sz][ea]r/.test(n)&&!/\b(cabina|brazo|traslacion|ruedas?)\b/.test(n.replace(/radar de ala en la cabina/g,""))};
+const alaT=t=>{t=String(t||"");return esAla(t)?t.replace(/bumpers?\s+(del?\s+)?ala/gi,"láser detector de ala (radar de ala)"):t};
+const NOTA_ALA=`##### NOTA IMPORTANTE · RADAR / LÁSER DETECTOR DE ALA
+La alarma 015 «Bumper del ala activado» (y 078 / 268 / 348 detección de ala) es el LÁSER DETECTOR DE ALA (radar de ala, cabina, zona derecha), plano Laser_detector_de_ala.
+Entradas en el PLC del pupitre: P-A6 8.1 PARO (puente provisional P-A6 8.2 → 8.1, LED 2 del módulo 4) y P-A6 7.1 velocidad lenta (puente 7.2 → 7.1).
+NO tiene relación con los bumpers de cabina o de brazo (E-A10) ni con los bordes sensibles de ruedas T-B5 / T-B6: no los incluyas en el diagnóstico, en las medidas ni en el croquis.
+Saca los elementos, bornas, hilos y alimentación del documento Laser_detector_de_ala.`;
+window.iaEsAla=esAla;window.iaNotaAla=NOTA_ALA;
 function puntua(txtN,txtC,T,idf){let p=0;for(const t of T){let n=0;
   if(t.c){let i=-1;while((i=txtC.indexOf(t.c,i+1))>=0&&n<5)n++}else{let i=-1;while((i=txtN.indexOf(t.r,i+1))>=0&&n<5)n++}
   if(n)p+=t.w*(idf?idf(t):1)*(1+Math.log(n))}return p}
@@ -47,11 +59,11 @@ function elige(pos,tipo,txt){const n=nrm(txt),P=String(pos||"").toUpperCase(),D=
   D.push({re:/^(504|508)$/.test(P)?/T87911031260|^PBB_504/i:P=="507"?/T87911031230|Esquema_507/i:/T87911031210|Rev_J|T4T4S/i,top:8,ind:1,prin:1});
   D.push({re:/PLC_RCS/i,todo:1,max:26000});
   if(/hidra|aceite|presion|bomba|valvul|limitador|no sube|no baja|cilindro/.test(n))D.push({re:/hidr/i,top:4});
-  if(/laser|lazer|radar|\bala\b/.test(n))D.push({re:/Laser/i,todo:1});
+  if(/laser|lazer|lazar|radar|\bala\b/.test(n))D.unshift({re:/Laser/i,todo:1});/* v868: el primero */
   if(/\bsai\b|\bct\b|centro de transf/.test(n))D.push({re:/Listado_de_Ct/i,todo:1});
   if(/^(504|508)$/.test(P)&&/cbth/.test(n))D.push({re:/Armario_CBTH_POS_504/i,top:3})}
  return D}
-async function planosCtx(pos,tipo,txt,av){const L=await listaPlanos(),T=terminos(txt),D=elige(pos,tipo,txt),usados=[];let out="",tot=0;const CAP=75000;
+async function planosCtx(pos,tipo,txt,av){txt=alaT(txt);const L=await listaPlanos(),T=terminos(txt),D=elige(pos,tipo,txt),usados=[];let out="",tot=0;const CAP=75000;
  for(const d of D){const f=L.find(x=>d.re.test(x.name)&&!/\.(jpe?g|png|webp)$/i.test(x.name));if(!f)continue;
   let P;try{P=await paginas(f,av)}catch(e){continue}if(!P||!P.length)continue;
   let sel;
@@ -67,7 +79,7 @@ async function planosCtx(pos,tipo,txt,av){const L=await listaPlanos(),T=terminos
  return {txt:out,usados}}
 
 /* ---------- guía de campo de la app ---------- */
-function guiaCtx(tipo,txt){const T=terminos(txt),sc=s=>puntua(nrm(s),cmp(s),T),o=[];
+function guiaCtx(tipo,txt){const ALA=esAla(txt);txt=alaT(txt);const T=terminos(txt),sc=s=>puntua(nrm(s),cmp(s),T),o=[];
  try{if(typeof GUIA!="undefined"){o.push("##### GUÍA DE CAMPO · seguridad\n"+(GUIA.seg||[]).map((x,k)=>`${k+1}. ${x}`).join("\n"));
   if(tipo=="PAS"||!tipo){o.push("##### Mapa de alimentaciones\n"+(GUIA.alim||[]).map(a=>`[${a[0]}]\n${a[1]}`).join("\n"));
    o.push("##### LED del PLC en reposo (encendidos / apagados)\n"+(GUIA.leds||[]).map(l=>`${l[0]}: encendidos ${l[1]} · apagados ${l[2]}`).join("\n"))}
@@ -79,12 +91,13 @@ function guiaCtx(tipo,txt){const T=terminos(txt),sc=s=>puntua(nrm(s),cmp(s),T),o
   .forEach(({x})=>o.push(`##### Comprobaciones por sistema · ${x.s}${x.f?" (folio "+x.f.join(", ")+")":""}\n`+x.c.map(c=>"- "+(typeof c=="string"?c:(c.t||JSON.stringify(c)))).join("\n")))}catch(e){}
  try{(window.SIS_GUIA||[]).map(x=>({x,v:sc(x.t+" "+(x.p||[]).join(" "))})).filter(z=>z.v>0).sort((a,b)=>b.v-a.v).slice(0,4)
   .forEach(({x})=>o.push(`##### Sistemas auxiliares · ${x.t}${x.r?" ("+x.r+")":""}\n`+(x.p||[]).map((p,k)=>`${k+1}. ${p}`).join("\n")))}catch(e){}
+ if(ALA)o.unshift(NOTA_ALA);
  return o.join("\n\n")}
-function primeraCtx(pos,txt){try{const ot={id:"sosia",pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:txt,def:"",com:"",obs:"",orden:"SOS",fecha:""};
+function primeraCtx(pos,txt){txt=alaT(txt);try{const ot={id:"sosia",pos,tipo:"PAS",equipos:["PAS"],estado:"abierta",desc:txt,def:"",com:"",obs:"",orden:"SOS",fecha:""};
  let h="";const P=typeof puentesOT=="function"?puentesOT(ot):[],S=typeof segOT=="function"?segOT(ot):null,R=typeof resetAplica=="function"&&resetAplica(ot);
  if(R&&!S&&typeof resetHTML=="function")h+=resetHTML(ot);if(S&&typeof segHTML=="function")h+=segHTML(ot,S);if(P.length&&typeof puenteHTML=="function")h+=puenteHTML(ot,P);
  const t=html2txt(h);return t?"##### Primera actuación de la guía (puente provisional / seguridades)\n"+t:""}catch(e){return ""}}
-async function casosCtx(txt){if(typeof casosParecidos!="function")return "";let l=[];try{l=await casosParecidos(txt,{max:3})}catch(e){}
+async function casosCtx(txt){txt=alaT(txt);if(typeof casosParecidos!="function")return "";let l=[];try{l=await casosParecidos(txt,{max:3})}catch(e){}
  return l.length?"##### Casos anteriores parecidos (carpeta Casos)\n"+l.map(({d})=>`- ${d.titulo||""} · PBB ${d.pos||"-"} · ${d.tipo||""}\n  ${JSON.stringify(d.registro||{}).replace(/[{}"]/g," ").slice(0,900)}${d.notas?"\n  Notas: "+d.notas:""}`).join("\n"):""}
 
 /* ---------- interfaz: barra de progreso y visor ---------- */
@@ -311,7 +324,7 @@ window.sosIaPdf=haceePdf;
 window.iaCroquis=async(md,pos,tipo)=>{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("sin sesión");
  const ac=new AbortController();const t=setTimeout(()=>ac.abort(),200000);
  try{const r=await fetch(SUPABASE_URL+"/functions/v1/consulta-sos",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},
-   body:JSON.stringify({modo:"croquis",pregunta:String(md||"").slice(0,30000),contexto:`PBB ${pos||"-"} · ${tipo||"PAS"}`})});
+   body:JSON.stringify({modo:"croquis",pregunta:String(md||"").slice(0,30000),contexto:`PBB ${pos||"-"} · ${tipo||"PAS"}${esAla(md)?" · LÁSER DETECTOR DE ALA (radar de ala): solo elementos del plano Laser_detector_de_ala y P-A6 7.1/8.1; nada de bordes de ruedas T-B5/T-B6 ni bumpers de cabina/brazo":""}`})});
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.croquis)throw new Error(j.mensaje||("croquis "+r.status));return j.croquis}finally{clearTimeout(t)}};
 /* v352: la Resolución IA de la OT reutiliza la misma documentación (res-claude.js) */
 window.iaCtx={guiaCtx,primeraCtx,casosCtx,planosCtx};
