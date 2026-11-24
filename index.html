@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=887;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=888;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -131,7 +131,7 @@ addEventListener("load",function(){setTimeout(__diag,4000)});
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>')</script>
 <script src="cableado.js?v=58"></script>
-<script src="cableado-revj.js?v=324"></script>
+<script src="cableado-revj.js?v=324"></script><script src="puentes-planos.js?v=888"></script>
 <script src="ins-mide.js?v=325"></script>
 <script>
 let POS=[500,502,504,508,510,512,516,518,520,522,524,526,528,530,532,534,536,537,538,539,540,542,544,546,548,550];
@@ -5843,7 +5843,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   try{eval(fn+"=window."+fn)}catch(e){}});
 })();
 </script>
-<script src="puente-croquis.js?v=857"></script><script src="guia-titulos.js?v=417"></script><script src="pdf-pellizco.js?v=280"></script>
+<script src="puente-croquis.js?v=888"></script><script src="guia-titulos.js?v=417"></script><script src="pdf-pellizco.js?v=280"></script>
 <script>
 /* ===== v267: CROQUIS DEL PUENTE en la Guía de campo · cuando la OT tiene primera actuación en campo por LÍMITE, entre la caja SOS y la
    de «Primera actuación en campo» se dibuja el bloque exacto del módulo del PLC (colores reales de E-A… / P-A…), con el cable del puente
@@ -5854,7 +5854,10 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
   const add=o=>{const k=o.mod+o.b1+o.b2;if(vis.has(k))return;vis.add(k);out.push(o)};
   const deIt=(it,lt)=>{const[id,a,b,el,nom]=it;const M=PLC.find(m=>m.id==id);const m=/^(\d+)\.(\d)/.exec(a);if(!M||!m)return;
    const n=+m[1],c=+m[2],k=Math.ceil(n/2);let b1,b2,k2;
-   if(M.t=="SDI"){b1=n+".1";b2=n+".2";k2=sig(id,b2)||"UT"}
+   if(M.t=="SDI"){b1=n+".1";b2=n+".2";k2=sig(id,b2)||"UT";
+    /* v888: según el CABLEADO rev. J: IN ↔ UT, IN ↔ +24 V 613 (E-X68:6) o ninguno (setas, sirena, selector, autorización…) */
+    const P=typeof window.puentePlanos=="function"?window.puentePlanos(id,b1):null;if(P&&P.no)return;
+    if(P){add(Object.assign({},P,{k1:sig(id,b1)||("IN · "+el),d:String(nom).replace(/\s*\(safety\)/i,"")}));return}}
    else{const l=(c==1?1:3)+(n%2?0:1),L=M.m[k-1]&&M.m[k-1][l-1];
     /* v437: un LÍMITE DE TRABAJO (módulo verde) lleva su croquis igual que el texto de «Puentes provisionales» (segPuente):
        entrada que se activa al pisar el límite (estado 0) → croquis «soltar y aislar el hilo»; resto → croquis del PUENTE IN → +24 V que libera el límite */
@@ -5956,7 +5959,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
  try{ANA_C={k:"",r:null}}catch(e){}
 })();
 </script>
-<script src="sistemas-guia.js?v=617"></script><script src="freno-cabina.js?v=341"></script><script src="borneros-st.js?v=551"></script><script src="croquis-bor.js?v=474"></script><script src="croquis-pdf.js?v=858"></script><script src="pdf-puente.js?v=858"></script><script src="res-claude.js?v=634"></script><script src="sos-otrel.js?v=627"></script><script src="sos-ia.js?v=868"></script><script src="recupera.js?v=380"></script><script src="fechas-ot.js?v=345"></script><script src="seg-sub.js?v=701"></script><script src="seg-resumen.js?v=750"></script><script src="ohdesc.js?v=701"></script><script src="sigma.js?v=401"></script><script src="fab.js?v=418"></script><script src="atras.js?v=602"></script><script src="llegada-prio.js?v=419"></script><script src="nombres.js?v=617"></script><script src="columnas.js?v=526&o=516"></script><script src="analisis-canal.js?v=666"></script>
+<script src="sistemas-guia.js?v=617"></script><script src="freno-cabina.js?v=888"></script><script src="borneros-st.js?v=551"></script><script src="croquis-bor.js?v=474"></script><script src="croquis-pdf.js?v=858"></script><script src="pdf-puente.js?v=858"></script><script src="res-claude.js?v=634"></script><script src="sos-otrel.js?v=627"></script><script src="sos-ia.js?v=868"></script><script src="recupera.js?v=380"></script><script src="fechas-ot.js?v=345"></script><script src="seg-sub.js?v=701"></script><script src="seg-resumen.js?v=750"></script><script src="ohdesc.js?v=701"></script><script src="sigma.js?v=401"></script><script src="fab.js?v=418"></script><script src="atras.js?v=602"></script><script src="llegada-prio.js?v=419"></script><script src="nombres.js?v=617"></script><script src="columnas.js?v=526&o=516"></script><script src="analisis-canal.js?v=666"></script>
 <script>
 /* ===== v350: Panel de control · Seguimiento y Claude permutados: Registrar | Claude (fila 1) · Seguimiento | SOS (fila 3) ===== */
 (function(){const P=["html body #app #pfix.p230","html body #app#app.p230"];const R=(sel,css)=>P.map(p=>p+" "+sel).join(",")+"{"+css+"}";
@@ -5969,7 +5972,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 /* ===== v351: SOS · «Aceptar · analizar con Claude» consulta en segundo plano (función consulta-sos) con barra de progreso
    en la misma pantalla del SOS y, al terminar, PDF A4 incrustado para ver, descargar o compartir (sos-ia.js). ===== */
 </script>
-<script src="sos-obs.js?v=440"></script><script src="unifica.js?v=837"></script><script src="antiatrap-lado.js?v=439"></script><script src="cuerpos.js?v=634"></script><script src="pbb-caract.js?v=634"></script><script src="sos-ia-fijo.js?v=438"></script><script src="bordes-ruedas.js?v=887"></script><script src="bordes-sim.js?v=885"></script><script src="limite-trabajo.js?v=438"></script><script src="conceptos.js?v=811"></script><script src="magelis-foto.js?v=522"></script><script src="sos-compacto.js?v=456"></script><script src="sos-volver.js?v=444"></script><script src="sos-historial.js?v=861"></script><script src="componentes.js?v=642"></script><script src="medidas.js?v=875"></script><script src="reincidencias.js?v=701"></script><script src="plc-ia.js?v=490"></script><script src="json-ia.js?v=558"></script><script src="fotos-almacen.js?v=561"></script><script src="recorte.js?v=561"></script><script src="incorpora.js?v=882"></script><script src="campo-extra.js?v=852"></script><script src="alias-campo.js?v=617"></script><script src="acceso-faceid.js?v=755"></script><script src="logo-toggle.js?v=478"></script><script src="avisos-aprende.js?v=791"></script><script src="tiempos.js?v=480"></script><script src="cierre-plus.js?v=522"></script><script src="guia-sinot.js?v=488"></script><script src="plc-foto.js?v=487"></script><script src="foto-zoom.js?v=489"></script><script src="manguera400.js?v=749"></script><script src="hz-nobloquea.js?v=513"></script><script src="comp-importar-datos.js?v=574"></script><script src="comp-nav.js?v=877"></script><script src="comp-ficha.js?v=644"></script><script src="comp-edita.js?v=644"></script><script src="comp-alarmas.js?v=717"></script><script src="visor-zoom.js?v=548"></script><script src="guia-foco.js?v=499"></script><script src="alarmas-rcs.js?v=867"></script><script src="panel-estable.js?v=499"></script><script src="bloques-campo.js?v=511"></script><script src="planos-cotejo.js?v=664"></script><script src="ia-motor.js?v=760"></script><script src="ana-ia.js?v=662"></script><script src="ins-completa.js?v=876"></script><script src="nav-fija.js?v=630"></script><script src="flot-fija.js?v=623"></script><script src="sos-valida.js?v=882"></script><script src="comp-solo-admin.js?v=600"></script><script src="comp-instal.js?v=876"></script><script src="inc-asigna.js?v=641"></script><script src="primera-integral.js?v=625"></script><script src="orden-puente.js?v=632"></script><script src="guiada-auto.js?v=597"></script><script src="pa-fotos.js?v=715"></script><script src="alarmas-comp.js?v=642"></script><script src="alarmas-canal.js?v=810"></script><script src="obs-com-del.js?v=606"></script><script src="seg-filtro.js?v=610"></script>
+<script src="sos-obs.js?v=440"></script><script src="unifica.js?v=837"></script><script src="antiatrap-lado.js?v=439"></script><script src="cuerpos.js?v=634"></script><script src="pbb-caract.js?v=634"></script><script src="sos-ia-fijo.js?v=438"></script><script src="bordes-ruedas.js?v=887"></script><script src="bordes-sim.js?v=885"></script><script src="limite-trabajo.js?v=438"></script><script src="conceptos.js?v=811"></script><script src="magelis-foto.js?v=522"></script><script src="sos-compacto.js?v=456"></script><script src="sos-volver.js?v=444"></script><script src="sos-historial.js?v=861"></script><script src="componentes.js?v=642"></script><script src="medidas.js?v=875"></script><script src="reincidencias.js?v=701"></script><script src="plc-ia.js?v=490"></script><script src="json-ia.js?v=558"></script><script src="fotos-almacen.js?v=561"></script><script src="recorte.js?v=561"></script><script src="incorpora.js?v=882"></script><script src="campo-extra.js?v=852"></script><script src="alias-campo.js?v=617"></script><script src="acceso-faceid.js?v=755"></script><script src="logo-toggle.js?v=478"></script><script src="avisos-aprende.js?v=791"></script><script src="tiempos.js?v=480"></script><script src="cierre-plus.js?v=522"></script><script src="guia-sinot.js?v=488"></script><script src="plc-foto.js?v=487"></script><script src="foto-zoom.js?v=489"></script><script src="manguera400.js?v=749"></script><script src="hz-nobloquea.js?v=513"></script><script src="comp-importar-datos.js?v=574"></script><script src="comp-nav.js?v=877"></script><script src="comp-ficha.js?v=644"></script><script src="comp-edita.js?v=644"></script><script src="comp-alarmas.js?v=717"></script><script src="visor-zoom.js?v=548"></script><script src="guia-foco.js?v=499"></script><script src="alarmas-rcs.js?v=888"></script><script src="panel-estable.js?v=499"></script><script src="bloques-campo.js?v=511"></script><script src="planos-cotejo.js?v=664"></script><script src="ia-motor.js?v=760"></script><script src="ana-ia.js?v=662"></script><script src="ins-completa.js?v=876"></script><script src="nav-fija.js?v=630"></script><script src="flot-fija.js?v=623"></script><script src="sos-valida.js?v=888"></script><script src="comp-solo-admin.js?v=600"></script><script src="comp-instal.js?v=876"></script><script src="inc-asigna.js?v=641"></script><script src="primera-integral.js?v=625"></script><script src="orden-puente.js?v=632"></script><script src="guiada-auto.js?v=597"></script><script src="pa-fotos.js?v=715"></script><script src="alarmas-comp.js?v=642"></script><script src="alarmas-canal.js?v=810"></script><script src="obs-com-del.js?v=606"></script><script src="seg-filtro.js?v=610"></script>
 <script src="pa-orden.js?v=776"></script>
 <script src="regot.js?v=688"></script>
 <script src="dash-pro.js?v=688"></script>
@@ -5980,7 +5983,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 <script src="sos-ins.js?v=684"></script>
 <script src="card-ot.js?v=771"></script><script src="guia-pa.js?v=751"></script><script src="sos-tecnico.js?v=865"></script><script src="atraque.js?v=777"></script><script src="suelo-basculante.js?v=790"></script><script src="modo-desarrollo.js?v=754"></script><script src="clave-ia.js?v=760"></script><script src="reabrir-ot.js?v=774"></script>
 <script src="consultando.js?v=665"></script>
-<script src="puentes-lista.js?v=854"></script>
+<script src="puentes-lista.js?v=888"></script>
 <script src="nav-vertical.js?v=802"></script>
 <script src="guia-completa.js?v=794"></script><script src="guia-act.js?v=878"></script>
 <script src="nav-derecha.js?v=802"></script>

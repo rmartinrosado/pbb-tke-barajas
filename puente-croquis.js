@@ -127,6 +127,8 @@ const PAN={o:["#e0701c","#7a3a08"],r:["#f07aa8","#8a2a52"],a:["#4fb7e6","#1d5f80
 function v5(o){
  /* v431: modo «soltar hilo» (desbloqueos por equipo de servicio en E-A2): una sola borna, hilo sacado de la borna, sin puente */
  const SU=!!o.suelta;if(SU)o=Object.assign({},o,{b2:o.b1});
+ /* v888: puente a un borne FUERA del módulo (+24 V común hilo 613 en E-X68:6): una borna en el módulo y el cable sale a un rótulo */
+ const EX=!SU&&!!o.ext,X2=o.b2;if(EX)o=Object.assign({},o,{b2:o.b1});
  const id=o.mod,[bk,pk]=MODC[id]||["v","a"],B=BODY[bk],Pn=PAN[pk];
  const pa=/^(\d+)\.(\d)/.exec(o.b1)||[0,8,1],pb=/^(\d+)\.(\d)/.exec(o.b2)||[0,8,2];
  const n1=+pa[1],r1=+pa[2],n2=+pb[1],r2=+pb[2],blk=Math.ceil(n1/2),c1=(n1-1)%2,c2=(n2-1)%2;
@@ -158,7 +160,7 @@ function v5(o){
  const d=`M${xa+side*26} ${ya+16} C ${xa+side*60} ${ya+26}, ${out} ${ya-14}, ${out+side*6} ${(ya+yb)/2-6} S ${out-side*10} ${yb+44}, ${xb+side*26} ${yb+16}`;
  const lx=X0+SW+44,lead=(x,y)=>`<path d="M${lx-6} ${y} H${x+16}" stroke="var(--pk-hi)" stroke-width="1.4" stroke-dasharray="4 3"/>`;
  return `<svg class="pzk" viewBox="0 0 ${W} ${H}" role="img" aria-label="Puente provisional ${esc(o.b1)} – ${esc(o.b2)} en ${esc(id)}">
- <text x="12" y="22" font-size="15" font-weight="800">${SU?`${esc(id)} · SOLTAR el hilo de ${esc(o.b1)}`:`${esc(id)} · puente ${esc(o.b1)} → ${esc(o.b2)}`}</text>
+ <text x="12" y="22" font-size="15" font-weight="800">${SU?`${esc(id)} · SOLTAR el hilo de ${esc(o.b1)}`:`${esc(id)} · puente ${esc(o.b1)} → ${esc(EX?X2:o.b2)}`}</text>
  ${(()=>{/* v305: descripción ajustada al ancho, en hasta dos líneas (antes se cortaba a 40 letras con «…») */
   const M=54,pal=String(o.d||"").replace(/\s+/g," ").trim().split(" "),L=[""];
   pal.forEach(w=>{const k=L.length-1;if(!L[k])L[k]=w;else if((L[k]+" "+w).length<=M)L[k]+=" "+w;else L.push(w)});
@@ -170,9 +172,12 @@ function v5(o){
  ${SU?(()=>{const ox=out+side*4,oy=ya+86,dd=`M${xa+side*30} ${ya+22} C ${xa+side*58} ${ya+40}, ${ox} ${ya+44}, ${ox} ${oy}`;
   return `<path class="wire2" d="${dd}"/><path class="wire" d="${dd}"/><g class="pin" style="transform-box:fill-box"><g transform="translate(${xa+side*30},${ya+22}) rotate(${side*-60})"><rect x="-4.5" y="3" width="9" height="18" fill="var(--pk-cu)"/><rect x="-7" y="19" width="14" height="20" rx="3" fill="var(--pk-w)"/></g></g>
   <text x="${xa+side*22}" y="${ya+64}" text-anchor="middle" font-size="18" class="hi">✂</text><g class="pdes"><path d="M${xa+side*14} ${ya+4} L${xa+side*44} ${ya+34}" class="pdesa"/><path d="M${xa+side*44-side*12} ${ya+34} L${xa+side*44} ${ya+34} L${xa+side*44} ${ya+22}" class="pdesa"/>
-  <rect x="${X0+SW/2-62}" y="${TOP+132}" width="124" height="17" rx="4" class="pdesr"/><text x="${X0+SW/2}" y="${TOP+145}" text-anchor="middle" class="pdest">⬅ DESCONECTAR</text></g><text x="${ox}" y="${oy+18}" text-anchor="middle" font-size="11" font-weight="800" class="hi">AISLAR</text>`})():`<path class="wire2" d="${d}"/><path class="wire" d="${d}"/>${fer(xa+side*8,ya+6)}${fer(xb+side*8,yb+6)}`}
+  <rect x="${X0+SW/2-62}" y="${TOP+132}" width="124" height="17" rx="4" class="pdesr"/><text x="${X0+SW/2}" y="${TOP+145}" text-anchor="middle" class="pdest">⬅ DESCONECTAR</text></g><text x="${ox}" y="${oy+18}" text-anchor="middle" font-size="11" font-weight="800" class="hi">AISLAR</text>`})():EX?(()=>{const ox=out+side*4,oy=ya+96,dd=`M${xa+side*30} ${ya+22} C ${xa+side*58} ${ya+40}, ${ox} ${ya+44}, ${ox} ${oy}`,bx=side>0?X0+SW+10:2;
+  return `<path class="wire2" d="${dd}"/><path class="wire" d="${dd}"/>${fer(xa+side*8,ya+6)}<rect x="${bx}" y="${oy}" width="66" height="50" rx="5" fill="#0b0d12" stroke="var(--pk-hi)" stroke-width="2"/>
+  <text x="${bx+33}" y="${oy+16}" text-anchor="middle" font-size="11.5" font-weight="800" class="hi">${esc(X2)}</text>${String(o.k2).split(" · ").map((t,i)=>`<text x="${bx+33}" y="${oy+30+i*12}" text-anchor="middle" font-size="9.5" style="fill:#c9ced6">${esc(t)}</text>`).join("")}`})()
+  :`<path class="wire2" d="${d}"/><path class="wire" d="${d}"/>${fer(xa+side*8,ya+6)}${fer(xb+side*8,yb+6)}`}
  <g font-weight="800"><text x="${lx}" y="${ya+3}" font-size="15" class="hi">${esc(o.b1)}</text><text x="${lx}" y="${ya+19}" font-size="10.5" class="mu">${esc(o.k1)}</text>
- ${SU?"":`<text x="${lx}" y="${yb+3}" font-size="15" class="hi">${esc(o.b2)}</text><text x="${lx}" y="${yb+19}" font-size="10.5" class="mu">${esc(o.k2)}</text>`}</g>
+ ${SU||EX?"":`<text x="${lx}" y="${yb+3}" font-size="15" class="hi">${esc(o.b2)}</text><text x="${lx}" y="${yb+19}" font-size="10.5" class="mu">${esc(o.k2)}</text>`}</g>
  <text x="${W/2}" y="${H-24}" text-anchor="middle" class="mu" style="font-size:12px">${SU?`<tspan x="${W/2}">Con el hilo suelto y aislado, el LED de ${esc(o.b1)}</tspan><tspan x="${W/2}" dy="15">se apaga y la PBB se desbloquea</tspan>`:`<tspan x="${W/2}">${safe?`Con el puente, el LED ${n1}`:`Con el puente, el LED ${ledIn} del módulo ${blk}`/* v856: numeración del frontal (LED 1-4 de cada módulo), no la de la entrada */}</tspan><tspan x="${W/2}" dy="15">${safe?"debe encenderse":"se enciende"}</tspan>`}</text></svg>`} /* v303: texto bajo el dibujo centrado y en dos líneas para que entre en pantalla */
 window.croquisPuente=function(o,v){css();o=Object.assign({mod:"E-A8",ch:8,b1:"8.1",b2:"8.2",k1:"IN08S",k2:"UT2",d:"F.C. INCLINACIÓN"},o||{});return (v==5?v5:v==4?v4:v==2?v2:v==3?v3:v1)(o)};
 })();

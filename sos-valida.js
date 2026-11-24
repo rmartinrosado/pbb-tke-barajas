@@ -141,11 +141,15 @@ function sacarHTML(A){const X=A.cod.map(z=>z.x);const R=X.map(x=>{try{return rcs
  const cro=[];R.forEach(r=>{if(r.tipo=="puente")r.cro.forEach(o=>cro.push(o));
   else if(r.tipo=="txt"||r.tipo=="op"){try{if(typeof _croqLista=="function")_croqLista(mk(r.x.c+" "+r.x.t)).filter(o=>mismoSis(r.x.t,o)).forEach(o=>{if(!cro.some(q=>q.mod==o.mod&&q.b1==o.b1&&q.b2==o.b2))cro.push(Object.assign({},o,{d:r.x.c+" · "+(o.d||"")}))})}catch(e){}}});
  const lin=R.map(r=>{let p="";
-  if(r.tipo=="puente")p=r.cro.map(o=>`<div class="puac">En <b>MANUAL</b> y con un compañero vigilando: <b>puente provisional en ${E(o.mod)} ${E(o.b1)} (${E(o.k1)}) ↔ ${E(o.b2)} (${E(o.k2)})</b>${o.el&&o.el.length?` · libera ${E(o.el.join(" / "))}`:""}. Mover en sentido contrario para salir de la seguridad y avisar a CGA.</div>`).join("")
-   +`<div class="puac">${ACC(r.txt.replace(/^Módulo safety amarillo .*?vigilando\)?\.\s*/,""))}</div><div class="puac">Prueba: quitar el puente, modo OFF → ON y comprobar en la Magelis que la ${E(r.x.c)} no vuelve a entrar.</div>`;
+  /* v888: con «1º…» (actuación sin herramientas primero) el puente va después, «si no se recupera así»; con dos lados, cada puente
+     lleva su señal (p. ej. FRENO CABINA IZDA / DCHA) para hacer SOLO el del lado apagado */
+  if(r.tipo=="puente"){const pri1=/^1º/.test(r.txt||""),dos=r.cro.length>1;
+   const pu=r.cro.map(o=>`<div class="puac">${pri1?"Si no se recupera así · ":""}En <b>MANUAL</b> y con un compañero vigilando: <b>puente provisional en ${E(o.mod)} ${E(o.b1)} (${E(o.k1)}) ↔ ${E(o.b2)} (${E(o.k2)})</b>${dos&&o.sd?` · solo si es ${E(o.sd.toLowerCase())}`:""}${o.el&&o.el.length?` · libera ${E(o.el.join(" / "))}`:""}. Mover en sentido contrario para salir de la seguridad y avisar a CGA.</div>`).join("");
+   const tx=`<div class="puac">${ACC(r.txt.replace(/^Módulo safety amarillo .*?vigilando\)?\.\s*/,""))}</div>`;
+   p=(pri1?tx+pu:pu+tx)+`<div class="puac">Prueba: quitar el puente, modo OFF → ON y comprobar en la Magelis que la ${E(r.x.c)} no vuelve a entrar.</div>`}
   else if(r.tipo=="anap")p=r.an.p.map(t=>`<div class="puac">${E(t)}</div>`).join("")+`<div class="puac">Solo en MANUAL y con un compañero vigilando; avisar a CGA. Reparar el sensor o su manguera, quitar la resistencia y volver a conectar el conductor.</div><div class="puac">Prueba: con el puente puesto la ${E(r.x.c)} se borra tras OFF → ON; al reparar, comprobar en la Magelis que la medida varía en todo el recorrido.</div>`;
   else p=`<div class="puac">${ACC(r.txt)}</div>`;
-  return`<div class="svsa"><div class="svsah">${typeof rcsIco=="function"&&r.x.f!="R"?rcsIco(r.x.f)+" ":""}<b>${E(r.x.c)}</b> ${E(r.x.t)} · <span>${TIT[r.tipo]||TIT.txt}</span></div>${p}</div>`}).join("");
+  return`<div class="svsa"><div class="svsah">${typeof rcsIco=="function"&&r.x.f!="R"?rcsIco(r.x.f)+" ":""}<b>${E(r.x.c)}</b> ${E(r.x.t)} · <span>${r.tipo=="puente"&&r.cro.length&&!/^E-A(8|9|10)$/.test(r.cro[0].mod)?"🔌 Puente provisional en la entrada del PLC ("+E(r.cro[0].mod)+", módulo verde)":(TIT[r.tipo]||TIT.txt)}</span></div>${p}</div>`}).join("");
  try{if(window.croqLado)cro.sort(window.croqLado)}catch(e){}
  const croH=cro.length&&typeof croquisPuente=="function"?`<div class="card gcroq ubcro svcro"><div class="gcrh">${(window.croqTit?croqTit(cro):{ic:"🔌"}).ic} ${(window.croqTit?croqTit(cro):{t:"Croquis del puente provisional"}).t} según planos · módulo ${E([...new Set(cro.map(o=>o.mod))].join(" / "))}${window.croqTit?croqTit(cro).n:""}</div><div class="gcrs">${cro.map(o=>{try{return`<div class="gcri">${croquisPuente(o,5)}</div>`}catch(e){return""}}).join("")}</div></div>`:"";
  /* croquis de los puentes analógicos (los mismos de la guía de campo, Observaciones de «Medidas analógicas») */
