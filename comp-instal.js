@@ -32,17 +32,17 @@ function bloque(n,cs,i){const t=nt(n.t);const dest=cs.has(t);
  const tipo=/-X\d/.test(t)?"Bornero":n.k=="M"?"Módulo PLC":n.k=="E"?(dest?"DESTINO · componente":"Elemento"):n.k=="P"?"Punto":"";
  return `<div class="cib${dest?" cidest":""}"><small>${E(tipo)}</small><b>${E(t)}</b>${bornas?` <span class="cip">${/-X\d/.test(t)?"borna":"bornas"} ${E(bornas)}</span>`:""}${n.l?` <span class="cip">${E(n.l)}</span>`:""}</div>`}
 
-function croquis(e,cs){let h="",zAnt="";
+function croquis(e,cs){let h="",zAnt="",lv=0;/* v876: árbol con sangrado (cada nivel cuelga del anterior) */const ML=()=>`margin-left:${Math.min(lv,8)*11}px`;
  const banda=z=>{if(z==zAnt)return "";zAnt=z;return `<div class="ciz">📍 ${E(z)}</div>`};
  if(e.m!="AUX"){h+=banda(MZ(e.m)||zona(e.m));
-  h+=`<div class="cib ciori"><small>ORIGEN · módulo PLC</small><b>${E(e.m)}</b> <span class="cip">borna ${E(e.b)}</span>${e.c||e.k?` <span class="cip">${E([e.c,e.k].filter(Boolean).join(" · "))}</span>`:""}</div>`}
+  lv=1;h+=`<div class="cib ciori"><small>ORIGEN · módulo PLC</small><b>${E(e.m)}</b> <span class="cip">borna ${E(e.b)}</span>${e.c||e.k?` <span class="cip">${E([e.c,e.k].filter(Boolean).join(" · "))}</span>`:""}</div>`}
  const N=(e.n||[]).filter(n=>n.t||n.k=="C"||n.k=="?");let pasado=false;
  N.forEach((n,i)=>{if(n.k=="?"){h+=`<div class="cinota">ℹ️ ${E(n.x||"")}</div>`;return}
   if(n.k=="C"){h+=`<div class="cicom">⏚ común ${E(n.w||"")}</div>`;return}
   const t=nt(n.t);const cw=cable(n.v);
-  if(cw)h+=`<div class="cil">${cw}</div>`;else if(i>0||e.m!="AUX")h+=`<div class="cil"><span class="ciw ciwv">│</span></div>`;
+  if(cw)h+=`<div class="cil cilt" style="margin-left:${Math.min(lv,8)*11-5}px">⬇ ${cw}</div>`;else if(i>0||e.m!="AUX")h+=`<div class="cil cilt" style="margin-left:${Math.min(lv,8)*11-5}px">⬇</div>`;
   if(n.k=="M"){h+=banda(MZ(t)||zona(t));h+=`<div class="cib ciori"><small>RETORNO · módulo PLC</small><b>${E(t)}</b>${n.l?` <span class="cip">${E(n.l)}</span>`:""}</div>`;return}
-  h+=banda(zona(t));h+=bloque(n,cs,i);if(cs.has(t))pasado=true});
+  h+=banda(zona(t));h+=`<div class="citr" style="${ML()}">${bloque(n,cs,i).replace("<b>","<b>└▶ ")}</div>`;lv++;if(cs.has(t))pasado=true});
  return h}
 
 /* ===== v646: CROQUIS DEL MÓDULO PLC =====
@@ -135,3 +135,6 @@ details.cic{margin:8px 0;border-left:3px solid #2e9e44;padding-left:8px}details.
 .cicom{font-size:12px;opacity:.85;margin:4px 0 0 4px}.cinota{font-size:12px;margin:4px 0;padding:5px 7px;border-radius:7px;background:#e8eef9;color:#1a3a7a}`;
 document.head.appendChild(st);
 })();
+
+/* v876: estilo del árbol origen → destino */
+(function(){const st=document.createElement("style");st.textContent=`.citr .cib{border-left:4px solid #78909c}.citr .cidest{border-left-color:#f2b705}.cil.cilt{justify-content:flex-start!important;text-align:left!important;border-left:2px dashed #64b5f6;padding-left:6px;color:#1e88e5;font-weight:700;font-size:11.5px}`;document.head.appendChild(st)})();

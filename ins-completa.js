@@ -154,7 +154,9 @@ function senalHTML(d,ix,i){const e=d.e,{pasos,notas}=cadena(d);let ult="";
  const tit=d.eq||e.d;const sub=e.m=="AUX"?`${d.eq?e.d+" · ":""}folio ${e.f}`:`${e.m} · ${e.c||""} IN ${e.b} · «${e.d}» · folio ${e.f}`;
  const pl=f=>f?`<button class="gpl icpl" aria-label="Ver plano folio ${f}" onclick="event.preventDefault();event.stopPropagation();gPlano('PAS',${f})">${typeof IC=="function"?IC('plans'):"📄"}<small>${f}</small></button>`:"";
  const filas=pasos.map((p,j)=>{const sep=p.z!==ult&&j>0;ult=p.z;const prev=pasos[j-1],next=pasos[j+1];
-  return `${sep?`<div class="icsep"></div>`:""}<div class="icp${p.c?" icc":""}${p.dst?" icd":""}"><div class="icpt">${filaZ(p.z)}<b class="icar">→</b> ${esc(p.n)} <span class="icb">${esc(p.p)}</span>${mini(p)||pl(p.f)}</div>
+  /* v876: árbol con sangrado · cada punto cuelga del anterior (└▶) y entre ellos el hilo / manguera por el que llega */
+  const lv=Math.min(j,8);
+  return `${sep?`<div class="icsep"></div>`:""}${prev&&prev.sale?`<div class="trl" style="margin-left:${lv*11+6}px">⬇ ${esc(prev.sale)}</div>`:j?`<div class="trl" style="margin-left:${lv*11+6}px">⬇</div>`:""}<div class="icp trn${p.c?" icc":""}${p.dst?" icd":""}" style="margin-left:${lv*11}px"><div class="icpt">${filaZ(p.z)}<b class="icar">${j?"└▶":"ORIGEN ·"}</b> ${esc(p.n)} <span class="icb">${esc(p.p)}</span>${mini(p)||pl(p.f)}</div>
    <div class="icl"><span class="ick">Llega desde</span><span>${prev?esc(prev.p)+(prev.sale?" · "+esc(prev.sale):""):(p.src?"origen de tensión":"origen")}</span></div>
    <div class="icl"><span class="ick">Sale a</span><span>${next?esc(next.p)+(p.sale?" · por "+esc(p.sale):""):"destino (fin del recorrido)"}</span></div>
    <div class="icl icm"><span class="ick">Medir</span><span>${medir(p,d)}</span></div></div>`}).join("");
@@ -263,3 +265,7 @@ const st=document.createElement("style");st.textContent=`
 .icmot .icmc{background:#d97757!important;border-color:#d97757!important;color:#fff!important}`;document.head.appendChild(st);
 setTimeout(()=>{try{pintaGuia()}catch(e){}},300);
 })();
+
+/* v876: estilo del árbol origen → destino */
+(function(){const st=document.createElement("style");st.textContent=`.icp.trn{border-left:4px solid #78909c!important}.icp.trn.icd{border-left-color:#f2b705!important}
+.trl{padding:2px 0 2px 6px;border-left:2px dashed #64b5f6;color:#1e88e5;font-size:11.5px;font-weight:700;margin-top:2px}`;document.head.appendChild(st)})();
