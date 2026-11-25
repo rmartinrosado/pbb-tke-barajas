@@ -276,6 +276,8 @@ ${P} #rcs_l.on,${P} .sostcl{max-height:52vh;overflow-y:auto;-webkit-overflow-scr
 ${P} .rcslg,${P} .sostcz{font:800 11px/1.4 ${MO}!important;letter-spacing:1.4px!important;text-transform:uppercase;color:var(--mu)!important;margin:10px 4px 4px!important;display:flex;align-items:center;gap:6px}
 ${P} .rcsit,${P} .rcscb{min-height:52px!important;display:flex!important;flex-wrap:wrap;align-items:center;gap:6px;width:100%!important;margin:0 0 4px!important;padding:10px 12px!important;text-align:left;
  font:500 15px/1.3 system-ui,-apple-system,sans-serif!important;border-radius:10px!important;background:${FLD}!important;border:1px solid ${BRD}!important;color:var(--tx)!important}
+/* v918: número y texto de la alarma en la misma línea (el texto largo parte a la derecha del número, no debajo) */
+${P} .rcsit{flex-wrap:nowrap!important}${P} .rcsit>:not(.rcstx){flex:none}${P} .rcsit .rcstx{flex:1;min-width:0}
 ${P} .rcscb small{flex-basis:100%;font-size:12px!important;color:var(--mu)}
 ${P} .rcscb .cmpid{font:800 13px/1.3 ${MO}!important;background:color-mix(in srgb,var(--tx) 70%,var(--card))!important;color:var(--card)!important;border-radius:6px;padding:2px 7px}
 ${P} .rcscb.sostya{opacity:.55}${P} .rcscb.sostya::after{content:"✓ ya en la avería";font:800 11px/1 ${MO};color:#1fa64a}

@@ -581,7 +581,7 @@ function ubiDe(o){let u=String(o.ubi||"").trim();const id=String(o.id||"").toUpp
  if(!u){u=/^E\d?-/.test(id)?"Armario eléctrico":/^P-/.test(id)?"Pupitre":/^CP-/.test(id)?"Pupitre":/^C-/.test(id)?"Cabina":/^H-/.test(id)?"Elevación":/^(ET|IT|MT)-/.test(id)?"Túneles":/^T-/.test(id)?"Tren de ruedas":/^(R|CO)-/.test(id)?"Rotonda":/^SS-/.test(id)?"Puerta de servicio":/^EP-|^EC-|^EIT-|^ER-/.test(id)?"Mangueras":"Otros"}
  return u.charAt(0).toUpperCase()+u.slice(1)}
 window.rcsBloqueInterv=(x,L,varias)=>bloqueInterv(typeof x=="string"?porCod(x):x,L||window.rcsIntervienen(x),varias);
-const itAl=x=>`<button type="button" class="rcsit rcs${x.f}" data-c="${x.c}">${FN[x.f][0]} <b>${x.c}</b> ${E(x.t)}</button>`;
+const itAl=x=>`<button type="button" class="rcsit rcs${x.f}" data-c="${x.c}">${FN[x.f][0]} <b>${x.c}</b> <span class="rcstx">${E(x.t)}</span></button>`;
 const todasAl=()=>[["A",ICO("A")+" Alarmas"],["W",ICO("W")+" Advertencias"],["R","🔵 Puesto remoto"]].map(([f,t])=>`<div class="rcslg">${t}</div>`+CAT.filter(x=>x.f==f).map(itAl).join("")).join("");
 /* v705: lista de alarmas de la caja «Alarma a mano», una por línea (por número o por texto del manual), sin repetir */
 function listaAl(txt){const out=[];String(txt||"").split(/\n+/).forEach(li=>{if(!li.trim())return;
