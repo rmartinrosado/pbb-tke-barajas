@@ -96,7 +96,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 /* ---------- 4 · botón 🕘 en la cabecera del SOS ---------- */
 const oR=window.sosRap;if(typeof oR=="function")window.sosRap=function(){const r=oR.apply(this,arguments);try{
  const t=document.querySelector("#sheetc .sosct");if(t&&!t.querySelector(".soshb")){const x=t.querySelector(".soscx");
-  const b=document.createElement("button");b.type="button";b.className="soshb";b.setAttribute("aria-label","Histórico de SOS");b.innerHTML="🕘<small>Histórico</small>";
+  const b=document.createElement("button");b.type="button";b.className="soshb";b.setAttribute("aria-label","Histórico de SOS");b.innerHTML="<small>Histórico</small>";
   b.onclick=()=>pinta();t.insertBefore(b,x||null)}}catch(e){}return r};
 const st=document.createElement("style");st.textContent=`
 #sheetc .soshb{flex:none;width:auto!important;height:36px;margin:0!important;padding:0 8px!important;border-radius:9px;display:flex;align-items:center;gap:3px;font-size:16px;background:transparent;border:1.5px solid #1fa64a;color:#1fa64a;font-weight:800}

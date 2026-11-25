@@ -180,7 +180,7 @@ ${P} .soscx,${P} .soshb,${P} .shx{flex:none!important;height:50px!important;marg
 ${P} .soscx,${P} .shx{width:50px!important;padding:0!important;font-size:20px!important;font-weight:800!important}
 ${P} .soshb{padding:0 10px!important;display:flex!important;align-items:center;gap:6px!important;font-size:17px!important;color:var(--tx)!important;border-color:${BRD}!important}
 /* v912: «HISTÓRICO» con las letras de los títulos (mono 900, mayúsculas, degradado texto → naranja) */
-${P} .soshb small{font:900 12px/1 ${MO}!important;letter-spacing:1.5px!important;text-transform:uppercase;background:linear-gradient(90deg,var(--tx) 30%,${OR});-webkit-background-clip:text;background-clip:text;color:transparent!important}
+${P} .soshb small{font:900 13px/1 ${MO}!important;letter-spacing:1.5px!important;text-transform:uppercase;background:linear-gradient(90deg,var(--tx) 30%,${OR});-webkit-background-clip:text;background-clip:text;color:transparent!important}
 ${P} .sostsub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 6px 15px;font:600 12px/1.2 ${MO};color:var(--mu);letter-spacing:.6px}
 ${P} .sostsub b{color:var(--tx)}${P} .sostdot{width:8px;height:8px;border-radius:50%;background:#ff3b30;animation:sostPul 1.4s infinite}
 ${P} .sostscan{position:relative;height:2px;margin:0 0 2px;border-radius:2px;background:color-mix(in srgb,var(--tx) 10%,transparent);overflow:hidden}
