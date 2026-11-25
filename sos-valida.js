@@ -60,9 +60,13 @@ function analiza(){
  /* v704: los componentes de la alarma salen de los PLANOS (rcsIntervienen: canal del PLC → elemento → borneros → módulo),
     no del parecido de texto (004 ya no da el láser ET-B9). Los elementos de campo incorporados acotan; los que no lo están
     se proponen desde los planos. */
- let I=[];try{I=typeof rcsIntervUnion=="function"?rcsIntervUnion(cod.map(z=>z.x)):[]}catch(e){}
+ /* v899: la LÍNEA DE SEGURIDADES (011 / 013 / 065) es la consecuencia: si hay además la alarma del elemento (p. ej. 009), los
+    componentes salen de esa alarma, no de los contactores E-K0 / E-K0.1 */
+ const LINEA=new Set(["011","013","065"]);const codC=cod.some(z=>!LINEA.has(z.x.c))?cod.filter(z=>!LINEA.has(z.x.c)):cod;
+ let I=[];try{I=typeof rcsIntervUnion=="function"?rcsIntervUnion(codC.map(z=>z.x)):[]}catch(e){}
  const Icampo=I.filter(o=>o.rol=="campo");
- const Cd=uniq(campo(ob)),Ca=Icampo.length?uniq(Icampo.filter(o=>o.c).map(o=>o.c)):uniq(cod.flatMap(z=>deAl(z.x))),Ct=Icampo.length?[]:uniq(campo([ob,al,foto].filter(Boolean).join(" ")));
+ /* v899: con el SÍNTOMA solo (sin código) no se proponen componentes por parecido de texto («no traslada» sacaba los variadores E-U1 / E-U2 con la 009) */
+ const Cd=sintoma&&cod.length?[]:uniq(campo(ob)),Ca=Icampo.length?uniq(Icampo.filter(o=>o.c).map(o=>o.c)):uniq(cod.flatMap(z=>deAl(z.x))),Ct=Icampo.length?[]:uniq(campo([ob,al,foto].filter(Boolean).join(" ")));
  let C;
  /* v882: si los PLANOS ya dicen qué elemento de campo trae la alarma (113 → IT-B10) pero aún no está incorporado, lo escrito
     en «Avería en campo» NO propone otros componentes por parecido de texto (salían P-K51, P-K52, C-B14); solo cuentan los que
@@ -90,7 +94,8 @@ function analiza(){
     al no compartir componentes con la alarma, salía «la alarma no coincide con la avería». Solo hay discrepancia si la avería
     nombra un elemento concreto (código) distinto de los de la alarma. */
  if(est=="ok"&&ob&&!Ld.length&&Cd.length&&Ca.length&&!inter(Cd,Ca).length&&!sintoma){est="dif";cod=[]}
- return{ob,al,est,cod,Ld,La,C,pend,I}}
+ let Iall=I;if(codC.length!==cod.length){try{Iall=rcsIntervUnion(cod.map(z=>z.x))}catch(e){}}
+ return{ob,al,est,cod,Ld,La,C,pend,I:Iall,Ic:I}}
 
 /* ---------- pintado ---------- */
 const EST={ok:["✅","ALARMA VALIDADA","La alarma coincide con el manual RCS y con el síntoma en campo."],
@@ -124,13 +129,22 @@ const fichaH=c=>{try{return typeof compFicha=="function"?compFicha(c):""}catch(e
 /* v892: componente SIN ficha en el catálogo: lo que sí dicen los planos (tipo, conexión, entrada del PLC y LED, borneros, mangueras,
    cómo comprobarlo) y el botón «Incorporar <código> al catálogo», que abre Componentes de campo con esa pieza buscada para hacerle la foto.
    Antes solo salía el código y el nombre, y un botón genérico «CATÁLOGO · PENDIENTES DE IMPORTAR». */
-function fichaPlanos(r,A){const id=String(r[0]),I=A.I||[];const me=I.find(o=>String(o.id).split(" ")[0].toUpperCase()==id.toUpperCase());
- const mods=I.filter(o=>o.rol=="modulo"&&(!me||me.pri==o.pri||I.filter(z=>z.rol=="modulo").length==1));
- const bor=I.filter(o=>o.rol=="borna"&&(!me||o.pri==me.pri)),man=I.filter(o=>o.rol=="manguera"&&(!me||o.pri==me.pri));
+function fichaPlanos(r,A){const id=String(r[0]),I=A.Ic||A.I||[];const me=I.find(o=>String(o.id).split(" ")[0].toUpperCase()==id.toUpperCase());
+ /* v899: entrada, borneros y mangueras del PROPIO elemento sacados del CABLEADO (con varias alarmas salían los de la otra, p. ej.
+    IT-S3 con la entrada E-A0 1.1 de la línea de seguridades) */
+ const lid=t=>String(t||"").replace(/^\+/,"").replace(/\[.*$/,"").replace(/\((.*)\)$/," ($1)").trim().toUpperCase();
+ const CB=window.CABLEADO||{};const ents=Object.keys(CB).map(k=>CB[k]).filter(e=>e&&e.m&&(e.n||[]).some(n=>n.k=="E"&&lid(n.t)==id.toUpperCase()));
+ let mods,bor,man;
+ if(ents.length){const ms=new Map(),bs=new Map(),ws=new Set();
+  ents.forEach(e=>{if(/GND|^N\.?C\.?$/i.test(String(e.k||"")+" "+String(e.d||"").trim()))return;ms.set(e.m+" "+e.b,{id:e.m,det:[(/^OUT/i.test(e.k||"")?"salida ":"entrada ")+e.b+" ("+(e.k||"")+") · "+String(e.d||"").toLowerCase()]});
+   (e.n||[]).forEach(n=>{if(n.k=="B"&&/-X\d/.test(n.t||"")){const b=lid(n.t);if(!bs.has(b))bs.set(b,new Set());bs.get(b).add(n.p)}(n.v||[]).forEach(v=>{if(v.m)ws.add(String(v.m).replace(/^-/,"")+(v.t&&!/FABRICANTE/i.test(v.t)?" ("+v.t+")":""))})})});
+  mods=[...ms.values()];bor=[...bs.entries()].map(([b,ps])=>({id:b,det:[[...ps].filter(Boolean).join("/")]}));man=[...ws].map(w=>({id:w,det:[]}))}
+ else{mods=I.filter(o=>o.rol=="modulo"&&(!me||me.pri==o.pri||I.filter(z=>z.rol=="modulo").length==1));
+  bor=I.filter(o=>o.rol=="borna"&&(!me||o.pri==me.pri));man=I.filter(o=>o.rol=="manguera"&&(!me||o.pri==me.pri))}
  const tipo=/-B\d/.test(id)?(/ultras|láser|laser|fotoc/i.test(r[1])?"sensor":"inductivo / detector (3 hilos: BN +24 V · BK señal · BU 0 V)"):/-S\d/.test(id)?"final de carrera (contacto)":/-Y\d/.test(id)?"electroválvula (bobina)":/-R\d/.test(id)?"potenciómetro / transmisor":/-U\d/.test(id)?"relé evaluador":/-K\d/.test(id)?"relé / contactor":/-Q\d/.test(id)?"guardamotor / disyuntor":"elemento de campo";
  const ent=mods.map(o=>`${o.id} ${o.det.join(" · ")}`).join(" / ");
  const fila=(k,v)=>v?`<div class="svfp"><b class="svfpk">${k}</b><div class="svfpv">${E(v)}</div></div>`:"";
- const prueba=mods.length?`Al actuar el elemento (con la PBB en esa posición o pasando una pieza metálica / pulsando el contacto) el LED de ${mods.map(o=>o.id+" "+(String(o.det[0]||"").match(/entrada (\S+)/)||["",""])[1]).join(" / ")} debe cambiar. Si no cambia: medir 24 V en el elemento y la señal en el bornero.`:"";
+ const prueba=/-[KQUF]\d/.test(id)?(mods.length?`Comprobar en ${mods.map(o=>o.id+" "+(String(o.det[0]||"").match(/(?:entrada|salida) (\S+)/)||["",""])[1]).join(" / ")}: con la orden, la bobina (A1-A2) debe tener 24 V y su contacto de retorno cambiar.`:""):mods.length?`Al actuar el elemento (con la PBB en esa posición o pasando una pieza metálica / pulsando el contacto) el LED de ${mods.map(o=>o.id+" "+(String(o.det[0]||"").match(/(?:entrada|salida) (\S+)/)||["",""])[1]).join(" / ")} debe cambiar. Si no cambia: medir 24 V en el elemento y la señal en el bornero.`:"";
  return`<div class="rcscb svb svfpc" style="cursor:default"><span class="cmpid">${E(id)}</span> ${E(r[1])}<small>📍 ${E(r[2]||"")} · folio ${E(r[3]||"")} · rev. J</small>
   <div class="svfpb">${fila("Tipo",tipo)}${fila("Conexión",me?me.det.join(" · "):"")}${fila("Entrada PLC",ent)}${fila("Borneros",bor.map(o=>o.id+" "+o.det.join("/").replace(/borna /g,"")).join(" · "))}${fila("Mangueras",man.map(o=>o.id+(o.det[0]&&!/cable del elemento/.test(o.det[0])?" ("+o.det[0]+")":"")).join(" · "))}${fila("Comprobar",prueba)}
   <div class="svfpf">⚠️ Sin ficha: faltan fabricante, referencia y especificaciones. Se completan al incorporarlo con la foto de su placa.</div></div>

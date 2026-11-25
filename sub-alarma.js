@@ -74,3 +74,28 @@ const oa=window.sosAnaliza;if(typeof oa=="function")window.sosAnaliza=async func
 const st=document.createElement("style");st.textContent=`select.anasel.segok{border:2px solid #22c55e!important;background:color-mix(in srgb,#22c55e 14%,var(--card,#111))!important;font-weight:700}`;
 document.head.appendChild(st);
 })();
+/* ===== v899: la ACTUACIÓN MÁS EFICAZ (2 · Reparar) la manda la ALARMA validada, no el parecido del síntoma. Con «pasarela bloqueada
+   no traslada» y la 009 salía la caja de la manguera de 400 Hz («… · no traslada»). Cada alarma lleva a la caja de su elemento
+   de la guía PAS; la de la línea de seguridades (011 / 013 / 065) pesa menos que la del elemento concreto. ===== */
+(function(){
+"use strict";
+const B=(re,w)=>({re,w:w||200});
+const MAP={
+ "009":B(/^cabina \/ freno de giro/),"010":B(/^bordes de seguridad de ruedas/),"021":B(/^bumpers brazo y cabina/),"262":B(/^bumpers brazo y cabina/),
+ "017":B(/^antiatrapamiento tunel interior/),"018":B(/^antiatrapamiento tunel interior/),"019":B(/^antiatrapamiento tunel activado/),"020":B(/^antiatrapamiento tunel activado/),
+ "001":B(/^final de carrera de seguridad pisado/),"002":B(/^final de carrera de seguridad pisado/),"003":B(/^final de carrera de seguridad pisado/),
+ "004":B(/^final de carrera de seguridad pisado/),"005":B(/^final de carrera de seguridad pisado/),
+ "112":B(/^limite de inclinacion superior/),"113":B(/^limite de inclinacion superior/),"252":B(/^limite de inclinacion superior/),"253":B(/^limite de inclinacion superior/),
+ "114":B(/^limite de extension \/ retraccion/),"108":B(/^porton enrollable/),"242":B(/^porton enrollable/),"140":B(/^puerta de servicio abierta/),
+ "138":B(/^sirena de cabina/),"139":B(/^rotonda · pulsador luminoso de autorizacion/),"015":B(/^radar de ala/),"078":B(/^radar de ala/),
+ "115":B(/^atraque incorrecto/),"082":B(/^cabina \/ brazo autonivelador \/ suelo/),"111":B(/^medidas analogicas/),
+ "063":B(/^fallo de autonivelacion/),"064":B(/^fallo de autonivelacion/),"068":B(/^fallo de autonivelacion/),"069":B(/^fallo de autonivelacion/),"070":B(/^fallo de autonivelacion/),"071":B(/^fallo de autonivelacion/),
+ "066":B(/^hidraulica · la bomba no arranca/),"074":B(/^hidraulica · no hace bajada rapida/),"122":B(/^hidraulica · no hace bajada rapida/),
+ "011":B(/^final de carrera de seguridad pisado/,60),"013":B(/^final de carrera de seguridad pisado/,60),"065":B(/^final de carrera de seguridad pisado/,60)};
+["072","073","075","096","097","098","099"].forEach(c=>MAP[c]=B(/^zapata \/ bordes \/ bumpers/));
+const nrm=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/^[^a-z0-9]+/,"");
+const oc=window.conceptoAjusta;
+window.conceptoAjusta=function(s,t,r){if(typeof oc=="function")r=oc(s,t,r);
+ try{const cs=[...new Set(String(t||"").match(/\b\d{3}\b/g)||[])].filter(c=>MAP[c]);if(!cs.length)return r;const nt=nrm(s&&s.t);
+  let add=0;cs.forEach(c=>{if(MAP[c].re.test(nt))add=Math.max(add,MAP[c].w)});if(add)return Math.max(r,0)+add}catch(e){}return r};
+})();
