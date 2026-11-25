@@ -598,20 +598,16 @@ window.rcsIntervUnion=function(X){/* v710 */const M=new Map();(X||[]).forEach(x=
    const x6=porCod("116");if(x6)window.rcsIntervienen(x6).forEach(o=>{if(!/^(H-B1|H-B2|H-W14|H-W15)$/.test(o.id)&&!(o.rol=="borna"&&M.has(o.id)))return;const p=M.get(o.id);
     if(p){o.det.forEach(d=>{if(!p.det.includes(d))p.det.push(d)});return}M.set(o.id,Object.assign({},o,{det:o.det.concat(["según la avería en campo"]),als:["116"],pri:true}))})}}catch(e){}
  const ord=z=>(z.rol=="campo"?(z.acc?0.3:/armario/i.test(z.ubi||"")?0.6:0):z.rol=="borna"?2:z.rol=="manguera"?2.5:3)+(z.rol=="campo"&&!z.pri?1:0);return[...M.values()].sort((a,b)=>ord(a)-ord(b))};
-/* v909→v916: al tocar la caja de la alarma se abre el desplegable SIN el teclado del móvil (capa transparente .rcstapa encima
-   del campo: no lo enfoca). v916: botón pequeño con un LÁPIZ a la derecha de la caja de buscar, en la misma línea: al pulsarlo
-   se quita la capa y se enfoca el campo dentro del mismo toque → sale el teclado con el cursor en la caja (también en iPhone).
-   Tocar otra vez la caja con la lista abierta hace lo mismo. Al salir de la caja vacía vuelve la capa. */
-const LAPIZ='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="M15 5l3 3"/></svg>';
+/* v909→v917: al tocar la caja de la alarma se abre el desplegable SIN el teclado del móvil (capa transparente .rcstapa encima
+   del campo: no lo enfoca). Tocar otra vez la caja con la lista abierta quita la capa y enfoca el campo en el mismo toque → sale
+   el teclado (también en iPhone). Al salir de la caja vacía vuelve la capa. v917: quitado el botón del lápiz de la v916. */
 function sinTeclado(q,l){const w=q.parentElement;if(!w||w.querySelector(".rcstapa"))return;q.readOnly=false;
  const inn=document.createElement("div");inn.className="rcsin";q.before(inn);inn.appendChild(q);w.classList.add("rcsconl");
  const tapa=document.createElement("button");tapa.type="button";tapa.className="rcstapa";tapa.setAttribute("aria-label","Abrir la lista de alarmas");inn.appendChild(tapa);
- const lp=document.createElement("button");lp.type="button";lp.className="rcslap";lp.setAttribute("aria-label","Escribir para buscar la alarma");lp.innerHTML=LAPIZ;w.appendChild(lp);
- const teclado=()=>{tapa.style.display="none";lp.classList.add("on");q.focus();try{q.setSelectionRange(q.value.length,q.value.length)}catch(e){}};
+  const teclado=()=>{tapa.style.display="none";q.focus();try{q.setSelectionRange(q.value.length,q.value.length)}catch(e){}};
  tapa.addEventListener("click",e=>{e.preventDefault();if(l.classList.contains("on")){teclado();return}
   q.dispatchEvent(new Event("focus"));q.dispatchEvent(new Event("click"))});
- lp.addEventListener("click",e=>{e.preventDefault();teclado()});
- q.addEventListener("blur",()=>{setTimeout(()=>{if(document.activeElement!==q&&!q.value.trim()){tapa.style.display="";lp.classList.remove("on")}},150)})}
+ q.addEventListener("blur",()=>{setTimeout(()=>{if(document.activeElement!==q&&!q.value.trim()){tapa.style.display=""}},150)})}
 function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const sel=sc.querySelector("#sr_a");if(!sel||sc.querySelector("#rcs_q"))return;
  const lab=sel.previousElementSibling;const fila=sel.closest(".soscr2");
  const d=document.createElement("div");d.className="rcsbus";
@@ -787,9 +783,6 @@ const st=document.createElement("style");st.textContent=`
 .rcsg{font-size:12px;font-weight:700;margin-top:2px}.rcsq{font-size:13px;margin-top:4px}.rcsa{font-size:13px;margin-top:4px;font-weight:600}.rcsop{display:flex;align-items:flex-start;gap:8px;text-align:left!important;margin:5px 0 0;line-height:1.35}.rcsop>span:last-child{flex:1;min-width:0;text-align:left!important}.rcsopn{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;font:900 12px/1 var(--tkmo,monospace);color:#fff;background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff));margin-top:1px}.rcsop0{display:block;margin-top:7px;padding-top:6px;border-top:1px dashed color-mix(in srgb,var(--tx) 18%,transparent)}.rcsr{font-size:12px;margin-top:4px;color:var(--mu,#8a93a3)}
 .rcsconl{display:flex!important;align-items:stretch;gap:6px}.rcsin{position:relative;flex:1;min-width:0;display:flex}.rcsin input{flex:1;min-width:0}
 .rcstapa{position:absolute;inset:0;z-index:2;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.rcslap{flex:none;width:48px!important;min-width:48px;min-height:0!important;align-self:stretch;margin:0!important;padding:0!important;display:grid!important;place-items:center;border-radius:12px!important;
- border:1.5px solid color-mix(in srgb,var(--tx) 16%,transparent)!important;background:color-mix(in srgb,var(--bg) 70%,var(--card))!important;color:var(--tkor,#ff7a1a)!important;box-shadow:none!important}
-.rcslap.on{border-color:var(--tkor,#ff7a1a)!important;background:color-mix(in srgb,var(--tkor,#ff7a1a) 14%,var(--card))!important}
 .rcsbus{margin-top:8px}.rcsbi input{width:100%;box-sizing:border-box;margin:0}
 .rcsfil{display:flex;gap:6px}.rcsfil .rcscmp{flex:0 0 33%;min-width:0}.rcsfil .rcsbi:not(.rcscmp){flex:1;min-width:0}.rcsfil input{height:44px;font-size:15px;padding:6px 8px}.rcsfil .rcscmp input::placeholder{font-size:13px}
 #rcs_l.on,.otrcsl.on{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border:1px solid var(--bd,#bbb);border-radius:8px;padding:4px}
