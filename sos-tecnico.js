@@ -37,7 +37,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  let F=$i("sostf");
  if(!F){F=document.createElement("div");F.id="sostf";
   /* v722: permutados · 1 ALARMA MAGELIS (arriba) · 2 PBB Y AVERÍA */
-  F.append(panel("sostp2","1","ALARMA MAGELIS","OBLIGATORIO<br>LO QUE SE DETECTA"),panel("sostp1","2","AVERÍA DETECTADA","COMPLEMENTARIA<br>ACOTA EL PROBLEMA")/* v822: subtítulos permutados */);
+  F.append(panel("sostp2","1","ALARMA MAGELIS","OBLIGATORIO"),panel("sostp1","2","AVERÍA DETECTADA","COMPLEMENTARIA<br>ACOTA EL PROBLEMA")/* v822: subtítulos permutados */);
   const ps=document.createElement("div");ps.className="sostps";ps.innerHTML=`<div class="sostpst">Al aceptar sale</div>`;F.append(ps);
   if(h)h.after(F);else c.prepend(F)}
  const B1=F.querySelector(".sostp1>.sostpb"),B2=F.querySelector(".sostp2>.sostpb"),PS=F.querySelector(".sostps");
