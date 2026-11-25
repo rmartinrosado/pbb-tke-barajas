@@ -23,7 +23,7 @@ function datos(it){const[id,a,,el,nom]=it;const M=(typeof PLC!="undefined"?PLC:[
  return {o:{mod:id,b1:a,b2:n+"."+(c+1),k1:sig(id,a)||("IN · "+el),k2:"+24 V",d},tipo:"nor"}}
 const bumper=it=>it&&it[0]=="E-A10"&&(it[1]=="1.1"||it[1]=="2.1");
 function croq(it,et){const D=datos(it);if(!D)return "";let svg="";try{svg=croquisPuente(D.o,5)}catch(e){return ""}
- const t=D.tipo=="seg"?`Línea de seguridades pulsada por FC · módulo amarillo ${esc(D.o.mod)} · puente IN ${esc(D.o.b1)} ↔ UT ${esc(D.o.b2)}`
+ const t=D.tipo=="seg"?`Entrada de seguridad · módulo amarillo ${esc(D.o.mod)} · puente IN ${esc(D.o.b1)} ↔ UT ${esc(D.o.b2)}`
   :D.o.suelta?`Límite de trabajo · módulo verde ${esc(D.o.mod)} · soltar y aislar el hilo de IN ${esc(D.o.b1)}`
   :`Límite de trabajo · módulo verde ${esc(D.o.mod)} · puente IN ${esc(D.o.b1)} ↔ +24 V ${esc(D.o.b2)}`;
  return `<div class="ppl"><div class="ppt">🔌 ${(et||bumper(it))?esc(et||"1ª opción")+" · ":""}Croquis del puente en el PLC · ${t}</div>${bumper(it)?`<div class="ppn">Saca la PBB en maniobra controlada, con un compañero vigilando, pero anula los dos bumpers del grupo: no dice cuál falla (para eso, la 2ª opción).</div>`:""}<div class="ppsvg">${svg}</div></div>`}

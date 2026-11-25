@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=893;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=894;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -3203,7 +3203,9 @@ function segVa(id){gOT=id;if(typeof gSyncOT!="undefined")gSyncOT=id;if(view!="te
 function segPuente(it){const[id,a,b,el,nom]=it;const M=PLC.find(m=>m.id==id);if(!M)return "";const m=/^(\d+)\.(\d)/.exec(a);if(!m)return "";
  const n=+m[1],c=+m[2],k=Math.ceil(n/2);const l=M.t=="SDI"?n-2*k+2:(c==1?1:3)+(n%2?0:1);const L=M.m[k-1]&&M.m[k-1][l-1];const st=L?L[1]:1;
  const RR=elRutas(el.split(" / ")[0]).filter(x=>!x.av&&new RegExp("\\b"+id+"\\b").test(x.sig+" "+x.txt));const r=RR.find(x=>x.txt.includes(`(borna ${a})`))||RR[0];
- let q;if(M.t=="SDI")q=`⚡ PUENTE PROVISIONAL: borna <b>${n}.1 – ${n}.2</b> del módulo ${id} (entrada y su salida de test UT del mismo canal). El LED del canal debe encenderse.`;
+ let q;if(M.t=="SDI"){const P=typeof puentePlanos=="function"?puentePlanos(id,a):null;
+  q=P&&P.no?`⛔ <b>No se puentea</b>: ${esc(P.no)}.`:P&&P.ext?`⚡ PUENTE PROVISIONAL: borna <b>IN ${a}</b> del módulo ${id} con el <b>+24 V común (hilo 613, E-X68:6)</b>: el elemento se alimenta de ese +24 V y su canal no lleva UT. El LED del canal debe encenderse.`
+  :`⚡ PUENTE PROVISIONAL: borna <b>${a} – ${P?P.b2:n+".2"}</b> del módulo ${id} (entrada y su salida de test ${esc(P?P.k2:"UT")} del mismo canal). El LED del canal debe encenderse.`}
  else{const v=`${n}.${c+1}`;q=st==0?`🔧 Soltar el hilo de la borna <b>IN ${a}</b> del módulo ${id} y aislarlo (es una entrada que se activa al pisar el límite: puentearla la activaría). El LED se apaga.`
   :`⚡ PUENTE PROVISIONAL: borna <b>IN ${a} – ${v} (+24 V)</b> del módulo ${id}. El LED de la entrada debe encenderse.`}
  return `<div class="puit"><b>${esc(id)} · ${esc(nom)} · ${esc(el)}</b><div class="puac">${q}</div>${r?`<div class="mu">Recorrido del elemento: ${esc(r.txt)}${r.f?` · folio ${r.f}`:""}</div>`:""}</div>`}
@@ -3244,9 +3246,29 @@ function senOT(t,pos){const out=[];SEN_DEF.forEach(d=>{if(!d.re.test(t))return;l
  return h.replace(/🔌 1º · ([^<]*?): maniobra controlada y E\/S del PLC/,(m,a)=>`🔌 1º · ${esc(S.sen.map(x=>x[4]).join(" / "))}${a&&a.trim()?" + "+a:""}: puente provisional en el PLC`)}})();
 /* ===== v24: Magelis «LÍNEA DE SEGURIDAD ACTIVADA» → elegir el elemento que sale en ESTADO DE ALARMAS y dar su puente.
  El elemento elegido se guarda en la OT (i.segEl) y se comparte con el resto de móviles. ===== */
-const SEG_ALL=(()=>{const a=[];SEN_DEF.forEach(d=>d.sub.forEach(x=>a.push(x[1])));LIM_DEF.forEach(d=>d.it.forEach(x=>a.push(x)));
- a.push(["E-A9","6.1","6.2","IT-B2","Barrera óptica túnel interior derecha (504/507/508)"],["E-A9","8.1","8.2","MT-B2","Barrera óptica túnel medio derecha (504)"]);
- return a.filter((x,k,b)=>b.findIndex(y=>y[0]==x[0]&&y[1]==x[1])==k)})();
+/* v894: la LÍNEA DE SEGURIDADES (contactores E-K0 / E-K0.1) solo la abre el PLC de SEGURIDAD: sus bobinas van únicamente a las
+   salidas safety E-A6 3.1 (hilo 616) / 4.1 (hilo 618) → GND (folio 64); ningún sensor ni FC está en serie con ellas. El PLC de
+   seguridad solo lee los módulos AMARILLOS E-A8 / E-A9 / E-A10. Por eso en «estado de alarmas» solo pueden salir elementos de esas
+   entradas. Antes la lista mezclaba los límites de TRABAJO del módulo verde (inductivos IT-B10 / IT-B11, ET-B6 / ET-B7, CO-B1 / CO-B2,
+   H-B3 / H-B4, C-B1 / C-B2, FC del suelo, frenos manuales): esos NUNCA abren la línea de seguridades (solo paran ese movimiento).
+   Entradas safety que no son un elemento a puentear (setas 4.1, bypass CP-S33, OK retirada, autorización R-S2, sirena, selector)
+   tampoco van en la lista. Elementos cotejados con el CABLEADO rev. J (folios 68-70). */
+const SEG_ALL=[
+ ["E-A8","1.1","E-X68:6","C-S9","Sensor del portón enrollable (3 hilos · solo con el portón ABAJO y CERRADO)"],
+ ["E-A8","2.1","2.2","T-B5 / T-B6 (relé E-U5)","Bordes de seguridad de ruedas"],
+ ["E-A8","5.1","5.2","H-S1","FC de seguridad de traslación"],
+ ["E-A8","6.1","6.2","ET-S1","FC de seguridad de extensión de túneles"],
+ ["E-A8","7.1","7.2","CO-S1","FC de seguridad de rotonda"],
+ ["E-A8","8.1","8.2","IT-S2 / IT-S3","FC de seguridad de inclinación superior / inferior"],
+ ["E-A9","5.1","E-X68:6","IT-S3''","Antiatrapamiento túnel INTERIOR izquierdo"],
+ ["E-A9","6.1","E-X68:6","IT-S3'","Antiatrapamiento túnel INTERIOR derecho"],
+ ["E-A9","2.1","E-X68:6","MT-S3''","Antiatrapamiento túnel MEDIO izquierdo (3 túneles)"],
+ ["E-A9","8.1","E-X68:6","MT-S3'","Antiatrapamiento túnel MEDIO derecho (3 túneles)"],
+ ["E-A10","1.1","1.2","C-B27 / C-B28","Bumper del brazo autonivelador"],
+ ["E-A10","2.1","2.2","C-B29 / C-B30","Bumper lateral izquierdo de cabina"],
+ ["E-A10","4.1","E-X68:6","SS-B15","Inductivo de la puerta de servicio (solo con la puerta CERRADA y nadie en la escalera)"],
+ ["E-A10","8.1","8.2","C-B4 (relé P-U5)","Zapata de seguridad (antes RESET de P-U5)"],
+ ["E-A10","3.1","","R-B1…R-B4","Barrera de seguridad de rotonda (no se puentea: rotonda libre)"]];
 const segK=x=>x[0]+"|"+x[1];
 (function(){const o=segOT;segOT=function(i){let r=o(i);if(!i||i.estado!="abierta")return r;const t=segNorm([i.desc,i.def,i.com,i.obs].filter(Boolean).join(" "));
  const linea=/linea (de )?seguridad(es)?( activada)?|seguridad(es)? activada/.test(t);
@@ -3259,7 +3281,8 @@ function segElige(v){const i=inc.find(x=>x.id==gOT);if(!i)return;const l=[].conc
 function segQuita(k){const i=inc.find(x=>x.id==gOT);if(!i)return;i.segEl=[].concat(i.segEl||[]).filter(x=>x!=k);sv("pbb_inc",inc);ANA_C={k:"",r:null};vTec()}
 (function(){const o=segHTML;segHTML=function(i,S){let h=o(i,S);if(!S.cont&&!S.linea&&!S.man)return h;const sel=[].concat(i.segEl||[]);
  const box=`<div class="puit" style="border-left-color:#ef6c00"><b>Magelis: «LÍNEA DE SEGURIDAD ACTIVADA»</b><div class="mu">Mira en la Magelis el <b>ESTADO DE ALARMAS</b> y elige el elemento que aparece activado para ver su puente provisional:</div>
-  <select class="anasel" onchange="segElige(this.value);this.value=''"><option value="">— Elemento en estado de alarmas —</option>${SEG_ALL.filter(x=>!sel.includes(segK(x))).map(x=>`<option value="${esc(segK(x))}">${esc(x[4])} · ${esc(x[3])} (${esc(x[0])} ${esc(x[1])})</option>`).join("")}</select>
+  <div class="mu" style="margin:4px 0">La línea de seguridades (E-K0 / E-K0.1) solo la abre el PLC de seguridad (salidas E-A6 3.1 / 4.1) por una entrada de los módulos amarillos E-A8 / E-A9 / E-A10. Un <b>inductivo de límite de trabajo</b> (módulo verde: IT-B10 / IT-B11, ET-B6 / ET-B7, CO-B1 / CO-B2, H-B3 / H-B4, C-B1 / C-B2) <b>nunca</b> la abre: solo para ese movimiento.</div>
+  <select class="anasel" onchange="segElige(this.value);this.value=''"><option value="">— Elemento en estado de alarmas —</option>${SEG_ALL.filter(x=>!sel.includes(segK(x))).map(x=>{const al=((window.CANAL_AL||{})[segK(x)]||[]).filter(c=>+c<200).join(" / ");return `<option value="${esc(segK(x))}">${esc(x[4])} · ${esc(x[3])} (${esc(x[0])} ${esc(x[1])}${al?" · alarma "+al:""})</option>`}).join("")}</select>
   ${sel.length?`<div class="mu" style="margin-top:4px">Elegidos: ${sel.map(k=>{const x=SEG_ALL.find(y=>segK(y)==k);return x?`<span class="anac">${esc(x[4])} <a href="#" onclick="event.preventDefault();segQuita('${esc(k)}')">✕</a></span>`:""}).join(" ")}</div>`:""}
   <div class="mu" style="margin-top:4px">Si es una SETA DE EMERGENCIA no se puentea: localiza la seta pulsada y rearma.</div></div>`;
  return h.replace(/(<div class="puac">1\. Recuperar)/,box+"$1")}})();
@@ -5902,7 +5925,7 @@ html body #app .kpi.kpi.kesp.kesp{white-space:nowrap!important;letter-spacing:0!
 })();
 </script>
 <script src="bumpers.js?v=854"></script>
-<script src="limites.js?v=677"></script><script src="puente-plc.js?v=529"></script><script src="porton.js?v=674"></script><script src="rescate-bypass.js?v=635"></script>
+<script src="limites.js?v=677"></script><script src="puente-plc.js?v=894"></script><script src="porton.js?v=674"></script><script src="rescate-bypass.js?v=635"></script>
 <script src="texto.js?v=408"></script>
 <script>
 /* ===== v332: botón de Claude de Inicio · solo el logo y «Resolución IA», más grandes y centrados en el botón ===== */
