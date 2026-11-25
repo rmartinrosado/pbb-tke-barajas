@@ -598,6 +598,19 @@ window.rcsIntervUnion=function(X){/* v710 */const M=new Map();(X||[]).forEach(x=
    const x6=porCod("116");if(x6)window.rcsIntervienen(x6).forEach(o=>{if(!/^(H-B1|H-B2|H-W14|H-W15)$/.test(o.id)&&!(o.rol=="borna"&&M.has(o.id)))return;const p=M.get(o.id);
     if(p){o.det.forEach(d=>{if(!p.det.includes(d))p.det.push(d)});return}M.set(o.id,Object.assign({},o,{det:o.det.concat(["según la avería en campo"]),als:["116"],pri:true}))})}}catch(e){}
  const ord=z=>(z.rol=="campo"?(z.acc?0.3:/armario/i.test(z.ubi||"")?0.6:0):z.rol=="borna"?2:z.rol=="manguera"?2.5:3)+(z.rol=="campo"&&!z.pri?1:0);return[...M.values()].sort((a,b)=>ord(a)-ord(b))};
+/* v909: al tocar la caja de la alarma se abre el desplegable SIN el teclado del móvil (la caja va en solo lectura).
+   Para escribir y filtrar: botón «⌨️ Escribir para filtrar» arriba de la lista o tocar otra vez la caja. Al salir de la caja
+   vacía vuelve a solo lectura. */
+function sinTeclado(q,l){q.readOnly=true;let antes=false;
+ const hint=()=>{if(!q.readOnly||!l.classList.contains("on")||l.querySelector(".rcstec"))return;
+  l.insertAdjacentHTML("afterbegin",`<button type="button" class="rcstec">⌨️ Escribir para filtrar</button>`)};
+ const teclado=()=>{q.readOnly=false;q.blur();q.focus();try{q.setSelectionRange(q.value.length,q.value.length)}catch(e){}};
+ q.addEventListener("pointerdown",()=>{antes=q.readOnly&&document.activeElement===q&&l.classList.contains("on")});
+ q.addEventListener("click",()=>{if(antes){antes=false;teclado()}else setTimeout(hint,0)});
+ q.addEventListener("focus",()=>setTimeout(hint,0));
+ q.addEventListener("blur",()=>{if(!q.value.trim())setTimeout(()=>{if(document.activeElement!==q)q.readOnly=true},0)});
+ l.addEventListener("click",e=>{if(!e.target.closest(".rcstec"))return;e.stopPropagation();teclado()},true);
+ new MutationObserver(()=>{if(q.readOnly&&l.classList.contains("on")&&!l.querySelector(".rcstec"))hint()}).observe(l,{childList:true})}
 function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const sel=sc.querySelector("#sr_a");if(!sel||sc.querySelector("#rcs_q"))return;
  const lab=sel.previousElementSibling;const fila=sel.closest(".soscr2");
  const d=document.createElement("div");d.className="rcsbus";
@@ -609,7 +622,7 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
  /* --- alarma: desplegable completo al tocar, filtrado al escribir --- */
  const pinta=()=>{cl.innerHTML="";const v=q.value.trim();l.innerHTML=v?(busca(v).map(itAl).join("")||`<div class="rcsnada">Sin alarmas para «${E(v)}»</div><button type="button" class="rcslupa">🔎 Buscar «${E(v)}» en todos los sistemas</button>`):todasAl();l.classList.add("on");l.scrollTop=0};/* v864: sin alarma → búsqueda libre (lo que hacía la Lupa) */
  q.addEventListener("focus",pinta);q.addEventListener("click",()=>{if(!l.classList.contains("on"))pinta()});q.addEventListener("input",pinta);
- q.addEventListener("keyup",e=>{if(e.key=="Enter"){const R=busca(q.value);if(R.length==1)elige(R[0])}});
+ q.addEventListener("keyup",e=>{if(e.key=="Enter"){const R=busca(q.value);if(R.length==1)elige(R[0])}});sinTeclado(q,l);
  /* v705: las alarmas se SUMAN: cada una elegida (buscador o desplegable de la Magelis) se añade en una línea nueva de «Alarma a
     mano»; aquí salen todas, una debajo de otra (con ✕ para quitarla), y los componentes de campo que intervienen se van sumando
     (sin repetir). Al ACEPTAR se validan todas. */
@@ -692,7 +705,7 @@ function otPicker(anchor,pre,X0,tit){const d=document.createElement("div");d.cla
   s.querySelectorAll("button.rcscb").forEach(b=>b.onclick=()=>{if(typeof abreCompClaves=="function")abreCompClaves([b.dataset.k],"Alarmas de la OT")})};
  const elige=x=>{if(!d.sel.some(z=>z.c==x.c))d.sel.push(x);else if(typeof msg=="function")msg(`La alarma ${x.c} ya está incluida`);q.value="";q.blur();cierra();pintaSel()};
  q.addEventListener("focus",pinta);q.addEventListener("click",()=>{if(!l.classList.contains("on"))pinta()});q.addEventListener("input",pinta);
- q.addEventListener("keyup",e=>{if(e.key=="Enter"){const R=busca(q.value);if(R.length==1)elige(R[0])}});
+ q.addEventListener("keyup",e=>{if(e.key=="Enter"){const R=busca(q.value);if(R.length==1)elige(R[0])}});sinTeclado(q,l);
  l.addEventListener("click",e=>{const b=e.target.closest(".rcsit");if(!b)return;const x=porCod(b.dataset.c);if(x)elige(x)});
  (anchor.closest("#sheetc,#app")||document.body).addEventListener("click",e=>{if(!e.target.closest("#"+pre))cierra()});
  pintaSel();return d}
@@ -771,7 +784,7 @@ const st=document.createElement("style");st.textContent=`
 .rcsh{font-size:14.5px;line-height:1.3}.rcsf{display:inline-block;font:800 10.5px/1.6 var(--tkmo,monospace);letter-spacing:.6px;padding:0 6px;border-radius:4px;margin-right:4px;background:#0003}
 .rcsA .rcsf{color:#ff5252}.rcsW .rcsf{color:#fbc02d}.rcsR .rcsf{color:#42a5f5}
 .rcsg{font-size:12px;font-weight:700;margin-top:2px}.rcsq{font-size:13px;margin-top:4px}.rcsa{font-size:13px;margin-top:4px;font-weight:600}.rcsop{display:flex;align-items:flex-start;gap:8px;text-align:left!important;margin:5px 0 0;line-height:1.35}.rcsop>span:last-child{flex:1;min-width:0;text-align:left!important}.rcsopn{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;font:900 12px/1 var(--tkmo,monospace);color:#fff;background:linear-gradient(135deg,var(--tkor,#ff7a1a),var(--tkpu,#9b3dff));margin-top:1px}.rcsop0{display:block;margin-top:7px;padding-top:6px;border-top:1px dashed color-mix(in srgb,var(--tx) 18%,transparent)}.rcsr{font-size:12px;margin-top:4px;color:var(--mu,#8a93a3)}
-.rcsbus{margin-top:8px}.rcsbi input{width:100%;box-sizing:border-box;margin:0}
+.rcstec{display:block;width:100%;margin:0 0 6px;padding:8px;font-size:14px;border-radius:8px;border:1.5px dashed #888;background:transparent;color:inherit}.rcsbus{margin-top:8px}.rcsbi input{width:100%;box-sizing:border-box;margin:0}
 .rcsfil{display:flex;gap:6px}.rcsfil .rcscmp{flex:0 0 33%;min-width:0}.rcsfil .rcsbi:not(.rcscmp){flex:1;min-width:0}.rcsfil input{height:44px;font-size:15px;padding:6px 8px}.rcsfil .rcscmp input::placeholder{font-size:13px}
 #rcs_l.on,.otrcsl.on{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border:1px solid var(--bd,#bbb);border-radius:8px;padding:4px}
 .rcslg{font:800 11px/1.4 var(--tkmo,monospace);letter-spacing:.7px;text-transform:uppercase;color:#1565c0;margin:6px 2px 2px}
