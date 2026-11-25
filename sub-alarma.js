@@ -46,14 +46,31 @@ const og=window.segElige;if(typeof og!="function")return;
 const cods=t=>(String(t||"").match(/\b\d{3}\b/g)||[]);
 window.segElige=function(v){
  try{const st=document.getElementById("sr_t"),c=document.getElementById("sheetc");
-  if(v&&st&&c&&c.querySelector("#sr_res")){const CA=window.CANAL_AL||{};const x=(window.SEG_ALL||[]).find(y=>y[0]+"|"+y[1]==v);
+  if(v&&st&&c&&c.querySelector("#sr_res")){const CA=window.CANAL_AL||{};const x=(typeof SEG_ALL!="undefined"?SEG_ALL:[]).find(y=>y[0]+"|"+y[1]==v);
    const L=(CA[v]||[]);const pick=L.find(k=>{try{const r=rcsSacar(k);return r&&r.x&&r.x.f=="A"&&+k<200}catch(e){return false}})||L.find(k=>+k<200)||L[0];
    /* quitar las alarmas de otros elementos elegidos antes (las de la línea 011 / 013 se quedan) */
-   const todos=new Set();(window.SEG_ALL||[]).forEach(y=>(CA[y[0]+"|"+y[1]]||[]).forEach(k=>todos.add(k)));
+   const todos=new Set();(typeof SEG_ALL!="undefined"?SEG_ALL:[]).forEach(y=>(CA[y[0]+"|"+y[1]]||[]).forEach(k=>todos.add(k)));
    const lin=pick?(pick+" "+((rcsSacar(pick)||{}).x||{}).t):("LÍNEA DE SEGURIDAD ACTIVADA · "+(x?x[4]+" "+x[3]:v));
    const ls=String(st.value||"").split("\n").filter(l=>l.trim()&&!cods(l).some(k=>todos.has(k))&&!/^LÍNEA DE SEGURIDAD ACTIVADA · /.test(l));
    ls.unshift(lin);st.value=ls.join("\n");st.dispatchEvent(new Event("input",{bubbles:true}));
    if(typeof msg=="function")msg("Actuación rehecha para "+(x?x[4]:v)+(pick?" · alarma "+pick:""));
    c.scrollTo({top:0,behavior:"smooth"});if(typeof window.sosAnaliza=="function"){window.sosAnaliza();return}}}catch(e){console.warn("segElige SOS",e)}
  return og.apply(this,arguments)};
+})();
+/* ===== v896: en el SOS el elemento elegido en «Elemento en estado de alarmas» se QUEDA en la caja tras rehacer la actuación:
+   se deduce de las alarmas del SOS (la de un elemento de la lista, p. ej. 010 → bordes E-A8 2.1) y el desplegable lo muestra
+   elegido y resaltado. Vale también si se escribe o elige esa alarma a mano. ===== */
+(function(){
+"use strict";
+const cods=t=>(String(t||"").match(/\b\d{3}\b/g)||[]);
+function marca(){try{const c=document.getElementById("sheetc");if(!c||!c.querySelector("#sr_res"))return;
+ const sa=document.getElementById("sr_a"),st=document.getElementById("sr_t");
+ const al=cods([sa&&sa.value?sa.options[sa.selectedIndex].text:"",st?st.value:""].join(" "));const CA=window.CANAL_AL||{};
+ const x=(typeof SEG_ALL!="undefined"?SEG_ALL:[]).find(y=>(CA[y[0]+"|"+y[1]]||[]).some(k=>al.includes(k)));
+ c.querySelectorAll("select.anasel").forEach(s=>{if(!/Elemento en estado de alarmas/.test(s.options[0]&&s.options[0].text))return;
+  if(!x){s.classList.remove("segok");return}const k=x[0]+"|"+x[1];if(![...s.options].some(o=>o.value==k))return;
+  s.value=k;s.classList.add("segok");s.onchange=function(){if(this.value&&this.value!==k)segElige(this.value);else this.value=k}})}catch(e){}}
+const oa=window.sosAnaliza;if(typeof oa=="function")window.sosAnaliza=async function(){const r=await oa.apply(this,arguments);marca();setTimeout(marca,300);return r};
+const st=document.createElement("style");st.textContent=`select.anasel.segok{border:2px solid #22c55e!important;background:color-mix(in srgb,#22c55e 14%,var(--card,#111))!important;font-weight:700}`;
+document.head.appendChild(st);
 })();
