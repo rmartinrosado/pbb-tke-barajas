@@ -83,7 +83,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  const ol=c.querySelector(".soscl"),row=c.querySelector(".srobrow");if(PS&&PS.isConnected)PS.remove();
  if(row){if(row.previousElementSibling!==F)F.after(row);if(ol&&ol.parentNode!==row)row.prepend(ol);
   if(ol&&!ol.dataset.st){ol.dataset.st=1;const T=["En servicio ya","Reparar","Análisis IA"];[...ol.children].forEach((li,k)=>{if(T[k])li.textContent=T[k]});
-   /* v910: flecha a la derecha de «Reparar» señalando ACEPTAR */
+   /* v910: flecha a la derecha de «Reparar» señalando el botón ANALIZAR (antes ACEPTAR, v911) */
    const l2=ol.children[1];if(l2&&!l2.querySelector(".sostfl"))l2.insertAdjacentHTML("beforeend",`<span class="sostfl" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>`)}
   const rs=row.querySelector(".srobrst");if(rs&&!rs.dataset.st){rs.dataset.st=1;rs.innerHTML=RECARGA;rs.setAttribute("aria-label","Reiniciar el SOS");rs.title="Reiniciar el SOS"}}
  /* rótulos cortos que caben en su caja */

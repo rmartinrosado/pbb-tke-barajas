@@ -123,7 +123,7 @@ function pintaV(){let o=document.getElementById("mlib");if(!V){if(o)o.remove();r
  <div class="mlb"><button onclick="mlMueve(-1)">◀</button><button onclick="mlMueve(0)">🔁</button><button onclick="mlMueve(1)"${V.i>=V.p.length-1?' disabled class="mloff" aria-disabled="true"':""}>▶</button><button onclick="mlPara()">✕</button></div>`}
 window.mlMueve=d=>{if(!V)return;if(d>0&&V.i>=V.p.length-1)return;/* v850: en el último paso no deja seguir */V.i=Math.max(0,Math.min(V.p.length-1,V.i+d));habla()};
 window.mlPara=()=>{const r=V&&V.rec;if(V){clearInterval(V.ka);V.rec=null}try{speechSynthesis.cancel()}catch(e){}try{r&&r.stop()}catch(e){}V=null;pintaV()};
-window.manosLibres=function(){if(!("speechSynthesis" in window)){msg("Este móvil no permite leer en voz alta");return}const p=pasosSOS();if(!p.length){msg("Primero pulsa ACEPTAR para tener la actuación");return}
+window.manosLibres=function(){if(!("speechSynthesis" in window)){msg("Este móvil no permite leer en voz alta");return}const p=pasosSOS();if(!p.length){msg("Primero pulsa ANALIZAR para tener la actuación");return}
  if(V)mlPara();V={p,i:0};mlEscucha();habla()};
 /* =================== botones =================== */
 const pon=()=>{try{
