@@ -82,7 +82,9 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* v721: los pasos 1-2-3 van en la MISMA LÍNEA que ACEPTAR (a la izquierda, compactos) */
  const ol=c.querySelector(".soscl"),row=c.querySelector(".srobrow");if(PS&&PS.isConnected)PS.remove();
  if(row){if(row.previousElementSibling!==F)F.after(row);if(ol&&ol.parentNode!==row)row.prepend(ol);
-  if(ol&&!ol.dataset.st){ol.dataset.st=1;const T=["En servicio ya","Reparar","Análisis IA"];[...ol.children].forEach((li,k)=>{if(T[k])li.textContent=T[k]})}
+  if(ol&&!ol.dataset.st){ol.dataset.st=1;const T=["En servicio ya","Reparar","Análisis IA"];[...ol.children].forEach((li,k)=>{if(T[k])li.textContent=T[k]});
+   /* v910: flecha a la derecha de «Reparar» señalando ACEPTAR */
+   const l2=ol.children[1];if(l2&&!l2.querySelector(".sostfl"))l2.insertAdjacentHTML("beforeend",`<span class="sostfl" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span>`)}
   const rs=row.querySelector(".srobrst");if(rs&&!rs.dataset.st){rs.dataset.st=1;rs.innerHTML=RECARGA;rs.setAttribute("aria-label","Reiniciar el SOS");rs.title="Reiniciar el SOS"}}
  /* rótulos cortos que caben en su caja */
  if(lo&&lo.textContent!=="Síntoma en campo")lo.textContent="Síntoma en campo";
@@ -255,6 +257,9 @@ ${P} .srobrow .soscl li{counter-increment:s;display:flex!important;flex-directio
 ${P} .srobrow .soscl li::before{content:counter(s);flex:none;display:grid;place-items:center;width:15px!important;height:15px!important;border-radius:5px!important;border:0!important;
  font:900 9.5px/1 ${MO}!important;color:#fff!important;background:linear-gradient(135deg,${OR},${PU})!important;box-shadow:none!important}
 ${P} .srobrow .soscl li::after{display:none!important}
+${P} .srobrow .soscl .sostfl{margin-left:auto;margin-right:3px;flex:none;display:grid;place-items:center;color:${OR};animation:sostFl 1.4s ease-in-out infinite}
+${P} .srobrow .soscl .sostfl svg{width:16px;height:16px}
+@keyframes sostFl{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
 ${P} .srobrow button.pri{position:relative;overflow:hidden;flex:1 1 auto!important;min-width:0;min-height:54px!important;margin:0!important;padding:0 6px!important;border:0!important;border-radius:14px!important;
  font:900 17px/1 ${MO}!important;letter-spacing:2.5px!important;text-transform:uppercase;white-space:nowrap;color:#111!important;text-shadow:none!important;animation:none!important;
  background:linear-gradient(135deg,#ffb020,${OR} 45%,#ff4d2e)!important;box-shadow:0 12px 28px -10px ${OR},0 0 0 1px #fff4 inset!important}
