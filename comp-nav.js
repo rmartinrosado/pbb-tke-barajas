@@ -67,6 +67,20 @@ async function elimina(t){if(!confirm("¿Eliminar "+t+" de la lista de elementos
  catch(e){if(typeof msg=="function")msg("Sin conexión: el cambio queda en este móvil")}}
 let qCarg=false;async function cargaQui(){if(qCarg||typeof sb=="undefined")return;qCarg=true;
  try{const {data,error}=await sb.from("comp_importar_quitados").select("codigo,eliminado");if(!error&&data){QUI=new Set(data.map(r=>r.codigo));ELI=new Set(data.filter(r=>r.eliminado).map(r=>r.codigo));gQ();if(capa&&zSel==IMP)lista()}}catch(e){}}
+/* v921: ↻ VOLVER A IMPORTAR (fila tachada de «A IMPORTAR»): si la ficha guardada con ese código no corresponde al componente
+   (datos o foto equivocados), se borra esa ficha y el código vuelve a quedar pendiente con 📷 para importarlo otra vez.
+   Solo borra fichas guardadas por los técnicos con ESE mismo código; si el código va dentro de otra ficha, o es de fábrica, avisa. */
+async function reimporta(t){const T=String(t).toUpperCase();const x=estados().find(s=>s.r[0]==t);const fc=(x&&x.fc)||[];
+ const own=fc.filter(c=>String(c.id||"").toUpperCase()==T);
+ if(!own.length){const o=fc[0];alert(`${t} está incorporado dentro de la ficha ${o?o.id+" · "+(o.t||""):"de otro componente"}.\n\nPara volver a importarlo aparte, abre esa ficha con ✏️ y quita ${t} del título o del código.`);return}
+ const bor=own.filter(c=>c.db&&!c.baseId);
+ if(!bor.length){alert(`🔒 La ficha de ${t} es de fábrica de la app: no se puede volver a importar.\nPara cambiar sus datos, ábrela con ✏️ Editar.`);return}
+ const esAd=(()=>{try{return (typeof admin!="undefined"&&!!admin)||(typeof rol!="undefined"&&/admin/i.test(rol))}catch(_){return false}})();
+ if(!esAd){alert("Solo el administrador puede volver a importar un componente (se borra su ficha del catálogo).");return}
+ if(!confirm(`¿VOLVER A IMPORTAR ${t}?\n\nSe borra la ficha guardada${bor.length>1?` (${bor.length} fichas con ese código)`:""} · ${bor[0].t||""}, con sus datos y fotos, para todos los técnicos, y ${t} vuelve a quedar pendiente con 📷 para incorporarlo de nuevo.`))return;
+ try{for(const c of bor){const {error}=await sb.from("componentes_campo").delete().eq("id",c.db);if(error)throw error}
+  if(typeof compRecarga=="function")await compRecarga();lista();if(typeof msg=="function")msg(`${t} vuelve a estar pendiente de importar`)}
+ catch(err){alert("No se pudo: "+String((err&&err.message)||err))}}
 async function quita(t,on){on?QUI.add(t):QUI.delete(t);gQ();lista();
  try{if(on)await sb.from("comp_importar_quitados").upsert({codigo:t,por:(typeof user!="undefined"&&user&&user.email)||""});else await sb.from("comp_importar_quitados").delete().eq("codigo",t)}
  catch(e){if(typeof msg=="function")msg("Sin conexión: el cambio queda en este móvil")}}
@@ -82,13 +96,13 @@ function estados(){const P=window.COMP_PLANOS||[];
 function pendientes(){return estados().filter(x=>!x.hecho&&!x.quit).map(x=>x.r)}
 const gAb=new Set();
 function filaImp(x){const [t,n,zz,f,pl]=x.r;return `<div class="cnimp${x.hecho?" hecho":""}"${x.hecho?` data-ver="${E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id))}"`:""}><span class="cmpid">${E(t)}</span><span class="cnimpn">${x.hecho?"✓ ":""}${E(n)}<small>${f?`Folio ${f} · rev. J`:E(pl)}${x.hecho?` · importado${x.fc[0].id!=t?` en ${E(x.fc[0].id)}`:""}`:""}</small></span>`+
-  (x.hecho?(()=>{const k=E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id));return `<button type="button" class="sec cnimpv" data-ver="${k}" aria-label="Ver ficha de ${E(t)}">📄</button><button type="button" class="sec cnimpe" data-edi="${k}" aria-label="Editar ficha de ${E(t)}">✏️</button>`})():`<button type="button" class="pri" data-imp="${E(t)}" aria-label="Incorporar ${E(t)}">📷</button><button type="button" class="sec cnimpq" data-qui="${E(t)}" aria-label="Quitar ${E(t)} de la lista">🗑️</button>`)+`</div>`}
+  (x.hecho?(()=>{const k=E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id));return `<button type="button" class="sec cnimpr" data-reimp="${E(t)}" aria-label="Volver a importar ${E(t)}" title="Volver a importar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button><button type="button" class="sec cnimpv" data-ver="${k}" aria-label="Ver ficha de ${E(t)}">📄</button><button type="button" class="sec cnimpe" data-edi="${k}" aria-label="Editar ficha de ${E(t)}">✏️</button>`})():`<button type="button" class="pri" data-imp="${E(t)}" aria-label="Incorporar ${E(t)}">📷</button><button type="button" class="sec cnimpq" data-qui="${E(t)}" aria-label="Quitar ${E(t)} de la lista">🗑️</button>`)+`</div>`}
 function listaImp(ws){cargaQui();const S=estados(),tot=S.length;
  const vis=S.filter(x=>!x.quit),pend=vis.filter(x=>!x.hecho).length,hech=vis.filter(x=>x.hecho).length,qs=S.filter(x=>x.quit);
  const F=vis.filter(x=>!ws.length||ws.every(w=>casa(x.r.join(" "),w)));
  const g={};F.forEach(x=>(g[x.r[2]]=g[x.r[2]]||[]).push(x));const zs=Object.keys(g).sort((a,b)=>a.localeCompare(b,"es"));
  const fila=filaImp;const _f=x=>{const [t,n,zz,f,pl]=x.r;return `<div class="cnimp${x.hecho?" hecho":""}"${x.hecho?` data-ver="${E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id))}"`:""}><span class="cmpid">${E(t)}</span><span class="cnimpn">${x.hecho?"✓ ":""}${E(n)}<small>${f?`Folio ${f} · rev. J`:E(pl)}${x.hecho?" · importado":""}</small></span>`+
-  (x.hecho?(()=>{const k=E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id));return `<button type="button" class="sec cnimpv" data-ver="${k}" aria-label="Ver ficha de ${E(t)}">📄</button><button type="button" class="sec cnimpe" data-edi="${k}" aria-label="Editar ficha de ${E(t)}">✏️</button>`})():`<button type="button" class="pri" data-imp="${E(t)}" aria-label="Incorporar ${E(t)}">📷</button><button type="button" class="sec cnimpq" data-qui="${E(t)}" aria-label="Quitar ${E(t)} de la lista">🗑️</button>`)+`</div>`};
+  (x.hecho?(()=>{const k=E(String(x.fc[0].baseId||x.fc[0].db||x.fc[0].id));return `<button type="button" class="sec cnimpr" data-reimp="${E(t)}" aria-label="Volver a importar ${E(t)}" title="Volver a importar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button><button type="button" class="sec cnimpv" data-ver="${k}" aria-label="Ver ficha de ${E(t)}">📄</button><button type="button" class="sec cnimpe" data-edi="${k}" aria-label="Editar ficha de ${E(t)}">✏️</button>`})():`<button type="button" class="pri" data-imp="${E(t)}" aria-label="Incorporar ${E(t)}">📷</button><button type="button" class="sec cnimpq" data-qui="${E(t)}" aria-label="Quitar ${E(t)} de la lista">🗑️</button>`)+`</div>`};
  return `<div class="cnimpc">📋 <b>${pend}</b> pendientes · <s>${hech} importados</s> de ${tot} elementos de los planos (esquema general rev. J, 504/508, 507, AAA, HZ e hidráulica). Haz la foto en campo y pulsa <b>📷</b>; al guardarlo queda <s>tachado</s>. 🗑️ lo quita de la lista (p. ej. si ya está incorporado con otro código).</div>`+
   (F.length?zs.map(z=>{const n=g[z].filter(x=>!x.hecho).length,h=g[z].length-n;return `<details class="cnimpz" data-g="${E(z)}"${ws.length||gAb.has(z)?" open":""}><summary>${E(z)} <small>${n}${h?` · <s>${h}</s>`:""}</small></summary>${g[z].map(fila).join("")}</details>`}).join("")
   :`<div class="cnvac">Nada${ws.length?" con esa búsqueda":""}.</div>`)+
@@ -150,8 +164,9 @@ function abre(){
    const bq=e.target.closest("[data-qui]");if(bq){const t=bq.dataset.qui;if(bq.classList.contains("sure"))quita(t,true);else{bq.classList.add("sure");bq.textContent="¿Quitar?";setTimeout(()=>{if(bq.isConnected){bq.classList.remove("sure");bq.textContent="🗑️"}},3500)}return}
    const bd=e.target.closest("[data-dev]");if(bd){quita(bd.dataset.dev,false);return}
    const bx=e.target.closest("[data-eli]");if(bx){elimina(bx.dataset.eli);return}
+   const brp=e.target.closest("[data-reimp]");if(brp){reimporta(brp.dataset.reimp);return}
    const be=e.target.closest("[data-edi]");if(be){if(typeof window.compEdita=="function")window.compEdita(be.dataset.edi);return}
-   const bv=!e.target.closest("button[data-imp],button[data-qui]")&&e.target.closest("[data-ver]");if(bv){const k=bv.dataset.ver;const c=L().find(x=>String(x.baseId||x.db||x.id)==k);
+   const bv=!e.target.closest("button[data-imp],button[data-qui],button[data-reimp]")&&e.target.closest("[data-ver]");if(bv){const k=bv.dataset.ver;const c=L().find(x=>String(x.baseId||x.db||x.id)==k);
     if(c){const i=capa.querySelector("#cn_q");if(i)i.value=c.id;zSel="";abiertos.add(k);lista();setTimeout(()=>{const d=capa.querySelector(`details.cni[data-k="${CSS.escape(k)}"]`);if(d){d.open=true;d.scrollIntoView({block:"start"})}},60)}return}
    const bi=e.target.closest("[data-imp]");if(bi){const t=bi.dataset.imp,r=(window.COMP_PLANOS||[]).find(x=>x[0]==t)||[t,"",""];window.__impDesde=1;incorpora();
     setTimeout(()=>{const pon=(id,v)=>{const i=document.getElementById(id);if(i&&!i.value){i.value=v;i.dispatchEvent(new Event("input",{bubbles:true}))}};
@@ -269,6 +284,7 @@ html.cnInc #sheet{z-index:70!important}
 #compCapa .cnimp .cnimpq{width:40px!important;font-size:17px!important}#compCapa .cnimp .cnimpq.sure{width:auto!important;padding:0 8px!important;font-size:12px!important;background:#c62828!important;color:#fff!important;border-color:#c62828!important}
 #compCapa .cnimp.hecho{opacity:.8;cursor:pointer}#compCapa .cnimp .cnimpv,#compCapa .cnimp .cnimpe{width:auto!important;min-width:40px;padding:6px 8px!important;font-size:15px!important;text-decoration:none!important}#compCapa .cnimp.hecho .cmpid,#compCapa .cnimp.hecho .cnimpn{text-decoration:line-through;text-decoration-thickness:2px}
 #compCapa .cnimp.hecho .cnimpn{color:#16a34a}
+#compCapa .cnimp .cnimpr{width:40px!important;min-width:40px;display:grid!important;place-items:center;color:var(--tkor,#ff7a1a)!important}
 #compCapa .cnch.on{border-color:var(--ac,#ff7a1a)!important;color:var(--ac,#ff7a1a)!important;background:color-mix(in srgb,var(--ac,#ff7a1a) 12%,transparent)!important}
 #compCapa .cnl{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
 #compCapa .cni{border:1px solid var(--bd,#2a2f38);border-radius:8px;padding:8px 10px;margin:6px 0;background:var(--card,#171a20)}
