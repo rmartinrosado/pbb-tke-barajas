@@ -196,6 +196,16 @@ function croquisSerie(g){const CB=window.CABLEADO||{},e=g.e;
   s+=`<path class="svserpu" d="M${xr} ${ya} H${xx} V${yb} H${xr}" fill="none" stroke="#ff7a1a" stroke-width="2" stroke-dasharray="5 3"/>`;
   s+=`<text x="${xx+4}" y="${(ya+yb)/2+3}" font-size="8.5" font-weight="800" fill="#ff7a1a">${j+1}</text>`});
  s+=`</svg>`;return{svg:s,pu,filas}}
+/* v901: puntos seguros para la borna negra (0 V de 24 Vcc) al medir un lazo en campo: primero el 0 V del bornero de campo donde se
+   mide (mismo bornero, sin cables largos), luego otro de la misma manguera y los del armario (E-X68:2 = GND del módulo de seguridades). */
+const REF0C={IT:["IT-X51:2","0 V al túnel por la manguera EIT-W1; en el mismo bornero que se mide (el más cómodo)"],ET:["ET-X51:2","0 V del túnel exterior"],C:["C-X51:2","0 V de cabina"],H:["H-X51:30","0 V de la elevación"]};
+const ref0b=c=>{const f=c.filas.find(x=>x.k=="B"&&!/^E\d?-/.test(x.bor));return f?f.bor:"IT-X51"};
+function ref0(c){const pre=(ref0b(c).match(/^([A-Z]+\d?)-/)||["","IT"])[1],L=[];
+ const add=k=>{const r=REF0C[k];if(r&&!L.some(t=>t.includes(r[0])))L.push(`<b>${E(r[0])}</b>: ${E(r[1])}${L.length?"":" (1ª opción)"}`)};
+ add(pre);if(pre=="IT")add("ET");else add("IT");
+ L.push(`<b>E-X68:2</b>: 0 V del propio módulo de seguridades (GND de E-A5), en el armario: referencia «oficial» de la salida de test`);
+ L.push(`<b>E-X62:2</b>: 0 V de los sensores analógicos (altura, láser), en el armario`);
+ L.push(`<b>E-X61:21</b>: 0 V general de la PBB, en el CBTH`);return L}
 function bloqueSerie(g,A){const c=croquisSerie(g),els=c.filas.filter(f=>f.k=="E"&&g.ids.includes(f.id));
  const ori=c.filas[0],des=c.filas[c.filas.length-1];const n=els.length;
  const tipo=els.every(f=>/-S\d/.test(f.id))?"FC":"elementos";
@@ -209,7 +219,11 @@ function bloqueSerie(g,A){const c=croquisSerie(g),els=c.filas.filter(f=>f.k=="E"
   <div class="svsercro">${c.svg}</div>
   <div class="svserl">CÓMO SABER CUÁL FALLA</div>
   <ol class="svserol">${pos?`<li><b>Posición:</b><ul>${pos}</ul></li>`:""}
-   ${tramo?`<li><b>Medir</b> respecto a 0 V del armario, siguiendo el lazo desde ${E(ori.id)} (${E(ori.sub)}): ≈ 24 V (señal de test pulsada, el polímetro puede marcar algo menos).<ul>${tramo}</ul></li>`:""}
+   ${tramo?`<li><b>Medir</b> en V DC, siguiendo el lazo desde ${E(ori.id)} (${E(ori.sub)}): ≈ 24 V (señal de test pulsada, el polímetro puede marcar algo menos).
+    <div class="svser0"><b>Borna negra (0 V de 24 Vcc), puntos seguros:</b><ul>${ref0(c).map(t=>`<li>${t}</li>`).join("")}</ul>
+    <b>Antes de medir, validar la referencia:</b> roja en <b>${E(ref0b(c))}:1</b> (+24 V) y negra en el 0 V elegido → ≈ 24 V. Si no marca, ese punto no vale o el 0 V está suelto.
+    <br>⚠️ No usar estructura ni carcasa metálica como 0 V. Comprobar en el portaetiquetas que la borna es la de 0 V (en el bornero hay otros circuitos, p. ej. iluminación).</div>
+    <ul>${tramo}</ul></li>`:""}
    ${pus?`<li><b>Puente provisional en el bornero de campo</b> (2ª opción, para identificar):<ul>${pus}</ul></li>`:""}</ol>
   <div class="svsern">⚠️ Para sacar la PBB ya, el puente en el PLC (${E(g.e.m)} ${E(ori.id.split(" ")[1]||"")} ↔ ${E(des.id.split(" ")[1]||"")}) anula <b>los ${n}</b> (1ª opción). Cualquier puente: provisional, con un compañero vigilando el movimiento, y se quita al reparar.</div>
   <div class="svbs">${els.map(f=>A.pend.find(r=>String(r[0]).toUpperCase()==f.id)).filter(Boolean).map(r=>fichaPlanos(r,A)).join("")}</div></div>`}
@@ -217,7 +231,7 @@ function bloqueSerie(g,A){const c=croquisSerie(g),els=c.filas.filter(f=>f.k=="E"
 .svserh{font-weight:900;font-size:14px;letter-spacing:.3px;color:#ff7a1a}.svserh small{display:block;font-weight:600;font-size:11.5px;opacity:.8;letter-spacing:0;color:var(--tx,inherit)}
 .svsert{font-size:12.5px;line-height:1.4;margin:6px 0}.svsercro{margin:6px auto;max-width:360px}.svsersvg{width:100%;height:auto;display:block}
 .svserl{font-weight:900;font-size:12.5px;margin-top:6px;color:#2fbf71}.svserol{margin:4px 0 0 18px;padding:0;font-size:12.5px;line-height:1.4}.svserol ul{margin:2px 0 4px 14px;padding:0}
-.svsern{font-size:12px;color:#f2b705;margin:6px 0}.svrol{font-size:11px;font-weight:900;text-transform:uppercase;color:#ff7a1a;border:1px solid #ff7a1a;border-radius:5px;padding:0 5px;margin-left:4px;vertical-align:middle}`;document.head.appendChild(st)})();
+.svsern{font-size:12px;color:#f2b705;margin:6px 0}.svser0{font-size:12px;margin:4px 0 4px;padding:6px 8px;border-left:3px solid #2fbf71;background:rgba(47,191,113,.08);border-radius:4px}.svser0 ul{margin:2px 0 4px 14px;padding:0}.svrol{font-size:11px;font-weight:900;text-transform:uppercase;color:#ff7a1a;border:1px solid #ff7a1a;border-radius:5px;padding:0 5px;margin-left:4px;vertical-align:middle}`;document.head.appendChild(st)})();
 function pendHTML(A){const G=gruposSerie((A.pend||[]).map(r=>r[0]));const usados=new Set(G.flatMap(g=>g.ids));
  return G.map(g=>bloqueSerie(g,A)).join("")+`<div class="svbs">${A.pend.filter(r=>!usados.has(String(r[0]).toUpperCase())).map(r=>fichaPlanos(r,A)).join("")}</div>`}
 function bloqueComp(A){let b;
