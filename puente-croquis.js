@@ -131,6 +131,10 @@ const PAN={o:["#e0701c","#7a3a08"],r:["#f07aa8","#8a2a52"],a:["#4fb7e6","#1d5f80
 function hilosPuente(o){const C=window.CABLEADO||{};let e=null;for(const k in C){const x=C[k];if(x&&x.m==o.mod&&x.b==o.b1){e=x;break}}
  if(!e)return{h1:"",h2:""};const n=e.n||[],hv=x=>((x&&x.v)||[]).map(v=>v.h).filter(Boolean)[0]||"";
  const f=n.find(x=>x.k!="M"&&x.k!="C"&&hv(x));const m=n.find(x=>x.k=="M"&&x.p==o.b2);return{h1:hv(f),h2:m?hv(m):""}}
+/* v904: en los módulos de entradas verdes (E-A3, E-A4… comprobado en campo, foto 25/11/2026) las bornas .2 (+24 V) NO llevan
+   hilo: el puente entra en la .2 libre y solo se saca el hilo de la entrada (.1). En los safety amarillos la .2 es la salida de test UT
+   y sí lleva su hilo de retorno. */
+const b2Libre=o=>{const m=MODC[o.mod];return !(m&&m[0]=="y")&&!hilosPuente(o).h2&&!o.suelta&&!o.ext&&o.b2!=o.b1};
 window.hilosPuente=hilosPuente;
 function v5(o){
  /* v431: modo «soltar hilo» (desbloqueos por equipo de servicio en E-A2): una sola borna, hilo sacado de la borna, sin puente */
@@ -179,7 +183,7 @@ function v5(o){
  ${NO?"":`<circle class="ring" cx="${(xa+xb)/2}" cy="${(ya+yb)/2}" r="${Math.max(48,Math.abs(yb-ya)/2+30)}"/>`}
  ${lead(Math.max(xa,xb),ya)}${lead(Math.max(xa,xb),yb)}
  ${!NO&&!SU?(()=>{/* v903: hilos de campo SACADOS para meter el puente: aislados con capuchón y con etiqueta roja */
-  const L=[[o.b1,HP.h1]];if(!EX&&o.b2!=o.b1)L.push([o.b2,HP.h2]);const ox=out+side*2;
+  const L=[[o.b1,HP.h1]];if(!EX&&o.b2!=o.b1&&!b2Libre(o))L.push([o.b2,HP.h2]);const ox=out+side*2;
   return L.map(([b,h],i)=>{const yE=(EX&&side<0?ya+178:Math.max(ya,yb)+66)+i*46,dd=`M${ox} ${yE+30} C ${ox} ${yE+22}, ${ox} ${yE+12}, ${ox} ${yE+2}`;
    const tx=side>0?ox+12:2,an="start",ry=yE-(side>0?14:30),rw=side>0?80:70,rh=side>0?28:26,t1=yE-(side>0?2:19),t2=yE+(side>0?10:-8);
    return `<path d="${dd}" fill="none" stroke="#00000055" stroke-width="8" stroke-linecap="round"/><path d="${dd}" fill="none" stroke="#2f6fd6" stroke-width="5" stroke-linecap="round"/>
@@ -187,9 +191,9 @@ function v5(o){
    <g class="pdes"><rect x="${tx-3}" y="${ry}" width="${rw}" height="${rh}" rx="4" class="pdesr"/></g>
    <text x="${tx}" y="${t1}" text-anchor="${an}" style="fill:#fff;font-size:9.5px;font-weight:900">SACADO ${esc(b)}</text>
    <text x="${tx}" y="${t2}" text-anchor="${an}" style="fill:#fff;font-size:9px;font-weight:700">${h?"h."+esc(h):"campo"} · aislar</text>`}).join("")})():""}
- ${NO?(()=>{/* hilos de campo en su borna, sin puente */const dos=!(SU||EX||o.b2==o.b1),hc=(x,y,lab)=>{const ox=out+side*2,dd=`M${x+side*14} ${y+8} C ${x+side*40} ${y+22}, ${ox} ${y+14}, ${ox} ${y+46}`;
-  return `<path d="${dd}" fill="none" stroke="#00000055" stroke-width="8" stroke-linecap="round"/><path d="${dd}" fill="none" stroke="#2f6fd6" stroke-width="5" stroke-linecap="round"/>${lab?`<text x="${ox}" y="${y+60}" text-anchor="middle" font-size="10" font-weight="800" style="fill:#2f6fd6">${lab.split(" ").length>2?`<tspan x="${ox}">${lab.split(" ")[0]}</tspan><tspan x="${ox}" dy="12">${lab.split(" ").slice(1).join(" ")}</tspan>`:lab}</text>`:""}`};
-  const hs=[HP.h1,HP.h2].filter(Boolean);return hc(xa,ya,dos?"":(HP.h1?"hilo "+HP.h1:"hilo de campo"))+(dos?hc(xb,yb,hs.length?"hilos "+hs.join(" / ")+(hs.length<2?" + campo":""):"hilos de campo"):"")})():SU?(()=>{const ox=out+side*4,oy=ya+86,dd=`M${xa+side*30} ${ya+22} C ${xa+side*58} ${ya+40}, ${ox} ${ya+44}, ${ox} ${oy}`;
+ ${NO?(()=>{/* hilos de campo en su borna, sin puente */const lib=b2Libre(o),dos=!(SU||EX||o.b2==o.b1||lib),XL=lib?Math.abs(yb-ya)+34:0,hc=(x,y,lab)=>{const ox=out+side*2,dd=`M${x+side*14} ${y+8} C ${x+side*40} ${y+22}, ${ox} ${y+14}, ${ox} ${y+46+XL}`;
+  return `<path d="${dd}" fill="none" stroke="#00000055" stroke-width="8" stroke-linecap="round"/><path d="${dd}" fill="none" stroke="#2f6fd6" stroke-width="5" stroke-linecap="round"/>${lab?`<text x="${ox}" y="${y+60+XL}" text-anchor="middle" font-size="10" font-weight="800" style="fill:#2f6fd6">${lab.split(" ").length>2?`<tspan x="${ox}">${lab.split(" ")[0]}</tspan><tspan x="${ox}" dy="12">${lab.split(" ").slice(1).join(" ")}</tspan>`:lab}</text>`:""}`};
+  const hs=[HP.h1,HP.h2].filter(Boolean);return (lib?`<text x="${lx}" y="${yb+33}" font-size="10" font-weight="800" style="fill:#16a34a">libre</text><text x="${lx}" y="${yb+45}" font-size="10" font-weight="800" style="fill:#16a34a">sin hilo</text>`:"")+hc(xa,ya,dos?"":(HP.h1?"hilo "+HP.h1:"hilo de campo"))+(dos?hc(xb,yb,hs.length?"hilos "+hs.join(" / ")+(hs.length<2?" + campo":""):"hilos de campo"):"")})():SU?(()=>{const ox=out+side*4,oy=ya+86,dd=`M${xa+side*30} ${ya+22} C ${xa+side*58} ${ya+40}, ${ox} ${ya+44}, ${ox} ${oy}`;
   return `<path class="wire2" d="${dd}"/><path class="wire" d="${dd}"/><g class="pin" style="transform-box:fill-box"><g transform="translate(${xa+side*30},${ya+22}) rotate(${side*-60})"><rect x="-4.5" y="3" width="9" height="18" fill="var(--pk-cu)"/><rect x="-7" y="19" width="14" height="20" rx="3" fill="var(--pk-w)"/></g></g>
   <text x="${xa+side*22}" y="${ya+64}" text-anchor="middle" font-size="18" class="hi">✂</text><g class="pdes"><path d="M${xa+side*14} ${ya+4} L${xa+side*44} ${ya+34}" class="pdesa"/><path d="M${xa+side*44-side*12} ${ya+34} L${xa+side*44} ${ya+34} L${xa+side*44} ${ya+22}" class="pdesa"/>
   <rect x="${X0+SW/2-62}" y="${TOP+132}" width="124" height="17" rx="4" class="pdesr"/><text x="${X0+SW/2}" y="${TOP+145}" text-anchor="middle" class="pdest">⬅ DESCONECTAR</text></g><text x="${ox}" y="${oy+18}" text-anchor="middle" font-size="11" font-weight="800" class="hi">AISLAR</text>`})():EX?(()=>{const ox=out+side*4,oy=ya+96,dd=`M${xa+side*30} ${ya+22} C ${xa+side*58} ${ya+40}, ${ox} ${ya+44}, ${ox} ${oy}`,bx=side>0?X0+SW+10:2;
@@ -208,8 +212,8 @@ function dual(o){const A=v5(o),Bn=v5(Object.assign({},o,{norm:true}));
  const cab=(x,col,t1,t2)=>`<rect x="${x}" y="4" width="${W}" height="${T-8}" rx="7" fill="${col}"/><text x="${x+W/2}" y="23" text-anchor="middle" font-size="15" font-weight="900" style="fill:#fff">${t1}</text><text x="${x+W/2}" y="${T-12}" text-anchor="middle" font-size="9.5" font-weight="700" style="fill:#fff">${t2}</text>`;
  const SU=!!o.suelta,EX=!SU&&!!o.ext;
  const rev=SU?`Revertir: volver a meter el hilo en ${esc(o.b1)} hasta el fondo, comprobar que no sale al tirar y que la alarma no vuelve.`
-  :(()=>{const HP=hilosPuente(o),dos=!EX&&o.b2!=o.b1,hn=(b,h)=>`${h?"el hilo "+esc(h):"el hilo de campo"} en ${esc(b)}`;
-   return `Revertir: quitar el puente (${EX?"la puntera de "+esc(o.b1)+" y la de "+esc(o.b2):"las dos punteras"}), volver a meter ${hn(o.b1,HP.h1)}${dos?" y "+hn(o.b2,HP.h2):""} hasta el fondo (tirar suave: no sale), quitar capuchón y etiqueta, rearmar y comprobar la Magelis sin alarma. Anotarlo en la OT.`})();
+  :(()=>{const HP=hilosPuente(o),lib=b2Libre(o),dos=!EX&&o.b2!=o.b1&&!lib,hn=(b,h)=>`${h?"el hilo "+esc(h):"el hilo de campo"} en ${esc(b)}`;
+   return `Revertir: quitar el puente (${EX?"la puntera de "+esc(o.b1)+" y la de "+esc(o.b2):"las dos punteras"}), volver a meter ${hn(o.b1,HP.h1)}${dos?" y "+hn(o.b2,HP.h2):""}${lib?" ("+esc(o.b2)+" queda libre, sin hilo)":""} hasta el fondo (tirar suave: no sale), quitar capuchón y etiqueta, rearmar y comprobar la Magelis sin alarma. Anotarlo en la OT.`})();
  const L=[""];rev.split(" ").forEach(w=>{const k=L.length-1;if((L[k]+" "+w).trim().length<=74)L[k]=(L[k]+" "+w).trim();else L.push(w)});
  return `<svg class="pzk pzk2" viewBox="0 0 ${WW} ${HH}" role="img" aria-label="Puente provisional ${esc(o.b1)} – ${esc(o.b2)} en ${esc(o.mod)} y estado en servicio">
  ${cab(0,"#d11a10","① CON PUENTE","provisional · lo que se hace ahora")}${cab(W+G,"#15a34a","② EN SERVICIO","sin puentes · cómo debe quedar")}
