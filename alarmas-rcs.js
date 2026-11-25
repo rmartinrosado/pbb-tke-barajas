@@ -641,7 +641,7 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
  /* v864: «Buscar en todos los sistemas» → el texto pasa a «Avería en campo (lo que se detecta)» y al ACEPTAR sale la actuación más eficaz de cualquier sistema */
  l.addEventListener("click",e=>{const b=e.target.closest(".rcslupa");if(!b)return;e.stopPropagation();const v=q.value.trim();const o=sc.querySelector("#sr_ob");
   if(o&&v){o.value=[o.value.replace(/\s+$/,""),v].filter(Boolean).join("\n");const dt=o.closest("details");if(dt)dt.open=true;try{o.dispatchEvent(new Event("input",{bubbles:true}))}catch(x){}}
-  q.value="";q.blur();l.innerHTML="";l.classList.remove("on");if(typeof msg=="function")msg("Añadido a «Avería en campo»: pulsa ACEPTAR para ver la actuación más eficaz");
+  q.value="";q.blur();l.innerHTML="";l.classList.remove("on");if(typeof msg=="function")msg("Añadido a «Síntoma en campo»: pulsa ACEPTAR para ver la actuación más eficaz");
   if(o)try{o.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}});
  /* v867: al elegir del desplegable se añade a «Alarma registrada» y la lista vuelve a salir igual (mismo filtro y misma altura)
     para meter más avisos o alarmas; las ya añadidas salen marcadas ✓. «Listo» la cierra. */

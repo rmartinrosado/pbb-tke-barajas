@@ -85,7 +85,7 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
   if(ol&&!ol.dataset.st){ol.dataset.st=1;const T=["En servicio ya","Reparar","Análisis IA"];[...ol.children].forEach((li,k)=>{if(T[k])li.textContent=T[k]})}
   const rs=row.querySelector(".srobrst");if(rs&&!rs.dataset.st){rs.dataset.st=1;rs.innerHTML=RECARGA;rs.setAttribute("aria-label","Reiniciar el SOS");rs.title="Reiniciar el SOS"}}
  /* rótulos cortos que caben en su caja */
- if(lo&&lo.textContent!=="Avería en campo")lo.textContent="Avería en campo";
+ if(lo&&lo.textContent!=="Síntoma en campo")lo.textContent="Síntoma en campo";
  const lp=c.querySelector(".soscpos label");if(lp&&lp.textContent!=="Posición")lp.textContent="Posición";
  const lcq=c.querySelector('.sostcw>label[for="cmp_q"]');if(lcq&&lcq.textContent!=="Componente de campo")lcq.textContent="Componente de campo";
  pintaChips()}

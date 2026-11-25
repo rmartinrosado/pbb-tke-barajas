@@ -93,18 +93,18 @@ function analiza(){
  return{ob,al,est,cod,Ld,La,C,pend,I}}
 
 /* ---------- pintado ---------- */
-const EST={ok:["✅","ALARMA VALIDADA","La alarma coincide con el manual RCS y con la avería en campo."],
+const EST={ok:["✅","ALARMA VALIDADA","La alarma coincide con el manual RCS y con el síntoma en campo."],
  okn:["✅","ALARMAS VALIDADAS","Todas las alarmas están en el manual RCS; sus componentes se suman."],
- ded:["✅","ALARMA DEDUCIDA DE LA AVERÍA EN CAMPO","No se ha escrito alarma: el código sale de lo que se detecta."],
- dif:["⚠️","LA ALARMA NO COINCIDE CON LA AVERÍA","Manda la avería en campo; revisa la alarma de la Magelis."],
+ ded:["✅","ALARMA DEDUCIDA DEL SÍNTOMA EN CAMPO","No se ha escrito alarma: el código sale de lo que se detecta."],
+ dif:["⚠️","LA ALARMA NO COINCIDE CON EL SÍNTOMA","Manda el síntoma en campo; revisa la alarma de la Magelis."],
  noal:["⚠️","ALARMA NO RECONOCIDA EN EL MANUAL RCS","Revisa el número o el texto de la alarma."],
  foto:["✅","ALARMA LEÍDA DE LA FOTO (complementaria)","No hay nada escrito: se toma lo leído en la Magelis."],
  nada:["ℹ️","SIN CÓDIGO DEL MANUAL RCS","Lo descrito no corresponde a ninguna alarma concreta del manual."]};
 const cajaAl=z=>{try{return typeof rcsCaja=="function"?rcsCaja(z,true):`<div class="rcsb"><b>${E(z.x.c)}</b> ${E(z.x.t)}</div>`}catch(e){return""}};
 function bloqueAlarma(A){const [ic,t0,s]=EST[A.est=="ok"&&A.cod.length>1?"okn":A.est];const t=A.est=="ok"&&A.cod.length>1?`${t0} (${A.cod.length})`:t0;const mal=A.est=="dif"||A.est=="noal";
  let h=`<div class="svh${mal?" svmal":A.est=="nada"?" svnada":""}"><span>${ic}</span><span><b>${t}</b><small>${E(s)}</small></span></div>`;
- if(A.est=="dif")h+=`<div class="svl">Alarma indicada:</div>${A.La.map(cajaAl).join("")}<div class="svl">Según la avería en campo (manda):${A.cod.length?"":" sin código del manual; componente según lo descrito ↓"}</div>`;
- if(A.est=="noal")h+=`<div class="svl">Escrita: «${E(A.al)}»${A.cod.length?" · según la avería en campo:":""}</div>`;
+ if(A.est=="dif")h+=`<div class="svl">Alarma indicada:</div>${A.La.map(cajaAl).join("")}<div class="svl">Según el síntoma en campo (manda):${A.cod.length?"":" sin código del manual; componente según lo descrito ↓"}</div>`;
+ if(A.est=="noal")h+=`<div class="svl">Escrita: «${E(A.al)}»${A.cod.length?" · según el síntoma en campo:":""}</div>`;
  h+=A.cod.map(cajaAl).join("");
  /* v813: simulaciones y croquis de la guía de campo de los elementos que intervienen, tras las cajas rojas (005 → almena) */
  /* v816: el croquis del puente provisional (según planos) justo después de las cajas rojas, antes de la simulación */
@@ -141,7 +141,7 @@ window.sosIncPend=function(id){if(typeof abreComp!="function")return;abreComp();
 .svfp{display:grid;grid-template-columns:86px 1fr;gap:6px;padding:3px 0;border-top:1px dashed color-mix(in srgb,var(--tx,#888) 25%,transparent)}.svfp>.svfpk{font-weight:800;opacity:.75}.svfpv{min-width:0}
 .svfpf{margin-top:6px;font-size:12px;color:#f2b705}.svfpi{width:100%;margin:8px 0 0!important;padding:9px!important;font-size:14px}`;document.head.appendChild(st)})();
 function bloqueComp(A){let b;
- if(A.C.length==1)b=`<div class="svok">Acotado con la avería en campo${A.cod.length?" y la alarma "+E(A.cod.map(z=>z.x.c).join(" / ")):""}.</div>${fichaH(A.C[0])}`;
+ if(A.C.length==1)b=`<div class="svok">Acotado con el síntoma en campo${A.cod.length?" y la alarma "+E(A.cod.map(z=>z.x.c).join(" / ")):""}.</div>${fichaH(A.C[0])}`;
  else if(A.C.length>1)b=`<div class="svok">No está claro cuál de estos interviene: elige el que corresponda (detalla la avería para acotarlo).</div>
   <div class="svbs">${A.C.map(c=>`<button type="button" class="rcscb svb" data-k="${E(clave(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}${c.fab?`<small>${E(c.fab)}</small>`:""}</button>`).join("")}</div><div id="sv_fi"></div>`;
  else if((A.pend||[]).length)b=`<div class="svok">${(A.I||[]).length?"Elementos de campo de la alarma según planos, <b>aún no incorporados</b> en Componentes de campo (ficha pendiente):":"El elemento de la avería está en los planos pero <b>aún no está incorporado</b> en Componentes de campo (los borneros y el módulo del PLC por los que pasa la señal no se proponen como componente a intervenir):"}</div>

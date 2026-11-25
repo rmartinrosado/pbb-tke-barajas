@@ -7,7 +7,7 @@ window.sosRap=function(){const r=o.apply(this,arguments);try{
  const wrap=t.closest(".srobsw"),lab=c.querySelector('label[for="sr_ob"]'),pi=document.getElementById("sr_p"),dl=document.getElementById("sr_pl");
  const sa=document.getElementById("sr_a");const la=sa&&sa.previousElementSibling&&sa.previousElementSibling.tagName=="LABEL"?sa.previousElementSibling:null;
  if(wrap&&lab&&la){la.parentNode.insertBefore(lab,la);la.parentNode.insertBefore(wrap,la)}
- if(lab)lab.textContent="Avería en campo - lo que se detecta";
+ if(lab)lab.textContent="Síntoma en campo - lo que se detecta";
  /* v438: la alarma a mano y la foto también son complementarias (acotan el problema; manda la avería en campo) */
  const sm=c.querySelector("details.srtx>summary");if(sm&&/alarma a mano/i.test(sm.textContent))sm.innerHTML='Escribir la alarma a mano <small style="text-transform:none;letter-spacing:0">(complementaria)</small>';
  const lf=[...c.querySelectorAll("label")].find(x=>/^Foto de la Magelis/i.test(x.textContent));if(lf)lf.innerHTML='Foto de la Magelis / alarmas <small class="mu" style="text-transform:none;letter-spacing:0">(complementaria · acota el problema)</small>';

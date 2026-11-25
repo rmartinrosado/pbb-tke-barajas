@@ -188,7 +188,7 @@ window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpp
  if(ob&&al){const Aa=ana(mk(al,""));if(Aa.ok&&(!A.ok||firma(Aa)!=firma(A)))B=Aa}
  if(fa&&(ob||al)){const Af=ana(mk(fa,""));if(Af.ok&&(!A.ok||firma(Af)!=firma(A))&&(!B||firma(Af)!=firma(B)))C=Af}
  const txt=[ob,al].filter(Boolean).join(" · ")||fa;
- const lin=[ob?`<b>1 · Avería en campo (manda):</b> ${esc(ob)}`:"",al?`<b>2 · Alarma (complementaria):</b> ${esc(al)}`:"",fa?`<b>3 · Foto de la Magelis (complementaria):</b> ${esc(fa)}`:""].filter(Boolean).join("\n");
+ const lin=[ob?`<b>1 · Síntoma en campo (manda):</b> ${esc(ob)}`:"",al?`<b>2 · Alarma (complementaria):</b> ${esc(al)}`:"",fa?`<b>3 · Foto de la Magelis (complementaria):</b> ${esc(fa)}`:""].filter(Boolean).join("\n");
  const leido=`<div id="sr_leido"><details class="srtx" style="margin-top:8px"><summary class="mu">Texto analizado (orden de prioridad)</summary><div class="mu" style="white-space:pre-wrap;font-size:12px">${lin}</div></details>${window.__sosFotoHTML?`<details class="srtx srfotol"><summary class="mu">📷 Lectura de la foto de la Magelis <small>(complementaria)</small></summary>${window.__sosFotoHTML}</details>`:""}</div>`;
  const comp=(X,n)=>X?`<details class="srtx srcomp"><summary><b>Según ${n}</b> (complementaria · otro elemento)</summary>${pinta(X)}</details>`:"";
  if(!A.ok&&!B&&!C){res.innerHTML=`<div class="gav" style="margin-top:10px">Con lo descrito no hay puente provisional ni reset en la PBB ${esc(pos||"")} (o no se ha reconocido). Mira abajo la actuación más eficaz o detalla el elemento (p. ej. «freno de cabina derecho activado»).</div><div id="sr_cas"></div>${leido}`;sosCasRap(txt,pos);return}
