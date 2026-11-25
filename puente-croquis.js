@@ -125,10 +125,17 @@ const MODC={"E-A0":["v","o"],"E-A1":["v","r"],"E-A2":["v","a"],"E-A3":["v","a"],
  "P-A0":["v","o"],"P-A1":["v","r"],"P-A2":["v","r"],"P-A3":["v","a"],"P-A4":["v","a"],"P-A5":["v","a"],"P-A6":["v","a"]};
 const BODY={y:["#f2c700","#9c8200","#e9cf3a","#3b3200"],v:["#56b84a","#2d6b25","#6cc95e","#0f3a0c"]};
 const PAN={o:["#e0701c","#7a3a08"],r:["#f07aa8","#8a2a52"],a:["#4fb7e6","#1d5f80"]};
+/* v903: hilos de campo que hay que SACAR de las bornas para meter el puente (borna push-in: un conductor por punto).
+   Número de hilo según el CABLEADO de los planos: b1 = primer hilo del recorrido desde la borna; b2 = el del retorno si vuelve a
+   esa borna (salida de test UT de los safety); si no se sabe, solo «hilo de campo». */
+function hilosPuente(o){const C=window.CABLEADO||{};let e=null;for(const k in C){const x=C[k];if(x&&x.m==o.mod&&x.b==o.b1){e=x;break}}
+ if(!e)return{h1:"",h2:""};const n=e.n||[],hv=x=>((x&&x.v)||[]).map(v=>v.h).filter(Boolean)[0]||"";
+ const f=n.find(x=>x.k!="M"&&x.k!="C"&&hv(x));const m=n.find(x=>x.k=="M"&&x.p==o.b2);return{h1:hv(f),h2:m?hv(m):""}}
+window.hilosPuente=hilosPuente;
 function v5(o){
  /* v431: modo «soltar hilo» (desbloqueos por equipo de servicio en E-A2): una sola borna, hilo sacado de la borna, sin puente */
  const NO=!!o.norm;/* v902: mitad «EN SERVICIO»: el módulo como está con la PBB operativa (sin puente ni hilo suelto) */
- const SU=!!o.suelta;if(SU)o=Object.assign({},o,{b2:o.b1});
+ const SU=!!o.suelta;if(SU)o=Object.assign({},o,{b2:o.b1});const HP=hilosPuente(o);
  /* v888: puente a un borne FUERA del módulo (+24 V común hilo 613 en E-X68:6): una borna en el módulo y el cable sale a un rótulo */
  const EX=!SU&&!!o.ext,X2=o.b2;if(EX)o=Object.assign({},o,{b2:o.b1});
  const id=o.mod,[bk,pk]=MODC[id]||["v","a"],B=BODY[bk],Pn=PAN[pk];
@@ -171,9 +178,18 @@ function v5(o){
  ${g}
  ${NO?"":`<circle class="ring" cx="${(xa+xb)/2}" cy="${(ya+yb)/2}" r="${Math.max(48,Math.abs(yb-ya)/2+30)}"/>`}
  ${lead(Math.max(xa,xb),ya)}${lead(Math.max(xa,xb),yb)}
+ ${!NO&&!SU?(()=>{/* v903: hilos de campo SACADOS para meter el puente: aislados con capuchón y con etiqueta roja */
+  const L=[[o.b1,HP.h1]];if(!EX&&o.b2!=o.b1)L.push([o.b2,HP.h2]);const ox=out+side*2;
+  return L.map(([b,h],i)=>{const yE=(EX&&side<0?ya+178:Math.max(ya,yb)+66)+i*46,dd=`M${ox} ${yE+30} C ${ox} ${yE+22}, ${ox} ${yE+12}, ${ox} ${yE+2}`;
+   const tx=side>0?ox+12:2,an="start",ry=yE-(side>0?14:30),rw=side>0?80:70,rh=side>0?28:26,t1=yE-(side>0?2:19),t2=yE+(side>0?10:-8);
+   return `<path d="${dd}" fill="none" stroke="#00000055" stroke-width="8" stroke-linecap="round"/><path d="${dd}" fill="none" stroke="#2f6fd6" stroke-width="5" stroke-linecap="round"/>
+   <rect x="${ox-7}" y="${yE-14}" width="14" height="17" rx="4" fill="#111" stroke="#e5e7eb" stroke-width="1.2"/>
+   <g class="pdes"><rect x="${tx-3}" y="${ry}" width="${rw}" height="${rh}" rx="4" class="pdesr"/></g>
+   <text x="${tx}" y="${t1}" text-anchor="${an}" style="fill:#fff;font-size:9.5px;font-weight:900">SACADO ${esc(b)}</text>
+   <text x="${tx}" y="${t2}" text-anchor="${an}" style="fill:#fff;font-size:9px;font-weight:700">${h?"h."+esc(h):"campo"} · aislar</text>`}).join("")})():""}
  ${NO?(()=>{/* hilos de campo en su borna, sin puente */const dos=!(SU||EX||o.b2==o.b1),hc=(x,y,lab)=>{const ox=out+side*2,dd=`M${x+side*14} ${y+8} C ${x+side*40} ${y+22}, ${ox} ${y+14}, ${ox} ${y+46}`;
   return `<path d="${dd}" fill="none" stroke="#00000055" stroke-width="8" stroke-linecap="round"/><path d="${dd}" fill="none" stroke="#2f6fd6" stroke-width="5" stroke-linecap="round"/>${lab?`<text x="${ox}" y="${y+60}" text-anchor="middle" font-size="10" font-weight="800" style="fill:#2f6fd6">${lab.split(" ").length>2?`<tspan x="${ox}">${lab.split(" ")[0]}</tspan><tspan x="${ox}" dy="12">${lab.split(" ").slice(1).join(" ")}</tspan>`:lab}</text>`:""}`};
-  return hc(xa,ya,dos?"":"hilo de campo")+(dos?hc(xb,yb,"hilos de campo"):"")})():SU?(()=>{const ox=out+side*4,oy=ya+86,dd=`M${xa+side*30} ${ya+22} C ${xa+side*58} ${ya+40}, ${ox} ${ya+44}, ${ox} ${oy}`;
+  const hs=[HP.h1,HP.h2].filter(Boolean);return hc(xa,ya,dos?"":(HP.h1?"hilo "+HP.h1:"hilo de campo"))+(dos?hc(xb,yb,hs.length?"hilos "+hs.join(" / ")+(hs.length<2?" + campo":""):"hilos de campo"):"")})():SU?(()=>{const ox=out+side*4,oy=ya+86,dd=`M${xa+side*30} ${ya+22} C ${xa+side*58} ${ya+40}, ${ox} ${ya+44}, ${ox} ${oy}`;
   return `<path class="wire2" d="${dd}"/><path class="wire" d="${dd}"/><g class="pin" style="transform-box:fill-box"><g transform="translate(${xa+side*30},${ya+22}) rotate(${side*-60})"><rect x="-4.5" y="3" width="9" height="18" fill="var(--pk-cu)"/><rect x="-7" y="19" width="14" height="20" rx="3" fill="var(--pk-w)"/></g></g>
   <text x="${xa+side*22}" y="${ya+64}" text-anchor="middle" font-size="18" class="hi">✂</text><g class="pdes"><path d="M${xa+side*14} ${ya+4} L${xa+side*44} ${ya+34}" class="pdesa"/><path d="M${xa+side*44-side*12} ${ya+34} L${xa+side*44} ${ya+34} L${xa+side*44} ${ya+22}" class="pdesa"/>
   <rect x="${X0+SW/2-62}" y="${TOP+132}" width="124" height="17" rx="4" class="pdesr"/><text x="${X0+SW/2}" y="${TOP+145}" text-anchor="middle" class="pdest">⬅ DESCONECTAR</text></g><text x="${ox}" y="${oy+18}" text-anchor="middle" font-size="11" font-weight="800" class="hi">AISLAR</text>`})():EX?(()=>{const ox=out+side*4,oy=ya+96,dd=`M${xa+side*30} ${ya+22} C ${xa+side*58} ${ya+40}, ${ox} ${ya+44}, ${ox} ${oy}`,bx=side>0?X0+SW+10:2;
@@ -187,17 +203,18 @@ function v5(o){
    ② EN SERVICIO (el módulo con la PBB operativa, sin puentes), para que cualquier técnico sepa revertirlo y dejarlo como estaba.
    Sigue siendo un único <svg class="pzk"> (los PDF, la lista de puentes y el toque para ampliar funcionan igual). */
 function dual(o){const A=v5(o),Bn=v5(Object.assign({},o,{norm:true}));
- const vb=/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/.exec(A);if(!vb)return A;const W=+vb[1],H=+vb[2],G=14,T=52,WW=2*W+G,HH=H+T+62;
+ const vb=/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/.exec(A);if(!vb)return A;const W=+vb[1],H=+vb[2],G=14,T=52,WW=2*W+G,HH=H+T+80;
  const inn=t=>t.replace(/^[\s\S]*?<svg[^>]*>/,"").replace(/<\/svg>\s*$/,"");
  const cab=(x,col,t1,t2)=>`<rect x="${x}" y="4" width="${W}" height="${T-8}" rx="7" fill="${col}"/><text x="${x+W/2}" y="23" text-anchor="middle" font-size="15" font-weight="900" style="fill:#fff">${t1}</text><text x="${x+W/2}" y="${T-12}" text-anchor="middle" font-size="9.5" font-weight="700" style="fill:#fff">${t2}</text>`;
  const SU=!!o.suelta,EX=!SU&&!!o.ext;
  const rev=SU?`Revertir: volver a meter el hilo en ${esc(o.b1)} hasta el fondo, comprobar que no sale al tirar y que la alarma no vuelve.`
-  :`Revertir: quitar el puente (${EX?"las dos punteras: la de "+esc(o.b1)+" y la de "+esc(o.b2):"las dos punteras"}) sin tocar los hilos de campo; rearmar y comprobar la Magelis sin alarma.`;
- const L=[""];rev.split(" ").forEach(w=>{const k=L.length-1;if((L[k]+" "+w).trim().length<=72)L[k]=(L[k]+" "+w).trim();else L.push(w)});
+  :(()=>{const HP=hilosPuente(o),dos=!EX&&o.b2!=o.b1,hn=(b,h)=>`${h?"el hilo "+esc(h):"el hilo de campo"} en ${esc(b)}`;
+   return `Revertir: quitar el puente (${EX?"la puntera de "+esc(o.b1)+" y la de "+esc(o.b2):"las dos punteras"}), volver a meter ${hn(o.b1,HP.h1)}${dos?" y "+hn(o.b2,HP.h2):""} hasta el fondo (tirar suave: no sale), quitar capuchón y etiqueta, rearmar y comprobar la Magelis sin alarma. Anotarlo en la OT.`})();
+ const L=[""];rev.split(" ").forEach(w=>{const k=L.length-1;if((L[k]+" "+w).trim().length<=74)L[k]=(L[k]+" "+w).trim();else L.push(w)});
  return `<svg class="pzk pzk2" viewBox="0 0 ${WW} ${HH}" role="img" aria-label="Puente provisional ${esc(o.b1)} – ${esc(o.b2)} en ${esc(o.mod)} y estado en servicio">
  ${cab(0,"#d11a10","① CON PUENTE","provisional · lo que se hace ahora")}${cab(W+G,"#15a34a","② EN SERVICIO","sin puentes · cómo debe quedar")}
  <line x1="${W+G/2}" y1="${T}" x2="${W+G/2}" y2="${T+H}" stroke="var(--pk-mu)" stroke-width="1.5" stroke-dasharray="6 5"/>
  <g transform="translate(0,${T})">${inn(A)}</g><g transform="translate(${W+G},${T})">${inn(Bn)}</g>
- ${L.slice(0,3).map((t,i)=>`<text x="${WW/2}" y="${T+H+18+i*16}" text-anchor="middle" font-size="12.5" font-weight="800" style="fill:#15a34a">${esc(t)}</text>`).join("")}</svg>`}
+ ${L.slice(0,4).map((t,i)=>`<text x="${WW/2}" y="${T+H+18+i*16}" text-anchor="middle" font-size="12.5" font-weight="800" style="fill:#15a34a">${esc(t)}</text>`).join("")}</svg>`}
 window.croquisPuente=function(o,v){css();o=Object.assign({mod:"E-A8",ch:8,b1:"8.1",b2:"8.2",k1:"IN08S",k2:"UT2",d:"F.C. INCLINACIÓN"},o||{});return (v==5?dual:v==4?v4:v==2?v2:v==3?v3:v1)(o)};
 })();
