@@ -113,13 +113,31 @@ function bloqueAlarma(A){const [ic,t0,s]=EST[A.est=="ok"&&A.cod.length>1?"okn":A
  else if((A.pend||[]).length&&!(A.I||[]).length)h+=`<button type="button" class="svchip" onclick="sosValCmp()">🔩 ${E(A.pend.map(r=>r[0]).join(" · "))}<small>Componente a intervenir (planos) · ver ↓</small></button>`;
  return`<div class="svw" id="sv_al">${h}</div>`}
 const fichaH=c=>{try{return typeof compFicha=="function"?compFicha(c):""}catch(e){return""}};
+/* v892: componente SIN ficha en el catálogo: lo que sí dicen los planos (tipo, conexión, entrada del PLC y LED, borneros, mangueras,
+   cómo comprobarlo) y el botón «Incorporar <código> al catálogo», que abre Componentes de campo con esa pieza buscada para hacerle la foto.
+   Antes solo salía el código y el nombre, y un botón genérico «CATÁLOGO · PENDIENTES DE IMPORTAR». */
+function fichaPlanos(r,A){const id=String(r[0]),I=A.I||[];const me=I.find(o=>String(o.id).split(" ")[0].toUpperCase()==id.toUpperCase());
+ const mods=I.filter(o=>o.rol=="modulo"&&(!me||me.pri==o.pri||I.filter(z=>z.rol=="modulo").length==1));
+ const bor=I.filter(o=>o.rol=="borna"&&(!me||o.pri==me.pri)),man=I.filter(o=>o.rol=="manguera"&&(!me||o.pri==me.pri));
+ const tipo=/-B\d/.test(id)?(/ultras|láser|laser|fotoc/i.test(r[1])?"sensor":"inductivo / detector (3 hilos: BN +24 V · BK señal · BU 0 V)"):/-S\d/.test(id)?"final de carrera (contacto)":/-Y\d/.test(id)?"electroválvula (bobina)":/-R\d/.test(id)?"potenciómetro / transmisor":/-U\d/.test(id)?"relé evaluador":/-K\d/.test(id)?"relé / contactor":/-Q\d/.test(id)?"guardamotor / disyuntor":"elemento de campo";
+ const ent=mods.map(o=>`${o.id} ${o.det.join(" · ")}`).join(" / ");
+ const fila=(k,v)=>v?`<div class="svfp"><b class="svfpk">${k}</b><div class="svfpv">${E(v)}</div></div>`:"";
+ const prueba=mods.length?`Al actuar el elemento (con la PBB en esa posición o pasando una pieza metálica / pulsando el contacto) el LED de ${mods.map(o=>o.id+" "+(String(o.det[0]||"").match(/entrada (\S+)/)||["",""])[1]).join(" / ")} debe cambiar. Si no cambia: medir 24 V en el elemento y la señal en el bornero.`:"";
+ return`<div class="rcscb svb svfpc" style="cursor:default"><span class="cmpid">${E(id)}</span> ${E(r[1])}<small>📍 ${E(r[2]||"")} · folio ${E(r[3]||"")} · rev. J</small>
+  <div class="svfpb">${fila("Tipo",tipo)}${fila("Conexión",me?me.det.join(" · "):"")}${fila("Entrada PLC",ent)}${fila("Borneros",bor.map(o=>o.id+" "+o.det.join("/").replace(/borna /g,"")).join(" · "))}${fila("Mangueras",man.map(o=>o.id+(o.det[0]&&!/cable del elemento/.test(o.det[0])?" ("+o.det[0]+")":"")).join(" · "))}${fila("Comprobar",prueba)}
+  <div class="svfpf">⚠️ Sin ficha: faltan fabricante, referencia y especificaciones. Se completan al incorporarlo con la foto de su placa.</div></div>
+  <button type="button" class="pri svfpi" onclick="event.stopPropagation();sosIncPend('${E(id)}')">➕ Incorporar ${E(id)} al catálogo</button></div>`}
+window.sosIncPend=function(id){if(typeof abreComp!="function")return;abreComp();setTimeout(()=>{const q=document.getElementById("cn_q");if(q){q.value=id;q.dispatchEvent(new Event("input",{bubbles:true}))}
+ if(typeof msg=="function")msg("Pulsa 📷 junto a "+id+" y haz la foto de su placa")},120)};
+(function(){const st=document.createElement("style");st.textContent=`.svfpc{display:block!important}.svfpb{margin-top:6px;font-size:12.5px;line-height:1.35}
+.svfp{display:grid;grid-template-columns:86px 1fr;gap:6px;padding:3px 0;border-top:1px dashed color-mix(in srgb,var(--tx,#888) 25%,transparent)}.svfp>.svfpk{font-weight:800;opacity:.75}.svfpv{min-width:0}
+.svfpf{margin-top:6px;font-size:12px;color:#f2b705}.svfpi{width:100%;margin:8px 0 0!important;padding:9px!important;font-size:14px}`;document.head.appendChild(st)})();
 function bloqueComp(A){let b;
  if(A.C.length==1)b=`<div class="svok">Acotado con la avería en campo${A.cod.length?" y la alarma "+E(A.cod.map(z=>z.x.c).join(" / ")):""}.</div>${fichaH(A.C[0])}`;
  else if(A.C.length>1)b=`<div class="svok">No está claro cuál de estos interviene: elige el que corresponda (detalla la avería para acotarlo).</div>
   <div class="svbs">${A.C.map(c=>`<button type="button" class="rcscb svb" data-k="${E(clave(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}${c.fab?`<small>${E(c.fab)}</small>`:""}</button>`).join("")}</div><div id="sv_fi"></div>`;
  else if((A.pend||[]).length)b=`<div class="svok">${(A.I||[]).length?"Elementos de campo de la alarma según planos, <b>aún no incorporados</b> en Componentes de campo (ficha pendiente):":"El elemento de la avería está en los planos pero <b>aún no está incorporado</b> en Componentes de campo (los borneros y el módulo del PLC por los que pasa la señal no se proponen como componente a intervenir):"}</div>
-  <div class="svbs">${A.pend.map(r=>`<div class="rcscb svb" style="cursor:default"><span class="cmpid">${E(r[0])}</span> ${E(r[1])}<small>📍 ${E(r[2]||"")} · folio ${E(r[3]||"")}</small></div>`).join("")}</div>
-  <button type="button" class="sec" style="width:100%" onclick="typeof abreComp=='function'&&abreComp()">CATÁLOGO · PENDIENTES DE IMPORTAR</button>`;
+  <div class="svbs">${A.pend.map(r=>fichaPlanos(r,A)).join("")}</div>`;
  else b=`<div class="svok">Con lo descrito no se identifica un componente del catálogo. Detalla el elemento (p. ej. «láser de extensión», «potenciómetro de cabina») o búscalo en el catálogo.</div>
   <button type="button" class="sec" style="width:100%" onclick="typeof compCatalogo=='function'&&compCatalogo()">CATÁLOGO DE COMPONENTES</button>`;
  return`<div class="ubh ubcmp" id="sv_cmp">🔩 COMPONENTE A INTERVENIR<small>${A.C.length==1?"Ficha técnica del componente":"Especificaciones técnicas"}</small></div><div class="ubb ubbcmp">${b}</div>`}
