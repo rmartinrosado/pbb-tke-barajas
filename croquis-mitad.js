@@ -5,7 +5,9 @@
 const st=document.createElement("style");st.textContent=`
 svg.pzk,.pucroq svg{width:50%!important;max-width:210px!important;height:auto!important;display:block!important;margin:0 auto!important;cursor:zoom-in;transition:width .2s}
 svg.pzk.pzkg,.pucroq svg.pzkg{width:100%!important;max-width:420px!important;cursor:zoom-out}
-.gcri{text-align:center}`;
+.gcri{text-align:center}
+/* v902: croquis partido en dos mitades (con puente | en servicio): ocupa todo el ancho; un toque lo amplía */
+svg.pzk.pzk2,.pucroq svg.pzk2{width:100%!important;max-width:420px!important}svg.pzk.pzk2.pzkg,.pucroq svg.pzk2.pzkg{max-width:760px!important}`;
 document.head.appendChild(st);
 document.addEventListener("click",e=>{const s=e.target.closest&&e.target.closest("svg.pzk,.pucroq svg");if(!s)return;
  e.stopPropagation();s.classList.toggle("pzkg")},true);
@@ -18,8 +20,8 @@ document.addEventListener("click",e=>{const s=e.target.closest&&e.target.closest
 const st=document.createElement("style");st.textContent=`
 .gcrs,.gobss{flex-wrap:wrap!important;overflow-x:visible!important;scroll-snap-type:none!important;justify-content:center!important;gap:8px!important}
 .gcrs>.gcri,.gobss>*{flex:1 1 46%!important;max-width:calc(50% - 4px)!important;min-width:0!important;scroll-snap-align:none!important}
-.gcrs>.gcri:has(svg.pzkg),.gobss>*:has(svg.pzkg){flex-basis:100%!important;max-width:100%!important}
-.gcrs svg.pzk,.gobss svg.pzk{width:100%!important;max-width:none!important}
+.gcrs>.gcri:has(svg.pzkg),.gobss>*:has(svg.pzkg),.gcrs>.gcri:has(svg.pzk2),.gobss>*:has(svg.pzk2){flex-basis:100%!important;max-width:100%!important}
+.gcrs svg.pzk,.gobss svg.pzk{width:100%!important;max-width:none!important}.gcrs svg.pzk2,.gobss svg.pzk2{max-width:420px!important;margin:0 auto!important}.gcrs svg.pzk2.pzkg,.gobss svg.pzk2.pzkg{max-width:760px!important}
 .gcrs svg.pzk.pzkg,.gobss svg.pzk.pzkg{width:100%!important}`;
 document.head.appendChild(st);
 let pend=0;const fija=()=>{pend=0;document.querySelectorAll(".gcrh,.gobsh2").forEach(h=>{for(const n of h.childNodes)if(n.nodeType==3&&/\(desliza\)/.test(n.nodeValue))n.nodeValue=n.nodeValue.replace(/\(desliza\)/g,"(todos a la vista)")})};
