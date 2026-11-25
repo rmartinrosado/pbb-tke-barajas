@@ -105,7 +105,10 @@ function bloqueAlarma(A){const [ic,t0,s]=EST[A.est=="ok"&&A.cod.length>1?"okn":A
  /* v704: componentes de campo que intervienen (según planos), igual que al elegir la alarma */
  if((A.I||[]).length&&A.cod.length&&typeof rcsBloqueInterv=="function")h+=rcsBloqueInterv(A.cod[0].x,A.I,A.cod.length>1);
  /* componente: chip que baja a la ficha */
- if(A.C.length==1){const c=A.C[0];h+=`<button type="button" class="svchip" onclick="sosValCmp()"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}<small>🔩 Componente a intervenir · ver ficha ↓</small></button>`}
+ /* v891: sin el chip del componente si ya está en «Elementos que intervienen» (salía repetido, p. ej. E-U5 en la 010) */
+ const yaI=c=>(A.I||[]).some(o=>String(o.id).split(" ")[0].toUpperCase()==String(c.id).trim().toUpperCase()||(o.c&&o.c===c));
+ if(A.C.length==1&&yaI(A.C[0])){}
+ else if(A.C.length==1){const c=A.C[0];h+=`<button type="button" class="svchip" onclick="sosValCmp()"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}<small>🔩 Componente a intervenir · ver ficha ↓</small></button>`}
  else if(A.C.length>1)h+=`<button type="button" class="svchip svvar" onclick="sosValCmp()">🔩 ${A.C.length} componentes posibles · elegir ↓</button>`;
  else if((A.pend||[]).length&&!(A.I||[]).length)h+=`<button type="button" class="svchip" onclick="sosValCmp()">🔩 ${E(A.pend.map(r=>r[0]).join(" · "))}<small>Componente a intervenir (planos) · ver ↓</small></button>`;
  return`<div class="svw" id="sv_al">${h}</div>`}

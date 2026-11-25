@@ -463,6 +463,19 @@ function intervienen(x){const CA=window.CANAL_AL||{},CB=window.CABLEADO||{},PL=w
   if(!hay){const a=AA[x.c]&&(CA[k]||[]).includes(x.c)?x.c:(CA[k]||[]).find(q=>AA[q]);const tx=[a?AA[a]:"",...(e.n||[]).map(n=>n.x||"")].join(" ");
    const m=tx.match(/\b[A-Z]{1,3}-[A-Z]{1,2}\d+(?:\.\d+)?\b/g)||[];
    [...new Set(m)].filter(id=>!/-X\d|^[EP]-A\d/.test(id)).forEach(id=>add(id,"campo",/^E-R\d/.test(id)?"convertidor → 4-20 mA":/-R\d/.test(id)&&tx.includes("E-R10")&&/^C-/.test(id)?"potenciómetro 10 kΩ, cables 1-2-3 (E-W9 → E-X65)":/-R\d/.test(id)?"potenciómetro / transmisor 4-20 mA":"sensor 4-20 mA",P))}}));
+ /* v891: ORIGEN → DESTINO completo. Si el canal acaba en un aparato intermedio (relé evaluador E-U5 de bordes, P-U5 de zapata,
+    relés del CBTH…), se sigue su circuito auxiliar del plano (CABLEADO «AUX|…»: bucle Z1-Z2, contactos…) hasta el elemento de campo,
+    con borneros, conectores y mangueras. Antes la 010 solo sacaba E-U5 y E-A8 (el canal termina en el contacto 13-14 del relé). */
+ {const dev=new Set();ent.forEach(({e})=>(e.n||[]).forEach(n=>{if(n.k=="E"&&n.t)dev.add(limpiaId(n.t).split(" ")[0])}));
+  const base=t=>limpiaId(String(t||"").replace(/:.*$/,"")).split(" ")[0];
+  Object.keys(CB).filter(k=>/^AUX\|/.test(k)).forEach(k=>{const e=CB[k];if(!e||!(e.n||[]).some(n=>dev.has(base(n.t))))return;
+   const pri=ent.some(z=>z.pri&&(z.e.n||[]).some(n=>n.k=="E"&&(e.n||[]).some(m=>base(m.t)==base(n.t))));
+   (e.n||[]).forEach(n=>{const id=base(n.t);if(!id||dev.has(id))return;
+    if(n.k=="E"||n.k=="F")add(id,"campo",tipoE(id,n.ps)||"",pri,n.f);
+    else if(n.k=="B"){if(/-X\d/.test(id))add(id,"borna","borna "+n.p,pri,n.f);else add(id,"campo","conector "+n.p,pri,n.f)}});
+   (e.n||[]).forEach(n=>(n.v||[]).forEach(v=>{if(v.m)add(String(v.m).replace(/^-/,""),"manguera",v.t&&!/FABRICANTE/i.test(v.t)?v.t:"cable del elemento",pri,n.f)}))})}
+ /* v891: mangueras del propio canal */
+ ent.forEach(({e,pri})=>(e.n||[]).forEach(n=>(n.v||[]).forEach(v=>{if(v.m)add(String(v.m).replace(/^-/,""),"manguera",v.t&&!/FABRICANTE/i.test(v.t)?v.t:"cable del elemento",pri,n.f)})));
  ent.forEach(({e,pri})=>(e.n||[]).forEach(n=>{if(n.k!="B")return;if((n.v||[]).some(v=>v.h=="189"||/^189\b/.test(v.d||"")))return;
   /* un aparato con bornas (E-R10…) no es un bornero: va como elemento con su borna */
   if(!/-X\d/.test(String(n.t||""))){add(n.t,"campo","borna "+n.p,pri,n.f);return}add(n.t,"borna","borna "+n.p,pri,n.f)}));
@@ -475,13 +488,13 @@ function intervienen(x){const CA=window.CANAL_AL||{},CB=window.CABLEADO||{},PL=w
   COMPS().filter(c=>ckIds(c).some(i=>ckey(i)==base)&&ckey(c.id)!=base).forEach(c=>{const id=String(c.id).trim();if(!out.has(id))out.set(id,{id,rol:"campo",det:["acoplamiento / accesorio de "+o.id],pri:o.pri,f:o.f,acc:c})})});
  return[...out.values()].map(o=>{if(o.acc)return Object.assign(o,{r:null,c:o.acc,papel:"Accesorio del elemento de campo",nom:o.acc.t,ubi:"",folio:o.f});const r=PL.find(z=>String(z[0]).toUpperCase()==o.id.split(" ")[0].toUpperCase())||null;
   const c=COMPS().find(z=>ckIds(z).concat([z.id]).some(i=>ckey(i)==ckey(o.id.split(" ")[0])))||null;
-  const papel=o.rol=="campo"?(fc?(o.pri?"Final de carrera de seguridad (el que se pisa)":"Límite de trabajo · causa principal"):(o.pri?"Elemento de campo":"Elemento de campo relacionado")):o.rol=="borna"?"Bornero de paso de la señal":(/^E-A[89]$|^E-A10$/.test(o.id)?"Módulo de seguridad (amarillo)":"Módulo del PLC");
+  const papel=o.rol=="campo"?(fc?(o.pri?"Final de carrera de seguridad (el que se pisa)":"Límite de trabajo · causa principal"):(o.pri?"Elemento de campo":"Elemento de campo relacionado")):o.rol=="borna"?"Bornero de paso de la señal":o.rol=="manguera"?"Manguera / cable":(/^E-A[89]$|^E-A10$/.test(o.id)?"Módulo de seguridad (amarillo)":"Módulo del PLC");
   /* símbolo genérico del plano con calificador («IT-S3''(INF)» en antiatrapamientos y frenos de cabina): no es el IT-S3 del
      catálogo de planos; se nombra por la señal del canal */
   if(/\(/.test(o.id)){const q=(o.id.match(/\(([^)]*)\)/)||[])[1]||"";const d=String(o.dc||"").toLowerCase();
    return Object.assign(o,{r:null,c:null,papel,nom:"FC "+(d||"de seguridad")+(q?" · "+q.toLowerCase():""),ubi:"",folio:o.f})}
-  const ubi=r?r[2]:"";return Object.assign(o,{r,c,papel:o.rol=="campo"&&!fc&&/armario/i.test(ubi)?"Aparato en el armario eléctrico":papel,nom:c?c.t:r?r[1]:"",ubi,folio:r?r[3]:o.f})})
-  .sort((a,b)=>{const ord=z=>(z.rol=="campo"?(z.acc?0.3:/armario/i.test(z.ubi||"")?0.6:0):z.rol=="borna"?2:3)+(z.rol=="campo"&&!z.pri?1:0);return ord(a)-ord(b)})}
+  const ubi=r?r[2]:"";if(o.rol=="manguera"&&!c&&!r)return Object.assign(o,{r,c,papel:"Manguera / cable",nom:"Manguera "+o.id,ubi:"",folio:o.f});return Object.assign(o,{r,c,papel:o.rol=="campo"&&!fc&&/armario/i.test(ubi)?"Aparato en el armario eléctrico":papel,nom:c?c.t:r?r[1]:"",ubi,folio:r?r[3]:o.f})})
+  .sort((a,b)=>{const ord=z=>(z.rol=="campo"?(z.acc?0.3:/armario/i.test(z.ubi||"")?0.6:0):z.rol=="borna"?2:z.rol=="manguera"?2.5:3)+(z.rol=="campo"&&!z.pri?1:0);return ord(a)-ord(b)})}
 window.rcsIntervienen=x=>{try{return intervienen(typeof x=="string"?porCod(x):x)}catch(e){console.warn("rcsIntervienen",e);return[]}};
 /* v705: «1 · SACAR EN SERVICIO YA» de UNA alarma según planos (canal más específico de CANAL_AL + CABLEADO rev. J):
    · entrada de seguridad (módulos amarillos E-A8 / E-A9 / E-A10): puente provisional IN n.1 ↔ UT n.2 del canal, en MANUAL
@@ -564,7 +577,7 @@ window.rcsIntervUnion=function(X){/* v710 */const M=new Map();(X||[]).forEach(x=
   if(t&&/(no (marca|cuenta|presenta|indica|da|muestra|lee)|cuenta mal|marca mal|cuenta de (mas|menos)|sin)[^.]{0,50}(angulo|grados|giro de (las )?ruedas|contaje)|contaje|(angulo|grados)[^.]{0,30}(ruedas|giro|traslac)|giro de (las )?ruedas[^.]{0,30}(no |mal)/.test(t)&&!/cabina|rotonda/.test(t)){
    const x6=porCod("116");if(x6)window.rcsIntervienen(x6).forEach(o=>{if(!/^(H-B1|H-B2|H-W14|H-W15)$/.test(o.id)&&!(o.rol=="borna"&&M.has(o.id)))return;const p=M.get(o.id);
     if(p){o.det.forEach(d=>{if(!p.det.includes(d))p.det.push(d)});return}M.set(o.id,Object.assign({},o,{det:o.det.concat(["según la avería en campo"]),als:["116"],pri:true}))})}}catch(e){}
- const ord=z=>(z.rol=="campo"?(z.acc?0.3:/armario/i.test(z.ubi||"")?0.6:0):z.rol=="borna"?2:3)+(z.rol=="campo"&&!z.pri?1:0);return[...M.values()].sort((a,b)=>ord(a)-ord(b))};
+ const ord=z=>(z.rol=="campo"?(z.acc?0.3:/armario/i.test(z.ubi||"")?0.6:0):z.rol=="borna"?2:z.rol=="manguera"?2.5:3)+(z.rol=="campo"&&!z.pri?1:0);return[...M.values()].sort((a,b)=>ord(a)-ord(b))};
 function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const sel=sc.querySelector("#sr_a");if(!sel||sc.querySelector("#rcs_q"))return;
  const lab=sel.previousElementSibling;const fila=sel.closest(".soscr2");
  const d=document.createElement("div");d.className="rcsbus";
