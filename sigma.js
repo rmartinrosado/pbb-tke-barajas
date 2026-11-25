@@ -180,3 +180,61 @@
  if(typeof vNew=="function"){const o=vNew;vNew=function(){const r=o.apply(this,arguments);try{const h=document.querySelector("#app>.card>h3");
    if(h&&!h.querySelector(".sigB")){h.innerHTML=`<span>Registrar OT</span><button type="button" class="sigB" onclick="sigAbre()" aria-label="Registrar alarma Sigma">${BELL}SIGMAS</button>`}}catch(e){}return r}}
 })();
+/* ===== v914: pantalla Sigma con el MISMO TEMA que el SOS / Registrar OT: título mono con barra y degradado, rótulos con punto y
+   línea, campos redondeados, GUARDAR y ACEPTAR con el degradado naranja-morado e historial en tarjeta de consola.
+   Solo cambia el aspecto: no toca ids ni lógica. ===== */
+(function(){
+ const S="#sheetc .sigF",OR="var(--tkor,#ff7a1a)",PU="var(--tkpu,#9b3dff)",MO="var(--tkmo,ui-monospace,SFMono-Regular,Menlo,monospace)";
+ const FLD="color-mix(in srgb,var(--bg) 70%,var(--card))",BRD="color-mix(in srgb,var(--tx) 16%,transparent)";
+ const st=document.createElement("style");st.textContent=`
+${S} h3{display:flex!important;align-items:center;gap:10px!important;margin:0 0 8px!important;padding:0!important;font:900 clamp(17px,5.4vw,21px)/1.15 ${MO}!important;letter-spacing:2.5px!important;text-transform:uppercase;color:var(--tx)!important}
+${S} h3::before{content:"";flex:none;width:5px;align-self:stretch;min-height:28px;border-radius:3px;background:linear-gradient(180deg,${PU},${OR})}
+${S} h3 .sigI{order:2;margin-left:auto;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;border:1.5px solid ${BRD};background:${FLD};color:${PU}!important}
+${S} h3 .sigI svg{width:20px;height:20px}
+${S} h3 .sigTt{background:linear-gradient(90deg,var(--tx) 25%,${OR});-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+${S} .sigN{margin:0 0 4px!important;font:600 11.5px/1.45 ${MO}!important;letter-spacing:.3px;color:var(--mu)!important}
+${S} .sigN b{color:${OR}}
+${S} label{display:flex!important;align-items:center;gap:6px;margin:14px 0 8px!important;padding:0!important;font:800 11px/1 ${MO}!important;letter-spacing:1.4px!important;text-transform:uppercase;color:var(--mu)!important;white-space:nowrap;overflow:hidden;min-width:0}
+${S} label::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,${OR},${PU})}
+${S} .sigG>div:last-child label::before{display:none}
+${S} input:not([type=checkbox]):not([type=radio]),${S} select,${S} textarea{min-height:52px!important;height:auto!important;margin:0!important;box-sizing:border-box;width:100%;border-radius:12px!important;border:1.5px solid ${BRD}!important;background:${FLD}!important;color:var(--tx)!important;box-shadow:none!important;font:500 16px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;padding:10px 12px!important}
+${S} #sg_r,${S} #sg_pos,${S} #sg_t{font-size:14.5px!important;padding:10px 6px 10px 10px!important}
+${S} #sg_pn,${S} #sg_h{font:800 18px/1 ${MO}!important;letter-spacing:2px!important;text-align:center}
+${S} input::placeholder,${S} textarea::placeholder{color:var(--mu)!important;opacity:.8;font-weight:400!important}
+${S} input:focus,${S} select:focus,${S} textarea:focus{outline:0!important;border-color:${OR}!important;box-shadow:0 0 0 4px color-mix(in srgb,${OR} 22%,transparent)!important}
+${S} .sigOk,${S} .sigEdB .pri,${S} .sigCGA .pri{min-height:52px!important;height:auto!important;border:0!important;border-radius:12px!important;color:#fff!important;font:900 14px/1 ${MO}!important;letter-spacing:1.5px!important;text-transform:uppercase;background:linear-gradient(135deg,${OR},${PU})!important;box-shadow:0 8px 22px -10px ${PU}!important;text-shadow:none!important}
+${S} .sigAct{margin-top:14px!important;padding:12px 14px!important;border-radius:12px!important;border:1.5px solid ${BRD}!important;border-left:4px solid ${PU}!important;background:${FLD}!important;font:600 13px/1.4 ${MO}!important;color:var(--tx)!important}
+${S} .sigAct b{color:${OR}!important}
+${S} .sigCGA{border-radius:12px!important;border:1.5px solid color-mix(in srgb,${OR} 55%,transparent)!important;background:color-mix(in srgb,${OR} 8%,var(--card))!important;color:var(--tx)!important;font:600 12.5px/1.4 ${MO}!important}
+.sigAc{position:relative;overflow:hidden;min-height:56px;margin-top:14px!important;border:0!important;border-radius:14px!important;color:#111!important;font:900 17px/1 ${MO}!important;letter-spacing:2.5px!important;
+ background:linear-gradient(135deg,#ffb020,${OR} 45%,#ff4d2e)!important;box-shadow:0 12px 28px -10px ${OR},0 0 0 1px #fff4 inset!important}
+.sigAc::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,#fff7,transparent);animation:sigShine 3.2s ease-in-out infinite}
+@keyframes sigShine{60%,100%{left:130%}}
+.sigAc.lat{animation:sigLat2 .5s ease-in-out 3}@keyframes sigLat2{50%{transform:scale(1.04);box-shadow:0 0 0 6px color-mix(in srgb,${OR} 35%,transparent)}}
+${S} .sigH{position:relative;margin-top:16px!important;padding:4px 14px 12px!important;border:1.5px solid transparent!important;border-radius:18px;
+ background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,${OR},${PU} 55%,#1e88e5) border-box!important;box-shadow:0 10px 40px -14px color-mix(in srgb,${PU} 45%,transparent)}
+${S} .sigH summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 0 6px;font:900 13.5px/1.2 ${MO}!important;letter-spacing:1.6px;text-transform:uppercase;color:var(--tx)}
+${S} .sigH summary::-webkit-details-marker{display:none}
+${S} .sigH summary::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,${OR},${PU})}
+${S} .sigH summary::after{content:"▾";margin-left:auto;color:var(--mu);transition:transform .2s}${S} .sigH:not([open]) summary::after{transform:rotate(-90deg)}
+${S} .sigH>div>.mu{font-family:${MO}!important}
+${S} .sigTop span{border-radius:999px!important;font-family:${MO}}
+${S} .sigL li{border-bottom:1px dashed ${BRD}!important;padding:8px 2px!important}
+${S} .sigL li .p{font-family:${MO};letter-spacing:.5px}
+${S} .sigL li.ed{background:color-mix(in srgb,${PU} 10%,transparent)!important;outline:2px solid ${PU}!important;border-radius:10px!important}
+${S} .sigL li.nv{border-left:4px solid ${OR}!important;background:color-mix(in srgb,${OR} 6%,transparent)!important}
+${S} .sigL li .nvT{background:linear-gradient(135deg,${OR},${PU})!important}
+${S} .sigEdP{border:2px solid ${PU}!important;border-top:0!important;border-radius:0 0 12px 12px!important;background:color-mix(in srgb,${PU} 5%,transparent)!important}
+${S} .sigEd{border-radius:10px!important;border:1.5px solid ${BRD}!important;background:${FLD}!important;font-family:${MO}}${S} .sigEd b{color:${PU}!important}
+${S} .sigRs button{min-height:46px;border-radius:10px!important;border:1.5px solid ${BRD}!important;background:${FLD}!important;font:800 11.5px/1.1 ${MO}!important;letter-spacing:.4px}
+${S} .sigRs button.on{background:#16a34a!important;border-color:#16a34a!important;color:#fff!important}
+${S} .sigRs button.on.no{background:#dc2626!important;border-color:#dc2626!important}${S} .sigRs button.on.pe{background:#d97706!important;border-color:#d97706!important}
+${S} .sigEdB .sec{min-height:52px;border-radius:12px!important;border:1.5px solid ${BRD}!important;background:${FLD}!important;color:var(--tx)!important;font:800 13px/1 ${MO}!important;text-transform:uppercase}
+${S} .sigEs{border-radius:999px!important;font-family:${MO}}
+.sigB{border-radius:12px!important;font-family:${MO}!important;background:linear-gradient(135deg,${PU},${OR})!important}`;
+ document.head.appendChild(st);
+ /* el texto del título va en su propio span para el degradado (el icono de la campana pasa a la derecha) */
+ new MutationObserver(()=>{const h=document.querySelector("#sheetc .sigF h3");if(!h||h.querySelector(".sigTt"))return;
+  [...h.childNodes].forEach(n=>{if(n.nodeType==3&&n.textContent.trim()){const s=document.createElement("span");s.className="sigTt";s.textContent=n.textContent.trim();n.replaceWith(s)}})})
+  .observe(document.body,{childList:true,subtree:true});
+})();
