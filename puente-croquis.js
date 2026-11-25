@@ -134,7 +134,13 @@ function hilosPuente(o){const C=window.CABLEADO||{};let e=null;for(const k in C)
 /* v904: en los módulos de entradas verdes (E-A3, E-A4… comprobado en campo, foto 25/11/2026) las bornas .2 (+24 V) NO llevan
    hilo: el puente entra en la .2 libre y solo se saca el hilo de la entrada (.1). En los safety amarillos la .2 es la salida de test UT
    y sí lleva su hilo de retorno. */
-const b2Libre=o=>{const m=MODC[o.mod];return !(m&&m[0]=="y")&&!hilosPuente(o).h2&&!o.suelta&&!o.ext&&o.b2!=o.b1};
+/* v905: bornas .2 CON HILO comprobadas en campo (25/11/2026, armario E). Manda sobre los planos: p. ej. E-A9 2.2 (túnel medio, solo
+   PBB de 3 túneles) y E-A10 3.2 salen libres aunque el esquema dibuje su UT. Módulo que no está aquí: regla de v904. */
+const CON2={"E-A1":[1,2,4,5,7,8],"E-A2":[],"E-A3":[],"E-A4":[],"E-A8":[2,3,4,5,6,7,8],"E-A9":[1,3,4],"E-A10":[1,2,5,6,7,8]};
+window.BORNAS2_CAMPO=CON2;
+const b2Libre=o=>{if(o.suelta||o.ext||o.b2==o.b1)return false;const pb=/^(\d+)\.2$/.exec(String(o.b2||""));
+ if(pb&&CON2[o.mod])return !CON2[o.mod].includes(+pb[1]);
+ const m=MODC[o.mod];return !(m&&m[0]=="y")&&!hilosPuente(o).h2};
 window.hilosPuente=hilosPuente;
 function v5(o){
  /* v431: modo «soltar hilo» (desbloqueos por equipo de servicio en E-A2): una sola borna, hilo sacado de la borna, sin puente */
