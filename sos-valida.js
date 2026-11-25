@@ -136,7 +136,7 @@ function fichaPlanos(r,A){const id=String(r[0]),I=A.Ic||A.I||[];const me=I.find(
  const CB=window.CABLEADO||{};const ents=Object.keys(CB).map(k=>CB[k]).filter(e=>e&&e.m&&(e.n||[]).some(n=>n.k=="E"&&lid(n.t)==id.toUpperCase()));
  let mods,bor,man;
  if(ents.length){const ms=new Map(),bs=new Map(),ws=new Set();
-  ents.forEach(e=>{if(/GND|^N\.?C\.?$/i.test(String(e.k||"")+" "+String(e.d||"").trim()))return;ms.set(e.m+" "+e.b,{id:e.m,det:[(/^OUT/i.test(e.k||"")?"salida ":"entrada ")+e.b+" ("+(e.k||"")+") · "+String(e.d||"").toLowerCase()]});
+  ents.forEach(e=>{if(/GND|^N\.?C\.?$/i.test(String(e.k||"")+" "+String(e.d||"").trim()))return;ms.set(e.m+" "+e.b,{id:e.m,det:[(/^OUT/i.test(e.k||"")?"salida ":/^UT/i.test(e.k||"")?"salida de test ":"entrada ")+e.b+" ("+(e.k||"")+") · "+String(e.d||"").toLowerCase()]});
    (e.n||[]).forEach(n=>{if(n.k=="B"&&/-X\d/.test(n.t||"")){const b=lid(n.t);if(!bs.has(b))bs.set(b,new Set());bs.get(b).add(n.p)}(n.v||[]).forEach(v=>{if(v.m)ws.add(String(v.m).replace(/^-/,"")+(v.t&&!/FABRICANTE/i.test(v.t)?" ("+v.t+")":""))})})});
   mods=[...ms.values()];bor=[...bs.entries()].map(([b,ps])=>({id:b,det:[[...ps].filter(Boolean).join("/")]}));man=[...ws].map(w=>({id:w,det:[]}))}
  else{mods=I.filter(o=>o.rol=="modulo"&&(!me||me.pri==o.pri||I.filter(z=>z.rol=="modulo").length==1));
@@ -144,8 +144,10 @@ function fichaPlanos(r,A){const id=String(r[0]),I=A.Ic||A.I||[];const me=I.find(
  const tipo=/-B\d/.test(id)?(/ultras|láser|laser|fotoc/i.test(r[1])?"sensor":"inductivo / detector (3 hilos: BN +24 V · BK señal · BU 0 V)"):/-S\d/.test(id)?"final de carrera (contacto)":/-Y\d/.test(id)?"electroválvula (bobina)":/-R\d/.test(id)?"potenciómetro / transmisor":/-U\d/.test(id)?"relé evaluador":/-K\d/.test(id)?"relé / contactor":/-Q\d/.test(id)?"guardamotor / disyuntor":"elemento de campo";
  const ent=mods.map(o=>`${o.id} ${o.det.join(" · ")}`).join(" / ");
  const fila=(k,v)=>v?`<div class="svfp"><b class="svfpk">${k}</b><div class="svfpv">${E(v)}</div></div>`:"";
- const prueba=/-[KQUF]\d/.test(id)?(mods.length?`Comprobar en ${mods.map(o=>o.id+" "+(String(o.det[0]||"").match(/(?:entrada|salida) (\S+)/)||["",""])[1]).join(" / ")}: con la orden, la bobina (A1-A2) debe tener 24 V y su contacto de retorno cambiar.`:""):mods.length?`Al actuar el elemento (con la PBB en esa posición o pasando una pieza metálica / pulsando el contacto) el LED de ${mods.map(o=>o.id+" "+(String(o.det[0]||"").match(/(?:entrada|salida) (\S+)/)||["",""])[1]).join(" / ")} debe cambiar. Si no cambia: medir 24 V en el elemento y la señal en el bornero.`:"";
- return`<div class="rcscb svb svfpc" style="cursor:default"><span class="cmpid">${E(id)}</span> ${E(r[1])}<small>📍 ${E(r[2]||"")} · folio ${E(r[3]||"")} · rev. J</small>
+ const prueba=/-[KQUF]\d/.test(id)?(mods.length?`Comprobar en ${mods.map(o=>o.id+" "+(String(o.det[0]||"").match(/(?:entrada|salida(?: de test)?) (\S+)/)||["",""])[1]).join(" / ")}: con la orden, la bobina (A1-A2) debe tener 24 V y su contacto de retorno cambiar.`:""):mods.length?`Al actuar el elemento (con la PBB en esa posición o pasando una pieza metálica / pulsando el contacto) el LED de ${mods.map(o=>o.id+" "+(String(o.det[0]||"").match(/(?:entrada|salida(?: de test)?) (\S+)/)||["",""])[1]).join(" / ")} debe cambiar. Si no cambia: medir 24 V en el elemento y la señal en el bornero.`:"";
+ /* v900: papel del elemento según el cableado (FC inclinación SUPERIOR / INFERIOR): con dos FC del mismo nombre se distinguen */
+ let rol="";ents.some(e=>(e.n||[]).some(n=>{if(n.k=="E"&&lid(n.t)==id.toUpperCase()&&n.d){const m=String(n.d).match(/\b(SUPERIOR|INFERIOR|DERECH[OA]|IZQUIERD[OA]|DELANTER[OA]|TRASER[OA])\b/i);if(m){rol=m[1].toLowerCase();return true}}return false}));
+ return`<div class="rcscb svb svfpc" style="cursor:default"><span class="cmpid">${E(id)}</span> ${E(r[1])}${rol?` <b class="svrol">${E(rol)}</b>`:""}<small>📍 ${E(r[2]||"")} · folio ${E(r[3]||"")} · rev. J</small>
   <div class="svfpb">${fila("Tipo",tipo)}${fila("Conexión",me?me.det.join(" · "):"")}${fila("Entrada PLC",ent)}${fila("Borneros",bor.map(o=>o.id+" "+o.det.join("/").replace(/borna /g,"")).join(" · "))}${fila("Mangueras",man.map(o=>o.id+(o.det[0]&&!/cable del elemento/.test(o.det[0])?" ("+o.det[0]+")":"")).join(" · "))}${fila("Comprobar",prueba)}
   <div class="svfpf">⚠️ Sin ficha: faltan fabricante, referencia y especificaciones. Se completan al incorporarlo con la foto de su placa.</div></div>
   <button type="button" class="pri svfpi" onclick="event.stopPropagation();sosIncPend('${E(id)}')">➕ Incorporar ${E(id)} al catálogo</button></div>`}
@@ -154,12 +156,76 @@ window.sosIncPend=function(id){if(typeof abreComp!="function")return;abreComp();
 (function(){const st=document.createElement("style");st.textContent=`.svfpc{display:block!important}.svfpb{margin-top:6px;font-size:12.5px;line-height:1.35}
 .svfp{display:grid;grid-template-columns:86px 1fr;gap:6px;padding:3px 0;border-top:1px dashed color-mix(in srgb,var(--tx,#888) 25%,transparent)}.svfp>.svfpk{font-weight:800;opacity:.75}.svfpv{min-width:0}
 .svfpf{margin-top:6px;font-size:12px;color:#f2b705}.svfpi{width:100%;margin:8px 0 0!important;padding:9px!important;font-size:14px}`;document.head.appendChild(st)})();
+/* ---------- v900: VARIOS ELEMENTOS EN SERIE EN EL MISMO CANAL (p. ej. IT-S2 / IT-S3, FC de inclinación superior e inferior) ----------
+   Salían como dos fichas sueltas e idénticas (misma entrada, borneros y mangueras) sin explicar por qué. Son dos contactos distintos
+   cableados en serie en el mismo lazo del módulo de seguridad: si se abre cualquiera, el PLC ve la misma alarma y la Magelis no dice
+   cuál ha sido. Se agrupan en un bloque con el croquis del lazo (según el CABLEADO de los planos), el puente en el bornero de campo
+   que anula SOLO uno (para saber cuál falla) y la medida punto a punto. */
+const lidS=t=>String(t||"").replace(/^\+/,"").replace(/\[.*$/,"").replace(/\((.*)\)$/," ($1)").trim().toUpperCase();
+function gruposSerie(ids){const CB=window.CABLEADO||{},U=new Set(ids.map(x=>String(x).toUpperCase())),vistos=new Set(),G=[];
+ const ents=Object.keys(CB).map(k=>CB[k]).filter(e=>e&&e.m&&Array.isArray(e.n));
+ /* el lazo se dibuja desde la salida de test (UT) si la hay: es el origen de la señal */
+ ents.sort((a,b)=>(/^UT/i.test(b.k||"")?1:0)-(/^UT/i.test(a.k||"")?1:0));
+ ents.forEach(e=>{const els=e.n.filter(n=>n.k=="E"&&U.has(lidS(n.t))).map(n=>lidS(n.t));if(els.length<2)return;
+  const key=[...new Set(els)].sort().join("|");if(vistos.has(key))return;vistos.add(key);G.push({e,ids:[...new Set(els)]})});
+ return G}
+const nomEl=d=>{let t=String(d||"").replace(/^(F\.?\s*C\.?\s*)+/i,"FC ").toLowerCase().replace(/\bfc\b/g,"FC").replace(/cion\b/g,"ción").trim();return t?t[0].toUpperCase()+t.slice(1):""};
+const zonaN=n=>n.k=="M"||n.k=="S"||/^E\d?-/.test(lidS(n.t))?"A":"C";
+function croquisSerie(g){const CB=window.CABLEADO||{},e=g.e;
+ const fin=e.n.find(n=>n.k=="M");const finE=fin?Object.values(CB).find(x=>x&&x.m==lidS(fin.t)&&x.b==fin.p):null;
+ const filas=[{k:"S",id:e.m+" "+e.b,sub:e.k||"",z:"A"}].concat(e.n.filter(n=>n.k=="B"||n.k=="E").map(n=>({k:n.k,id:n.k=="B"?lidS(n.t)+":"+n.p:lidS(n.t),sub:n.k=="E"?nomEl(n.d):"",w:(n.v||[]).map(v=>v.m).filter(Boolean)[0]||"",z:zonaN(n),bor:n.k=="B"?lidS(n.t):""})));
+ if(fin)filas.push({k:"S",id:lidS(fin.t)+" "+fin.p,sub:finE?finE.k||"":"",z:"A"});
+ const H=36,X0=14,BW=196,top=18,alto=top+filas.length*H+8,y=i=>top+i*H+H/2;
+ let s=`<svg class="svsersvg" viewBox="0 0 340 ${alto}" xmlns="http://www.w3.org/2000/svg" font-family="inherit">`;
+ /* zonas: armario eléctrico / campo, separadas por línea discontinua */
+ for(let i=1;i<filas.length;i++)if(filas[i].z!=filas[i-1].z){const yy=top+i*H-4;s+=`<line x1="4" y1="${yy}" x2="336" y2="${yy}" stroke="#8a94a6" stroke-dasharray="5 4" stroke-width="1"/>`}
+ let zi=0;filas.forEach((f,i)=>{if(i==0||f.z!=filas[i-1].z){s+=`<text x="336" y="${top+i*H+9}" text-anchor="end" font-size="8.5" font-weight="800" fill="#8a94a6">${f.z=="A"?"ARMARIO ELÉCTRICO":"CAMPO"}</text>`;zi++}});
+ /* hilo del lazo */
+ /* hilo del lazo: solo entre cajas (no tapa los textos); cada manguera se rotula una vez */
+ let wAnt="";filas.forEach((f,i)=>{const yy=y(i);
+  if(i>0)s+=`<line x1="${X0+BW/2}" y1="${y(i-1)+12}" x2="${X0+BW/2}" y2="${yy-12}" stroke="#d64545" stroke-width="2"/>`;
+  if(f.w&&i>0&&f.w!=wAnt)s+=`<text x="${X0+BW/2+5}" y="${yy-H/2+3}" font-size="8" fill="#8a94a6">${E(f.w)}</text>`;if(f.w)wAnt=f.w;
+  const col=f.k=="S"?"#f2b705":f.k=="E"?"#ff7a1a":"#6b7a90",bg=f.k=="E"?"rgba(255,122,26,.16)":f.k=="S"?"rgba(242,183,5,.16)":"rgba(107,122,144,.14)";
+  s+=`<rect x="${X0}" y="${yy-12}" width="${BW}" height="24" rx="${f.k=="B"?3:7}" fill="${bg}" stroke="${col}" stroke-width="${f.k=="B"?1:1.6}"/>`;
+  s+=`<text x="${X0+8}" y="${yy+4}" font-size="11" font-weight="800" fill="${col}">${E(f.id)}</text>`;
+  if(f.sub)s+=`<text x="${X0+BW-6}" y="${yy+4}" text-anchor="end" font-size="9" fill="${col}">${E(f.k=="S"?f.sub:f.sub.replace(/^FC\s+/,"").replace(/^inclinación\s+/i,""))}</text>`});
+ /* puentes en el bornero de campo que anulan SOLO un elemento */
+ const pu=[];filas.forEach((f,i)=>{if(f.k!="E"||!g.ids.includes(f.id))return;let a=i-1,b=i+1;while(a>=0&&filas[a].k!="B")a--;while(b<filas.length&&filas[b].k!="B")b++;
+  if(a>=0&&b<filas.length&&filas[a].bor&&filas[a].bor==filas[b].bor){pu.push({id:f.id,sub:f.sub,a,b,bor:filas[a].bor,pa:filas[a].id.split(":")[1],pb:filas[b].id.split(":")[1]})}});
+ pu.forEach((p,j)=>{const xr=X0+BW,xx=xr+22+j*26,ya=y(p.a),yb=y(p.b);
+  s+=`<path class="svserpu" d="M${xr} ${ya} H${xx} V${yb} H${xr}" fill="none" stroke="#ff7a1a" stroke-width="2" stroke-dasharray="5 3"/>`;
+  s+=`<text x="${xx+4}" y="${(ya+yb)/2+3}" font-size="8.5" font-weight="800" fill="#ff7a1a">${j+1}</text>`});
+ s+=`</svg>`;return{svg:s,pu,filas}}
+function bloqueSerie(g,A){const c=croquisSerie(g),els=c.filas.filter(f=>f.k=="E"&&g.ids.includes(f.id));
+ const ori=c.filas[0],des=c.filas[c.filas.length-1];const n=els.length;
+ const tipo=els.every(f=>/-S\d/.test(f.id))?"FC":"elementos";
+ const pos=els.map(f=>{const m=f.sub.match(/superior|inferior/i);return m?`<li>Túnel en su extremo <b>${m[0].toLowerCase()}</b> → apunta a <b>${E(f.id)}</b>.</li>`:""}).join("");
+ const med=[];for(let i=1;i<c.filas.length;i++){const f=c.filas[i];if(f.k=="B"&&/^[A-Z]{1,3}-X/.test(f.bor)&&!/^E\d?-/.test(f.bor))med.push(f.id)}
+ let tramo="";for(let i=0;i<c.filas.length;i++){const f=c.filas[i];if(f.k=="E"&&g.ids.includes(f.id)){let a=i-1;while(a>=0&&c.filas[a].k!="B")a--;let b=i+1;while(b<c.filas.length&&c.filas[b].k!="B")b++;
+  if(a>=0&&b<c.filas.length)tramo+=`<li>Hay tensión en <b>${E(c.filas[a].id)}</b> y no en <b>${E(c.filas[b].id)}</b> → abierto <b>${E(f.id)}</b> (${E(f.sub)}).</li>`}}
+ const pus=c.pu.map((p,j)=>`<li><b>Puente ${j+1}:</b> ${E(p.bor)} borna ${E(p.pa)} ↔ ${E(p.pb)} → anula solo <b>${E(p.id)}</b> (${E(p.sub)}). Si con él se rearma la línea de seguridades, el que falla es <b>${E(p.id)}</b>.</li>`).join("");
+ return`<div class="svser"><div class="svserh">⛓️ ${n} ${tipo} EN SERIE · MISMO CANAL<small>${E(ori.id)} (${E(ori.sub)}) → ${E(des.id)} (${E(des.sub)})</small></div>
+  <div class="svsert">No es un duplicado: son <b>${n} contactos distintos</b> (${els.map(f=>`${E(f.id)} ${E(f.sub.replace(/^FC\s+/,""))}`).join(" · ")}) cableados <b>en serie</b> en el mismo lazo de seguridad de ${E(g.e.m)}. Por eso comparten entrada, borneros y mangueras. Si se abre <b>cualquiera</b> de los dos, el PLC ve la misma alarma y la Magelis <b>no dice cuál ha sido</b>: se distingue en campo.</div>
+  <div class="svsercro">${c.svg}</div>
+  <div class="svserl">CÓMO SABER CUÁL FALLA</div>
+  <ol class="svserol">${pos?`<li><b>Posición:</b><ul>${pos}</ul></li>`:""}
+   ${tramo?`<li><b>Medir</b> respecto a 0 V del armario, siguiendo el lazo desde ${E(ori.id)} (${E(ori.sub)}): ≈ 24 V (señal de test pulsada, el polímetro puede marcar algo menos).<ul>${tramo}</ul></li>`:""}
+   ${pus?`<li><b>Puente provisional en el bornero de campo</b> (2ª opción, para identificar):<ul>${pus}</ul></li>`:""}</ol>
+  <div class="svsern">⚠️ Para sacar la PBB ya, el puente en el PLC (${E(g.e.m)} ${E(ori.id.split(" ")[1]||"")} ↔ ${E(des.id.split(" ")[1]||"")}) anula <b>los ${n}</b> (1ª opción). Cualquier puente: provisional, con un compañero vigilando el movimiento, y se quita al reparar.</div>
+  <div class="svbs">${els.map(f=>A.pend.find(r=>String(r[0]).toUpperCase()==f.id)).filter(Boolean).map(r=>fichaPlanos(r,A)).join("")}</div></div>`}
+(function(){const st=document.createElement("style");st.textContent=`.svser{border:1.5px solid #ff7a1a;border-radius:12px;padding:10px;margin:8px 0;background:rgba(255,122,26,.05)}
+.svserh{font-weight:900;font-size:14px;letter-spacing:.3px;color:#ff7a1a}.svserh small{display:block;font-weight:600;font-size:11.5px;opacity:.8;letter-spacing:0;color:var(--tx,inherit)}
+.svsert{font-size:12.5px;line-height:1.4;margin:6px 0}.svsercro{margin:6px auto;max-width:360px}.svsersvg{width:100%;height:auto;display:block}
+.svserl{font-weight:900;font-size:12.5px;margin-top:6px;color:#2fbf71}.svserol{margin:4px 0 0 18px;padding:0;font-size:12.5px;line-height:1.4}.svserol ul{margin:2px 0 4px 14px;padding:0}
+.svsern{font-size:12px;color:#f2b705;margin:6px 0}.svrol{font-size:11px;font-weight:900;text-transform:uppercase;color:#ff7a1a;border:1px solid #ff7a1a;border-radius:5px;padding:0 5px;margin-left:4px;vertical-align:middle}`;document.head.appendChild(st)})();
+function pendHTML(A){const G=gruposSerie((A.pend||[]).map(r=>r[0]));const usados=new Set(G.flatMap(g=>g.ids));
+ return G.map(g=>bloqueSerie(g,A)).join("")+`<div class="svbs">${A.pend.filter(r=>!usados.has(String(r[0]).toUpperCase())).map(r=>fichaPlanos(r,A)).join("")}</div>`}
 function bloqueComp(A){let b;
  if(A.C.length==1)b=`<div class="svok">Acotado con el síntoma en campo${A.cod.length?" y la alarma "+E(A.cod.map(z=>z.x.c).join(" / ")):""}.</div>${fichaH(A.C[0])}`;
  else if(A.C.length>1)b=`<div class="svok">No está claro cuál de estos interviene: elige el que corresponda (detalla la avería para acotarlo).</div>
   <div class="svbs">${A.C.map(c=>`<button type="button" class="rcscb svb" data-k="${E(clave(c))}"><span class="cmpid">${E(c.id)}</span> ${E(c.t)}${c.fab?`<small>${E(c.fab)}</small>`:""}</button>`).join("")}</div><div id="sv_fi"></div>`;
  else if((A.pend||[]).length)b=`<div class="svok">${(A.I||[]).length?"Elementos de campo de la alarma según planos, <b>aún no incorporados</b> en Componentes de campo (ficha pendiente):":"El elemento de la avería está en los planos pero <b>aún no está incorporado</b> en Componentes de campo (los borneros y el módulo del PLC por los que pasa la señal no se proponen como componente a intervenir):"}</div>
-  <div class="svbs">${A.pend.map(r=>fichaPlanos(r,A)).join("")}</div>`;
+  ${pendHTML(A)}`;
  else b=`<div class="svok">Con lo descrito no se identifica un componente del catálogo. Detalla el elemento (p. ej. «láser de extensión», «potenciómetro de cabina») o búscalo en el catálogo.</div>
   <button type="button" class="sec" style="width:100%" onclick="typeof compCatalogo=='function'&&compCatalogo()">CATÁLOGO DE COMPONENTES</button>`;
  return`<div class="ubh ubcmp" id="sv_cmp">🔩 COMPONENTE A INTERVENIR<small>${A.C.length==1?"Ficha técnica del componente":"Especificaciones técnicas"}</small></div><div class="ubb ubbcmp">${b}</div>`}
