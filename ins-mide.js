@@ -6,12 +6,12 @@
 (function(){
 "use strict";
 const e_=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const Z0J={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",C:"+C-X51:2 (0 V, hilo 205)",IT:"+IT-X51:2 (0 V, hilo 205)",ET:"+ET-X51:2 (0 V, hilo 205)",
- CO:"+IT-X51:2 (0 V, hilo 205)",H:"+H-X51:30 (0 V, hilo 205)",T:"+H-X51:30 (0 V, hilo 205)",R:"+IT-X50:2 (0 V, hilo 205)",CBTH:"+E-X61:21 (0 V PBB, hilo 205)",SS:"+E-X68:2 (0 V, hilo 205)",MT:"+E-X68:2 (0 V, hilo 205)"};
-const Z24J={E:"+E-X68:1 (+24 V, hilo 189)",P:"+P-X92:1 (+24 V, hilo 332)",C:"+C-X51:1 (+24 V, hilo 189)",IT:"+IT-X51:1 (+24 V, hilo 189)",ET:"+ET-X51:1 (+24 V, hilo 189)",
+const Z0J={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",C:"+C-X51:2 (0 V, hilo 205)",IT:"+IT-X51:2 (0 V, hilo 205 · campo 263)",ET:"+ET-X51:2 (0 V, hilo 205)",
+ CO:"+IT-X51:2 (0 V, hilo 205 · campo 263)",H:"+H-X51:30 (0 V, hilo 205)",T:"+H-X51:30 (0 V, hilo 205)",R:"+IT-X50:2 (0 V, hilo 205)",CBTH:"+E-X61:21 (0 V PBB, hilo 205)",SS:"+E-X68:2 (0 V, hilo 205)",MT:"+E-X68:2 (0 V, hilo 205)"};
+const Z24J={E:"+E-X68:1 (+24 V, hilo 189)",P:"+P-X92:1 (+24 V, hilo 332)",C:"+C-X51:1 (+24 V, hilo 189)",IT:"+IT-X51:1 (+24 V, hilo 189 · campo 261)",ET:"+ET-X51:1 (+24 V, hilo 189)",
  CO:"+CO3-X51:1 (+24 V, hilo 189)",H:"+H-X51:1 (+24 V, hilo 189)",T:"+H-X51:1 (+24 V, hilo 189)",R:"+IT-X50:1 (+24 V, hilo 613)",CBTH:"+E-X61:10 (+24 V, hilo 189)",SS:"+E-X68:1 (+24 V, hilo 189)",MT:"+E-X68:1 (+24 V, hilo 189)"};
 /* v325: puntos trazados con el cableado propio de la 507: 0 V hilo 129 y +24 V hilo 218 (armario) / 184 (pupitre); sin traducir hilos ni folios */
-const J5=s=>s.replace(/hilo 205/,"hilo 129").replace(/hilo 189/,"hilo 218").replace(/hilo 332/,"hilo 184").replace(/hilo 613/,"hilo 568").replace("+H-X51:30","+H-X51:2");
+const J5=s=>s.replace(/ · campo \d+/g,"").replace(/hilo 205/,"hilo 129").replace(/hilo 189/,"hilo 218").replace(/hilo 332/,"hilo 184").replace(/hilo 613/,"hilo 568").replace("+H-X51:30","+H-X51:2");
 const Z0_5={},Z24_5={};Object.keys(Z0J).forEach(k=>{Z0_5[k]=J5(Z0J[k]);Z24_5[k]=J5(Z24J[k])});const Z0=Z0J;
 function zona(q,mod){const pt=punto(q);const mz=pt.match(/^\+([A-Z]+)\d*(?:\.\d+)?-/);if(mz&&Z0[mz[1]])return mz[1];if(mz&&mz[1]==="CP")return "P";
  const hc=pt.match(/hilo (\d+)/);if(hc&&q.s507){if(/^(184|575)$/.test(hc[1]))return "P";if(/^(218|568|566|567)$/.test(hc[1]))return "E"}else if(hc){if(/^(332|330|336|309|635)$/.test(hc[1]))return "P";if(/^(189|613|215|208)$/.test(hc[1]))return "E"}

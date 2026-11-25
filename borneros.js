@@ -82,11 +82,11 @@ function notasBornas(){
  window.BOR_NOTAS=Object.entries(vistos).map(([k,q])=>({k,vt:q.vt,h:q.inV,d:q.d}));
 }
 /* dónde poner las puntas del polímetro y qué debe marcar */
-const REF0={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",CP:"+P-X92:2 (0 V, hilo 205)",IT:"+IT-X51:2 (0 V, hilo 205)",ET:"+ET-X51:2 (0 V, hilo 205)",C:"+C-X51:2 (0 V, hilo 205)",
- C4:"+C4-X64:2 (0 V, hilo 205)",H:"+H-X51:30 (0 V, hilo 205)",CO:"+IT-X51:2 (0 V, hilo 205)",CO3:"+IT-X51:2 (0 V, hilo 205)",R:"+IT-X50:2 (0 V, hilo 205)",CBTH:"+E-X61:21 (0 V PBB, hilo 205)",SS:"+E-X68:2 (0 V, hilo 205)",T:"+E-X68:2 (0 V, hilo 205)",F:"+E-X68:2 (0 V, hilo 205)"};
-const REF24={E:"+E-X68:1 (+24 V, hilo 189)",P:"+P-X92:1 (+24 V, hilo 332)",CP:"+P-X92:1 (+24 V, hilo 332)",IT:"+IT-X51:1 (+24 V, hilo 189)",ET:"+ET-X51:1 (+24 V, hilo 189)",C:"+C-X51:1 (+24 V, hilo 189)",
+const REF0={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",CP:"+P-X92:2 (0 V, hilo 205)",IT:"+IT-X51:2 (0 V, hilo 205 · campo 263)",ET:"+ET-X51:2 (0 V, hilo 205)",C:"+C-X51:2 (0 V, hilo 205)",
+ C4:"+C4-X64:2 (0 V, hilo 205)",H:"+H-X51:30 (0 V, hilo 205)",CO:"+IT-X51:2 (0 V, hilo 205 · campo 263)",CO3:"+IT-X51:2 (0 V, hilo 205 · campo 263)",R:"+IT-X50:2 (0 V, hilo 205)",CBTH:"+E-X61:21 (0 V PBB, hilo 205)",SS:"+E-X68:2 (0 V, hilo 205)",T:"+E-X68:2 (0 V, hilo 205)",F:"+E-X68:2 (0 V, hilo 205)"};
+const REF24={E:"+E-X68:1 (+24 V, hilo 189)",P:"+P-X92:1 (+24 V, hilo 332)",CP:"+P-X92:1 (+24 V, hilo 332)",IT:"+IT-X51:1 (+24 V, hilo 189 · campo 261)",ET:"+ET-X51:1 (+24 V, hilo 189)",C:"+C-X51:1 (+24 V, hilo 189)",
  C4:"+C4-X64:1 (+24 V, hilo 336)",H:"+H-X51:1 (+24 V, hilo 189)",CO:"+CO3-X51:1 (+24 V, hilo 189)",CO3:"+CO3-X51:1 (+24 V, hilo 189)",R:"+IT-X50:1 (+24 V, hilo 613)",CBTH:"+E-X61:10 (+24 V, hilo 189)",SS:"+E-X68:1 (+24 V, hilo 189)",T:"+E-X68:1 (+24 V, hilo 189)",F:"+E-X68:1 (+24 V, hilo 189)"};
-if(window.ES507){const J5=s=>s.replace(/hilo 205/,"hilo 129").replace(/hilo 189/,"hilo 218").replace(/hilo 332/,"hilo 184").replace(/hilo 613/,"hilo 568").replace("+H-X51:30","+H-X51:2");[REF0,REF24].forEach(o=>Object.keys(o).forEach(z=>{o[z]=J5(o[z])}))}
+if(window.ES507){const J5=s=>s.replace(/ · campo \d+/g,"").replace(/hilo 205/,"hilo 129").replace(/hilo 189/,"hilo 218").replace(/hilo 332/,"hilo 184").replace(/hilo 613/,"hilo 568").replace("+H-X51:30","+H-X51:2");[REF0,REF24].forEach(o=>Object.keys(o).forEach(z=>{o[z]=J5(o[z])}))}
 const PAR={"+CBTH-X11":"1-2-3","+E-X60":"1-2-3 / 4-5-6","+P-X52":"1-2-3 / 4-5-6"};
 const NEU={"+CBTH-X12:1":"+CBTH-X12:2","+E-X66:1":"+E-X66:2","+E-X60:7":"+E-X60:8","+P-X52:7":"+P-X52:8","+E-X60:9":"+E-X60:10","+P-X52:9":"+P-X52:10"};
 function mide(r){const B="<b>"+esc(r.t+":"+r.p)+"</b>",z=zonaDe(r.t),vt=r.vt||"",txt=(r.inV+" "+r.outV+" "+r.d).toLowerCase();

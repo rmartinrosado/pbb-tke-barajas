@@ -99,8 +99,8 @@ function senales(i){const C=CAB(i),t=textoOT(i),out=[],vis=new Set();
 /* ---------- recorrido origen → destino ---------- */
 const nom=t=>{try{return (window.nombreElemento&&window.nombreElemento(String(t).replace(/^\+/,"")))||""}catch(e){return ""}};
 const zonaDe=t=>{const pre=String(t||"").replace(/^\+/,"").split(/[-:]/)[0];try{return (typeof elZona=="function"&&elZona(t))||null}catch(e){return null}};
-const Z0={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",C:"+C-X51:2 (0 V, hilo 205)",C4:"+C-X51:2 (0 V, hilo 205)",IT:"+IT-X51:2 (0 V, hilo 205)",ET:"+ET-X51:2 (0 V, hilo 205)",
- CO:"+IT-X51:2 (0 V, hilo 205)",H:"+H-X51:30 (0 V, hilo 205)",T:"+H-X51:30 (0 V, hilo 205)",R:"+IT-X50:2 (0 V, hilo 205)",CBTH:"+E-X61:21 (0 V PBB, hilo 205)",SS:"+E-X68:2 (0 V, hilo 205)",MT:"+E-X68:2 (0 V, hilo 205)"};
+const Z0={E:"+E-X68:2 (0 V, hilo 205)",P:"+P-X92:2 (0 V, hilo 205)",C:"+C-X51:2 (0 V, hilo 205)",C4:"+C-X51:2 (0 V, hilo 205)",IT:"+IT-X51:2 (0 V, hilo 205 · campo 263)",ET:"+ET-X51:2 (0 V, hilo 205)",
+ CO:"+IT-X51:2 (0 V, hilo 205 · campo 263)",H:"+H-X51:30 (0 V, hilo 205)",T:"+H-X51:30 (0 V, hilo 205)",R:"+IT-X50:2 (0 V, hilo 205)",CBTH:"+E-X61:21 (0 V PBB, hilo 205)",SS:"+E-X68:2 (0 V, hilo 205)",MT:"+E-X68:2 (0 V, hilo 205)"};
 const pre=t=>String(t||"").replace(/^\+/,"").split(/[-:]/)[0];
 function via(n){return (n.v||[]).map(v=>v.m?`manguera ${v.m}${v.t?" ("+v.t+")":""}${v.d?" cond. "+v.d:""}`:v.h?`hilo ${v.h}${v.c?" "+v.c:""}`:"").filter(Boolean).join(" · ")}
 function etiqueta(n,d){const t=String(n.t||"").replace(/^\+/,"");
