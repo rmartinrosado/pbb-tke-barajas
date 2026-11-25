@@ -52,6 +52,10 @@ function analiza(){
  else if(Ld.length){est=al?"noal":"ded";cod=Ld}
  else if(Lf.length){est="foto";cod=Lf}
  else est=al?"noal":"nada";
+ const SINT0=/bloque|no (traslad|se mueve|mueve|funciona|anda|arranca|rearma|sube|baja|gira|extiende|recoge|responde|va)|parad|sin movimiento|inmoviliz|linea de seguridad|seguridad(es)? activada|fuera de servicio|averiad/;
+ const nombraCod=/\b[A-Z]{1,3}\d?-[A-Z]{1,3}\d+/.test(String(ob||"").toUpperCase());
+ const sintoma=!!ob&&SINT0.test(nrm(ob))&&!nombraCod;
+ if(sintoma&&La.length&&est=="dif"){est="ok";cod=La}
  /* componentes: los de la avería en campo mandan; los de la alarma validada acotan */
  /* v704: los componentes de la alarma salen de los PLANOS (rcsIntervienen: canal del PLC → elemento → borneros → módulo),
     no del parecido de texto (004 ya no da el láser ET-B9). Los elementos de campo incorporados acotan; los que no lo están
@@ -81,7 +85,11 @@ function analiza(){
  C=C2;
  if(!C.length&&!pend.length&&Icampo.length)pend=Icampo.filter(o=>!o.c).map(o=>[o.id,o.nom||"Según planos",[o.papel,o.ubi].filter(Boolean).join(" · "),o.folio||""]);
  /* alarma escrita sin código en la avería: si sus componentes no son los del elemento descrito, no coincide */
- if(est=="ok"&&ob&&!Ld.length&&Cd.length&&Ca.length&&!inter(Cd,Ca).length){est="dif";cod=[]}
+ /* v897: una avería que solo describe el SÍNTOMA («pasarela bloqueada, no traslada», «no se mueve», «no rearma»…) sin nombrar un
+    elemento por su código NO contradice la alarma: es lo que provoca una seguridad activada (bordes 010 → no traslada). Antes,
+    al no compartir componentes con la alarma, salía «la alarma no coincide con la avería». Solo hay discrepancia si la avería
+    nombra un elemento concreto (código) distinto de los de la alarma. */
+ if(est=="ok"&&ob&&!Ld.length&&Cd.length&&Ca.length&&!inter(Cd,Ca).length&&!sintoma){est="dif";cod=[]}
  return{ob,al,est,cod,Ld,La,C,pend,I}}
 
 /* ---------- pintado ---------- */
