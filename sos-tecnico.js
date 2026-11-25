@@ -369,11 +369,15 @@ ${P} .sostcw .rcscmp{height:auto}`;document.head.appendChild(st)})();
 #sheetc #sostf label.srfoto .srcam{width:22px;height:22px;flex:none;color:var(--tx)}
 #sheetc #sostf label.srfoto small{display:block}`;document.head.appendChild(st)})();
 /* ===== v853: iconos propios de ALARMA (hexágono rojo) y AVISO (triángulo amarillo) al lado de la CAMPANA de la caja 1 ===== */
-(function(){const P="#sheetc #sostf";
+(function(){const P="#sheetc #sostf",MO="var(--tkmo,ui-monospace,SFMono-Regular,Menlo,monospace)";
 const pon=()=>{const col=document.querySelector(P+" .sostp2>.sostph .sostcol");if(!col)return;const bell=col.querySelector(".sostpr");if(!bell||col.querySelector(".sostleg"))return;
  bell.insertAdjacentHTML("beforebegin",`<span class="sostleg" aria-hidden="true"><img src="iconos/alarma.png" alt=""><img src="iconos/advertencia.png" alt=""></span>`)};
 new MutationObserver(pon).observe(document.body,{childList:true,subtree:true});pon();
 const st=document.createElement("style");st.textContent=`
 ${P} .sostp2>.sostph .sostcol{align-items:center!important}
 ${P} .sostp2>.sostph .sostcol .sostleg{display:inline-flex;align-items:center;gap:6px;height:44px;pointer-events:none}
-${P} .sostp2>.sostph .sostcol .sostleg img{width:28px;height:28px;display:block;object-fit:contain}`;document.head.appendChild(st)})();
+${P} .sostp2>.sostph .sostcol .sostleg img{width:28px;height:28px;display:block;object-fit:contain}
+/* v924: campana de la misma altura que los iconos de alarma y advertencia (28 px) y más ancha: el contador va a la DERECHA de la campana */
+${P} .sostp2>.sostph .sostcol .sostpr.sostpr{box-sizing:border-box;height:28px!important;width:auto!important;min-width:40px;padding:0 9px!important;
+ display:inline-flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:5px;border-radius:8px!important;font:800 14px/1 ${MO}!important;letter-spacing:0!important}
+${P} .sostp2>.sostph .sostcol .sostpr.sostpr .icoL{width:16px;height:16px;vertical-align:0}`;document.head.appendChild(st)})();
