@@ -5,14 +5,14 @@
 (function(){
  const K="pbb_fab";
  const st=document.createElement("style");st.textContent=`
-#fab{position:fixed;z-index:60;width:58px;height:58px;border-radius:50%;border:0;padding:0;display:flex;align-items:center;justify-content:center;
+#fab{position:fixed;z-index:2147481999;width:58px;height:58px;border-radius:50%;border:0;padding:0;display:flex;align-items:center;justify-content:center;
  background:linear-gradient(135deg,#7c3aed,#ea580c);color:#fff;box-shadow:0 6px 18px #0006,0 0 0 3px #ffffff40;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;cursor:grab;transition:transform .15s,opacity .2s}
 #fab svg{width:30px;height:30px;transition:transform .2s}#fab.ab svg{transform:rotate(45deg)}#fab.mv{transform:scale(1.12);cursor:grabbing;box-shadow:0 10px 26px #0008}
 #fab.oc{opacity:0;pointer-events:none}
-#fabm{position:fixed;z-index:61;display:none;flex-direction:column;gap:8px}#fabm.on{display:flex}
+#fabm{position:fixed;z-index:2147482001;display:none;flex-direction:column;gap:8px}#fabm.on{display:flex}
 #fabm button{display:flex;align-items:center;gap:10px;padding:11px 16px;border:0;border-radius:12px;font:inherit;font-weight:800;font-size:14px;letter-spacing:.5px;text-transform:uppercase;color:#fff;box-shadow:0 4px 14px #0005;white-space:nowrap}
 #fabm .fo{background:#ea580c}#fabm .fs{background:#7c3aed}#fabm svg{width:20px;height:20px;flex:none}
-#fabv{position:fixed;inset:0;z-index:59;display:none}#fabv.on{display:block}`;
+#fabv{position:fixed;inset:0;z-index:2147481998;display:none}#fabv.on{display:block}`;
  document.head.appendChild(st);
  const PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
  const IOT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v2h6V3M12 10v6M9 13h6"/></svg>';
@@ -33,6 +33,8 @@
   m.style.left=Math.max(8,Math.min(innerWidth-mw-8,x))+"px";m.style.top=y+"px"};
  v.addEventListener("click",cierra);
  m.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;cierra();
+  /* v908: el «+» está encima de todas las pantallas: antes de abrir, se cierran las ventanas de encima (SOS, guía, Check…) */
+  try{if(typeof pbbCierraCapas=="function")pbbCierraCapas()}catch(x){}
   if(b.dataset.a=="ot"){try{go("new")}catch(x){}}
   else{try{if(typeof sigAbre=="function")sigAbre()}catch(x){}}});
  /* arrastre con puntero (dedo o ratón); si se mueve menos de 8 px es un toque */
@@ -49,7 +51,9 @@
  f.addEventListener("click",e=>e.preventDefault());
  /* visibilidad */
  const oculto=()=>{try{if(typeof user=="undefined"||!user)return true;const l=document.getElementById("lock");if(l&&l.style.display!="none"&&l.style.display!="")return true;
-  const sh=document.getElementById("sheet");if(sh&&sh.style.display=="flex")return true;if(document.getElementById("splash"))return true;
-  if(typeof view!="undefined"&&view=="new")return true;return false}catch(e){return false}};
+  /* v908: SIEMPRE visible en todas las pantallas (antes se ocultaba con la hoja inferior abierta y en Registrar OT, y quedaba
+     tapado por las ventanas a pantalla completa por su z-index 60). Solo se oculta en identificación, bloqueo y arranque. */
+  if(document.getElementById("splash"))return true;const lg=document.getElementById("login");if(lg&&getComputedStyle(lg).display!="none")return true;
+  return false}catch(e){return false}};
  setInterval(()=>{const o=oculto();if(f.classList.contains("oc")!==o)f.classList.toggle("oc",o);if(o)cierra()},500);
 })();

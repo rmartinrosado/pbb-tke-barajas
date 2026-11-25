@@ -56,6 +56,11 @@
   volviendo=true;try{if(p.f!=null&&typeof filtro!="undefined")filtro=p.f;go(p.v)}finally{volviendo=false}
   ult={v:view,f:p.f,y:p.y};if(p.y)requestAnimationFrame(()=>scrollTo(0,p.y));
  }catch(e){try{go("dash")}catch(x){}}};
+ /* v908: cerrar todas las ventanas de encima y la hoja inferior (lo usa el «+» antes de abrir OT nueva o Sigma) */
+ window.pbbCierraCapas=function(){try{const m=fabMenu();if(m){const v=document.getElementById("fabv");if(v)v.click()}
+  for(let i=0;i<8;i++){const c=capaArriba();if(!c||AVISO.has(c.id))break;const x=botonCerrar(c);if(x)x.click();else c.remove();
+   if(capaArriba()===c){if(c.parentNode)c.remove()}}
+  if(sheetAbierta()&&typeof closeSheet=="function")closeSheet()}catch(e){}};
  /* v484: la flecha se arrastra con un dedo a cualquier sitio (posición guardada en el móvil, pbb_fabb_pos) y está en todas las pantallas */
  const PK="pbb_fabb_pos";let POS=null;try{POS=JSON.parse(localStorage.getItem(PK)||"null")}catch(e){}
  let dr=null,arrastrado=0;
