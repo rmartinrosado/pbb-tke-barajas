@@ -36,3 +36,24 @@ window.lupaSubElige=function(t,v){
 try{(window.lupaSubDefs||[]).forEach(d=>{if(!/inclinacion superior/.test(String(d.box)))return;d.op.forEach(op=>{
  if(op.k=="sup")op.s=/superior|it-b11|\b3\.1\b/;if(op.k=="inf")op.s=/inferior|it-b10|\b2\.4\b|\b2\.5\b/})})}catch(e){}
 })();
+/* ===== v895: «LÍNEA DE SEGURIDAD ACTIVADA» dentro del SOS (y de la lupa): elegir el elemento del estado de alarmas no hacía nada,
+   porque segElige solo guarda el elemento en una OT abierta. Ahora en el SOS se pone la alarma de ese elemento (CANAL_AL de su
+   entrada safety, p. ej. bordes E-A8 2.1 → 010) junto a la de la línea y se rehace TODA la actuación: puente, elementos, componente
+   y reparar de ese elemento. Si el elemento no tiene código de alarma, se añade su nombre al texto de la alarma. ===== */
+(function(){
+"use strict";
+const og=window.segElige;if(typeof og!="function")return;
+const cods=t=>(String(t||"").match(/\b\d{3}\b/g)||[]);
+window.segElige=function(v){
+ try{const st=document.getElementById("sr_t"),c=document.getElementById("sheetc");
+  if(v&&st&&c&&c.querySelector("#sr_res")){const CA=window.CANAL_AL||{};const x=(window.SEG_ALL||[]).find(y=>y[0]+"|"+y[1]==v);
+   const L=(CA[v]||[]);const pick=L.find(k=>{try{const r=rcsSacar(k);return r&&r.x&&r.x.f=="A"&&+k<200}catch(e){return false}})||L.find(k=>+k<200)||L[0];
+   /* quitar las alarmas de otros elementos elegidos antes (las de la línea 011 / 013 se quedan) */
+   const todos=new Set();(window.SEG_ALL||[]).forEach(y=>(CA[y[0]+"|"+y[1]]||[]).forEach(k=>todos.add(k)));
+   const lin=pick?(pick+" "+((rcsSacar(pick)||{}).x||{}).t):("LÍNEA DE SEGURIDAD ACTIVADA · "+(x?x[4]+" "+x[3]:v));
+   const ls=String(st.value||"").split("\n").filter(l=>l.trim()&&!cods(l).some(k=>todos.has(k))&&!/^LÍNEA DE SEGURIDAD ACTIVADA · /.test(l));
+   ls.unshift(lin);st.value=ls.join("\n");st.dispatchEvent(new Event("input",{bubbles:true}));
+   if(typeof msg=="function")msg("Actuación rehecha para "+(x?x[4]:v)+(pick?" · alarma "+pick:""));
+   c.scrollTo({top:0,behavior:"smooth"});if(typeof window.sosAnaliza=="function"){window.sosAnaliza();return}}}catch(e){console.warn("segElige SOS",e)}
+ return og.apply(this,arguments)};
+})();
