@@ -16,7 +16,7 @@ const NO={
  "E-A9|1.1":"Pulsador «OK retirada PBB»: lo da el operador",
  "E-A9|3.1":"Autorización de rotonda R-S2: la da el operador",
  "E-A9|4.1":"Vigilancia de la sirena de seguridad de cabina C-H41",
- "E-A10|3.1":"Barrera de seguridad de rotonda: solo con la zona comprobada despejada",
+ "E-A10|3.1":"Barrera de rotonda: no se puentea. No es una seguridad con contactores: al cortar el haz salta la advertencia de PBB en remoto y no deja la conducción remota; no queda bloqueada y al quedar libre la rotonda vuelve sola. Con un obstáculo fijo cortando el haz: retirarlo; si no se puede, conducir en local desde el pupitre",
  "E-A10|5.1":"Selector CP-S16 (AUTO)","E-A10|6.1":"Selector CP-S16 (MANUAL)","E-A10|7.1":"Selector CP-S16 (LOCAL / REMOTO)"};
 const SDI=/^E-A(8|9|10)$/;
 const ent=(m,b)=>{const C=window.CABLEADO||{};for(const k in C){const e=C[k];if(e&&e.m==m&&e.b==b)return e}return null};

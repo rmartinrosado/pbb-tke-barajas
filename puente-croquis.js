@@ -136,6 +136,7 @@ function hilosPuente(o){const C=window.CABLEADO||{};let e=null;for(const k in C)
    y sí lleva su hilo de retorno. */
 /* v905: bornas .2 CON HILO comprobadas en campo (25/11/2026, armario E). Manda sobre los planos: p. ej. E-A9 2.2 (túnel medio, solo
    PBB de 3 túneles) y E-A10 3.2 salen libres aunque el esquema dibuje su UT. Módulo que no está aquí: regla de v904. */
+/* E-A1 8.2: hilo 678 en campo (sin dato en los planos). E-A9 en PBB 586 (2 túneles): sin hilo 2.1, 7.1, 8.1 (túnel medio) */
 const CON2={"E-A1":[1,2,4,5,7,8],"E-A2":[],"E-A3":[],"E-A4":[],"E-A8":[2,3,4,5,6,7,8],"E-A9":[1,3,4],"E-A10":[1,2,5,6,7,8]};
 window.BORNAS2_CAMPO=CON2;
 const b2Libre=o=>{if(o.suelta||o.ext||o.b2==o.b1)return false;const pb=/^(\d+)\.2$/.exec(String(o.b2||""));

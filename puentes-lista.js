@@ -50,8 +50,7 @@ const UT=[
  ["E-A10","1.1","1.1","1.2","Bumper brazo autonivelador C-B27 / C-B28 (hilo 669)",70,"pwa"],
  ["E-A10","1.2","2.1","2.2","Bumper lateral izquierdo cabina C-B29 / C-B30 (hilo 671)",70,"pwa"],
  ["E-A10","2.2","4.1","E-X68:6","Inductivo puerta de servicio SS-B15 · hilo 674 (puerta cerrada, nadie en la escalera)",70,"pwa"],
- ["E-A10","4.2","8.1","8.2","Zapata C-B4 · relé P-U5 13-14 (solo si el RESET de P-U5 no rearma, para retirar la PBB del avión)",70,"pwa"],
- ["E-A10","2.1","3.1","3.2","Barrera seguridad rotonda (solo con la zona comprobada despejada)",70,"rev"]];
+ ["E-A10","4.2","8.1","8.2","Zapata C-B4 · relé P-U5 13-14 (solo si el RESET de P-U5 no rearma, para retirar la PBB del avión)",70,"pwa"]]; /* v906: quitada la barrera de rotonda E-A10 3.1 → 3.2 (la 3.2 no lleva hilo en campo y no es seguridad con contactores: ver NUN) */
 const NUN=[
  ["Setas de emergencia",4,"E-A3 1.1 seta AO · E-A3 1.3 setas traslación · E-A8 2.2 setas H-S3 / H-S4 / CP-S5 · P-A3 1.1 seta pupitre","Es la parada de emergencia"],
  ["Bypass y selector",5,"E-A8 2.1 bypass CP-S33 · E-A10 3.1 / 3.2 / 4.1 selector CP-S16 · P-A6 2.4 bypass AKS","Son los propios mandos de maniobra"],
@@ -59,6 +58,7 @@ const NUN=[
  ["Seguridad sin anular",3,"E-A9 2.2 sirena seguridad cabina · E-A9 1.1 «OK retirada PBB» · E-A9 2.1 autorización rotonda R-S2","Tienen su propio rearme o los da el operador"],
  ["Mandos y pulsadores",31,"P-A3 1.2 a 4.4 · P-A4 1.2 a 3.1 y 4.4 · P-A6 3.1 a 3.4 · E-A2 4.3 / 4.4 · E-A3 1.2 desbloqueo AO","Si queda pegado, soltar su hilo para la orden pero no saca la PBB: se cambia el mando"],
  ["Estados e información",24,"E-A0 2.1 a 2.4 y 4.3 / 4.4 · E-A2 1.1, 2.2, 2.3, 3.4, 4.1 · E-A3 2.1 a 2.3, 3.1, 3.3, 4.3, 4.4 · P-A5 2.2, 2.3, 3.4, 4.1 a 4.3","No bloquean o tienen su actuación propia (reset del autonivelador)"],
+ ["Barrera de rotonda",1,"E-A10 3.1 · R-B1 / R-B2 · R-B3 / R-B4 (la 3.2 sin hilo)","No es una seguridad con contactores: al cortar el haz salta la advertencia de PBB en remoto y no deja la conducción remota; no queda bloqueada y al quedar libre la rotonda vuelve sola. Con un obstáculo fijo cortando el haz: retirarlo; si no se puede, conducir en local desde el pupitre"],
  ["Reservas",5,"E-A9 4.1 · P-A4 1.1 · P-A5 4.4 · P-A6 4.3 / 4.4","Sin señal"]];
 const SAL=[["E-A1","Salidas digitales armario",32,"54–57"],["E-A6","Salidas de seguridad (hacia E-K0)",8,"64–65"],["E-A7","Salidas de seguridad",8,"66–67"],["P-A1","Salidas digitales pupitre",16,"73–76"],["P-A2","Salidas digitales pupitre",16,"77–80"]];
 const ICO=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v5"/></svg>`;
