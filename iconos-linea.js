@@ -1,4 +1,4 @@
-/* ===== v922: ICONOS DE LÍNEA en toda la PWA (25/11/2026) =====
+/* ===== v922-v923: ICONOS DE LÍNEA en toda la PWA (25/11/2026) =====
    Los emojis que pinta la app (📷 foto, ✏️ lápiz, 🗑️ papelera, 📄 ficha, 🔎 lupa, 🔔, ⚠️, ✅…) se veían como dibujos a color.
    Ahora se muestran como iconos de TRAZO del color del texto: negro sobre fondo claro y blanco sobre fondo oscuro.
    · El emoji sigue en el texto (solo se oculta y se dibuja encima su icono con una máscara), así que no cambia nada de la lógica
@@ -77,6 +77,9 @@ const css=[`.icoL{display:inline-block;width:1.15em;height:1.15em;vertical-align
  -webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;overflow:hidden;white-space:nowrap;
  text-indent:110%;font-size:inherit;line-height:1;flex:none;user-select:none}`];
 for(const [k,s] of Object.entries(D))css.push(`.icoL.i-${k}{--m:url("data:image/svg+xml,${encodeURIComponent(s)}")}`);
+css.push(`button.icoBtn,[role=button].icoBtn,a.btn.icoBtn,#compCapa .cnimp .cnimpr{background:#fff!important;background-image:none!important;color:#111!important;
+ border:1.5px solid #c9ced6!important;box-shadow:none!important;text-shadow:none!important;filter:none!important}
+button.icoBtn:active,#compCapa .cnimp .cnimpr:active{background:#eef0f3!important}`);
 const st=document.createElement("style");st.id="icoLst";st.textContent=css.join("\n");document.head.appendChild(st);
 const SKIP=new Set(["SCRIPT","STYLE","TEXTAREA","INPUT","OPTION","SELECT","NOSCRIPT","TITLE","CANVAS","svg","SVG","CODE","PRE"]);
 function okNodo(t){let p=t.parentNode;if(!p||p.nodeType!==1)return false;if(p.classList&&p.classList.contains("icoL"))return false;
@@ -84,13 +87,18 @@ function okNodo(t){let p=t.parentNode;if(!p||p.nodeType!==1)return false;if(p.cl
 function trata(t){const s=t.nodeValue;if(!s||!RT.test(s)||!okNodo(t))return;RE.lastIndex=0;const f=document.createDocumentFragment();let i=0,m;
  while((m=RE.exec(s))){if(m.index>i)f.appendChild(document.createTextNode(s.slice(i,m.index)));
   const base=m[0].replace(/️/g,""),k=E2K[base];const sp=document.createElement("span");sp.className="icoL i-"+k;sp.setAttribute("aria-hidden","true");sp.textContent=m[0];f.appendChild(sp);i=m.index+m[0].length}
- if(i===0)return;if(i<s.length)f.appendChild(document.createTextNode(s.slice(i)));t.parentNode.replaceChild(f,t)}
+ if(i===0)return;if(i<s.length)f.appendChild(document.createTextNode(s.slice(i)));const par=t.parentNode;par.replaceChild(f,t);marca(par)}
+/* v923: botón que solo lleva icono (foto, papelera, lápiz, ficha…) → fondo BLANCO y trazo NEGRO, sea cual sea su color */
+function marca(el){const b=el.closest&&el.closest("button,[role=button],a.btn");if(!b)return;
+ const resto=[...b.childNodes].filter(n=>!(n.nodeType===1&&n.classList.contains("icoL"))).map(n=>n.textContent||"").join("").replace(/\s/g,"");
+ b.classList.toggle("icoBtn",!resto&&!!b.querySelector(".icoL"))}
 function recorre(n){if(!n)return;if(n.nodeType===3){trata(n);return}if(n.nodeType!==1||SKIP.has(n.nodeName))return;
  if(!RT.test(n.textContent||""))return;const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);const L=[];let x;while((x=w.nextNode()))if(RT.test(x.nodeValue))L.push(x);L.forEach(trata)}
-let cola=new Set(),prog=false;
-const vacia=()=>{prog=false;const c=[...cola];cola.clear();for(const n of c){if(n.isConnected)recorre(n)}};
-const mo=new MutationObserver(ms=>{for(const m of ms){if(m.type==="characterData")cola.add(m.target);else m.addedNodes.forEach(n=>cola.add(n))}
- if(!prog&&cola.size){prog=true;requestAnimationFrame(vacia)}});
+let cola=new Set(),rev=new Set(),prog=false;
+const vacia=()=>{prog=false;const c=[...cola];cola.clear();for(const n of c){if(n.isConnected)recorre(n)}
+ const r=[...rev];rev.clear();for(const e of r){if(e&&e.isConnected&&e.closest&&e.closest("button.icoBtn"))marca(e)}};
+const mo=new MutationObserver(ms=>{for(const m of ms){if(m.type==="characterData"){cola.add(m.target);rev.add(m.target.parentElement)}else{m.addedNodes.forEach(n=>cola.add(n));rev.add(m.target)}}
+ if(!prog&&(cola.size||rev.size)){prog=true;requestAnimationFrame(vacia)}});
 const arranca=()=>{recorre(document.body);mo.observe(document.body,{childList:true,subtree:true,characterData:true})};
 if(document.body)arranca();else document.addEventListener("DOMContentLoaded",arranca);
 })();
