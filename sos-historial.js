@@ -50,9 +50,9 @@ if(typeof oA=="function")window.sosAnaliza=async function(){
 
 /* ---------- 2 · listado ---------- */
 const otsAbiertas=()=>{try{return (typeof inc!="undefined"?inc:[]).filter(x=>x.estado=="abierta")}catch(e){return[]}};
-function pinta(sinBajar){try{return pinta0(sinBajar)}catch(e){const c=document.getElementById("sheetc");if(c){c.className="";c.innerHTML=`<div class="shh"><div class="sht">🕘 Historial de actuaciones</div><button type="button" class="shx" aria-label="Cerrar" onclick="closeSheet()">✕</button></div><div class="gav">No se pudo mostrar el historial: ${e_(e&&e.message||e)}</div><button type="button" class="pri shnew" onclick="sosHistorial()">Reintentar</button>`;const s=document.getElementById("sheet");if(s)s.style.display="flex"}}}
+function pinta(sinBajar){try{return pinta0(sinBajar)}catch(e){const c=document.getElementById("sheetc");if(c){c.className="";c.innerHTML=`<div class="shh"><div class="sht">🕘 Histórico de actuaciones</div><button type="button" class="shx" aria-label="Cerrar" onclick="closeSheet()">✕</button></div><div class="gav">No se pudo mostrar el historial: ${e_(e&&e.message||e)}</div><button type="button" class="pri shnew" onclick="sosHistorial()">Reintentar</button>`;const s=document.getElementById("sheet");if(s)s.style.display="flex"}}}
 function pinta0(sinBajar){const c=document.getElementById("sheetc");if(!c)return;const L=lee().filter(h=>h&&h.id);
- c.className="";c.innerHTML=`<div class="shh"><div class="sht">🕘 Historial de actuaciones</div><button type="button" class="shx" aria-label="Cerrar" onclick="closeSheet()">✕</button></div>
+ c.className="";c.innerHTML=`<div class="shh"><div class="sht">🕘 Histórico de actuaciones</div><button type="button" class="shx" aria-label="Cerrar" onclick="closeSheet()">✕</button></div>
  <div class="shs">${L.length?`${L.length} ${L.length==1?"actuación":"actuaciones"} · compartidas con todos los técnicos (los últimos ${MAX}).${sinBajar?"":" Actualizando…"}`:sinBajar?"Todavía no hay actuaciones guardadas: cada vez que pulses ANALIZAR en una actuación se guarda aquí.":"Cargando el historial…"}</div>
  <button type="button" class="pri shnew" onclick="sosRap()">Nuevo</button>
  ${L.map(h=>`<div class="card shi" data-id="${e_(h.id)}">
@@ -96,7 +96,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 /* ---------- 4 · botón 🕘 en la cabecera del SOS ---------- */
 const oR=window.sosRap;if(typeof oR=="function")window.sosRap=function(){const r=oR.apply(this,arguments);try{
  const t=document.querySelector("#sheetc .sosct");if(t&&!t.querySelector(".soshb")){const x=t.querySelector(".soscx");
-  const b=document.createElement("button");b.type="button";b.className="soshb";b.setAttribute("aria-label","Historial de SOS");b.innerHTML="🕘<small>Historial</small>";
+  const b=document.createElement("button");b.type="button";b.className="soshb";b.setAttribute("aria-label","Histórico de SOS");b.innerHTML="🕘<small>Histórico</small>";
   b.onclick=()=>pinta();t.insertBefore(b,x||null)}}catch(e){}return r};
 const st=document.createElement("style");st.textContent=`
 #sheetc .soshb{flex:none;width:auto!important;height:36px;margin:0!important;padding:0 8px!important;border-radius:9px;display:flex;align-items:center;gap:3px;font-size:16px;background:transparent;border:1.5px solid #1fa64a;color:#1fa64a;font-weight:800}
