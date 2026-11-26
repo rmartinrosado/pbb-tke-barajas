@@ -24,6 +24,9 @@ const st=document.createElement("style");st.textContent=`
 .otres .orl .galar img{width:20px;height:20px;display:block;object-fit:contain}
 #app .card.ot.otsosok .otres .orl .grepc,#app .card.ot.otlle.otsosok .otres .orl .grepc{border:2px solid #22c55e!important;color:#22c55e!important;animation:otSosBlink 1.4s ease-in-out infinite!important}
 html.lt #app .card.ot.otsosok .otres .orl .grepc{border-color:#16a34a!important;color:#15803d!important}
+#app .card.ot .otres .orl>.otdelr{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:36px;padding:0;margin:0 0 0 8px!important;
+ border-radius:10px;border:1.5px solid #ff6b6b;background:transparent;color:#ff6b6b;cursor:pointer;align-self:center}
+#app .card.ot .otres .orl>.otdelr svg{width:20px;height:20px;display:block}html.lt #app .card.ot .otres .orl>.otdelr{color:#c62828;border-color:#c62828}
 @keyframes otSosBlink{0%,100%{box-shadow:0 0 0 0 #22c55e00;opacity:1}50%{box-shadow:0 0 0 5px #22c55e55;opacity:.55}}
 /* v748: llave más grande; con la OT abierta y con llegada, parpadea en amarillo como la caja */
 #app .card.ot .otres .orl .grepc{padding:2px 14px!important;border-radius:999px!important;border-width:1.5px!important;align-self:stretch}#app .card.ot .otres .orl .grepc svg{width:16px!important;height:16px!important}/* v750: misma altura que el reloj */
@@ -91,11 +94,19 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
    if(lv.nextElementSibling!==ga)lv.after(ga)}}
  /* v929: con actuación SOS asociada (ANALIZAR) la llave de la guía de campo pasa a verde parpadeando */
  {let so=false;try{const o=oid&&inc.find(x=>x.id==oid);so=!!(o&&o.estado=="abierta"&&o.sosAct)}catch(_){}if(c.classList.contains("otsosok")!==so)c.classList.toggle("otsosok",so)}
+
  /* v748: sin la mano sobre la llave */
  c.querySelectorAll(".repdedo").forEach(x=>x.remove());
  }
  const rp=null&&c.querySelector(".cacr .grep");if(rp&&!rp.parentElement.classList.contains("grepw")){const w=document.createElement("span");w.className="grepw";rp.before(w);w.append(rp)}
  const gw=c.querySelector(".grepw");if(gw&&!gw.querySelector(".repdedo")&&window.OT_DEDO)gw.insertAdjacentHTML("beforeend",window.OT_DEDO.replace('class="otdedo"','class="otdedo repdedo"'));
+ /* v931: OT CERRADA (Administrador) → papelera «Eliminar OT» a la vista en la fila de abajo, al lado del candado de reabrir,
+    sin tener que desplegar la tarjeta (pide confirmación) */
+ {let o=null;try{o=oid&&inc.find(x=>x.id==oid)}catch(_){}const rw=c.querySelector(".otres .orl");let ad=false;try{ad=!!admin}catch(_){}
+  let b=c.querySelector(".otdelr");const quiere=!!(ad&&o&&o.estado=="cerrada"&&rw);
+  if(!quiere){if(b)b.remove()}else{if(!b){b=document.createElement("button");b.type="button";b.className="otdelr";b.title="Eliminar OT";
+    b.setAttribute("aria-label","Eliminar OT "+(o.orden||""));b.innerHTML=(typeof IC=="function"?IC("trash"):"🗑️");b.onclick=e=>{e.stopPropagation();e.preventDefault();borrar(oid)}}
+   if(b.parentNode!==rw||rw.lastElementChild!==b)rw.append(b)}}
  const sos=c.querySelector(".sosb:not(.sosc)"),orl=c.querySelector(".otres .orl");
  if(sos&&orl){const w=sos.parentElement;sos.classList.add("sosc");orl.prepend(sos);if(w&&/sosmid|sosw/.test(w.className)&&!w.children.length)w.remove()}
  else if(!sos&&orl){const s2=c.querySelector(".sosc");if(s2&&orl.firstElementChild!==s2)orl.prepend(s2)}
