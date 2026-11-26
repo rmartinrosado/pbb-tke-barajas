@@ -148,8 +148,9 @@ window.lupaPinta=function(k,an){if(an)LA=an;const res=document.getElementById("l
   ${P.acc.map((p,ix)=>{let cx="";try{const C=window.croquisPaso&&!(SB&&SB.gen.has(p))&&croquisPaso(p,"");if(C)cx=`<details class="elusd cxd"${C.n?" open":""}><summary>🔌 Croquis entre borneros${C.n?` · ${C.n} conexión${C.n>1?"es":""} borna a borna`:" · recorrido"}</summary><div class="cxin">${C.html}</div></details>`}catch(e){}
    return `<div class="lpap"><b>${ix+1}.</b><span>${E(p)}${cx}</span></div>`}).join("")}
   ${P.inf.length?`<details class="gelem"><summary>Elementos y referencias (${P.inf.length})</summary>${P.inf.map(p=>`<div class="gelit"><span>${E(typeof gInfoTxt=="function"?gInfoTxt(p):p)}</span></div>`).join("")}</details>`:""}
-  ${vg?`<button class="sec" style="width:100%;margin-top:8px" onclick="lupaGuia('${c.T}',${c.si})">Abrir en la guía de campo</button>`:""}${PL?"</details>":"</div>"}
+  ${PL?`<div class="lpab2">${vg?`<button class="sec" onclick="lupaGuia('${c.T}',${c.si})">Abrir en la guía de campo</button>`:""}<button class="sec lpalim" onclick="lupaLimpia('${c.T}',${c.si})">Limpiar · no corresponde</button></div>`:vg?`<button class="sec" style="width:100%;margin-top:8px" onclick="lupaGuia('${c.T}',${c.si})">Abrir en la guía de campo</button>`:""}${PL?"</details>":"</div>"}
   ${(()=>{try{return borneros(c,RB,P.acc.concat(P.inf))}catch(e){return ""}})()}${prim}${alt?(PL?`<details class="lpaotd"><summary class="anal">Otras actuaciones relacionadas (${LC.length-1})</summary><div class="anass">${alt}</div></details>`:`<div class="anal" style="margin-top:10px">Otras actuaciones relacionadas</div><div class="anass">${alt}</div>`):""}${an?ana:(document.querySelector("#lp_res .lpaan")||{}).outerHTML||""}<div id="lp_cas">${(document.getElementById("lp_cas")||{}).innerHTML||""}</div>`;
+ if(PL&&window.__lupaDesc&&window.__lupaDesc.has(c.T+":"+c.si+"|"+LT))lupaQuita(res);
  if(window.__lupaEnSOS){}else if(an!==undefined&&an!==null)res.scrollIntoView({block:"start",behavior:"smooth"});else{const e=res.querySelector(".lpaef");if(e)e.scrollIntoView({block:"start",behavior:"smooth"})}};
 async function casos(txt){if(typeof casosParecidos!="function")return;let l=[];try{l=await casosParecidos(txt)}catch(e){}
  const c=document.getElementById("lp_cas");if(!c||txt!==LT)return;c.innerHTML=l.length&&typeof casosHTML=="function"?`<div style="margin-top:10px">${casosHTML(l,"")}</div>`:""}
@@ -158,6 +159,15 @@ window.LUPA_GEN=function(ix){LC=LC.map((x,i)=>Object.assign({},x,{gen:0}));const
 /* v336: la hoja de la lupa sale arriba (abajo la tapaba el teclado); al cerrarla o abrir otra hoja vuelve abajo */
 (function(){const o=closeSheet;closeSheet=function(){const sh=document.getElementById("sheet");if(sh)sh.classList.remove("lpatop");return o.apply(this,arguments)};window.closeSheet=closeSheet;
  const c=document.getElementById("sheetc");if(c)new MutationObserver(()=>{const sh=document.getElementById("sheet");if(sh)sh.classList.toggle("lpatop",!!c.querySelector(".lpaf,#sr_p"))}).observe(c,{childList:true})})();
+/* v960: en el SOS, «Limpiar · no corresponde» quita la actuación más eficaz cuando no casa con los síntomas
+   (p. ej. la del 400 Hz para un disparo de E-Q15). Queda un aviso, se abren «Otras actuaciones relacionadas» y, si la OT tenía
+   copiado el texto del análisis, se vuelve a copiar ya sin esa actuación. Se recuerda para esa misma búsqueda. */
+window.__lupaDesc=window.__lupaDesc||new Set();
+function lupaQuita(res){const e=res.querySelector(".lpaef");if(!e)return;const n=document.createElement("div");n.className="gav lpadesc";
+ n.innerHTML="🧹 Actuación más eficaz descartada: no corresponde con los síntomas. Elige otra en «Otras actuaciones relacionadas» o usa el <b>3 · Análisis con IA</b>.";
+ e.replaceWith(n);const o=res.querySelector("details.lpaotd");if(o)o.open=true;res.querySelectorAll(".lbwrap").forEach(x=>x.remove())}
+window.lupaLimpia=function(T,si){const res=document.getElementById("lp_res");if(!res)return;window.__lupaDesc.add(T+":"+si+"|"+LT);lupaQuita(res);
+ try{window.sosOtRecopia&&window.sosOtRecopia()}catch(e){}if(typeof msg=="function")msg("Actuación más eficaz descartada")};
 window.lupaGuia=function(T,si){closeSheet();gTipo=T;try{gAbierto.add(T+si)}catch(e){}go("tec");
  setTimeout(()=>{const d=document.querySelector(`details.gd[data-k="${T+si}"]`);if(d){d.open=true;d.scrollIntoView({block:"start",behavior:"smooth"})}},120)};
 const st=document.createElement("style");st.textContent=`
@@ -172,6 +182,8 @@ const st=document.createElement("style");st.textContent=`
 #app#app .sos2 .sos2b:active{background:#e5342b22!important}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]) #app#app .sosk.sos2{background:repeating-linear-gradient(135deg,#6b2626 0 8px,#7c2f2f 8px 16px)!important}
  :root:not([data-theme=light]) #app#app .sos2 .sos2l svg{background:#2a1515;color:#ff8a80}}
+.lpab2{display:flex;gap:8px;margin-top:8px}.lpab2>button{flex:1 1 0;width:auto!important;margin:0!important;padding:10px 6px!important;font-size:14px!important;line-height:1.2}
+.lpab2>.lpalim{border-color:#e09a00!important;color:#e09a00!important}.lpadesc{margin-top:10px}
 .lpah{display:flex;gap:10px;align-items:center;margin-bottom:8px}.lpai{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:50%;background:#c62828;color:#fff}.lpai svg{width:24px;height:24px}
 .lpaf{display:flex;gap:8px;align-items:stretch}.lpaf input{flex:1;min-width:0;margin:0!important;font-size:16px}.lpaf button{width:52px!important;flex:none;margin:0!important;padding:0!important;display:grid;place-items:center}.lpaf button svg{width:22px;height:22px}#sheet#sheet .lpaf .lpabo{color:#c62828!important;border:1px solid #c6282866!important}
 .lpaef{margin-top:12px;border:2px solid #ef6c00;border-radius:10px;padding:10px 12px;background:color-mix(in srgb,#ef6c00 6%,transparent)}
