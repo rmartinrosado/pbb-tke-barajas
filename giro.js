@@ -7,12 +7,13 @@
 (function(){"use strict";
 let W=innerWidth,H=innerHeight;const FL=["fab","fabb"];
 const cab=()=>{const h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hkh",Math.round(h.getBoundingClientRect().height)+"px")};
-const vista=()=>{try{const vv=window.visualViewport,h=document.querySelector("header");const r=h&&h.getBoundingClientRect();
+const vista=()=>{try{const ae=document.activeElement;if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return; /* v961: con el teclado abierto no se recoloca la vista */
+ const vv=window.visualViewport,h=document.querySelector("header");const r=h&&h.getBoundingClientRect();
  if((vv&&Math.abs(vv.offsetTop)>1)||(r&&r.top<-1&&getComputedStyle(h).position!="static")){window.scrollTo(0,window.scrollY);if(vv&&Math.abs(vv.offsetTop)>1)window.scrollTo(0,0)}}catch(_){}};
 const flot=(w0,h0)=>{const w=innerWidth,h=innerHeight,S=58,MG=10;FL.forEach(id=>{const el=document.getElementById(id);if(!el)return;
  const x=parseFloat(el.style.left),y=parseFloat(el.style.top);if(!isFinite(x)||!isFinite(y))return;
  const nx=Math.max(MG,Math.min(w-S-MG,Math.round(x*w/w0))),ny=Math.max(MG+40,Math.min(h-S-MG-70,Math.round(y*h/h0)));el.style.left=nx+"px";el.style.top=ny+"px"})};
-const gira=()=>{const w0=W,h0=H;const w=innerWidth,h=innerHeight;if(Math.abs(w-w0)<60&&Math.abs(h-h0)<120)return;W=w;H=h;
+const gira=()=>{{const ae=document.activeElement;if(ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)&&Math.abs(innerWidth-W)<60)return}const w0=W,h0=H;const w=innerWidth,h=innerHeight;if(Math.abs(w-w0)<60&&Math.abs(h-h0)<120)return;W=w;H=h;
  setTimeout(()=>{flot(w0,h0)},60);[120,400,900].forEach(t=>setTimeout(()=>{cab();vista();try{dispatchEvent(new Event("scroll"))}catch(_){}},t))};
 addEventListener("resize",gira);addEventListener("orientationchange",()=>setTimeout(gira,250));
 })();
