@@ -87,7 +87,13 @@ function okNodo(t){let p=t.parentNode;if(!p||p.nodeType!==1)return false;if(p.cl
 /* v926: antibucle · si un mismo elemento se vuelve a pintar una y otra vez (módulos que comparan innerHTML y lo reescriben al
    cambiar), se deja con su emoji y no se toca más: así no hay parpadeo */
 const VEZ=new WeakMap();
-function bucle(p){if(!p||p.nodeType!==1)return false;if(p.dataset&&p.dataset.noico!=null)return true;const n=Date.now(),v=VEZ.get(p);if(!v||n-v.t>1000){VEZ.set(p,{t:n,c:1});return false}v.c++;if(v.c>8){try{p.dataset.noico=""}catch(_){}return true}return false}
+/* v932: un contenedor que vuelve a escribir EXACTAMENTE el mismo texto (con emojis) en menos de 4 s es un módulo que compara su
+   innerHTML y lo reescribe: a la primera repetición se deja con sus emojis y no se toca más (antes hacían falta 8 vueltas → temblor) */
+function bucle(p){if(!p||p.nodeType!==1)return false;if(p.dataset&&p.dataset.noico!=null)return true;
+ /* solo contenedores pequeños: nunca body, #app, la hoja ni secciones grandes (se repintan enteras sin ser un bucle) */
+ if(p===document.body||p.id=="app"||p.id=="sheetc"||p.id=="sheet"||p.childElementCount>12)return false;const tx=p.textContent||"";if(tx.length>600||!RT.test(tx))return false;
+ const n=Date.now(),v=VEZ.get(p);VEZ.set(p,{t:n,s:tx,c:v&&n-v.t<4000?v.c+1:1});
+ if(v&&n-v.t<4000&&(v.s===tx||v.c>=3)){try{p.dataset.noico="";p.querySelectorAll(".icoL").forEach(s=>s.replaceWith(document.createTextNode(s.textContent)))}catch(_){}return true}return false}
 function trata(t){const s=t.nodeValue;if(!s||!RT.test(s)||!okNodo(t))return;RE.lastIndex=0;const f=document.createDocumentFragment();let i=0,m;
  while((m=RE.exec(s))){if(m.index>i)f.appendChild(document.createTextNode(s.slice(i,m.index)));
   const base=m[0].replace(/️/g,""),k=E2K[base];const sp=document.createElement("span");sp.className="icoL i-"+k;sp.setAttribute("aria-hidden","true");sp.textContent=m[0];f.appendChild(sp);i=m.index+m[0].length}
