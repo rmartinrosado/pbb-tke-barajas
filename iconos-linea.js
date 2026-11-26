@@ -60,7 +60,8 @@ const D={
  mapa:P("<path d='M14.1 6.3 9 3.8 3 6.5v14l6-2.7 5.1 2.5 6-2.7v-14Z'/><path d='M9 3.8v14M15 6.2v14'/>"),
  cadena:P("<path d='M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8'/>"),
  flechaD:P("<path d='M5 12h14M13 6l6 6-6 6'/>",2.4),
- nube:P("<path d='M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z'/>")
+ nube:P("<path d='M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z'/>"),
+ estrella:P("<path d='M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9Z'/>")
 };
 const E2K={"📷":"camara","📸":"camara","🗑":"papelera","✏":"lapiz","📝":"lapiz","🖊":"lapiz","📄":"ficha","📃":"ficha","🧾":"ficha","📋":"portapapeles",
  "🔎":"lupa","🔍":"lupa","🔔":"campana","⚠":"aviso","✅":"okc","✔":"ok","☑":"okc","❌":"no","✖":"no","❎":"no","🕘":"reloj","🕒":"reloj","⏱":"reloj","⏰":"reloj",
@@ -69,7 +70,7 @@ const E2K={"📷":"camara","📸":"camara","🗑":"papelera","✏":"lapiz","📝
  "📊":"grafica","📈":"grafica","📅":"calendario","📆":"calendario","📞":"telefono","☎":"telefono","💡":"bombilla","⚡":"rayo","🔌":"enchufe","📁":"carpeta","📂":"carpeta",
  "🖨":"impresora","➕":"mas","➖":"menos","ℹ":"info","❓":"pregunta","❔":"pregunta","🔊":"altavoz","🔈":"altavoz","👁":"ojo","👀":"ojo","⏳":"arena","⌛":"arena",
  "🖼":"imagen","🔗":"enlace","✉":"sobre","📧":"sobre","📨":"sobre","🚩":"bandera","🏁":"bandera","🎯":"diana","👤":"usuario","👷":"usuario","🚀":"cohete","🗺":"mapa",
- "⛓":"cadena","➡":"flechaD","☁":"nube"};
+ "⛓":"cadena","➡":"flechaD","☁":"nube","⭐":"estrella","🌟":"estrella","★":"estrella"};
 const keys=Object.keys(E2K).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
 const RE=new RegExp("(?:"+keys.join("|")+")\\uFE0F?","gu"),RT=new RegExp("(?:"+keys.join("|")+")","u");
 /* CSS: cada icono es una máscara pintada con el color del texto (currentColor) */

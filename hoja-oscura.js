@@ -81,7 +81,7 @@ function reloj(){const p=()=>{const f=document.querySelector("#sheetc .hsub .hf"
  f.textContent=`${DI[d.getDay()]} ${z2(d.getDate())}/${z2(d.getMonth()+1)}`;document.querySelector("#sheetc .hsub .hh").textContent=`${z2(d.getHours())}:${z2(d.getMinutes())}:${z2(d.getSeconds())}`};p();if(!rl)rl=setInterval(p,1000)}
 function mira(){const sh=document.getElementById("sheet"),c=document.getElementById("sheetc");if(!sh||!c)return;
  const h=c.querySelector("h3");const on=!!(h&&ES.test(h.textContent||""));if(sh.classList.contains("tkosc")!==on)sh.classList.toggle("tkosc",on);
- const hs=c.querySelector(":scope>.shh .sht");const hi=!!(hs&&/hist[oó]rico de actuaciones/i.test(hs.textContent||""));
+ const hs=c.querySelector(":scope>.shh .sht");const hi=!!(c.querySelector(":scope>.shh.hok")||(hs&&/hist[oó]rico de actuaciones/i.test(hs.textContent||"")));/* v956: tras rehacer la cabecera ya no hay .sht: se reconoce por .hok */
  const im=!!(h&&EI.test(h.textContent||""));
  if(sh.classList.contains("tkhis")!==hi)sh.classList.toggle("tkhis",hi);
  if(hi){const sx=c.querySelector(":scope>.shh");if(sx&&!sx.classList.contains("hok")){const x=sx.querySelector(".shx");sx.classList.add("hok");
