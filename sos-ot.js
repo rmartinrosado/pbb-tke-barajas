@@ -37,7 +37,8 @@ const espera=()=>new Promise(res=>{let ult="",igual=0,n=0;const tic=()=>{const s
   if(s&&s===ult&&!ocup){if(++igual>=2){res(s);return}}else igual=0;ult=s;if(++n>40){res(s);return}setTimeout(tic,400)};setTimeout(tic,600)});
 async function copia(o){if(!o||!o.sosAct)return;const s=await espera();if(!s)return;
  const ant=(o.sosAct.txt||"").trim(),act=(o.act||"").trim();
- o.sosAct.txt=s;let puesto=false;if(!act||act===ant){o.act=s;puesto=true}
+ o.sosAct.txt=s;let puesto=false;const iaT=((o.iaAct||{}).txt||"").trim();/* v959: la actuación rellenada por el análisis IA no se pisa con el texto del ANALIZAR */
+ if(!(iaT&&act===iaT)&&(!act||act===ant)){o.act=s;puesto=true}
  try{sv("pbb_inc",inc)}catch(e){console.warn("sos-ot",e)}try{if(typeof render=="function")render()}catch(_){}
  if(typeof msg=="function")msg(puesto?`Actuación copiada a la OT ${o.orden||o.pos}`:`La OT ${o.orden||o.pos} ya tenía actuación escrita: no se pisa (la del SOS queda guardada en la OT)`)}
 const oA=window.sosAnaliza;if(typeof oA=="function")window.sosAnaliza=async function(){let o=null;try{o=asocia()}catch(e){console.warn("sos-ot",e)}

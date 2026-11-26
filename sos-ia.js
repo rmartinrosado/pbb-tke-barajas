@@ -13,6 +13,7 @@ const nrm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036
 const cmp=s=>String(s||"").toUpperCase().replace(/[\s']/g,"");
 const html2txt=h=>{const d=document.createElement("div");d.innerHTML=h||"";d.querySelectorAll("button,svg,img,style,script").forEach(x=>x.remove());return (d.innerText||d.textContent||"").replace(/\n{3,}/g,"\n\n").trim()};
 let ST=null; /* estado de la consulta en curso / última terminada */
+window.__sosIaST=()=>ST; /* v959: sos-ia-rellena.js lee la consulta terminada */
 
 /* ---------- términos de búsqueda ---------- */
 const STOP=new Set("para pero como esta este esto estos estas desde hasta sobre entre cuando donde porque tiene tienen hace hacer hacia solo sola sido sera ser estan estado otra otro otras otros cada todo toda todos todas misma mismo muy mas menos tambien segun sino ante bajo aqui alli entonces luego despues antes ademas cual cuales quien orden aviso posicion turno tecnico averia favor funciona detectado campo pasarela detecta queda sigue".split(" "));
