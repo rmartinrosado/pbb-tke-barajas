@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=942;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=943;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -5135,7 +5135,7 @@ header.hk>*:not(#hk){display:none!important}
  const alto=()=>{const h=document.querySelector("header");if(h)document.documentElement.style.setProperty("--hkh",Math.round(h.getBoundingClientRect().height)+"px")};
  const fija=()=>{try{alto();if(view!="dash")return;const a=document.getElementById("app");if(!a||document.getElementById("pfix"))return;
   const ks=[...a.children];const i=ks.findIndex(e=>e.tagName=="H3"&&/rdenes de trabajo abiertas/i.test(e.textContent));if(i<0)return;
-  if(!ks.slice(i+1).some(e=>e.classList.contains("card")&&!e.classList.contains("mu")))return; /* solo con OT abiertas (v231: «Sin averías abiertas» no cuenta) */
+  /* v943: también SIN OT abiertas, para que el Panel de control tenga siempre el mismo tema (antes solo con OT abiertas) */
   const w=document.createElement("div");w.id="pfix";a.insertBefore(w,ks[0]);ks.slice(0,i+1).forEach(e=>w.appendChild(e))}catch(e){}};
  const o=vDash;vDash=function(){const r=o.apply(this,arguments);fija();return r};
  new MutationObserver(fija).observe(document.getElementById("app"),{childList:true});
