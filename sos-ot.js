@@ -21,8 +21,25 @@ function asocia(){const pos=((document.getElementById("sr_p")||{}).value||"").tr
  const M=V.slice();X.forEach(x=>{if(!M.some(z=>z.c==x.c))M.push(x)});const nuevas=M.length-V.length;
  if(M.length){o.alMag=M.map(x=>`${x.c} ${x.t}`).join("\n");if(!o.alCod)o.alCod=M[0].c;if(typeof o.alarmas=="string")delete o.alarmas}
  const ob=((document.getElementById("sr_ob")||{}).value||"").trim();
- o.sosAct={t:new Date().toISOString(),al:X.map(x=>x.c),ob:ob.slice(0,400)};
+ o.sosAct={...(o.sosAct||{}),t:new Date().toISOString(),al:X.map(x=>x.c),ob:ob.slice(0,400)};
  try{sv("pbb_inc",inc)}catch(e){console.warn("sos-ot",e)}try{if(typeof render=="function")render()}catch(_){}
- if(typeof msg=="function")msg(`OT ${o.orden||o.pos} guardada${nuevas?` · +${nuevas} alarma${nuevas>1?"s":""} en la ficha`:""} · guía de campo lista`)}
-const oA=window.sosAnaliza;if(typeof oA=="function")window.sosAnaliza=function(){try{asocia()}catch(e){console.warn("sos-ot",e)}return oA.apply(this,arguments)};
+ if(typeof msg=="function")msg(`OT ${o.orden||o.pos} guardada${nuevas?` · +${nuevas} alarma${nuevas>1?"s":""} en la ficha`:""} · guía de campo lista`);return o}
+/* v930: el TEXTO de la actuación del análisis se copia al campo «Actuación» de la OT.
+   · Se espera a que el resultado deje de cambiar (puente, reset, seguridades y actuación más eficaz).
+   · Si «Actuación» está vacía se rellena; si lo que hay es la copia de un análisis anterior, se sustituye; si el técnico ya escribió
+     su actuación, NO se pisa (la copia queda en la OT, en sosAct.txt). */
+function textoRes(){const r=document.getElementById("sr_res");if(!r)return"";const c=r.cloneNode(true);
+ c.querySelectorAll("#sr_leido,details.srcomp,details.srtx,button,svg,img,script,style,.icoL").forEach(x=>x.remove());
+ const d=document.createElement("div");d.style.cssText="position:fixed;left:-9999px;top:0;width:360px";d.appendChild(c);document.body.appendChild(d);
+ let s=(c.innerText||c.textContent||"");d.remove();
+ return s.replace(/\u00a0/g," ").split("\n").map(x=>x.replace(/[ \t]+/g," ").trim()).filter((x,i,A)=>x||(A[i-1]||"")).join("\n").replace(/\n{3,}/g,"\n\n").trim().slice(0,2500)}
+const espera=()=>new Promise(res=>{let ult="",igual=0,n=0;const tic=()=>{const s=textoRes();const ocup=/Leyendo|Consultando|Cruzando|Buscando|Analizando/i.test(s);
+  if(s&&s===ult&&!ocup){if(++igual>=2){res(s);return}}else igual=0;ult=s;if(++n>40){res(s);return}setTimeout(tic,400)};setTimeout(tic,600)});
+async function copia(o){if(!o||!o.sosAct)return;const s=await espera();if(!s)return;
+ const ant=(o.sosAct.txt||"").trim(),act=(o.act||"").trim();
+ o.sosAct.txt=s;let puesto=false;if(!act||act===ant){o.act=s;puesto=true}
+ try{sv("pbb_inc",inc)}catch(e){console.warn("sos-ot",e)}try{if(typeof render=="function")render()}catch(_){}
+ if(typeof msg=="function")msg(puesto?`Actuación copiada a la OT ${o.orden||o.pos}`:`La OT ${o.orden||o.pos} ya tenía actuación escrita: no se pisa (la del SOS queda guardada en la OT)`)}
+const oA=window.sosAnaliza;if(typeof oA=="function")window.sosAnaliza=async function(){let o=null;try{o=asocia()}catch(e){console.warn("sos-ot",e)}
+ const r=await oA.apply(this,arguments);try{if(o)await copia(o)}catch(e){console.warn("sos-ot copia",e)}return r};
 })();
