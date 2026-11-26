@@ -3,6 +3,9 @@
    · Fuera las estrellas (actuación más eficaz), el polímetro (inspección) y PLC; junto a «Foto PLC» queda un único botón
      🔧 REPARACIÓN que abre la inspección cable a cable ORIGEN → DESTINO de la OT. */
 (function(){"use strict";
+/* v927: SOS desde la tarjeta de la OT, con la posición de la OT ya puesta */
+window.abreSosOT=function(id){if(typeof sosRap!="function")return;let o=null;try{o=inc.find(x=>x.id==id)}catch(_){}sosRap();
+ const p=o&&o.pos!=null?String(o.pos):"";if(!p)return;let n=0;const pon=()=>{const i=document.getElementById("sr_p");if(i){if(!i.value){i.value=p;i.dispatchEvent(new Event("input",{bubbles:true}));i.dispatchEvent(new Event("change",{bubbles:true}))}return}if(++n<20)setTimeout(pon,50)};pon()};
 const LLAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
 const st=document.createElement("style");st.textContent=`
 #app .card.ot .sosb,#app .card.ot .sosc{display:none!important}#app .card .otres .orl>.pactt{cursor:pointer}
@@ -16,6 +19,9 @@ const st=document.createElement("style");st.textContent=`
 #app .card .otres{align-items:stretch!important}/* v750: SOS y 🔌 a la izquierda; reloj y llave justificados a la derecha */#app .card .otres>.orl:first-child{justify-content:flex-end!important;align-self:stretch;width:100%}#app .card .otres .orl.orlsos{justify-content:flex-end!important;align-self:stretch;width:100%;min-height:44px}#app .card .otres .orl.orlsos>[data-ort]{margin-left:auto!important}#app .card .otres .orl>.pactt{flex:none;margin:0 0 0 2px!important;animation:none!important;font-size:18px;line-height:1;padding:3px 4px;border-radius:8px;border:1.5px solid #c62828}/* v696: REPARACIÓN con el mismo estilo de pastilla que T4S (solo la llave) */
 .otres .orl .grepc{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;color:inherit!important}
 .otres .orl .grepc svg{width:18px;height:18px;display:block}
+.otres .orl .galar{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;background:transparent}
+#app .card.ot .otres .orl .galar{padding:2px 14px!important;border-radius:999px!important;border:1.5px solid color-mix(in srgb,#e03e6b 70%,transparent)!important;align-self:stretch}
+.otres .orl .galar img{width:20px;height:20px;display:block;object-fit:contain}
 /* v748: llave más grande; con la OT abierta y con llegada, parpadea en amarillo como la caja */
 #app .card.ot .otres .orl .grepc{padding:2px 14px!important;border-radius:999px!important;border-width:1.5px!important;align-self:stretch}#app .card.ot .otres .orl .grepc svg{width:16px!important;height:16px!important}/* v750: misma altura que el reloj */
 #app .card.ot.otlle .otres .orl .grepc{border:2px solid #facc15!important;color:#facc15!important;animation:otLleBlink 1.4s ease-in-out infinite}
@@ -67,13 +73,19 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
    const vis=new Set();[...k.children].forEach(y=>{const t=y.textContent.trim();if(vis.has(t)||/^T(4S?|123)$/i.test(t))y.remove();else vis.add(t)})}}
  /* v698: OT cerrada → sin botón de REPARACIÓN ni mano */
  let cerr=false;try{const o=(typeof inc!="undefined"?inc:[]).find(x=>x.id==(c.dataset.oid||oid));cerr=!!o&&o.estado=="cerrada"}catch(e){}
- if(cerr){c.querySelectorAll(".grepc,.repdedo").forEach(x=>x.remove())}
+ if(cerr){c.querySelectorAll(".grepc,.repdedo,.galar").forEach(x=>x.remove())}
  else{
  /* v693: REPARACIÓN en la fila de datos, al lado del terminal (T4S); visible con la tarjeta plegada */
  {const o2=c.querySelector(".otres .orl");const g0=c.querySelector(".cacr .grep");if(g0){const w0=g0.closest(".grepw");(w0||g0).remove()}
   if(o2&&oid&&!o2.querySelector(".grepc")){const b=document.createElement("button");b.type="button";b.className="orc grepc";b.title="Guía de campo de la OT";b.setAttribute("aria-label","Guía de campo de la OT con cotejo de planos y primera actuación");
    b.innerHTML=LLAVE;b.onclick=e=>{e.stopPropagation();repOT(oid)};o2.append(b)}
   const ob=o2&&o2.querySelector(".grepc");if(ob&&!ob.classList.contains("orc")){ob.classList.add("orc");ob.innerHTML=LLAVE}}
+ /* v927: al lado de la llave, botón igual con el icono de ALARMA (rojo) → abre el SOS con la posición de la OT */
+ {const o3=c.querySelector(".otres .orl"),lv=o3&&o3.querySelector(".grepc");
+  if(lv&&oid){let ga=o3.querySelector(".galar");if(!ga){ga=document.createElement("button");ga.type="button";ga.className="orc galar";ga.title="SOS de la OT";
+    ga.setAttribute("aria-label","Abrir el SOS con la posición de la OT");ga.innerHTML='<img src="iconos/alarma.png" alt="">';
+    ga.onclick=e=>{e.stopPropagation();abreSosOT(oid)}}
+   if(lv.nextElementSibling!==ga)lv.after(ga)}}
  /* v748: sin la mano sobre la llave */
  c.querySelectorAll(".repdedo").forEach(x=>x.remove());
  }
