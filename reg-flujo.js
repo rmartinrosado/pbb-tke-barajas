@@ -1,5 +1,7 @@
 /* ===== v934: REGISTRAR OT en cadena, sin tocar casillas (26/11/2026) =====
    1. Al pulsar «Registrar» → teclado numérico ya en «Teclear nº» de la Posición PBB.
+   1b. (v936) Posición aceptada → cursor en el nº de orden; con los 3 dígitos, si falta la descripción, va a la descripción
+      y al pulsar «Siguiente» se guarda sola.
    2. Al elegir el tipo (dibujo o casilla) → cursor en «Descripción de la incidencia» (v925 iba al nº de orden).
    3. En la descripción, la tecla «Siguiente»/Intro → cursor en el nº de orden (CGA).
    4. Con los 3 dígitos del nº de orden → se GUARDA SOLA la incidencia (1 s para corregir; al cerrar el teclado con los 3 dígitos,
@@ -11,18 +13,24 @@ const foco=el=>{if(!el)return;try{el.focus({preventScroll:true})}catch(_){el.foc
 const prepara=()=>{const d=$i("f_desc"),o=$i("f_ord");if(d)d.setAttribute("enterkeyhint","next");if(o){o.setAttribute("enterkeyhint","done");o.setAttribute("pattern","[0-9]*")}};
 /* 1 · Registrar → posición (en el mismo toque, para que iOS saque el teclado) */
 const og=go;go=function(v){const r=og.apply(this,arguments);if(v=="new"){prepara();foco($i("f_posn")||$i("f_pos"))}return r};window.go=go;
+/* v936 · 1b · posición ACEPTADA (lo tecleado ya es una PBB del listado) → cursor en el nº de orden (CGA) */
+document.addEventListener("input",e=>{const n=e.target;if(!n||n.id!=="f_posn")return;setTimeout(()=>{const s=$i("f_pos"),v=(n.value||"").trim();
+ if(!s||v.length<3||document.activeElement!==n)return;if(String(s.value).replace(/\s*·.*$/,"")!==v)return;const o=$i("f_ord");if(o&&!o.value)foco(o)},0)},true);
 /* 2 · tipo elegido → descripción (si está vacía; si no, al nº de orden) */
 window.vaAOrden=function(on){if(!on)return;prepara();const d=$i("f_desc"),o=$i("f_ord");
  if(d&&!d.value.trim()&&d.offsetParent){foco(d);return}if(o&&!o.value&&o.offsetParent)foco(o)};
-/* 3 · descripción: Intro → nº de orden (Mayúsculas+Intro sigue haciendo salto de línea) */
+/* 3 · descripción: Intro → nº de orden; si el nº ya está completo, se guarda (Mayúsculas+Intro sigue haciendo salto de línea) */
 document.addEventListener("keydown",e=>{const d=e.target;if(!d||d.id!=="f_desc"||e.key!=="Enter"||e.shiftKey)return;
- if(!d.value.trim())return;e.preventDefault();const o=$i("f_ord");if(o)foco(o)},true);
+ if(!d.value.trim())return;e.preventDefault();const o=$i("f_ord");if(o&&/^[0-9]{3}$/.test(o.value)){hecho="";guarda(true);return}if(o)foco(o)},true);
 /* 4 · nº de orden completo → guardar solo */
 let tm=0,hecho="";
-const guarda=()=>{clearTimeout(tm);tm=0;const o=$i("f_ord");if(!o||!/^[0-9]{3}$/.test(o.value)||hecho===o.value)return;
- if(typeof view!="undefined"&&view!="new")return;hecho=o.value;try{o.blur()}catch(_){}if(typeof guardar=="function")guardar();
+const listo=()=>{const d=$i("f_desc");return !!(d&&d.value.trim()&&document.querySelector(".eqc:checked"))};
+const guarda=forz=>{clearTimeout(tm);tm=0;const o=$i("f_ord");if(!o||!/^[0-9]{3}$/.test(o.value)||hecho===o.value)return;
+ if(typeof view!="undefined"&&view!="new")return;
+ /* v936: si aún falta la descripción (la posición lleva directo al nº), no se guarda: el cursor pasa a la descripción */
+ if(!listo()){const d=$i("f_desc");if(d&&!d.value.trim()){foco(d);if(typeof msg=="function")msg("Escribe la descripción y pulsa «Siguiente» para guardar")}return}hecho=o.value;try{o.blur()}catch(_){}if(typeof guardar=="function")guardar();
  setTimeout(()=>{if(typeof view!="undefined"&&view=="new")hecho=""},300)};/* si guardar no pudo (falta algo), se puede volver a intentar */
 document.addEventListener("input",e=>{const o=e.target;if(!o||o.id!=="f_ord")return;clearTimeout(tm);
- if(/^[0-9]{3}$/.test(o.value)){if(typeof msg=="function")msg("Guardando la incidencia…");tm=setTimeout(guarda,1000)}else hecho=""},true);
+ if(/^[0-9]{3}$/.test(o.value)){if(listo()){if(typeof msg=="function")msg("Guardando la incidencia…");tm=setTimeout(guarda,1000)}else guarda()}else hecho=""},true);
 document.addEventListener("blur",e=>{const o=e.target;if(o&&o.id==="f_ord"&&/^[0-9]{3}$/.test(o.value)&&tm)guarda()},true);
 })();
