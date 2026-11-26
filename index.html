@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=957;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=958;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -17,6 +17,16 @@ window.__APPV=957;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{i
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1014">
 <meta name="apple-mobile-web-app-title" content="TKE MAINTENANCE">
+<script>/* v958: sin destello en los bordes de las cajas al recargar/abrir. (1) El tema definitivo (claro/oscuro/exterior) se fija en <html>
+ desde el primer instante, antes de pintar nada, para que las cajas no nazcan con los colores base y luego cambien. (2) Durante el
+ arranque no hay transiciones de color/borde: las cajas toman su aspecto final de golpe y no «animan» el borde desde blanco. */
+(function(){try{var h=document.documentElement,ext=false;try{ext=localStorage.getItem("pbb_ext")=="1"}catch(e){}
+ var lt=ext||!!(window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches);
+ h.classList.toggle("lt",lt);h.classList.toggle("ext",ext);h.setAttribute("data-theme",lt?"light":"dark");h.classList.add("arr0");
+ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",lt?"#eef0f3":"#0e1014");
+ setTimeout(function(){h.classList.remove("arr0")},35000)}catch(e){}})();</script>
+<style>html.arr0 *,html.arr0 *::before,html.arr0 *::after{transition:none!important}html.arr0 #arr,html.arr0 #splash{transition:opacity .25s ease!important}
+html.lt body{background:#eef0f3}html:not(.lt) body{background:#0e1014}</style>
 <style>
 :root{--bg:#f6f2fa;--card:#fff;--tx:#1d1526;--mu:#6d6478;--pr:#7a12b5;--ac:#f0700a;--g:linear-gradient(90deg,#7a12b5,#f0700a);--prt:#fff;--ok:#7a12b5;--wa:#7a12b5;--bd:#e3dbec;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#130d1c;--card:#1e1530;--tx:#f3edf9;--mu:#a597b8;--pr:#a14fe0;--ac:#ff8a2b;--prt:#fff;--ok:#a14fe0;--wa:#a14fe0;--bd:#35264c}}
@@ -88,7 +98,7 @@ setTimeout(function(){try{var b=document.body;if(!b||(b.innerText||"").replace(/
 @keyframes arrL{from{background-position:200% 0}to{background-position:-200% 0}}#arr.fuera{opacity:0;pointer-events:none}</style>
 <div id="arr" aria-hidden="true"><i></i></div>
 <script>(function(){var a=document.getElementById("arr"),t0=Date.now(),ult=Date.now(),hecho=false;
- var fin=function(){if(hecho)return;hecho=true;a.classList.add("fuera");setTimeout(function(){try{a.remove()}catch(e){}},300)};
+ var fin=function(){if(hecho)return;hecho=true;a.classList.add("fuera");setTimeout(function(){try{a.remove()}catch(e){}},300);/* v958: transiciones de nuevo cuando el panel ya está quieto */setTimeout(function(){document.documentElement.classList.remove("arr0")},900)};
  try{new MutationObserver(function(){ult=Date.now()}).observe(document.documentElement,{subtree:true,childList:true})}catch(e){}
  var iv=setInterval(function(){var lk=document.getElementById("lock"),lg=document.getElementById("login");
   /* v833: con 4G lenta la app pintaba la pantalla BASE antigua (cabecera v100, A·O·T) antes de cargar todos sus archivos y el
