@@ -210,8 +210,9 @@ function pintaGuia(){if(typeof view=="undefined"||view!="tec")return;const app=d
  if(ef&&i){let b=ef.querySelector(".icbtn");const bh=botonHTML(i);if(bh&&!b)ef.insertAdjacentHTML("beforeend",`<div class="icbw">${bh}</div>`);else if(!bh&&b)b.parentNode.remove()}
  if(!i||!window.insCons(i.id)){if(c)c.remove();return}
  if(!c){c=document.createElement("details");c.id="ginsc";c.className="card pucard icbox";c.open=true}
- const ref=ef||document.getElementById("anag")||document.getElementById("gpcot");
- if(ref){if(ref.nextElementSibling!==c)ref.insertAdjacentElement("afterend",c)}else if(c.parentNode!==app)app.appendChild(c);
+ /* v964: NIVEL 3 · después del Análisis de la OT (nivel 2); guia-niveles.js mantiene el orden */
+ const ref=document.getElementById("anag")||ef||document.getElementById("gpcot");
+ if(!c.isConnected){if(ref)ref.insertAdjacentElement("afterend",c);else app.appendChild(c)}
  const k=i.id+"|"+JSON.stringify(iaDe(i.id)||{}).length+"|"+(typeof window.pcEstado=="function"?window.pcEstado():"");
  if(c.dataset.k!==k){const op=c.open;const ab=[...c.querySelectorAll("details")].map(x=>x.open);c.innerHTML=cajaHTML(i);c.open=op;c.dataset.k=k;
   const ds=[...c.querySelectorAll("details")];if(ab.length==ds.length)ds.forEach((x,n)=>x.open=ab[n])}}

@@ -277,7 +277,8 @@ function pintaCaja(){if(typeof view=="undefined"||view!="tec")return;const i=otA
  const seg=$q('#app details.gd[data-k="SEG"]'),ef=$q("#app details.gd.gef"),cab=[...document.querySelectorAll("#app .card")].find(x=>/Guía de campo/.test((x.querySelector("h3")||{}).textContent||""));
  /* v518: la caja va antes de «Seguridad antes de intervenir» */
  /* v520: justo después de la cabecera de la guía, donde está «📐 Planos a cotejar» */
- if(cab){if(cab.nextElementSibling!==b)cab.insertAdjacentElement("afterend",b)}else{const ref=seg||ef;if(ref&&b.nextElementSibling!==ref)ref.insertAdjacentElement("beforebegin",b)}
+ /* v964: solo se coloca al crearla; guia-niveles.js la deja después de los niveles 1-3 (eficaz · análisis · inspección) */
+ if(!b.isConnected){if(cab){cab.insertAdjacentElement("afterend",b)}else{const ref=seg||ef;if(ref)ref.insertAdjacentElement("beforebegin",b)}}
  const op=b.open;const sc=b.querySelector(".pccod[open]")?1:0;b.innerHTML=cajaHTML();b.open=op;if(sc){const c=b.querySelector(".pccod");if(c)c.open=true}}
 async function pinta(forzar){try{if(typeof view=="undefined"||view!="tec")return;const i=otAct();const s=$q("#g_doc");if(!s)return;
  if(i&&!$q("#gpcsel")){const l=await gLista();if(!$q("#gpcsel")&&$q("#g_doc")){if(!selDe(i.id)&&l.length)guardaSel(i.id,sugeridos(i,l));
