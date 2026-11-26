@@ -17,7 +17,13 @@ const ponX=()=>{try{if(typeof view!="undefined"&&view!="new")return;const card=d
  const b=document.createElement("button");b.type="button";b.className="sec regx";b.setAttribute("aria-label","Cerrar Registrar OT");b.title="Cerrar";b.textContent="✕";
  b.onclick=e=>{e.preventDefault();e.stopPropagation();go("dash")};card.appendChild(b)}catch(_){}};
 const st=document.createElement("style");st.textContent=`#app>.card>.regx{position:absolute!important;top:10px;right:10px;z-index:5;width:40px!important;height:36px!important;min-height:0!important;margin:0!important;padding:0!important;
- border-radius:10px!important;display:grid!important;place-items:center;font-size:17px!important;font-weight:800;line-height:1}`;document.head.appendChild(st);
+ border-radius:10px!important;display:grid!important;place-items:center;font-size:17px!important;font-weight:800;line-height:1}
+/* v950: micrófono del mismo tamaño que la ✕ y en su misma columna (justo debajo); botón SIGMAS centrado entre «Registrar OT» y la ✕ */
+#app>.card>.micb{position:absolute!important;top:54px!important;right:10px!important;width:40px!important;height:36px!important;min-height:0!important;margin:0!important;padding:0!important;
+ border-radius:10px!important;display:grid!important;place-items:center;z-index:5}
+#app>.card>.micb svg{width:20px;height:20px}
+#app.regot>.card:first-child>h3{padding-right:52px!important}
+#app.regot>.card:first-child>h3>.sigB{margin-left:auto!important;margin-right:auto!important}`;document.head.appendChild(st);
 new MutationObserver(ponX).observe(document.getElementById("app")||document.body,{childList:true});
 const og=go;go=function(v){const r=og.apply(this,arguments);if(v=="new"){ponX();prepara();foco($i("f_posn")||$i("f_pos"))}return r};window.go=go;
 /* v936→v937 · 1b · posición ACEPTADA (lo tecleado ya es una PBB del listado) → cursor en la DESCRIPCIÓN (y después, con «Siguiente», al nº de orden) */
