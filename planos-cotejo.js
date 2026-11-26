@@ -31,10 +31,12 @@ window.pcSelOT=id=>{try{return (selDe(id)||[]).length}catch(e){return 0}}; /* v6
 function selDe(id){try{const v=JSON.parse(ls.g("pc_docs_"+id)||"null");return Array.isArray(v)?v:null}catch(e){return null}}
 function guardaSel(id,a){ls.s("pc_docs_"+id,JSON.stringify([...new Set(a)]))}
 function sugeridos(i,l){const out=[];const add=id=>{if(id&&!out.includes(id))out.push(id)};
- const t=nrm([i.desc,i.def,i.obs,i.com].filter(Boolean).join(" "));
+ /* v965: sin las observaciones rellenadas por el análisis IA (nombres de componentes: «Manguera AE → pupitre», «400/220-24 V») */
+ const ia=i.iaAct||{},ob=String(i.obs||"").trim()!==String(ia.obs||"").trim()?i.obs:"";
+ const t=nrm([i.desc,i.def,ob,i.com].filter(Boolean).join(" "));
  const tipos=[gTipo,i.tipo,...(i.equipos||[])].filter(Boolean);
  if(/\bpbb\b|pasarela|traslac|bloque|movimiento|rotonda|cabina|elevac|tunel|pupitre/.test(t))tipos.push("PAS");
- if(/\baaa\b|aire|pca|carro/.test(t))tipos.push("AAA");if(/400|\bhz\b|convertidor|manguera/.test(t))tipos.push("HZ");
+ if(/\baaa\b|aire|pca|carro/.test(t))tipos.push("AAA");if(/\b400 ?hz\b|\bhz\b|convertidor|pds ?400|recogedor|manguera (del? )?(400|convertidor|hz)/.test(t))tipos.push("HZ");/* v965: «400» suelto (400/220-24 V, 400 V) o «manguera» no son el 400 Hz */
  [...new Set(tipos)].forEach(k=>{try{add(gDocId(k,l))}catch(e){}});
  /* AAA / HZ con la PBB: el armario CBTH lleva el enclavamiento entre los equipos y la pasarela */
  if(tipos.some(k=>k=="AAA"||k=="HZ")){const pos=String(i.pos||"");const c=l.filter(x=>/CBTH/i.test(x.name));add((c.find(x=>new RegExp("(^|\\D)"+pos+"(\\D|$)").test(x.name))||c[0]||{}).id)}

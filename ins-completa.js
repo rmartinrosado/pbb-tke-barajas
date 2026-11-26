@@ -42,7 +42,14 @@ document.addEventListener("change",ev=>{const t=ev.target;if(!t||t.type!="checkb
 /* ---------- texto de la OT ---------- */
 function iaDe(id){try{if(typeof window.pcIAOT=="function"){const o=window.pcIAOT(id);if(o)return o}}catch(e){}return null}
 function textoOT(i){const o=iaDe(i.id);return nrm([i.desc,i.def,i.obs,i.com,i.act,(i.alarmas||[]).join(" "),o&&o.resumen].filter(Boolean).join(" "))}
-const esBloqueo=i=>/bloque|enclavam|interbloq|no traslad|no se mueve|no bloquea/.test(textoOT(i));
+/* v965: el BLOQUEO (interbloqueo con CBTH, AAA y HZ) sale solo de lo que describe la AVERÍA: descripción, defecto, comentarios,
+   observaciones escritas por el técnico y alarmas. No de la «Actuación» ni de las observaciones rellenadas por el análisis IA,
+   donde «bloqueo» es la CONSIGNACIÓN («Bloqueo: abrir E-S0, bloquear y comprobar ausencia de tensión»). Esas frases de
+   consignación tampoco cuentan aunque estén en la descripción. (OT 611200 · PBB 586: disparo de E-Q15 / E-Q15.1 salía con HZ.) */
+const CONSIG=/\b(bloque\w*|candad\w*|consign\w*)\b[^.\n;]{0,60}\b(e-?s0|interruptor|seccionador|general|ausencia de tension|tension|candado|etiqueta|loto)\b|\b(e-?s0|interruptor general|seccionador)\b[^.\n;]{0,40}\bbloque\w*/g;
+function textoAveria(i){const o=iaDe(i.id),ia=i.iaAct||{};const ob=String(i.obs||"").trim()&&String(i.obs).trim()!==String(ia.obs||"").trim()?i.obs:"";
+ return nrm([i.desc,i.def,ob,i.com,(i.alarmas||[]).join(" "),typeof i.alMag=="string"?i.alMag:"",o&&o.resumen].filter(Boolean).join(" ")).replace(CONSIG," ")}
+const esBloqueo=i=>/bloque|enclavam|interbloq|no traslad|no se mueve|no bloquea/.test(textoAveria(i));
 window.insEsBloqueo=i=>{try{return esBloqueo(i)}catch(e){return false}};
 
 /* ---------- cableado (rev. J; 507 con el suyo) ---------- */
