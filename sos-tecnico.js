@@ -51,7 +51,9 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  const lo=c.querySelector('label[for="sr_ob"]');pon(B1,lo);pon(B1,ob.closest(".srobsw"));
  /* panel 2: buscador del manual, lista rápida, a mano y foto */
  pon(B2,c.querySelector(".rcsbus:not(.otrcs)"));
- const al=c.querySelector(".soscal");if(al){pon(B2,al);const la=al.querySelector("label");if(la&&!la.dataset.st){la.dataset.st=1;la.innerHTML='Lista rápida SOS <small>(casos frecuentes)</small>'}}
+ /* v939: «Lista rápida (casos frecuentes)» sale de la caja 1 y pasa a la caja 2, justo antes de «Síntoma en campo» */
+ const al=c.querySelector(".soscal");if(al){if(lo&&lo.parentNode===B1){if(al.parentNode!==B1||al.nextElementSibling!==lo)B1.insertBefore(al,lo)}else pon(B1,al);
+  const la=al.querySelector("label");const LH='Lista rápida <small>(casos frecuentes)</small>';if(la&&la.dataset.st!=="2"){la.dataset.st="2";la.innerHTML=LH}}
  pon(B2,c.querySelector(".soscr3"));
  /* v724: «Seleccionar alarma» y «Alarma registrada» (las líneas no se editan: se suman con el buscador o la lista y se quitan con ✕) */
  /* v730: «Foto Display-Magelis» */
