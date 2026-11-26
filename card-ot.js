@@ -22,6 +22,9 @@ const st=document.createElement("style");st.textContent=`
 .otres .orl .galar{display:inline-flex!important;align-items:center;justify-content:center;flex:none;margin:0!important;width:auto!important;min-height:0!important;height:auto!important;cursor:pointer;font:inherit;background:transparent}
 #app .card.ot .otres .orl .galar{padding:2px 14px!important;border-radius:999px!important;border:1.5px solid color-mix(in srgb,#e03e6b 70%,transparent)!important;align-self:stretch}
 .otres .orl .galar img{width:20px;height:20px;display:block;object-fit:contain}
+#app .card.ot.otsosok .otres .orl .grepc,#app .card.ot.otlle.otsosok .otres .orl .grepc{border:2px solid #22c55e!important;color:#22c55e!important;animation:otSosBlink 1.4s ease-in-out infinite!important}
+html.lt #app .card.ot.otsosok .otres .orl .grepc{border-color:#16a34a!important;color:#15803d!important}
+@keyframes otSosBlink{0%,100%{box-shadow:0 0 0 0 #22c55e00;opacity:1}50%{box-shadow:0 0 0 5px #22c55e55;opacity:.55}}
 /* v748: llave más grande; con la OT abierta y con llegada, parpadea en amarillo como la caja */
 #app .card.ot .otres .orl .grepc{padding:2px 14px!important;border-radius:999px!important;border-width:1.5px!important;align-self:stretch}#app .card.ot .otres .orl .grepc svg{width:16px!important;height:16px!important}/* v750: misma altura que el reloj */
 #app .card.ot.otlle .otres .orl .grepc{border:2px solid #facc15!important;color:#facc15!important;animation:otLleBlink 1.4s ease-in-out infinite}
@@ -86,6 +89,8 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
     ga.setAttribute("aria-label","Abrir el SOS con la posición de la OT");ga.innerHTML='<img src="iconos/alarma.png" alt="">';
     ga.onclick=e=>{e.stopPropagation();abreSosOT(oid)}}
    if(lv.nextElementSibling!==ga)lv.after(ga)}}
+ /* v929: con actuación SOS asociada (ANALIZAR) la llave de la guía de campo pasa a verde parpadeando */
+ {let so=false;try{const o=oid&&inc.find(x=>x.id==oid);so=!!(o&&o.estado=="abierta"&&o.sosAct)}catch(_){}if(c.classList.contains("otsosok")!==so)c.classList.toggle("otsosok",so)}
  /* v748: sin la mano sobre la llave */
  c.querySelectorAll(".repdedo").forEach(x=>x.remove());
  }
