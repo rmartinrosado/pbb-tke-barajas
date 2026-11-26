@@ -24,7 +24,7 @@ ${S} details,${S} .card{background:#1b1e27!important;border:1px solid #ffffff1f!
 ${S} summary{color:#fff}
 ${S} a{color:#ffb36b}
 /* v946: CABECERA FIJA de la hoja (no se va con el scroll) en «Actuación» (SOS) e «Importar hoja de registro de OT» */
-html #sheet.cabfija #sheetc>.sosrh,html #sheet.cabfija #sheetc>.row:first-child{position:-webkit-sticky;position:sticky;top:calc(-1 * var(--shpt,14px));z-index:6;
+html #sheet.cabfija #sheetc>.sosrh,html #sheet.cabfija #sheetc>.row:first-child,html #sheet.cabfija #sheetc>.shh{position:-webkit-sticky;position:sticky;top:calc(-1 * var(--shpt,14px));z-index:6;
  margin-top:calc(-1 * var(--shpt,14px))!important;margin-left:calc(-1 * var(--shpl,14px))!important;margin-right:calc(-1 * var(--shpr,14px))!important;
  padding-top:var(--shpt,14px)!important;padding-left:var(--shpl,14px)!important;padding-right:var(--shpr,14px)!important;padding-bottom:8px!important;
  background:var(--card,#fff);box-shadow:0 10px 12px -12px #0009}
@@ -35,7 +35,12 @@ ${S}.cabfija #sheetc>.row:first-child{background:linear-gradient(225deg,#12141b,
 html #sheet.tkseg>div{position:relative;background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,${OR},${PU} 55%,#1e88e5) border-box!important;
  border:1.5px solid transparent!important;box-shadow:0 10px 40px -14px color-mix(in srgb,${PU} 45%,transparent)!important}
 html #sheet.tkseg>div::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;background-image:linear-gradient(var(--tx) 1px,transparent 1px),linear-gradient(90deg,var(--tx) 1px,transparent 1px);background-size:22px 22px}
-html #sheet.tkseg #sheetc>.row:first-child{position:relative;justify-content:center!important}
+html #sheet.tkseg #sheetc>.row:first-child,html #sheet.tkseg #sheetc>.shh{position:relative;justify-content:center!important;display:flex;align-items:center}
+/* v953: Histórico de actuaciones con el mismo diseño (título centrado con degradado y ✕ a la derecha) */
+html #sheet.tkseg #sheetc>.shh .sht{flex:1;text-align:center;font:900 16px/1.25 ${MO}!important;letter-spacing:3px!important;text-transform:uppercase;padding:0 46px;
+ background:linear-gradient(90deg,${OR},#ffb020 40%,${PU});-webkit-background-clip:text;background-clip:text;color:transparent!important}
+html #sheet.tkseg #sheetc>.shh .sht .icoL{display:none}
+html #sheet.tkseg #sheetc>.shh>.shx{position:absolute;right:var(--shpr,14px);top:50%;transform:translateY(-35%);border-radius:10px!important}
 html #sheet.tkseg #sheetc>.row:first-child h3{flex:1;text-align:center;font:900 16px/1.25 ${MO}!important;letter-spacing:3.5px!important;text-transform:uppercase;padding:0 40px;
  background:linear-gradient(90deg,${OR},#ffb020 40%,${PU});-webkit-background-clip:text;background-clip:text;color:transparent!important}
 html #sheet.tkseg #sheetc>.row:first-child>button{position:absolute;right:var(--shpr,14px);top:50%;transform:translateY(-35%);border-radius:10px!important}
@@ -57,9 +62,10 @@ html #sheet.cabfija{top:var(--hkh,0px)!important;bottom:0!important;height:auto!
 html #sheet.cabfija>div{max-height:none!important;height:100%!important;box-sizing:border-box;border-radius:0!important}`;document.head.appendChild(st);
 function mira(){const sh=document.getElementById("sheet"),c=document.getElementById("sheetc");if(!sh||!c)return;
  const h=c.querySelector("h3");const on=!!(h&&ES.test(h.textContent||""));if(sh.classList.contains("tkosc")!==on)sh.classList.toggle("tkosc",on);
- const im=!!(h&&EI.test(h.textContent||""));if(sh.classList.contains("tkseg")!==im)sh.classList.toggle("tkseg",im);
- if(im){const r=c.querySelector(":scope>.row:first-child");if(r&&!c.querySelector(":scope>.oiscan"))r.insertAdjacentHTML("afterend",'<div class="oiscan"></div>')}
- const fj=!!(c.querySelector(":scope>.sosrh")||(im&&c.querySelector(":scope>.row:first-child h3")));
+ const hs=c.querySelector(":scope>.shh .sht");const hi=!!(hs&&/hist[oó]rico de actuaciones/i.test(hs.textContent||""));
+ const im=!!(h&&EI.test(h.textContent||""))||hi;if(sh.classList.contains("tkseg")!==im)sh.classList.toggle("tkseg",im);
+ if(im){const r=c.querySelector(":scope>.shh")||c.querySelector(":scope>.row:first-child");if(r&&!c.querySelector(":scope>.oiscan"))r.insertAdjacentHTML("afterend",'<div class="oiscan"></div>')}
+ const fj=!!(c.querySelector(":scope>.sosrh")||hi||(im&&c.querySelector(":scope>.row:first-child h3")));
  if(sh.classList.contains("cabfija")!==fj)sh.classList.toggle("cabfija",fj);
  if(fj){const cs=getComputedStyle(c);[["--shpt",cs.paddingTop],["--shpl",cs.paddingLeft],["--shpr",cs.paddingRight]].forEach(([k,v])=>{if(sh.style.getPropertyValue(k)!==v)sh.style.setProperty(k,v)})}}
 const ini=()=>{const c=document.getElementById("sheetc");if(!c)return setTimeout(ini,300);new MutationObserver(mira).observe(c,{childList:true,subtree:false});setInterval(mira,800);mira()};ini();
