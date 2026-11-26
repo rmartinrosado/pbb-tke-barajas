@@ -41,7 +41,7 @@ document.addEventListener("change",ev=>{const t=ev.target;if(!t||t.type!="checkb
 
 /* ---------- texto de la OT ---------- */
 function iaDe(id){try{if(typeof window.pcIAOT=="function"){const o=window.pcIAOT(id);if(o)return o}}catch(e){}return null}
-function textoOT(i){const o=iaDe(i.id);return nrm([i.desc,i.def,i.obs,i.com,i.act,(i.alarmas||[]).join(" "),o&&o.resumen].filter(Boolean).join(" "))}
+function textoOT(i){const o=iaDe(i.id);return nrm([window.otTextoAveria?window.otTextoAveria(i):[i.desc,i.def,i.obs,i.com].join(" "),o&&o.resumen].filter(Boolean).join(" "))}/* v969: sin la Actuación */
 /* v965: el BLOQUEO (interbloqueo con CBTH, AAA y HZ) sale solo de lo que describe la AVERÍA: descripción, defecto, comentarios,
    observaciones escritas por el técnico y alarmas. No de la «Actuación» ni de las observaciones rellenadas por el análisis IA,
    donde «bloqueo» es la CONSIGNACIÓN («Bloqueo: abrir E-S0, bloquear y comprobar ausencia de tensión»). Esas frases de
