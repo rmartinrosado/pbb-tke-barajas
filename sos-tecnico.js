@@ -73,12 +73,13 @@ function arregla(){const c=$i("sheetc"),ob=$i("sr_ob");if(!c||!ob)return;
  /* pasos y ACEPTAR al final del formulario */
  /* v720: panel 2 PLEGADO hasta tocar su cabecera; en la cabecera, lo que ya lleva (alarmas, foto) */
  const P2=F.querySelector(".sostp2");if(P2&&!P2.dataset.pl){P2.dataset.pl=1;P2.classList.add("sostcer");const hd=P2.querySelector(".sostph");
-  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostcol"><span class="sostpr" role="button" tabindex="0" aria-label="Desplegar la caja de alarmas"></span></span>`);
+  hd.setAttribute("role","button");hd.tabIndex=0;hd.insertAdjacentHTML("beforeend",`<span class="sostcol"><span class="sostpr" role="status" aria-label="Alarmas registradas"></span></span>`);
   /* v822: botón FOTO de la Magelis en la cabecera de la caja 1 (no pliega ni despliega la caja) */
   const cam=hd.querySelector(".sostcam");if(cam)cam.addEventListener("click",e=>e.stopPropagation());
   /* v824: solo la CAMPANA despliega / pliega la caja 1 (la cabecera ya no) */
   hd.removeAttribute("role");hd.removeAttribute("tabindex");
-  hd.addEventListener("click",e=>{if(!(e.target.closest&&e.target.closest(".sostpr")))e.stopImmediatePropagation()},true);
+  /* v955: la caja 1 se despliega/pliega SOLO con el botón de alarma + advertencia (.sostleg); la campana es solo el testigo de las alarmas registradas */
+  hd.addEventListener("click",e=>{if(!(e.target.closest&&e.target.closest(".sostleg")))e.stopImmediatePropagation()},true);
   hd.addEventListener("click",()=>{P2.classList.toggle("sostcer");if(!P2.classList.contains("sostcer"))requestAnimationFrame(()=>P2.scrollIntoView({block:"nearest",behavior:"smooth"}))})}
  resumen2();
  /* v721: los pasos 1-2-3 van en la MISMA LÍNEA que ACEPTAR (a la izquierda, compactos) */
@@ -326,7 +327,7 @@ ${P} .sostp2>.sostph .sostcol .sostpr,${P} .sostp2>.sostph .sostcol .sostcam{box
 ${P} .sostp2>.sostph .sostcol .sostcam{font-size:20px!important}
 ${P} .sostp2>.sostph .sostcol .sostpr{font-size:14px!important}
 ${P} .sostp2>.sostph .sostcol .sostpr.on,${P} .sostp2>.sostph .sostcol .sostcam.on{border-color:#1fa64a!important;color:#1fa64a!important;background:color-mix(in srgb,#1fa64a 12%,var(--card))!important}
-${P} .sostp2:not(.sostcer)>.sostph .sostcol .sostpr{border-color:#ef6c00!important}
+${P} .sostp2>.sostph .sostcol .sostpr{cursor:default;pointer-events:none}
 @media (prefers-color-scheme:light){${P} .sostp2>.sostph .sostcol .sostpr,${P} .sostp2>.sostph .sostcol .sostcam{border-color:#0002!important}}`;document.head.appendChild(st)})();
 /* ===== v825: en la caja 1 queda solo el icono 📷 de la cabecera: fuera el botón «Foto Display-Magelis» y su rótulo ===== */
 (function(){const st=document.createElement("style");st.textContent=`#sheetc #sostf .sostcam{display:none!important}`;document.head.appendChild(st);
@@ -375,8 +376,8 @@ ${P} .sostcw .rcscmp{height:auto}`;document.head.appendChild(st)})();
 const pon=()=>{const col=document.querySelector(P+" .sostp2>.sostph .sostcol");if(!col)return;const bell=col.querySelector(".sostpr");if(!bell||col.querySelector(".sostleg"))return;
  bell.insertAdjacentHTML("beforebegin",`<button type="button" class="sostleg" aria-label="Abrir la lista de alarmas y advertencias" title="Alarmas y advertencias"><img src="iconos/alarma.png" alt=""><img src="iconos/advertencia.png" alt=""></button>`);
  /* v928: los dos símbolos juntos en un botón (mismo borde que la campana): abre la lista de alarmas y advertencias, sin teclado */
- col.querySelector(".sostleg").onclick=e=>{e.stopPropagation();const t=document.querySelector("#sheetc .rcstapa");if(t){t.scrollIntoView({block:"center",behavior:"smooth"});t.click();return}
-  const q=document.getElementById("rcs_q");if(q){q.dispatchEvent(new Event("focus"));q.dispatchEvent(new Event("click"))}}};
+ /* v955: este botón es el que DESPLIEGA / PLIEGA la caja 1 (el clic sigue a la cabecera de la caja) */
+ const lg=col.querySelector(".sostleg");lg.setAttribute("aria-label","Desplegar o plegar la caja de alarmas y advertencias");lg.title="Desplegar / plegar";};
 new MutationObserver(pon).observe(document.body,{childList:true,subtree:true});pon();
 const st=document.createElement("style");st.textContent=`
 ${P} .sostp2>.sostph .sostcol{align-items:center!important}
