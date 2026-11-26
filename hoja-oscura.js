@@ -41,6 +41,22 @@ html #sheet.tkseg #sheetc>.shh .sht{flex:1;text-align:center;font:900 16px/1.25 
  background:linear-gradient(90deg,${OR},#ffb020 40%,${PU});-webkit-background-clip:text;background-clip:text;color:transparent!important}
 html #sheet.tkseg #sheetc>.shh .sht .icoL{display:none}
 html #sheet.tkseg #sheetc>.shh>.shx{position:absolute;right:var(--shpr,14px);top:50%;transform:translateY(-35%);border-radius:10px!important}
+/* v954: HISTÓRICO con la MISMA CABECERA que «Actuación»: barra roja-naranja + título en consola, línea «ACTIVO · fecha hora», láser de
+   escaneo y la ✕ del mismo tamaño (50×50) y en el mismo sitio (mismo margen de la hoja), para que al pasar de una a otra no cambie */
+html #sheet.tkhis>div{background:var(--bg)!important;background-image:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+ padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(96px + env(safe-area-inset-bottom,0px)) 12px!important}
+html #sheet.tkhis #sheetc>.shh.hok{display:block!important;margin-bottom:10px!important}
+html #sheet.tkhis .hct{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+html #sheet.tkhis .hct1{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:10px;white-space:nowrap;overflow:hidden;font:900 clamp(17px,5.4vw,21px)/1.15 ${MO};letter-spacing:2.5px;text-transform:uppercase;text-align:left}
+html #sheet.tkhis .hct1::before{content:"";flex:none;width:5px;align-self:stretch;min-height:28px;border-radius:3px;background:linear-gradient(180deg,#ff3b30,${OR})}
+html #sheet.tkhis .hct1>span{background:linear-gradient(90deg,var(--tx) 25%,#ff3b30);-webkit-background-clip:text;background-clip:text;color:transparent;overflow:hidden;text-overflow:ellipsis}
+html #sheet.tkhis .hct>.shx{flex:none!important;width:50px!important;height:50px!important;margin:0!important;padding:0!important;border-radius:12px!important;
+ border:1.5px solid color-mix(in srgb,var(--tx) 16%,transparent)!important;background:color-mix(in srgb,var(--bg) 70%,var(--card))!important;box-shadow:none!important;color:var(--tx)!important;font-size:20px!important;font-weight:800!important;position:static!important;transform:none!important}
+html #sheet.tkhis .hsub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 6px 15px;font:600 12px/1.2 ${MO};color:var(--mu);letter-spacing:.6px}
+html #sheet.tkhis .hsub b{color:var(--tx)}html #sheet.tkhis .hdot{width:8px;height:8px;border-radius:50%;background:#ff3b30;animation:hPul 1.4s infinite}
+@keyframes hPul{0%{box-shadow:0 0 0 0 #ff3b3088}70%{box-shadow:0 0 0 7px #ff3b3000}100%{box-shadow:0 0 0 0 #ff3b3000}}
+html #sheet.tkhis .hscan{position:relative;height:2px;margin:0 0 2px;border-radius:2px;background:color-mix(in srgb,var(--tx) 10%,transparent);overflow:hidden}
+html #sheet.tkhis .hscan::after{content:"";position:absolute;top:0;bottom:0;width:35%;left:-35%;background:linear-gradient(90deg,transparent,${OR},${PU},transparent);animation:oiScan 2.6s cubic-bezier(.6,0,.4,1) infinite}
 html #sheet.tkseg #sheetc>.row:first-child h3{flex:1;text-align:center;font:900 16px/1.25 ${MO}!important;letter-spacing:3.5px!important;text-transform:uppercase;padding:0 40px;
  background:linear-gradient(90deg,${OR},#ffb020 40%,${PU});-webkit-background-clip:text;background-clip:text;color:transparent!important}
 html #sheet.tkseg #sheetc>.row:first-child>button{position:absolute;right:var(--shpr,14px);top:50%;transform:translateY(-35%);border-radius:10px!important}
@@ -60,10 +76,17 @@ html #sheet.tkseg h4,html #sheet.tkseg .oih{font-family:${MO}!important;letter-s
    la hoja empieza debajo de ella y ocupa el resto de la pantalla */
 html #sheet.cabfija{top:var(--hkh,0px)!important;bottom:0!important;height:auto!important;align-items:stretch!important}
 html #sheet.cabfija>div{max-height:none!important;height:100%!important;box-sizing:border-box;border-radius:0!important}`;document.head.appendChild(st);
+const DI=["dom","lun","mar","mié","jue","vie","sáb"],z2=n=>String(n).padStart(2,"0");let rl=0;
+function reloj(){const p=()=>{const f=document.querySelector("#sheetc .hsub .hf");if(!f){clearInterval(rl);rl=0;return}const d=new Date();
+ f.textContent=`${DI[d.getDay()]} ${z2(d.getDate())}/${z2(d.getMonth()+1)}`;document.querySelector("#sheetc .hsub .hh").textContent=`${z2(d.getHours())}:${z2(d.getMinutes())}:${z2(d.getSeconds())}`};p();if(!rl)rl=setInterval(p,1000)}
 function mira(){const sh=document.getElementById("sheet"),c=document.getElementById("sheetc");if(!sh||!c)return;
  const h=c.querySelector("h3");const on=!!(h&&ES.test(h.textContent||""));if(sh.classList.contains("tkosc")!==on)sh.classList.toggle("tkosc",on);
  const hs=c.querySelector(":scope>.shh .sht");const hi=!!(hs&&/hist[oó]rico de actuaciones/i.test(hs.textContent||""));
- const im=!!(h&&EI.test(h.textContent||""))||hi;if(sh.classList.contains("tkseg")!==im)sh.classList.toggle("tkseg",im);
+ const im=!!(h&&EI.test(h.textContent||""));
+ if(sh.classList.contains("tkhis")!==hi)sh.classList.toggle("tkhis",hi);
+ if(hi){const sx=c.querySelector(":scope>.shh");if(sx&&!sx.classList.contains("hok")){const x=sx.querySelector(".shx");sx.classList.add("hok");
+   sx.innerHTML=`<div class="hct"><div class="hct1"><span>HISTÓRICO</span></div></div><div class="hsub"><span class="hdot"></span><span>ACTIVO</span><span>·</span><b class="hf"></b><b class="hh"></b></div><div class="hscan"></div>`;
+   if(x)sx.querySelector(".hct").appendChild(x);reloj()}}if(sh.classList.contains("tkseg")!==im)sh.classList.toggle("tkseg",im);
  if(im){const r=c.querySelector(":scope>.shh")||c.querySelector(":scope>.row:first-child");if(r&&!c.querySelector(":scope>.oiscan"))r.insertAdjacentHTML("afterend",'<div class="oiscan"></div>')}
  const fj=!!(c.querySelector(":scope>.sosrh")||hi||(im&&c.querySelector(":scope>.row:first-child h3")));
  if(sh.classList.contains("cabfija")!==fj)sh.classList.toggle("cabfija",fj);
