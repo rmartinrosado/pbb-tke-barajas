@@ -201,7 +201,7 @@ ${LIM}
 Responde SOLO con JSON, sin nada más:
 ${JS}`;
  try{const ses=await sb.auth.getSession(),tok=ses&&ses.data&&ses.data.session&&ses.data.session.access_token;if(!tok)throw new Error("inicia sesión para usar la IA");
-  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),70000);
+  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),155000);/* v967: el servidor da hasta 145 s (antes se cortaba a los 70 s y Claude no llegaba a responder en el recálculo completo) */
   const r=await fetch(SUPABASE_URL+"/functions/v1/leer-ia",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({prompt,motor})});clearTimeout(to);
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
   const o=normPasos(leeJSON(j.txt));if(!o.resumen&&!(o.eficaz||[]).length&&!(o.medir||[]).length&&!(o.pasos||[]).length)throw new Error("respuesta incompleta");o.lector=j.lector||"IA";o.t=Date.now();if(ST.cons)o.modo="completa";
@@ -267,8 +267,8 @@ function cajaHTML(){const R=ST.res,o=ST.ia;let h=`<summary><b>📐 Cotejo entre 
  return h}
 /* v519: barra de progreso. Lectura: real (páginas leídas). IA: estimada por tiempo (no hay avance real), se acerca a 95 % y llega a 100 % al responder */
 const motorN=()=>ST.motor=="claude"?"Claude":"Gemini (gratis)";
-const pctIA=()=>{const t=(Date.now()-(ST.iaT0||Date.now()))/1000;return Math.min(95,Math.round(95*(1-Math.exp(-t/22))))};
-const txIA=()=>{const t=Math.round((Date.now()-(ST.iaT0||Date.now()))/1000);return `🤖 Cruzando ${ST.docs.length} plano${ST.docs.length==1?"":"s"} con ${motorN()}… ${pctIA()} % · ${t} s${t>50?" · tarda más de lo normal":""}`};
+const pctIA=()=>{const t=(Date.now()-(ST.iaT0||Date.now()))/1000;return Math.min(95,Math.round(95*(1-Math.exp(-t/45))))};
+const txIA=()=>{const t=Math.round((Date.now()-(ST.iaT0||Date.now()))/1000);return `🤖 Cruzando ${ST.docs.length} plano${ST.docs.length==1?"":"s"} con ${motorN()}… ${pctIA()} % · ${t} s${t>90?" · el recálculo completo puede tardar hasta 2 min":""}`};
 function barra(){const b=$q("#gpcot .pcbar>i"),t=$q("#gpcot .pcbt");if(!b){pintaCaja();return}
  if(ST.iaRun){b.style.width=pctIA()+"%";if(t)t.textContent=txIA()}else if(ST.prog){b.style.width=(ST.pct||2)+"%";if(t)t.textContent="⏳ "+ST.prog}}
 setInterval(()=>{if(ST.iaRun&&$q("#gpcot"))barra()},500);
