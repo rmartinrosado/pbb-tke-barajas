@@ -5,10 +5,19 @@
 (function(){"use strict";
 /* v927: SOS desde la tarjeta de la OT, con la posición de la OT ya puesta */
 window.abreSosOT=function(id){if(typeof sosRap!="function")return;let o=null;try{o=inc.find(x=>x.id==id)}catch(_){}sosRap();
- const p=o&&o.pos!=null?String(o.pos):"";if(!p)return;let n=0;const pon=()=>{const i=document.getElementById("sr_p");if(i){if(!i.value){i.value=p;i.dispatchEvent(new Event("input",{bubbles:true}));i.dispatchEvent(new Event("change",{bubbles:true}))}return}if(++n<20)setTimeout(pon,50)};pon()};
+ const p=o&&o.pos!=null?String(o.pos):"";if(!p)return;let n=0;const pon=()=>{const i=document.getElementById("sr_p");if(i){if(!i.value){i.value=p;i.dispatchEvent(new Event("input",{bubbles:true}));i.dispatchEvent(new Event("change",{bubbles:true}))}
+  /* v963: la descripción de la OT pasa a «Síntoma en campo» (si está vacío); el técnico puede añadir más síntomas debajo */
+  const s=document.getElementById("sr_ob"),d=String(o.desc||"").trim();if(s&&d&&!s.value.trim()){s.value=d;s.dispatchEvent(new Event("input",{bubbles:true}))}
+  return}if(++n<20)setTimeout(pon,50)};pon()};
+/* v963: botón «+ Añadir síntoma» bajo la caja «Síntoma en campo»: nueva línea «· » al final y el cursor listo para escribir */
+window.sosMasSint=function(){const s=document.getElementById("sr_ob");if(!s)return;const v=s.value.replace(/\s+$/,"");s.value=v?v+"\n· ":"";
+ try{s.focus();const L=s.value.length;s.setSelectionRange(L,L);s.scrollTop=s.scrollHeight}catch(_){}s.dispatchEvent(new Event("input",{bubbles:true}))};
+setInterval(()=>{const s=document.getElementById("sr_ob");if(!s||document.getElementById("sr_mas"))return;const b=document.createElement("button");b.type="button";b.id="sr_mas";b.className="sec srmas";
+ b.textContent="+ Añadir síntoma";b.setAttribute("aria-label","Añadir otro síntoma para acotar la avería");b.onclick=e=>{e.preventDefault();sosMasSint()};(s.closest(".srobsw")||s).after(b)},500);
 const INTERR=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9a3 3 0 1 1 4.2 2.75c-.75.35-1.2 1.1-1.2 1.95V14.5"/><path d="M12 18.5h.01"/></svg>`;
 const LLAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
 const st=document.createElement("style");st.textContent=`
+#sheetc .srmas{display:block;width:auto!important;margin:8px 0 0 auto!important;padding:8px 14px!important;font-size:14px!important;border:2px solid var(--ac,#f07300)!important;color:var(--ac,#f07300)!important;border-radius:10px!important;background:transparent!important}
 #app .card.ot .sosb,#app .card.ot .sosc{display:none!important}#app .card .otres .orl>.pactt{cursor:pointer}
 /* v770: el tiempo centrado en la caja */
 #app .card.ot .otres .orl.orlsos{position:relative;justify-content:flex-start!important}#app .card.ot .otres .orl.orlsos>[data-ort]{position:absolute!important;left:50%;top:50%;transform:translate(-50%,-50%);margin:0!important}
