@@ -1,7 +1,6 @@
 /* ===== v934: REGISTRAR OT en cadena, sin tocar casillas (26/11/2026) =====
    1. Al pulsar «Registrar» → teclado numérico ya en «Teclear nº» de la Posición PBB.
-   1b. (v936) Posición aceptada → cursor en el nº de orden; con los 3 dígitos, si falta la descripción, va a la descripción
-      y al pulsar «Siguiente» se guarda sola.
+   1b. (v937) Posición aceptada → descripción → «Siguiente» → nº de orden → con los 3 dígitos se guarda sola.
    2. Al elegir el tipo (dibujo o casilla) → cursor en «Descripción de la incidencia» (v925 iba al nº de orden).
    3. En la descripción, la tecla «Siguiente»/Intro → cursor en el nº de orden (CGA).
    4. Con los 3 dígitos del nº de orden → se GUARDA SOLA la incidencia (1 s para corregir; al cerrar el teclado con los 3 dígitos,
@@ -13,9 +12,9 @@ const foco=el=>{if(!el)return;try{el.focus({preventScroll:true})}catch(_){el.foc
 const prepara=()=>{const d=$i("f_desc"),o=$i("f_ord");if(d)d.setAttribute("enterkeyhint","next");if(o){o.setAttribute("enterkeyhint","done");o.setAttribute("pattern","[0-9]*")}};
 /* 1 · Registrar → posición (en el mismo toque, para que iOS saque el teclado) */
 const og=go;go=function(v){const r=og.apply(this,arguments);if(v=="new"){prepara();foco($i("f_posn")||$i("f_pos"))}return r};window.go=go;
-/* v936 · 1b · posición ACEPTADA (lo tecleado ya es una PBB del listado) → cursor en el nº de orden (CGA) */
+/* v936→v937 · 1b · posición ACEPTADA (lo tecleado ya es una PBB del listado) → cursor en la DESCRIPCIÓN (y después, con «Siguiente», al nº de orden) */
 document.addEventListener("input",e=>{const n=e.target;if(!n||n.id!=="f_posn")return;setTimeout(()=>{const s=$i("f_pos"),v=(n.value||"").trim();
- if(!s||v.length<3||document.activeElement!==n)return;if(String(s.value).replace(/\s*·.*$/,"")!==v)return;const o=$i("f_ord");if(o&&!o.value)foco(o)},0)},true);
+ if(!s||v.length<3||document.activeElement!==n)return;if(String(s.value).replace(/\s*·.*$/,"")!==v)return;const d=$i("f_desc"),o=$i("f_ord");if(d&&!d.value.trim())foco(d);else if(o&&!o.value)foco(o)},0)},true);
 /* 2 · tipo elegido → descripción (si está vacía; si no, al nº de orden) */
 window.vaAOrden=function(on){if(!on)return;prepara();const d=$i("f_desc"),o=$i("f_ord");
  if(d&&!d.value.trim()&&d.offsetParent){foco(d);return}if(o&&!o.value&&o.offsetParent)foco(o)};
