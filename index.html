@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=924;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=925;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -509,6 +509,10 @@ const EQ=[{k:"PAS",x:11,y:18},{k:"AAA",x:80,y:64},{k:"AAP",x:52,y:42},{k:"HZ",x:
 let tecNombre="",tecSel=null;
 function pintaEq(){const on=new Set([...document.querySelectorAll(".eqc:checked")].map(x=>x.value));document.querySelectorAll(".ptag").forEach(t=>t.classList.toggle("on",on.has(t.dataset.k)))}
 function togEq(k){const c=document.querySelector(`.eqc[value="${k}"]`);if(c){c.checked=!c.checked;pintaEq()}}
+/* v925: al ELEGIR un tipo de incidencia (dibujo o casilla) el cursor salta al número de orden (CGA), si aún está vacío (Sigma no, no lleva número de orden); en el mismo toque → sale el teclado numérico */
+function vaAOrden(on){if(!on)return;const o=document.getElementById("f_ord");if(!o||o.value||!o.offsetParent)return;try{o.focus({preventScroll:false})}catch(_){o.focus()}try{o.scrollIntoView({block:"center",behavior:"smooth"})}catch(_){}}
+document.addEventListener("click",e=>{const g=e.target.closest&&e.target.closest("#app .ptag[data-k]");if(!g)return;const c=document.querySelector(`.eqc[value="${g.dataset.k}"]`);if(/sigma/i.test(g.dataset.k))return;vaAOrden(c&&c.checked)});
+document.addEventListener("change",e=>{const c=e.target;if(c&&c.classList&&c.classList.contains("eqc")&&c.closest("#app")&&!/sigma/i.test(c.value))vaAOrden(c.checked)});
 let ultTipo="PAS";
 function tipoEq(k){const p=document.querySelector(`.eqc[value="${ultTipo}"]`);if(p&&ultTipo!==k)p.checked=false;const c=document.querySelector(`.eqc[value="${k}"]`);if(c)c.checked=true;ultTipo=k;pintaEq()}
 function cab(){const h=document.querySelector("header small");if(h&&user)h.textContent=user.email+" · "+rol+" · v19";barra()}
