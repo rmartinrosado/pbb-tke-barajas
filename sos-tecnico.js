@@ -371,12 +371,17 @@ ${P} .sostcw .rcscmp{height:auto}`;document.head.appendChild(st)})();
 /* ===== v853: iconos propios de ALARMA (hexágono rojo) y AVISO (triángulo amarillo) al lado de la CAMPANA de la caja 1 ===== */
 (function(){const P="#sheetc #sostf",MO="var(--tkmo,ui-monospace,SFMono-Regular,Menlo,monospace)";
 const pon=()=>{const col=document.querySelector(P+" .sostp2>.sostph .sostcol");if(!col)return;const bell=col.querySelector(".sostpr");if(!bell||col.querySelector(".sostleg"))return;
- bell.insertAdjacentHTML("beforebegin",`<span class="sostleg" aria-hidden="true"><img src="iconos/alarma.png" alt=""><img src="iconos/advertencia.png" alt=""></span>`)};
+ bell.insertAdjacentHTML("beforebegin",`<button type="button" class="sostleg" aria-label="Abrir la lista de alarmas y advertencias" title="Alarmas y advertencias"><img src="iconos/alarma.png" alt=""><img src="iconos/advertencia.png" alt=""></button>`);
+ /* v928: los dos símbolos juntos en un botón (mismo borde que la campana): abre la lista de alarmas y advertencias, sin teclado */
+ col.querySelector(".sostleg").onclick=e=>{e.stopPropagation();const t=document.querySelector("#sheetc .rcstapa");if(t){t.scrollIntoView({block:"center",behavior:"smooth"});t.click();return}
+  const q=document.getElementById("rcs_q");if(q){q.dispatchEvent(new Event("focus"));q.dispatchEvent(new Event("click"))}}};
 new MutationObserver(pon).observe(document.body,{childList:true,subtree:true});pon();
 const st=document.createElement("style");st.textContent=`
 ${P} .sostp2>.sostph .sostcol{align-items:center!important}
-${P} .sostp2>.sostph .sostcol .sostleg{display:inline-flex;align-items:center;gap:6px;height:44px;pointer-events:none}
-${P} .sostp2>.sostph .sostcol .sostleg img{width:28px;height:28px;display:block;object-fit:contain}
+${P} .sostp2>.sostph .sostcol .sostleg{box-sizing:border-box;display:inline-flex!important;align-items:center;justify-content:center;gap:6px!important;height:28px!important;min-height:0!important;width:auto!important;min-width:0!important;margin:0!important;padding:0 8px!important;cursor:pointer;
+ border:1.5px solid #ef6c00!important;border-radius:8px!important;background:transparent!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent;flex:none}
+${P} .sostp2>.sostph .sostcol .sostleg:active{background:color-mix(in srgb,#ef6c00 14%,transparent)}
+${P} .sostp2>.sostph .sostcol .sostleg img{width:20px;height:20px;display:block;object-fit:contain}
 /* v924: campana de la misma altura que los iconos de alarma y advertencia (28 px) y más ancha: el contador va a la DERECHA de la campana */
 ${P} .sostp2>.sostph .sostcol .sostpr.sostpr{box-sizing:border-box;height:28px!important;width:auto!important;min-width:40px;padding:0 9px!important;
  display:inline-flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:5px;border-radius:8px!important;font:800 14px/1 ${MO}!important;letter-spacing:0!important}
