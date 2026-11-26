@@ -69,4 +69,6 @@ html #pfix.dpro .p230i:not(.sosk):active{background:linear-gradient(180deg,#2a1d
 html #pfix.dpro .dpsub,html #pfix.dpro .dpsub *{-webkit-text-fill-color:currentColor}html #pfix.dpro .dpsub{color:#8b93a7!important}html #pfix.dpro .dpsub b{color:#fff!important}
 html #pfix.dpro .dpscan{background:#ffffff1a!important}
 html.lt #pfix.dpro img[src*="claude-logo"]{filter:none!important}
-html #pfix.dpro .cl232 .cl232t{color:#fff!important}`;document.head.appendChild(st)})();
+html #pfix.dpro .cl232 .cl232t{color:#fff!important}
+/* v944: subtítulos de los botones en blanco */
+html #pfix.dpro .p230i small,html #pfix.dpro .p230i .s286,html #pfix.dpro .p230i .tbt small{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}`;document.head.appendChild(st)})();
