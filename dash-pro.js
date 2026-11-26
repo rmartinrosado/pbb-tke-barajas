@@ -54,3 +54,19 @@ function mira(){const p=document.getElementById("pfix"),c=document.getElementByI
  pinta();if(!reloj)reloj=setInterval(pinta,1000)}
 const ini=()=>{const a=document.getElementById("app");if(!a)return setTimeout(ini,300);new MutationObserver(()=>mira()).observe(a,{childList:true,subtree:false});mira()};ini();
 })();
+/* ===== v942: PANEL DE CONTROL con el tema de la BARRA DERECHA (26/11/2026): fondo de consola oscuro con cuadrícula blanca,
+   marco degradado naranja · morado · azul, mosaicos grafito con borde fino, iconos naranja y texto claro. Igual en modo claro y oscuro.
+   Solo aspecto: se redefinen los colores (variables) dentro del panel; no cambian posiciones ni textos. ===== */
+(function(){const OR="var(--tkor,#ff7a1a)",PU="var(--tkpu,#9b3dff)";const st=document.createElement("style");st.textContent=`
+html #pfix.dpro{--tx:#e9ecf1;--mu:#8b93a7;--card:#1b1e27;--bd:#ffffff1f;color:#e9ecf1;
+ background:linear-gradient(225deg,#12141b,#0b0c11) padding-box,linear-gradient(135deg,${OR},${PU} 55%,#1e88e5) border-box!important;
+ box-shadow:0 10px 34px -12px #000c,0 0 24px -10px ${PU}!important}
+html #pfix.dpro::before{opacity:.07!important;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)!important;background-size:18px 18px!important;-webkit-mask-image:none!important;mask-image:none!important}
+html #pfix.dpro .p230i:not(.sosk){background:linear-gradient(180deg,#2a2e3a,#1b1e27)!important;border:1px solid #ffffff1f!important;color:#e9ecf1!important;
+ box-shadow:0 4px 12px -6px #000,0 1px 0 #ffffff12 inset!important}
+html #pfix.dpro .p230i:not(.sosk) svg:not(.gmS){stroke:${OR}}
+html #pfix.dpro .p230i:not(.sosk):active{background:linear-gradient(180deg,#2a1d12,#16131a)!important;box-shadow:0 8px 20px -8px ${OR},inset 0 0 18px -8px ${OR}!important}
+html #pfix.dpro .dpsub,html #pfix.dpro .dpsub *{-webkit-text-fill-color:currentColor}html #pfix.dpro .dpsub{color:#8b93a7!important}html #pfix.dpro .dpsub b{color:#fff!important}
+html #pfix.dpro .dpscan{background:#ffffff1a!important}
+html.lt #pfix.dpro img[src*="claude-logo"]{filter:none!important}
+html #pfix.dpro .cl232 .cl232t{color:#fff!important}`;document.head.appendChild(st)})();
