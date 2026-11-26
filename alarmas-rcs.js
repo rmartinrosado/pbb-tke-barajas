@@ -625,7 +625,7 @@ function sosPon(){const sc=document.getElementById("sheetc");if(!sc)return;const
     (sin repetir). Al ACEPTAR se validan todas. */
  const ta=()=>sc.querySelector("#sr_t");
  const elige=x=>{const t=ta();if(t){const ya=listaAl(t.value).some(z=>z.c==x.c);
-   if(!ya)t.value=[t.value.replace(/\s+$/,""),`${x.c} ${x.t}`].filter(Boolean).join("\n");
+   if(!ya){t.value=[t.value.replace(/\s+$/,""),`${x.c} ${x.t}`].filter(Boolean).join("\n");try{t.dispatchEvent(new Event("input",{bubbles:true}))}catch(_){}/* v957: avisa a la campana */}
    t.rows=Math.min(8,Math.max(2,t.value.split("\n").length+1));const dt=t.closest("details");if(dt)dt.open=true;if(ya&&typeof msg=="function")msg(`La alarma ${x.c} ya está incluida`)}
   q.value="";q.blur();l.innerHTML="";l.classList.remove("on");pintaTodo()};
  const quita=c=>{const t=ta();if(!t)return;t.value=t.value.split(/\n/).filter(li=>!listaAl(li).some(z=>z.c==c)).join("\n").trim();pintaTodo()};

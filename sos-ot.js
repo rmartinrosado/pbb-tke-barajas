@@ -41,5 +41,5 @@ async function copia(o){if(!o||!o.sosAct)return;const s=await espera();if(!s)ret
  try{sv("pbb_inc",inc)}catch(e){console.warn("sos-ot",e)}try{if(typeof render=="function")render()}catch(_){}
  if(typeof msg=="function")msg(puesto?`Actuación copiada a la OT ${o.orden||o.pos}`:`La OT ${o.orden||o.pos} ya tenía actuación escrita: no se pisa (la del SOS queda guardada en la OT)`)}
 const oA=window.sosAnaliza;if(typeof oA=="function")window.sosAnaliza=async function(){let o=null;try{o=asocia()}catch(e){console.warn("sos-ot",e)}
- const r=await oA.apply(this,arguments);try{if(o)await copia(o)}catch(e){console.warn("sos-ot copia",e)}return r};
+ const r=await oA.apply(this,arguments);try{const o2=asocia();if(o2)o=o2}catch(_){}/* v957: vuelve a sumar las alarmas (las de la foto se leen durante el análisis) */try{if(o)await copia(o)}catch(e){console.warn("sos-ot copia",e)}return r};
 })();

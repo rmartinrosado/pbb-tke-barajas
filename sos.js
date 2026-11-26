@@ -170,6 +170,11 @@ window.sosAnaliza=async function(){const pos=($("#sr_p").value||"").trim().toUpp
    else{await tess();const w=await Tesseract.createWorker("spa",1);const r=await w.recognize(foto);await w.terminate();fa=r.data.text||""}}
   catch(e){if(!ob&&!al){res.innerHTML=`<div class="gav" style="margin-top:10px">No se pudo leer la foto. Escribe la avería en campo o la alarma a mano y vuelve a pulsar.</div>`;const d=document.querySelector(".srtx");if(d)d.open=true;return}}}
  al=al.replace(/\s+/g," ").trim();fa=String(fa||"").replace(/\s+/g," ").trim();window.__sosFotoAl=fa;
+ /* v957: las alarmas RECONOCIDAS en la foto de la Magelis se suman a «Alarma registrada» (y salen en la campana) */
+ try{if(fa&&typeof window.rcsDetecta=="function"){const tt=document.getElementById("sr_t");if(tt){const D=window.rcsDetecta(fa);const N=D.filter(o=>o.por=="num");
+  const V=(typeof window.rcsListaAl=="function"?window.rcsListaAl(tt.value):[]).map(x=>x.c);let v=tt.value;
+  (N.length?N:D.slice(0,1)).forEach(o=>{if(!V.includes(o.x.c)){V.push(o.x.c);v=[v.replace(/\s+$/,""),`${o.x.c} ${o.x.t}`].filter(Boolean).join("\n")}});
+  if(v!==tt.value){tt.value=v;tt.dispatchEvent(new Event("input",{bubbles:true}))}}}}catch(e){console.warn("foto→alarma",e)}
  /* v822: las alarmas y avisos leídos por la IA en la foto de la Magelis se PEGAN en la caja «Avería en campo» y entran en el análisis */
  if(fa){const t=document.getElementById("sr_ob");if(t){const lin="Magelis: "+fa;if(!t.value.includes(fa)){t.value=(t.value.trim()?t.value.trim()+"\n":"")+lin;try{t.dispatchEvent(new Event("input",{bubbles:true}))}catch(e){}}
   ob=t.value.replace(/\s+/g," ").trim()}}
