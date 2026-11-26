@@ -21,6 +21,11 @@ window.vaAOrden=function(on){if(!on)return;prepara();const d=$i("f_desc"),o=$i("
 /* 3 · descripción: Intro → nº de orden; si el nº ya está completo, se guarda (Mayúsculas+Intro sigue haciendo salto de línea) */
 document.addEventListener("keydown",e=>{const d=e.target;if(!d||d.id!=="f_desc"||e.key!=="Enter"||e.shiftKey)return;
  if(!d.value.trim())return;e.preventDefault();const o=$i("f_ord");if(o&&/^[0-9]{3}$/.test(o.value)){hecho="";guarda(true);return}if(o)foco(o)},true);
+/* v940 · 3b · descripción escrita y se cierra el teclado (✓ / «OK» de la barra del iPhone) o se toca fuera → cursor al nº de orden
+   (si se toca otro campo, se respeta ese campo) */
+document.addEventListener("blur",e=>{const d=e.target;if(!d||d.id!=="f_desc"||!d.value.trim())return;
+ const rt=e.relatedTarget;if(rt&&/^(INPUT|TEXTAREA|SELECT)$/.test(rt.tagName)&&rt.id!=="f_ord")return;
+ const o=$i("f_ord");if(!o||o.value)return;if(typeof view!="undefined"&&view!="new")return;setTimeout(()=>{if(document.activeElement&&/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName))return;foco(o)},0)},true);
 /* 4 · nº de orden completo → guardar solo */
 let tm=0,hecho="";
 const listo=()=>{const d=$i("f_desc");return !!(d&&d.value.trim()&&document.querySelector(".eqc:checked"))};
