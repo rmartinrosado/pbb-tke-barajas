@@ -11,7 +11,15 @@ const $i=id=>document.getElementById(id);
 const foco=el=>{if(!el)return;try{el.focus({preventScroll:true})}catch(_){el.focus()}try{el.scrollIntoView({block:"center",behavior:"smooth"})}catch(_){}};
 const prepara=()=>{const d=$i("f_desc"),o=$i("f_ord");if(d)d.setAttribute("enterkeyhint","next");if(o){o.setAttribute("enterkeyhint","done");o.setAttribute("pattern","[0-9]*")}};
 /* 1 · Registrar → posición (en el mismo toque, para que iOS saque el teclado) */
-const og=go;go=function(v){const r=og.apply(this,arguments);if(v=="new"){prepara();foco($i("f_posn")||$i("f_pos"))}return r};window.go=go;
+/* v949: ✕ para cerrar «Registrar OT» (arriba a la derecha de la tarjeta, como en «Importar hoja de registro de OT») → vuelve al Panel */
+const ponX=()=>{try{if(typeof view!="undefined"&&view!="new")return;const card=document.querySelector("#app>.card");if(!card||card.querySelector(".regx"))return;
+ if(getComputedStyle(card).position=="static")card.style.position="relative";
+ const b=document.createElement("button");b.type="button";b.className="sec regx";b.setAttribute("aria-label","Cerrar Registrar OT");b.title="Cerrar";b.textContent="✕";
+ b.onclick=e=>{e.preventDefault();e.stopPropagation();go("dash")};card.appendChild(b)}catch(_){}};
+const st=document.createElement("style");st.textContent=`#app>.card>.regx{position:absolute!important;top:10px;right:10px;z-index:5;width:40px!important;height:36px!important;min-height:0!important;margin:0!important;padding:0!important;
+ border-radius:10px!important;display:grid!important;place-items:center;font-size:17px!important;font-weight:800;line-height:1}`;document.head.appendChild(st);
+new MutationObserver(ponX).observe(document.getElementById("app")||document.body,{childList:true});
+const og=go;go=function(v){const r=og.apply(this,arguments);if(v=="new"){ponX();prepara();foco($i("f_posn")||$i("f_pos"))}return r};window.go=go;
 /* v936→v937 · 1b · posición ACEPTADA (lo tecleado ya es una PBB del listado) → cursor en la DESCRIPCIÓN (y después, con «Siguiente», al nº de orden) */
 document.addEventListener("input",e=>{const n=e.target;if(!n||n.id!=="f_posn")return;setTimeout(()=>{const s=$i("f_pos"),v=(n.value||"").trim();
  if(!s||v.length<3||document.activeElement!==n)return;if(String(s.value).replace(/\s*·.*$/,"")!==v)return;const d=$i("f_desc"),o=$i("f_ord");if(d&&!d.value.trim())foco(d);else if(o&&!o.value)foco(o)},0)},true);
