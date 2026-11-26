@@ -81,6 +81,13 @@ css.push(`button.icoBtn,[role=button].icoBtn,a.btn.icoBtn,#compCapa .cnimp .cnim
  border:1.5px solid #c9ced6!important;box-shadow:none!important;text-shadow:none!important;filter:none!important}
 button.icoBtn:active,#compCapa .cnimp .cnimpr:active{background:#eef0f3!important}`);
 const st=document.createElement("style");st.id="icoLst";st.textContent=css.join("\n");document.head.appendChild(st);
+/* v933 · SOLUCIÓN DEFINITIVA de temblores: muchos módulos hacen «if(el.innerHTML!==html)el.innerHTML=html». Al leer innerHTML /
+   outerHTML se devuelve el HTML ORIGINAL (con el emoji, sin el envoltorio del icono ni la clase icoBtn), así la comparación da igual,
+   no reescriben y no hay bucle. Lo que se escribe no se toca: se sigue dibujando el icono. */
+(function(){const RX=/<span class="icoL i-[a-zA-Z]+" aria-hidden="true">([^<]*)<\/span>/g;
+ const limpia=s=>s.indexOf("icoL")<0&&s.indexOf("icoBtn")<0?s:s.replace(RX,"$1").replace(/ class="icoBtn"/g,"").replace(/(class="[^"]*?) icoBtn(?=[" ])/g,"$1").replace(/class="icoBtn ([^"]*)"/g,'class="$1"');
+ for(const k of ["innerHTML","outerHTML"]){const d=Object.getOwnPropertyDescriptor(Element.prototype,k);if(!d||!d.get||!d.set)continue;
+  Object.defineProperty(Element.prototype,k,{configurable:true,enumerable:d.enumerable,get(){return limpia(d.get.call(this))},set(v){d.set.call(this,v)}})}})();
 const SKIP=new Set(["SCRIPT","STYLE","TEXTAREA","INPUT","OPTION","SELECT","NOSCRIPT","TITLE","CANVAS","svg","SVG","CODE","PRE"]);
 function okNodo(t){let p=t.parentNode;if(!p||p.nodeType!==1)return false;if(p.classList&&p.classList.contains("icoL"))return false;
  for(let e=p;e&&e.nodeType===1;e=e.parentNode){if(SKIP.has(e.nodeName)||e.isContentEditable||(e.dataset&&e.dataset.noico!=null))return false}return true}
@@ -93,7 +100,7 @@ function bucle(p){if(!p||p.nodeType!==1)return false;if(p.dataset&&p.dataset.noi
  /* solo contenedores pequeños: nunca body, #app, la hoja ni secciones grandes (se repintan enteras sin ser un bucle) */
  if(p===document.body||p.id=="app"||p.id=="sheetc"||p.id=="sheet"||p.childElementCount>12)return false;const tx=p.textContent||"";if(tx.length>600||!RT.test(tx))return false;
  const n=Date.now(),v=VEZ.get(p);VEZ.set(p,{t:n,s:tx,c:v&&n-v.t<4000?v.c+1:1});
- if(v&&n-v.t<4000&&(v.s===tx||v.c>=3)){try{p.dataset.noico="";p.querySelectorAll(".icoL").forEach(s=>s.replaceWith(document.createTextNode(s.textContent)))}catch(_){}return true}return false}
+ if(v&&n-v.t<4000&&v.c>=6){try{p.dataset.noico="";p.querySelectorAll(".icoL").forEach(s=>s.replaceWith(document.createTextNode(s.textContent)))}catch(_){}return true}return false}
 function trata(t){const s=t.nodeValue;if(!s||!RT.test(s)||!okNodo(t))return;RE.lastIndex=0;const f=document.createDocumentFragment();let i=0,m;
  while((m=RE.exec(s))){if(m.index>i)f.appendChild(document.createTextNode(s.slice(i,m.index)));
   const base=m[0].replace(/️/g,""),k=E2K[base];const sp=document.createElement("span");sp.className="icoL i-"+k;sp.setAttribute("aria-hidden","true");sp.textContent=m[0];f.appendChild(sp);i=m.index+m[0].length}
