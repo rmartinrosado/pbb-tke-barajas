@@ -32,6 +32,9 @@ html.lt #app .card.ot.otsosok .otres .orl .grepc{border-color:#16a34a!important;
 html.lt #app .card.ot.otllam .otres .orl .grepc{border-color:#d9a400!important;color:#9a6b00!important}
 #app .card.ot.otsinal .otres .orl .grepc,#app .card.ot.otlle.otsinal .otres .orl .grepc{border:2px solid #90a4ae!important;color:#90a4ae!important;animation:none!important}
 html.lt #app .card.ot.otsinal .otres .orl .grepc{border-color:#607d8b!important;color:#455a64!important}
+/* v951: el contador de tiempo va pegado al candado (a la derecha), no centrado en la fila */
+#app .card.ot .otres .orl.orlsos>[data-ort],#app .card.ot .otres .orl>[data-ort]{position:static!important;left:auto!important;top:auto!important;transform:none!important;margin:0 0 0 auto!important;flex:none}
+#app .card.ot .otres .orl>[data-ort]~.otreab,#app .card.ot .otres .orl>[data-ort]~.otcerr{margin-left:6px!important}
 @keyframes otSosBlink{0%,100%{box-shadow:0 0 0 0 #22c55e00;opacity:1}50%{box-shadow:0 0 0 5px #22c55e55;opacity:.55}}
 /* v748: llave más grande; con la OT abierta y con llegada, parpadea en amarillo como la caja */
 #app .card.ot .otres .orl .grepc{padding:2px 14px!important;border-radius:999px!important;border-width:1.5px!important;align-self:stretch}#app .card.ot .otres .orl .grepc svg{width:16px!important;height:16px!important}/* v750: misma altura que el reloj */
