@@ -22,8 +22,17 @@ ${S} button.pri,${S} .pri{background:linear-gradient(135deg,#ffb020,${OR} 45%,#f
 ${S} button.sec,${S} .sec{background:linear-gradient(180deg,#2a2e3a,#1b1e27)!important;color:#e9ecf1!important;border:1px solid #ffffff2a!important;border-radius:12px!important;box-shadow:0 4px 12px -6px #000!important}
 ${S} details,${S} .card{background:#1b1e27!important;border:1px solid #ffffff1f!important;border-radius:12px!important;color:#e9ecf1}
 ${S} summary{color:#fff}
-${S} a{color:#ffb36b}`;document.head.appendChild(st);
+${S} a{color:#ffb36b}
+/* v946: CABECERA FIJA de la hoja (no se va con el scroll) en «Actuación» (SOS) e «Importar hoja de registro de OT» */
+html #sheet.cabfija #sheetc>.sosrh,html #sheet.cabfija #sheetc>.row:first-child{position:-webkit-sticky;position:sticky;top:calc(-1 * var(--shpt,14px));z-index:6;
+ margin-top:calc(-1 * var(--shpt,14px))!important;margin-left:calc(-1 * var(--shpl,14px))!important;margin-right:calc(-1 * var(--shpr,14px))!important;
+ padding-top:var(--shpt,14px)!important;padding-left:var(--shpl,14px)!important;padding-right:var(--shpr,14px)!important;padding-bottom:8px!important;
+ background:var(--card,#fff);box-shadow:0 10px 12px -12px #0009}
+${S}.cabfija #sheetc>.row:first-child{background:linear-gradient(225deg,#12141b,#0b0c11)}`;document.head.appendChild(st);
 function mira(){const sh=document.getElementById("sheet"),c=document.getElementById("sheetc");if(!sh||!c)return;
- const h=c.querySelector("h3");const on=!!(h&&ES.test(h.textContent||""));if(sh.classList.contains("tkosc")!==on)sh.classList.toggle("tkosc",on)}
-const ini=()=>{const c=document.getElementById("sheetc");if(!c)return setTimeout(ini,300);new MutationObserver(mira).observe(c,{childList:true});mira()};ini();
+ const h=c.querySelector("h3");const on=!!(h&&ES.test(h.textContent||""));if(sh.classList.contains("tkosc")!==on)sh.classList.toggle("tkosc",on);
+ const fj=!!(c.querySelector(":scope>.sosrh")||(h&&/importar hoja de registro de ot/i.test(h.textContent||"")&&c.querySelector(":scope>.row:first-child h3")));
+ if(sh.classList.contains("cabfija")!==fj)sh.classList.toggle("cabfija",fj);
+ if(fj){const cs=getComputedStyle(c);[["--shpt",cs.paddingTop],["--shpl",cs.paddingLeft],["--shpr",cs.paddingRight]].forEach(([k,v])=>{if(sh.style.getPropertyValue(k)!==v)sh.style.setProperty(k,v)})}}
+const ini=()=>{const c=document.getElementById("sheetc");if(!c)return setTimeout(ini,300);new MutationObserver(mira).observe(c,{childList:true,subtree:false});setInterval(mira,800);mira()};ini();
 })();
