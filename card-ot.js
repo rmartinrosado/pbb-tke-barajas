@@ -6,6 +6,7 @@
 /* v927: SOS desde la tarjeta de la OT, con la posición de la OT ya puesta */
 window.abreSosOT=function(id){if(typeof sosRap!="function")return;let o=null;try{o=inc.find(x=>x.id==id)}catch(_){}sosRap();
  const p=o&&o.pos!=null?String(o.pos):"";if(!p)return;let n=0;const pon=()=>{const i=document.getElementById("sr_p");if(i){if(!i.value){i.value=p;i.dispatchEvent(new Event("input",{bubbles:true}));i.dispatchEvent(new Event("change",{bubbles:true}))}return}if(++n<20)setTimeout(pon,50)};pon()};
+const INTERR=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9a3 3 0 1 1 4.2 2.75c-.75.35-1.2 1.1-1.2 1.95V14.5"/><path d="M12 18.5h.01"/></svg>`;
 const LLAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
 const st=document.createElement("style");st.textContent=`
 #app .card.ot .sosb,#app .card.ot .sosc{display:none!important}#app .card .otres .orl>.pactt{cursor:pointer}
@@ -27,6 +28,10 @@ html.lt #app .card.ot.otsosok .otres .orl .grepc{border-color:#16a34a!important;
 #app .card.ot .otres .orl>.otdelr{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:36px;padding:0;margin:0 0 0 8px!important;
  border-radius:10px;border:1.5px solid #ff6b6b;background:transparent;color:#ff6b6b;cursor:pointer;align-self:center}
 #app .card.ot .otres .orl>.otdelr svg{width:20px;height:20px;display:block}html.lt #app .card.ot .otres .orl>.otdelr{color:#c62828;border-color:#c62828}
+#app .card.ot.otllam .otres .orl .grepc,#app .card.ot.otlle.otllam .otres .orl .grepc{border:2px solid #facc15!important;color:#facc15!important;animation:none!important}
+html.lt #app .card.ot.otllam .otres .orl .grepc{border-color:#d9a400!important;color:#9a6b00!important}
+#app .card.ot.otsinal .otres .orl .grepc,#app .card.ot.otlle.otsinal .otres .orl .grepc{border:2px solid #90a4ae!important;color:#90a4ae!important;animation:none!important}
+html.lt #app .card.ot.otsinal .otres .orl .grepc{border-color:#607d8b!important;color:#455a64!important}
 @keyframes otSosBlink{0%,100%{box-shadow:0 0 0 0 #22c55e00;opacity:1}50%{box-shadow:0 0 0 5px #22c55e55;opacity:.55}}
 /* v748: llave más grande; con la OT abierta y con llegada, parpadea en amarillo como la caja */
 #app .card.ot .otres .orl .grepc{padding:2px 14px!important;border-radius:999px!important;border-width:1.5px!important;align-self:stretch}#app .card.ot .otres .orl .grepc svg{width:16px!important;height:16px!important}/* v750: misma altura que el reloj */
@@ -84,7 +89,7 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
  /* v693: REPARACIÓN en la fila de datos, al lado del terminal (T4S); visible con la tarjeta plegada */
  {const o2=c.querySelector(".otres .orl");const g0=c.querySelector(".cacr .grep");if(g0){const w0=g0.closest(".grepw");(w0||g0).remove()}
   if(o2&&oid&&!o2.querySelector(".grepc")){const b=document.createElement("button");b.type="button";b.className="orc grepc";b.title="Guía de campo de la OT";b.setAttribute("aria-label","Guía de campo de la OT con cotejo de planos y primera actuación");
-   b.innerHTML=LLAVE;b.onclick=e=>{e.stopPropagation();repOT(oid)};o2.append(b)}
+   b.innerHTML=LLAVE;b.onclick=e=>{e.stopPropagation();if(c.classList.contains("otsinal")){if(typeof editar=="function")editar(oid);return}repOT(oid)};o2.append(b)}
   const ob=o2&&o2.querySelector(".grepc");if(ob&&!ob.classList.contains("orc")){ob.classList.add("orc");ob.innerHTML=LLAVE}}
  /* v927: al lado de la llave, botón igual con el icono de ALARMA (rojo) → abre el SOS con la posición de la OT */
  {const o3=c.querySelector(".otres .orl"),lv=o3&&o3.querySelector(".grepc");
@@ -92,8 +97,18 @@ function fix(c){const id=(c.querySelector('[onclick*="gFotoOT("]')||c.querySelec
     ga.setAttribute("aria-label","Abrir el SOS con la posición de la OT");ga.innerHTML='<img src="iconos/alarma.png" alt="">';
     ga.onclick=e=>{e.stopPropagation();abreSosOT(oid)}}
    if(lv.nextElementSibling!==ga)lv.after(ga)}}
- /* v929: con actuación SOS asociada (ANALIZAR) la llave de la guía de campo pasa a verde parpadeando */
- {let so=false;try{const o=oid&&inc.find(x=>x.id==oid);so=!!(o&&o.estado=="abierta"&&o.sosAct)}catch(_){}if(c.classList.contains("otsosok")!==so)c.classList.toggle("otsosok",so)}
+ /* v929 → v938 · estado de la guía de campo en la llave:
+    · SIN alarma de la Magelis en la ficha (alarma sin reconocer) → «?» en lugar de la llave; al tocarlo se abre la ficha para poner la alarma
+    · con alarma en la ficha → llave AMARILLA (guía de campo asociada a la OT)
+    · analizada en el SOS (ANALIZAR) → llave VERDE parpadeando */
+ {let o=null;try{o=oid&&inc.find(x=>x.id==oid)}catch(_){}const ab=!!(o&&o.estado=="abierta");
+  let al=false;try{al=!!(o&&((o.alMag&&String(o.alMag).trim())||o.alCod||(typeof o.alarmas=="string"&&o.alarmas.trim())))}catch(_){}
+  const so=ab&&!!(o&&o.sosAct),am=ab&&!so&&al,si=ab&&!so&&!al;
+  if(c.classList.contains("otsosok")!==so)c.classList.toggle("otsosok",so);
+  if(c.classList.contains("otllam")!==am)c.classList.toggle("otllam",am);
+  if(c.classList.contains("otsinal")!==si)c.classList.toggle("otsinal",si);
+  const lv=c.querySelector(".otres .orl .grepc");if(lv){const k=si?"q":"l";if(lv.dataset.ico!==k){lv.dataset.ico=k;lv.innerHTML=si?INTERR:LLAVE;
+    lv.title=si?"Alarma sin reconocer: pon la alarma de la Magelis en la ficha":"Guía de campo de la OT";lv.setAttribute("aria-label",lv.title)}}}
 
  /* v748: sin la mano sobre la llave */
  c.querySelectorAll(".repdedo").forEach(x=>x.remove());
