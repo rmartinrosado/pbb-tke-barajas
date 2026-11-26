@@ -72,8 +72,8 @@ let ult=null;
 function copia(){try{
  const f=document.querySelector("#hk .hk2");const h=f?f.innerHTML:"";
  if(h!==ult){ult=h;nav.innerHTML=h;
-  /* v935: dos grupos · 1 ACCESOS (Técnico, Operador, Admin / Turno) · 2 ADMIN (Gestión, Actualizar) */
-  const B=[...nav.querySelectorAll(".hki")],g2=B.filter(b=>/gesti|actualiz/i.test(b.textContent||"")),g1=B.filter(b=>!g2.includes(b));
+  /* v935→v941: dos grupos · 1 ACCESOS (Técnico, Operador / Turno) · 2 ADMIN (Admin, Gestión, Actualizar) */
+  const B=[...nav.querySelectorAll(".hki")],g2=B.filter(b=>/gesti|actualiz|admin/i.test(b.textContent||"")),g1=B.filter(b=>!g2.includes(b));
   if(g1.length){nav.insertAdjacentHTML("afterbegin",'<div class="navdsep">Accesos</div>');g1.forEach(b=>nav.appendChild(b))}
   if(g2.length){nav.insertAdjacentHTML("beforeend",'<div class="navdsep navdsep2">Admin</div>');g2.forEach(b=>nav.appendChild(b))}
   [...nav.querySelectorAll(".hki")].forEach((b,k)=>{const n=document.createElement("i");n.className="tkn";n.textContent=String(k+1).padStart(2,"0");b.prepend(n)})}
