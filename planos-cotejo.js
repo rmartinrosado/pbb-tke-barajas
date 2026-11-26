@@ -77,6 +77,9 @@ async function calcula(){const i=otAct();if(!i||typeof view=="undefined"||view!=
  const cons=!!(window.insCons&&window.insCons(i.id));/* v525: actuación más eficaz consultada → cotejo completo (otra clave) */
  const k=hash(i.id+"|"+docs.map(d=>d.id).join(",")+"|"+[i.desc,i.def,i.obs,i.com].join("|")+"|"+D.cod.join(",")+(cons?"|C":""));
  if(ST.k==k)return;
+ /* v968: con la IA en marcha para ESTA OT no se rehace el estado (antes, al repintar la guía cambiaba la clave, se perdía la consulta
+    en curso y la respuesta de Claude/Gemini se tiraba al llegar: se quedaba en «Consultando…» y no salía nada) */
+ if(ST.iaRun&&ST.iaK&&ST.iaK.indexOf("pc_ia_"+i.id+"_")===0)return;
  ST={k,docs,res:null,prog:"",ia:null,iaEst:"",iaK:"pc_ia_"+i.id+"_"+k,D,sigC:false,cons};
  const g=ls.g(ST.iaK);if(g){try{ST.ia=JSON.parse(g)}catch(e){}}
  if(docs.length&&docs.every(d=>TXT[d.id]))cruza();/* ya leídos en esta sesión: el índice de códigos sale sin coste */
@@ -206,8 +209,10 @@ ${JS}`;
   const j=await r.json().catch(()=>({}));if(!r.ok||!j.txt)throw new Error(j.mensaje||j.error||("error "+r.status));
   const o=normPasos(leeJSON(j.txt));if(!o.resumen&&!(o.eficaz||[]).length&&!(o.medir||[]).length&&!(o.pasos||[]).length)throw new Error("respuesta incompleta");o.lector=j.lector||"IA";o.t=Date.now();if(ST.cons)o.modo="completa";
   {const b=$q("#gpcot .pcbar>i");if(b){b.style.width="100%";await new Promise(r=>setTimeout(r,350))}}
-  ST.iaRun=false;if(ST.k!==k)return;ST.ia=o;ST.iaEst="";ST.sigC=false;ls.s(ST.iaK,JSON.stringify(o));try{window.dispatchEvent(new CustomEvent("pc-ia",{detail:{id:i.id}}))}catch(e){}}
- catch(e){ST.iaRun=false;if(ST.k!==k)return;if(motor=="gemini")ST.sigC=true;ST.iaEst=(motor=="gemini"?"Gemini (gratis) no ha dado resultado: ":"Claude no ha dado resultado: ")+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+(motor=="gemini"?". Puedes lanzarlo con Claude (tiene coste) con el botón de abajo, o reintentar con Gemini.":". Puedes volver a lanzarlo.")}
+  ST.iaRun=false;if(ST.k!==k){/* v968: la guía cambió durante la consulta: el resultado de la misma OT se guarda y se enseña igual */
+   const cur=otAct();if(!cur||cur.id!==i.id){ls.s("pc_ia_"+i.id+"_"+k,JSON.stringify(o));return}}
+  ST.ia=o;ST.iaEst="";ST.sigC=false;ls.s(ST.iaK,JSON.stringify(o));try{window.dispatchEvent(new CustomEvent("pc-ia",{detail:{id:i.id}}))}catch(e){}}
+ catch(e){ST.iaRun=false;if(ST.k!==k){const cur=otAct();if(!cur||cur.id!==i.id)return}if(motor=="gemini")ST.sigC=true;ST.iaEst=(motor=="gemini"?"Gemini (gratis) no ha dado resultado: ":"Claude no ha dado resultado: ")+(e&&e.name=="AbortError"?"no respondió a tiempo":(e.message||e))+(motor=="gemini"?". Puedes lanzarlo con Claude (tiene coste) con el botón de abajo, o reintentar con Gemini.":". Puedes volver a lanzarlo.")}
  pintaCaja()}
 
 /* ---------- pintado ---------- */
