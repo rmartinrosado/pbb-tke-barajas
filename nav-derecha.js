@@ -35,6 +35,8 @@ const st=document.createElement("style");st.textContent=`
 #navd .hki.on span{color:${OR}}
 #navd .hki.on svg{filter:drop-shadow(0 0 6px color-mix(in srgb,${OR} 70%,transparent))}
 #navd .hki.on::after{content:"";position:absolute;left:-1px;top:25%;bottom:25%;width:3px;border-radius:3px;background:linear-gradient(180deg,${OR},${PU});box-shadow:0 0 8px ${OR}}
+#navd .navdsep{flex:none;width:100%;box-sizing:border-box;margin:4px 0 1px;padding:4px 2px 3px;text-align:center;font:800 8.5px/1 var(--tkmo,ui-monospace,monospace);letter-spacing:1.4px;text-transform:uppercase;color:${OR};border-bottom:1px solid color-mix(in srgb,${OR} 45%,transparent)}
+#navd .navdsep2{margin-top:10px;padding-top:9px;border-top:1.5px dashed color-mix(in srgb,${PU} 70%,transparent);color:${PU}}
 #navd .hki.ok svg{stroke:#2fd36b}#navd .hki.ok span{color:#2fd36b}
 #navdtab{position:fixed;right:0;left:auto;z-index:42;width:30px;height:72px;padding:0;border:0;border-radius:16px 0 0 16px;
  top:calc(var(--nvb,100vh) - 72px - 24px - env(safe-area-inset-bottom,0px));
@@ -69,7 +71,12 @@ nav.addEventListener("click",e=>{const b=e.target.closest("button");if(b)setTime
 let ult=null;
 function copia(){try{
  const f=document.querySelector("#hk .hk2");const h=f?f.innerHTML:"";
- if(h!==ult){ult=h;nav.innerHTML=h;[...nav.querySelectorAll(".hki")].forEach((b,k)=>{const n=document.createElement("i");n.className="tkn";n.textContent=String(k+1).padStart(2,"0");b.prepend(n)})}
+ if(h!==ult){ult=h;nav.innerHTML=h;
+  /* v935: dos grupos · 1 ACCESOS (Técnico, Operador, Admin / Turno) · 2 ADMIN (Gestión, Actualizar) */
+  const B=[...nav.querySelectorAll(".hki")],g2=B.filter(b=>/gesti|actualiz/i.test(b.textContent||"")),g1=B.filter(b=>!g2.includes(b));
+  if(g1.length){nav.insertAdjacentHTML("afterbegin",'<div class="navdsep">Accesos</div>');g1.forEach(b=>nav.appendChild(b))}
+  if(g2.length){nav.insertAdjacentHTML("beforeend",'<div class="navdsep navdsep2">Admin</div>');g2.forEach(b=>nav.appendChild(b))}
+  [...nav.querySelectorAll(".hki")].forEach((b,k)=>{const n=document.createElement("i");n.className="tkn";n.textContent=String(k+1).padStart(2,"0");b.prepend(n)})}
  tab.classList.toggle("ver",!!h);if(!h)cierra();
  const hd=document.querySelector("header");if(hd)document.documentElement.style.setProperty("--hkh",Math.round(hd.getBoundingClientRect().height)+"px");
 }catch(e){}}
