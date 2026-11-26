@@ -28,7 +28,11 @@ html #sheet.cabfija #sheetc>.sosrh,html #sheet.cabfija #sheetc>.row:first-child{
  margin-top:calc(-1 * var(--shpt,14px))!important;margin-left:calc(-1 * var(--shpl,14px))!important;margin-right:calc(-1 * var(--shpr,14px))!important;
  padding-top:var(--shpt,14px)!important;padding-left:var(--shpl,14px)!important;padding-right:var(--shpr,14px)!important;padding-bottom:8px!important;
  background:var(--card,#fff);box-shadow:0 10px 12px -12px #0009}
-${S}.cabfija #sheetc>.row:first-child{background:linear-gradient(225deg,#12141b,#0b0c11)}`;document.head.appendChild(st);
+${S}.cabfija #sheetc>.row:first-child{background:linear-gradient(225deg,#12141b,#0b0c11)}
+/* v947: como el resto de pantallas, la CABECERA DE LA APP (TKE Maintenance, versión, ☀ y apagado) queda fija y visible arriba:
+   la hoja empieza debajo de ella y ocupa el resto de la pantalla */
+html #sheet.cabfija{top:var(--hkh,0px)!important;bottom:0!important;height:auto!important;align-items:stretch!important}
+html #sheet.cabfija>div{max-height:none!important;height:100%!important;box-sizing:border-box;border-radius:0!important}`;document.head.appendChild(st);
 function mira(){const sh=document.getElementById("sheet"),c=document.getElementById("sheetc");if(!sh||!c)return;
  const h=c.querySelector("h3");const on=!!(h&&ES.test(h.textContent||""));if(sh.classList.contains("tkosc")!==on)sh.classList.toggle("tkosc",on);
  const fj=!!(c.querySelector(":scope>.sosrh")||(h&&/importar hoja de registro de ot/i.test(h.textContent||"")&&c.querySelector(":scope>.row:first-child h3")));
