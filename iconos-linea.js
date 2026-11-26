@@ -3,7 +3,7 @@
    Ahora se muestran como iconos de TRAZO del color del texto: negro sobre fondo claro y blanco sobre fondo oscuro.
    · El emoji sigue en el texto (solo se oculta y se dibuja encima su icono con una máscara), así que no cambia nada de la lógica
      que lee textContent, ni los avisos, ni lo que se guarda.
-   · Se aplica a todo lo que aparece en pantalla (también lo que se pinta después) con un MutationObserver por lotes.
+   · Se aplica a todo lo que aparece en pantalla (también lo que se pinta después) con un MutationObserver (v926: en el mismo instante, antes de pintar la pantalla, sin pasar por el emoji a color; y con antibucle).
    · No toca campos de texto, desplegables nativos (<option>) ni placeholders: ahí el navegador no deja poner iconos. ===== */
 (function(){
 "use strict";
@@ -84,6 +84,10 @@ const st=document.createElement("style");st.id="icoLst";st.textContent=css.join(
 const SKIP=new Set(["SCRIPT","STYLE","TEXTAREA","INPUT","OPTION","SELECT","NOSCRIPT","TITLE","CANVAS","svg","SVG","CODE","PRE"]);
 function okNodo(t){let p=t.parentNode;if(!p||p.nodeType!==1)return false;if(p.classList&&p.classList.contains("icoL"))return false;
  for(let e=p;e&&e.nodeType===1;e=e.parentNode){if(SKIP.has(e.nodeName)||e.isContentEditable||(e.dataset&&e.dataset.noico!=null))return false}return true}
+/* v926: antibucle · si un mismo elemento se vuelve a pintar una y otra vez (módulos que comparan innerHTML y lo reescriben al
+   cambiar), se deja con su emoji y no se toca más: así no hay parpadeo */
+const VEZ=new WeakMap();
+function bucle(p){if(!p||p.nodeType!==1)return false;if(p.dataset&&p.dataset.noico!=null)return true;const n=Date.now(),v=VEZ.get(p);if(!v||n-v.t>1000){VEZ.set(p,{t:n,c:1});return false}v.c++;if(v.c>8){try{p.dataset.noico=""}catch(_){}return true}return false}
 function trata(t){const s=t.nodeValue;if(!s||!RT.test(s)||!okNodo(t))return;RE.lastIndex=0;const f=document.createDocumentFragment();let i=0,m;
  while((m=RE.exec(s))){if(m.index>i)f.appendChild(document.createTextNode(s.slice(i,m.index)));
   const base=m[0].replace(/️/g,""),k=E2K[base];const sp=document.createElement("span");sp.className="icoL i-"+k;sp.setAttribute("aria-hidden","true");sp.textContent=m[0];f.appendChild(sp);i=m.index+m[0].length}
@@ -94,11 +98,11 @@ function marca(el){const b=el.closest&&el.closest("button,[role=button],a.btn");
  b.classList.toggle("icoBtn",!resto&&!!b.querySelector(".icoL"))}
 function recorre(n){if(!n)return;if(n.nodeType===3){trata(n);return}if(n.nodeType!==1||SKIP.has(n.nodeName))return;
  if(!RT.test(n.textContent||""))return;const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);const L=[];let x;while((x=w.nextNode()))if(RT.test(x.nodeValue))L.push(x);L.forEach(trata)}
-let cola=new Set(),rev=new Set(),prog=false;
-const vacia=()=>{prog=false;const c=[...cola];cola.clear();for(const n of c){if(n.isConnected)recorre(n)}
+let cola=new Set(),rev=new Set();
+const vacia=()=>{const c=[...cola];cola.clear();for(const n of c){if(n.isConnected)recorre(n)}
  const r=[...rev];rev.clear();for(const e of r){if(e&&e.isConnected&&e.closest&&e.closest("button.icoBtn"))marca(e)}};
-const mo=new MutationObserver(ms=>{for(const m of ms){if(m.type==="characterData"){cola.add(m.target);rev.add(m.target.parentElement)}else{m.addedNodes.forEach(n=>cola.add(n));rev.add(m.target)}}
- if(!prog&&(cola.size||rev.size)){prog=true;requestAnimationFrame(vacia)}});
+const mo=new MutationObserver(ms=>{for(const m of ms){if(m.type==="characterData"){cola.add(m.target);rev.add(m.target.parentElement)}else{if(bucle(m.target))continue;m.addedNodes.forEach(n=>cola.add(n));rev.add(m.target)}}
+ if(cola.size||rev.size){mo.disconnect();try{vacia()}finally{mo.observe(document.body,{childList:true,subtree:true,characterData:true})}}});
 const arranca=()=>{recorre(document.body);mo.observe(document.body,{childList:true,subtree:true,characterData:true})};
 if(document.body)arranca();else document.addEventListener("DOMContentLoaded",arranca);
 })();
