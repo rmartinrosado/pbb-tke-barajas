@@ -26,6 +26,10 @@ function iaDe(id){if(!id)return null;
  /* sin la caja de cotejo pintada: el último resultado guardado de esa OT */
  try{let best=null;const pre="pc_ia_"+id+"_";for(let k=0;k<localStorage.length;k++){const n=localStorage.key(k);if(!n||n.indexOf(pre)!==0)continue;
    try{const o=JSON.parse(localStorage.getItem(n));if(o&&(!best||(o.t||0)>(best.t||0)))best=o}catch(e){}}
+  /* v962: actuación del análisis IA del SOS ACEPTADA para la OT (viaja con la OT a los demás móviles) */
+  try{const i=(typeof inc!="undefined"&&Array.isArray(inc))?inc.find(x=>x.id==id):null,a=i&&i.iaAct;
+   if(a&&a.ok&&a.sec){const s=a.sec,ef=(s.rep||s.diag||s.pri||[]).slice(0,6),t=Date.parse(a.t)||0;
+    if(!best||t>(best.t||0))best={t,lector:"Análisis IA del SOS ("+(a.motor||"IA")+")",resumen:String((s.rep||s.pri||s.diag||[])[0]||"").slice(0,300),eficaz:ef,medir:[],pasos:(s.diag||ef).slice(0,8).map(x=>({accion:x})),comp:a.comp||[]}}}catch(e){}
   return best}catch(e){return null}}
 /* v654: también los «pasos» del cotejo nuevo (acción, medida, bien/mal), donde la IA nombra los componentes y lo que les afecta */
 function iaTexto(o){return [o.resumen,...(o.eficaz||[]),...(o.medir||[]).map(m=>[m.punto,m.roja,m.negra,m.esperado,m.si_no].join(" ")),

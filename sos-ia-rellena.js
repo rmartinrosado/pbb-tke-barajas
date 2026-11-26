@@ -7,7 +7,11 @@
      con su ficha del catálogo al tocarlos o el botón para incorporarlos si aún no están.
    · OT de la posición (la de la tarjeta o la abierta más reciente): «Actuación» con la actuación propuesta y los componentes,
      «Observaciones» con los componentes a intervenir (solo si estaban vacías o eran de un análisis anterior) y la llave en verde.
-   Nada de lo que el técnico haya escrito a mano se pisa. ===== */
+   Nada de lo que el técnico haya escrito a mano se pisa.
+   v962: la actuación NO se asocia sola: al terminar la IA, la PWA AVISA y pregunta si se ACEPTA la actuación más eficaz.
+   · Aceptada → se asocia a la OT (de momento, la del botón rojo de alarma de su tarjeta), se rellenan Actuación y
+     Observaciones, la llave pasa a verde y su GUÍA DE CAMPO queda filtrada con esta actuación (Análisis de la OT).
+   · No aceptada → la hoja la sigue enseñando, pero no se toca la OT. ===== */
 (function(){
 "use strict";
 const E=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -59,13 +63,30 @@ const st=document.createElement("style");st.textContent=`
 #sheetc .iacmp{display:flex;flex-direction:column;gap:4px}
 #sheetc .iacb{display:block;width:100%!important;margin:0!important;padding:8px 9px!important;text-align:left;font-size:14px!important;line-height:1.3;border:2px solid #455a64!important;border-radius:8px!important}
 #sheetc .iacb.on{border-color:#22c55e!important}#sheetc .iacb small{display:block;font-size:12px;font-weight:700;color:#22c55e;margin-top:2px}
-#sheetc .iacb.pend small{color:#e09a00}`;document.head.appendChild(st);
+#sheetc .iacb.pend small{color:#e09a00}
+#sheetc .iarno{margin-top:8px;font-size:12.5px;font-weight:700;color:#e09a00}
+#sheetc .iabt{width:100%!important;margin:8px 0 0!important}
+#sheetc .iapreg{margin-top:10px;padding:10px;border:2px solid #facc15;border-radius:10px;background:rgba(250,204,21,.08);animation:iapl 1.4s ease-in-out 4}
+#sheetc .iapreg b{display:block;font-size:15px;color:#facc15}#sheetc .iapreg span{display:block;font-size:13px;margin-top:3px}
+#sheetc .iapb{display:flex;gap:8px;margin-top:8px}#sheetc .iapb>button{flex:1 1 0;width:auto!important;margin:0!important;padding:11px 6px!important}
+@keyframes iapl{0%,100%{box-shadow:0 0 0 0 rgba(250,204,21,.5)}50%{box-shadow:0 0 0 7px rgba(250,204,21,0)}}`;document.head.appendChild(st);
 
 function repHTML(){const S=R.sec,o=["pri","diag","rep","fin"].filter(k=>S[k]);
  return`<div class="card iarep" id="ia_rep"><div class="iarh">🤖 ACTUACIÓN MÁS EFICAZ · ANÁLISIS IA<small>${E(R.motor||"IA")} · PBB ${E(R.pos||"-")} · sin alarma asociada · según el PDF de la actuación</small></div>
  ${o.map(k=>`<div class="iars"><b>${E(S[k].t)}</b><ol>${S[k].it.map(x=>`<li>${E(x)}</li>`).join("")}</ol></div>`).join("")}
  ${R.comp.length?`<div class="iarc">🔩 Componentes a intervenir: ${R.comp.map(c=>`<span class="cmpid">${E(c)}</span>`).join(" · ")}</div>`:""}
- ${R.ot?`<div class="iarok">✅ ${E(R.ot)}</div>`:""}</div>`}
+ ${panel()}</div>`}
+function panel(){const o=R.otId&&otId(R.otId);
+ if(R.dec=="si")return`<div class="iarok">✅ ${E(R.ot)}</div>${o?`<button type="button" class="sec iabt" onclick="sosIaGuiaOT()">Abrir la guía de campo de la OT ${E(o.orden||o.pos)}</button>`:""}`;
+ if(R.dec=="no")return`<div class="iarno">✖ Actuación no aceptada: no se ha asociado a ninguna OT.</div><button type="button" class="sec iabt" onclick="sosIaDecide(1)">Cambiar de opinión · aceptar</button>`;
+ if(!o)return`<div class="iarno">Para asociarla a una OT, abre el SOS desde el botón rojo de alarma de la tarjeta de la OT.</div>`;
+ return`<div class="iapreg" id="ia_preg"><b>¿Aceptas esta actuación más eficaz?</b><span>Se asociará a la OT ${E(o.orden||"-")} · PBB ${E(o.pos)} y se actualizará su guía de campo.</span>
+  <div class="iapb"><button type="button" class="pri" onclick="sosIaDecide(1)">✅ Aceptar</button><button type="button" class="sec" onclick="sosIaDecide(0)">✖ No aceptar</button></div></div>`}
+const repinta=()=>{const c=$("ia_rep");if(c){const d=document.createElement("div");d.innerHTML=repHTML();c.replaceWith(d.firstChild)}};
+window.sosIaDecide=function(si){if(!R)return;if(si){const o=R.otId&&otId(R.otId);if(!o){msg&&msg("La OT ya no está abierta");return}
+  try{R.ot=guardaOT(R.S,o)}catch(e){console.warn("sos-ia-rellena OT",e);R.ot="No se ha podido guardar en la OT"}R.dec="si";if(typeof msg=="function")msg(R.ot)}
+ else{R.dec="no";if(typeof msg=="function")msg("Actuación no aceptada: la OT no se modifica")}repinta()};
+window.sosIaGuiaOT=function(){const id=R&&R.otId;if(!id)return;try{closeSheet()}catch(_){}setTimeout(()=>{try{repOT(id)}catch(e){console.warn(e)}},150)};
 function cmpHTML(){const b=R.comp.length?`<div class="svok">Según el análisis IA (${E(R.motor||"IA")}): toca un componente para ver su ficha.</div><div class="iacmp">${R.comp.map(c=>{const f=ficha(c),n=(f&&f.t)||nombre(c);
   return`<button type="button" class="iacb${f?"":" pend"}" data-c="${E(c)}"><span class="cmpid">${E(c)}</span> ${E(n||"")}<small>${f?"🔩 Ficha del catálogo · ver ↓":"Aún no está en Componentes de campo · incorporar"}</small></button>`}).join("")}</div><div id="ia_fi"></div>`
   :`<div class="svok">El análisis IA no nombra un elemento concreto por su código de planos.</div>`;
@@ -89,37 +110,40 @@ function pon(){if(!R)return;const res=$("sr_res");if(!res||!res.querySelector(".
 setInterval(()=>{try{if(R&&$("sr_res"))pon()}catch(e){}},900);
 
 /* ---------- OT asociada ---------- */
-function otDe(S){let L=[];try{L=Array.isArray(inc)?inc:[]}catch(_){}const ab=L.filter(o=>o&&o.estado=="abierta");
- if(S.otId){const o=ab.find(x=>x.id==S.otId);if(o)return o}
- const pos=String(S.pos||"").toUpperCase(),id=window.__sosOT;
- if(id){const o=ab.find(x=>x.id==id);if(o&&(!pos||String(o.pos).toUpperCase()==pos))return o}
- if(!pos)return null;const P=ab.filter(o=>String(o.pos).toUpperCase()==pos);
- const t=o=>Date.parse(o.created_at||o.creado||((o.fecha||"")+"T"+(o.hIni||"00:00")))||0;return P.sort((a,b)=>t(b)-t(a))[0]||null}
+/* v962: de momento, solo la OT desde cuya tarjeta (botón rojo de alarma) se abrió el SOS */
+function otBoton(pos){const id=window.__sosOT;if(!id)return null;let L=[];try{L=Array.isArray(inc)?inc:[]}catch(_){}
+ const o=L.find(x=>x&&x.id==id&&x.estado=="abierta");return o&&(!pos||String(o.pos).toUpperCase()==pos)?o:null}
+const otId=id=>{try{return(inc||[]).find(x=>x.id==id)||null}catch(_){return null}};
 function textoAct(){const S=R.sec,j=k=>S[k]?S[k].it.slice(0,k=="diag"?6:5).map((x,i)=>`${i+1}. ${x}`).join("\n"):"";
  const p=[`Actuación propuesta · análisis IA (${R.motor||"IA"}) · sin alarma asociada`];
  if(S.pri)p.push("1ª actuación:\n"+j("pri"));if(S.rep)p.push("Reparación:\n"+j("rep"));else if(S.diag)p.push("Diagnóstico:\n"+j("diag"));
  if(S.fin)p.push("Comprobación final:\n"+j("fin"));
  if(R.comp.length)p.push("Componentes a intervenir: "+R.comp.map(c=>{const n=nombre(c);return n?`${c} (${n})`:c}).join(", "));
  return p.join("\n\n").slice(0,2500)}
-function guardaOT(S){const o=otDe(S);if(!o)return "";const prev=o.iaAct||{};
+function guardaOT(S,o){if(!o)return "";const prev=o.iaAct||{};
  const txt=textoAct(),obs=R.comp.length?"Componentes a intervenir (análisis IA): "+R.comp.map(c=>{const n=nombre(c);return n?`${c} ${n}`:c}).join(" · "):"";
  const act=(o.act||"").trim(),ob=(o.obs||"").trim(),auto=new Set([(prev.txt||"").trim(),((o.sosAct||{}).txt||"").trim()].filter(Boolean));
  let pAct=false,pObs=false;
  if(!act||auto.has(act)){o.act=txt;pAct=true}
  if(obs&&(!ob||ob==(prev.obs||"").trim())){o.obs=obs;pObs=true}
- o.iaAct={t:new Date().toISOString(),motor:R.motor||"",txt,obs,comp:R.comp.slice(),sec:Object.fromEntries(Object.entries(R.sec).map(([k,v])=>[k,v.it]))};
+ o.iaAct={t:new Date().toISOString(),ok:1,motor:R.motor||"",txt,obs,comp:R.comp.slice(),sec:Object.fromEntries(Object.entries(R.sec).map(([k,v])=>[k,v.it]))};
+ /* guía de campo de la OT: el «Análisis de la OT» se filtra con esta actuación (mismo formato que el cotejo IA) */
+ try{const s=R.sec,ef=(s.rep||s.diag||s.pri).it.slice(0,6);localStorage.setItem("pc_ia_"+o.id+"_sos",JSON.stringify({t:Date.now(),lector:"Análisis IA del SOS ("+(R.motor||"IA")+")",
+  resumen:((s.rep||s.pri||s.diag).it[0]||"").slice(0,300),eficaz:ef,medir:[],pasos:(s.diag?s.diag.it:ef).slice(0,8).map(a=>({accion:a})),comp:R.comp}))}catch(_){}
  o.sosAct={...(o.sosAct||{}),t:new Date().toISOString(),ia:1,ob:(S.obs||"").slice(0,400)};
  if(!o.resClaude&&S.md)o.resClaude={txt:S.md,ts:Date.now(),por:"SOS · "+(S.motor||"IA"),croquis:S.croquis||undefined};
  try{sv("pbb_inc",inc)}catch(e){console.warn("sos-ia-rellena",e)}try{if(typeof render=="function")render()}catch(_){}
- const n=o.orden||o.pos;return pAct?`Actuación${pObs?" y componentes":""} copiados a la OT ${n}`:`La OT ${n} ya tenía actuación escrita: no se pisa (la del análisis IA queda guardada en la OT)`}
+ const n=o.orden||o.pos;return pAct?`Actuación aceptada y asociada a la OT ${n} · guía de campo actualizada`:`Asociada a la OT ${n} · guía de campo actualizada (la OT ya tenía actuación escrita: no se pisa)`}
 
 /* ---------- al terminar la consulta IA ---------- */
 function aplica(S){if(!S||!S.res||!S.md||S.err||S.__rel)return;S.__rel=1;if(!sinAlarma(S))return;
  const sec=secciones(S.md);if(!Object.keys(sec).length)return;
- R={pos:String(S.pos||"").toUpperCase(),sec,comp:componentes(S.md,sec,S.croquis),motor:/Gemini/i.test(S.motor||window.__motorSOS||"")?"Gemini IA":"Claude IA",ot:""};
- try{R.ot=guardaOT(S)}catch(e){console.warn("sos-ia-rellena OT",e)}
+ const pos=String(S.pos||"").toUpperCase(),ob=otBoton(pos);
+ R={S,pos,sec,comp:componentes(S.md,sec,S.croquis),motor:/Gemini/i.test(S.motor||window.__motorSOS||"")?"Gemini IA":"Claude IA",ot:"",otId:ob&&ob.id,dec:""};
  try{const lp=$("lp_res");if(lp){lp.querySelector("#ia_rep")&&lp.querySelector("#ia_rep").remove()}$("ia_cmpb")&&$("ia_cmpb").remove()}catch(_){}
- pon();if(typeof msg=="function")msg("Actuación más eficaz rellenada con el análisis IA"+(R.ot?" · "+R.ot:""))}
+ pon();if(typeof msg=="function")msg(R.otId?"Análisis IA listo: ¿aceptas la actuación más eficaz?":"Actuación más eficaz rellenada con el análisis IA");
+ /* aviso: la pregunta se enseña en cuanto se vuelve a la hoja (el PDF se abre aparte) */
+ if(R.otId)setTimeout(()=>{const q=$("ia_preg");if(q)q.scrollIntoView({block:"center",behavior:"smooth"})},700)}
 const oC=window.sosObClaude;
 if(typeof oC=="function")window.sosObClaude=async function(){R=null;const r=await oC.apply(this,arguments);
  try{aplica(window.__sosIaST&&window.__sosIaST())}catch(e){console.warn("sos-ia-rellena",e)}return r};
