@@ -220,7 +220,10 @@ function pintaGuia(){if(typeof view=="undefined"||view!="tec")return;const app=d
  /* v964: NIVEL 3 · después del Análisis de la OT (nivel 2); guia-niveles.js mantiene el orden */
  const ref=document.getElementById("anag")||ef||document.getElementById("gpcot");
  if(!c.isConnected){if(ref)ref.insertAdjacentElement("afterend",c);else app.appendChild(c)}
- const k=i.id+"|"+JSON.stringify(iaDe(i.id)||{}).length+"|"+(typeof window.pcEstado=="function"?window.pcEstado():"");
+ /* v966: el progreso de la IA («49 % · 16 s») ya no rehace la caja entera en cada tic (temblor): solo cambia el texto del aviso */
+ const est=typeof window.pcEstado=="function"?window.pcEstado():"";
+ const k=i.id+"|"+JSON.stringify(iaDe(i.id)||{}).length+"|"+(est?est.replace(/[\d.,]+\s*(%|s\b)/g,"").replace(/\d+/g,"#"):"");
+ if(c.dataset.k===k){const e=c.querySelector(".icst");if(e&&e.textContent!==est)e.textContent=est}
  if(c.dataset.k!==k){const op=c.open;const ab=[...c.querySelectorAll("details")].map(x=>x.open);c.innerHTML=cajaHTML(i);c.open=op;c.dataset.k=k;
   const ds=[...c.querySelectorAll("details")];if(ab.length==ds.length)ds.forEach((x,n)=>x.open=ab[n])}}
 function repinta(scroll){const c=document.getElementById("ginsc");if(c)c.dataset.k="";
