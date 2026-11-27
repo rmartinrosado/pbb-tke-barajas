@@ -194,6 +194,7 @@ input[type=search]{border-radius:12px!important}input[type=search]:focus{outline
   <ol>
    <li><b>Elige el esquema</b>: «Rev. J» para T4/T4S o «PBB 507» para la pasarela A380.</li>
    <li><b>Elige el análisis</b>:
+    <br>· <b>Simular avería</b>: elige origen y destino, desmarca «funciona» en lo que quieras hacer fallar (uno o varios) y pulsa <b>MARCHA</b>: verás por dónde llega la tensión y qué protección salta y cuándo. Con lo <b>observado en campo</b> pulsa <b>ANALIZAR</b>: marca el punto sospechoso en el recorrido y te da las comprobaciones de campo.
     <br>· <b>Potencia desde CBTH</b>: tensiones desde el cuadro (400 V · 230 V · SAI) hasta las fuentes de 24 V.
     <br>· <b>E/S del PLC 24 V</b>: busca un punto (componente, hilo, borna como X51:20, «seguridad», «bypass»…) y verás su circuito borna a borna y el LED que debe tener.
     <br>· <b>Borneros y mangueras</b>: qué hilo y conductor va en cada borna.</li>
@@ -605,6 +606,7 @@ mods();list();det();
   const b=document.querySelector('#tabs button[data-v="pot"]');if(b){b.hidden=true}}})();</script>
 <script src="texto.js?v=314"></script>
 <script src="borneros-st.js?v=920"></script><script src="visor-zoom.js?v=548"></script><script src="borneros.js?v=920"></script>
+<script src="sim-averia.js?v=970"></script>
 
 <script>(function(){const d=document.getElementById("ins");if(!d)return;try{if(!localStorage.getItem("sim_ins"))d.open=true;d.addEventListener("toggle",()=>{if(!d.open)localStorage.setItem("sim_ins","1")})}catch(e){}
  document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>{d.open=false}))})();</script>
