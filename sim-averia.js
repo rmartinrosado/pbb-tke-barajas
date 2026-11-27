@@ -80,7 +80,7 @@ function simula(F,man){const trip={},ev=[],flags={fog:false};let fase=0;
  return {trip:T,ev,fog:flags.fog,vivo:V}}
 
 /* ---------- estado de la pantalla ---------- */
-const S={caso:"586",org:"red",dst:"k15",F:{},man:{act:true,p291:false,rato:false,mover:false},obs:{trip:{},p291:"",fog:false},res:null,ana:null,anim:0};
+const S={nA:0,nM:0,caso:"586",org:"red",dst:"k15",F:{},man:{act:true,p291:false,rato:false,mover:false},obs:{trip:{},p291:"",fog:false},res:null,ana:null,anim:0};
 function caso586(){S.caso="586";S.org="red";S.dst="k15";S.F={};S.man={act:true,p291:false,rato:false,mover:false};
  S.obs={trip:{q15:2,q151:2},p291:"",fog:true};S.res=null;S.ana=null}
 function ot586(){try{let L=[];try{if(window.parent!==window){const x=window.parent.eval("typeof inc!='undefined'?inc:null");if(Array.isArray(x))L=x}}catch(_){}
@@ -136,7 +136,7 @@ function nodo(id,cls){const n=N[id],f=S.F[id],m=modos(n),r=S.res,a=S.ana;
 function pinta(){const box=$("#sim");if(!box)return;const {r,s}=vista();const ot=ot586();
  const orgs=Object.values(N).filter(n=>n.tipo==="fuente");
  const dsts=Object.values(N).filter(n=>n.tipo!=="ctrl"&&n.tipo!=="fuente"&&sub(S.org).includes(n.id));
- let h=`<div class="sbx scaso"><div class="sh"><b>0</b>Caso</div>
+ let h=`<div class="sbx scaso"><div class="sh"><b>0</b>Caso<button class="gbt" id="s_gui">🧭 Guía paso a paso</button></div>
   <div class="srow"><select id="s_caso"><option value="586" ${S.caso==="586"?"selected":""}>PBB 586 · OT 611200 · E-Q15 y E-Q15.1 saltan al encender (real campo)</option><option value="lib" ${S.caso==="lib"?"selected":""}>Simulación libre</option></select></div>
   ${S.caso==="586"?`<q>${E(ot?ot.desc:"Pasarela no enciende. E-Q15 y E-Q15.1 saltan cuando se enciende la pasarela.")}${ot&&ot.sosAct&&ot.sosAct.ob&&/fogonazo/i.test(ot.sosAct.ob)?"<br>"+E(ot.sosAct.ob.split("\n").slice(1).join(" ")):"<br>· Rearmo los automáticos y cuando se enciende da un fogonazo el E-Q15 y cae."}</q>
   <div class="nota">Cargado como «Observado en campo» (punto 4). Ya probado en campo: los focos y el trafo cuelgan de E-Q15; las luces flash van a 24 V y no influyen.</div>`:""}</div>
@@ -159,7 +159,7 @@ function pinta(){const box=$("#sim");if(!box)return;const {r,s}=vista();const ot
   <label>Con el hilo 291 suelto (prueba del PDF): <select data-p291><option value="" ${!S.obs.p291?"selected":""}>sin hacer</option><option value="no" ${S.obs.p291==="no"?"selected":""}>no salta nada</option><option value="si" ${S.obs.p291==="si"?"selected":""}>sigue saltando</option></select></label>
   <label><input type="checkbox" data-fog ${S.obs.fog?"checked":""}> Fogonazo en E-Q15</label>
   <div class="sbt"><button class="bana" id="s_ana">🔍 ANALIZAR</button></div>${S.ana?anaHTML():""}</div>`;
- box.innerHTML=h}
+ box.innerHTML=h;guiaMarca()}
 function resHTML(){const r=S.res;const o=S.obs.trip,ks=Object.keys(o);
  const coinc=ks.length?ks.every(k=>r.trip[k]&&(+r.trip[k]===+o[k]))&&Object.keys(r.trip).every(k=>o[k]):null;
  let h=`<div class="log">`;r.ev.forEach(e=>{h+=e.cab?`<div class="lc">${E(MOM[e.f]?e.tx:e.tx)}</div>`:`<div class="lt ${/dispara|cae/.test(e.tx)?"r":""}">${E(e.tx)}</div>`});
@@ -214,7 +214,7 @@ function analiza(){const O=S.obs,ks=Object.keys(O.trip);const {r,s}=vista();
 /* ---------- animación de MARCHA ---------- */
 function marcha(){S.ana=null;S.res=null;pinta();const {r,s}=vista();const orden=[...r,...s];const k=++S.anim;let i=0;
  const paso=()=>{if(k!==S.anim)return;const el=document.querySelector(`#sim .nod[data-n="${orden[i]}"]`);if(el){el.classList.add("flow");el.scrollIntoView({block:"nearest",behavior:"smooth"})}
-  if(++i<orden.length)setTimeout(paso,220);else setTimeout(()=>{if(k!==S.anim)return;S.res=simula(S.F,S.man);pinta();const t=document.querySelector("#sim .nod.trip")||document.querySelector("#sim .log");if(t)t.scrollIntoView({block:"center",behavior:"smooth"})},350)};paso()}
+  if(++i<orden.length)setTimeout(paso,220);else setTimeout(()=>{if(k!==S.anim)return;S.res=simula(S.F,S.man);S.nM++;pinta();const t=document.querySelector("#sim .nod.trip")||document.querySelector("#sim .log");if(t)t.scrollIntoView({block:"center",behavior:"smooth"})},350)};paso()}
 
 /* ---------- eventos ---------- */
 document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#sim"))return;
@@ -230,14 +230,62 @@ document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closes
  if(t.hasAttribute("data-fog")){S.obs.fog=t.checked;S.ana=null;pinta();return}});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#sim button");if(!b)return;
  if(b.id==="s_mar")marcha();else if(b.id==="s_lim"){S.F={};S.res=null;pinta()}
- else if(b.id==="s_ana"){analiza();S.res=null;pinta();const h=document.querySelector("#sim .hip.top")||document.querySelector("#sim .obs .ver");if(h)h.scrollIntoView({block:"center",behavior:"smooth"})}});
+ else if(b.id==="s_gui"){guia(0)}
+ else if(b.id==="s_ana"){analiza();S.nA++;S.res=null;pinta();const h=document.querySelector("#sim .hip.top")||document.querySelector("#sim .obs .ver");if(h)h.scrollIntoView({block:"center",behavior:"smooth"})}});
 
+
+/* ---------- v972: GUÍA PASO A PASO (mensajes emergentes) ----------
+   Una ventana fija abajo dice qué hay que tocar, el elemento se marca parpadeando y, al hacerlo, se pasa solo al siguiente paso.
+   Pasos 1-6: del caso hasta ANALIZAR y el resultado. Pasos 7-10 (opcional): comprobar la avería sospechosa con MARCHA. */
+const G={on:false,i:0,b:0};
+const PASOS=[
+ {sel:"#s_caso",t:"Elige el caso",x:()=>"Toca el desplegable de arriba y elige <b>«PBB 586 · OT 611200…»</b> (avería real de campo). Si ya aparece, pulsa <b>Siguiente</b>.",ok:()=>!!S.caso},
+ {sel:"#s_dst",t:"Comprueba el recorrido",x:()=>"<b>Origen</b>: «Acometida 400 V 50 Hz (red)» · <b>Destino</b>: «E-K15 · contactor de focos». Para la 586 no hay que cambiar nada: pulsa <b>Siguiente</b>.",ok:()=>!!S.dst},
+ {sel:"#sim .obs",t:"Marca lo que viste en campo",x:()=>"En <b>4 · Observado en campo</b> marca las protecciones que saltan y elige <b>cuándo</b>. En la 586: <b>E-Q15</b> y <b>E-Q15.1</b> → «al activar la PBB», y <b>Fogonazo en E-Q15</b>.",ok:()=>Object.keys(S.obs.trip).length>0,falta:"Marca al menos una protección que salta."},
+ {sel:"[data-p291]",t:"Prueba del hilo 291",x:()=>"Si ya soltaste el <b>hilo 291 en E-A0 2.4</b> y activaste la PBB, elige el resultado. Si todavía no la has hecho, deja <b>«sin hacer»</b> y pulsa <b>Siguiente</b>.",ok:()=>true},
+ {sel:"#s_ana",t:"Pulsa ANALIZAR",x:()=>"Pulsa el botón naranja <b>🔍 ANALIZAR</b>: el simulador prueba todas las averías posibles y se queda con las que dan lo que has visto.",ok:()=>S.nA>G.b,auto:1},
+ {sel:"#sim .hip.top, #sim .obs .ver",t:"Resultado del análisis",fin:1,x:()=>{const a=S.ana;if(!a||!a.L.length)return "Ninguna avería del recorrido encaja con lo marcado. Revisa el paso 3 (qué salta y cuándo).";
+  const tops=a.top.map(id=>N[id].nm);return `<b>Punto sospechoso</b> (en naranja en el circuito): <b>${E(tops.join(", "))}</b>. Abajo tienes las <b>comprobaciones de campo</b> de cada uno.${a.sig?"<br><b>Siguiente prueba:</b> "+a.sig:""}`}},
+ {sel:"#sim .nod.sos",t:"Simula la avería sospechosa",x:()=>"Opcional, para comprobarla: en el circuito (bloque 2) quita <b>«funciona»</b> al elemento marcado en naranja (por ejemplo <b>C-E7</b>) y elige cómo falla: <b>«Corto franco»</b>.",ok:()=>Object.keys(S.F).length>0,auto:1,falta:"Quita «funciona» en un elemento."},
+ {sel:"[data-man=act]",t:"Prepara la maniobra",x:()=>"En <b>3 · Maniobra</b> deja marcado <b>solo «Activar la PBB»</b>. Lo demás, sin marcar.",ok:()=>S.man.act&&!S.man.p291&&!S.man.rato&&!S.man.mover,falta:"Solo «Activar la PBB» marcado."},
+ {sel:"#s_mar",t:"Pulsa MARCHA",x:()=>"Pulsa <b>▶ MARCHA</b> y mira cómo llega la tensión elemento a elemento y qué protección dispara.",ok:()=>S.nM>G.b,auto:1},
+ {sel:"#sim .man .ver, #sim .man .log",t:"Resultado de la simulación",fin:2,x:()=>{const r=S.res;const ok=r&&Object.keys(S.obs.trip).every(k=>r.trip[k]&&+r.trip[k]===+S.obs.trip[k])&&Object.keys(r.trip).every(k=>S.obs.trip[k]);
+  return (ok?"✅ <b>La avería simulada da lo mismo que en campo.</b>":"✖ <b>La avería simulada no da lo mismo que en campo</b>: prueba con otro elemento o con otra forma de fallo.")+"<br>Para ver qué pasaría en la <b>prueba del hilo 291</b>, marca «hilo 291 suelto» y pulsa MARCHA otra vez."}}];
+const gst=document.createElement("style");gst.textContent=`
+#sim .gbt{margin-left:auto;font:700 13px var(--f-body);padding:7px 10px;border-radius:8px;border:2px solid #f59e0b;background:transparent;color:#f59e0b}
+#sim .gobj{outline:3px solid #f59e0b!important;outline-offset:3px;border-radius:8px;animation:gObj 1.1s ease-in-out infinite}
+@keyframes gObj{0%,100%{outline-color:#f59e0b}50%{outline-color:rgba(245,158,11,.25)}}
+#gpop{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:9999;background:#1f2937;color:#fff;border:2px solid #f59e0b;border-radius:14px;
+ box-shadow:0 10px 30px rgba(0,0,0,.45);padding:10px 12px 8px;font:500 14px/1.35 var(--f-body);max-height:34vh;overflow:auto}
+#gpop .gn{font:800 12px var(--f-mono);letter-spacing:1px;color:#f59e0b}#gpop .gt{font:800 18px var(--f-disp);letter-spacing:.3px;margin:2px 0 4px}
+#gpop .gd{display:flex;gap:4px;margin:2px 0 6px}#gpop .gd i{flex:1;height:4px;border-radius:2px;background:#4b5563}#gpop .gd i.on{background:#f59e0b}
+#gpop .gf{color:#fca5a5;font-size:13px;margin-top:4px}#gpop .gb{display:flex;gap:8px;margin-top:10px}
+#gpop .gb button{flex:1;padding:10px 6px;border-radius:9px;border:0;font:800 14px var(--f-body);cursor:pointer}
+#gpop .gsi{background:#f59e0b;color:#111}#gpop .gsi:disabled{opacity:.4}#gpop .gno{background:#374151;color:#fff;flex:0 0 auto!important;padding:10px 12px!important}`;document.head.appendChild(gst);
+function guia(i){const P=PASOS[i];const ins=document.getElementById("ins");if(ins)ins.open=false;G.on=true;G.i=i;G.pend=false;G.b=P&&P.sel==="#s_mar"?S.nM:S.nA;guiaMarca(true)}
+function guiaFin(){G.on=false;const p=document.getElementById("gpop");if(p)p.remove();document.querySelectorAll("#sim .gobj").forEach(x=>x.classList.remove("gobj"))}
+function guiaMarca(mover){if(!G.on)return;const P=PASOS[G.i];if(!P)return guiaFin();
+ if(P.auto&&P.ok()&&!G.pend){G.pend=true;const yo=G.i;setTimeout(()=>{if(G.on&&G.i===yo)guia(yo+1)},P.sel==="#s_ana"||P.sel==="#s_mar"?150:500)}
+ document.querySelectorAll("#sim .gobj").forEach(x=>x.classList.remove("gobj"));
+ const els=[...document.querySelectorAll(P.sel)].map(x=>x.tagName==="INPUT"||x.tagName==="SELECT"?(x.closest("label")||x):x);
+ els.forEach(x=>x.classList.add("gobj"));if(mover&&els[0])setTimeout(()=>{els[0].scrollIntoView({block:"start"});const sc=document.getElementById("scr");if(sc&&sc.contains(els[0]))sc.scrollTop=Math.max(0,sc.scrollTop-24)},60);
+ let p=document.getElementById("gpop");if(!p){p=document.createElement("div");p.id="gpop";document.body.appendChild(p)}
+ const tot=6,n=G.i<6?G.i+1:G.i-5,de=G.i<6?tot:4,ok=P.ok?P.ok():true;
+ const pre=G.i<6?"":"COMPROBAR CON MARCHA · ";
+ p.innerHTML=`<div class="gn">${pre}PASO ${n} DE ${de}</div><div class="gd">${Array.from({length:de},(_,k)=>`<i class="${k<n?"on":""}"></i>`).join("")}</div><div class="gt">${E(P.t)}</div><div>${P.x()}</div>
+  ${!ok&&P.falta?`<div class="gf">Falta: ${E(P.falta)}</div>`:""}
+  <div class="gb">${G.i>0&&G.i!==6?`<button class="gno" data-g="atr">◀</button>`:""}
+  ${P.fin===1?`<button class="gsi" data-g="mar">Comprobar con MARCHA</button><button class="gno" data-g="fin">Terminar</button>`:P.fin===2?`<button class="gsi" data-g="fin">Terminar guía</button>`:P.auto?`<button class="gno" data-g="fin">Cerrar guía</button>`:`<button class="gsi" data-g="sig" ${ok?"":"disabled"}>Siguiente ▶</button><button class="gno" data-g="fin">✕</button>`}</div>`}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#gpop button");if(!b)return;const a=b.dataset.g;
+ if(a==="sig")guia(G.i+1);else if(a==="atr")guia(G.i===7?6:G.i-1);else if(a==="mar")guia(6);else if(a==="fin")guiaFin()});
+/* el paso 3 (observado) se refresca al marcar; la guía arranca sola la primera vez que se abre la simulación */
+let gAuto=false;
 /* ---------- pestaña nueva, la primera ---------- */
 const tabs=$("#tabs"),scr=$("#scr");if(!tabs||!scr)return;
 const bt=document.createElement("button");bt.dataset.v="sim";bt.innerHTML="Simular avería<small>Configura · MARCHA · ANALIZAR</small>";tabs.prepend(bt);
 const sec=document.createElement("section");sec.className="box";sec.id="sim";sec.hidden=true;scr.prepend(sec);
 caso586();
-const ps=window.pshow||pshow;window.pshow=pshow=function(){const r=ps.apply(this,arguments);const on=pview==="sim";sec.hidden=!on;bt.classList.toggle("sel",on);if(on){["#pot","#es","#bor"].forEach(s=>{const x=$(s);if(x)x.hidden=true});pinta()}return r};
+const ps=window.pshow||pshow;window.pshow=pshow=function(){const r=ps.apply(this,arguments);const on=pview==="sim";sec.hidden=!on;bt.classList.toggle("sel",on);if(on){["#pot","#es","#bor"].forEach(s=>{const x=$(s);if(x)x.hidden=true});pinta();if(!gAuto){gAuto=true;setTimeout(()=>guia(0),500)}}else guiaFin();return r};
 /* entrar directo en la simulación cuando se abre el simulador */
 if(!pview){pview="sim";pshow()}
 window.simAveria={N,simula,S,analiza};
