@@ -80,14 +80,18 @@ function simula(F,man){const trip={},ev=[],flags={fog:false};let fase=0;
  return {trip:T,ev,fog:flags.fog,vivo:V}}
 
 /* ---------- estado de la pantalla ---------- */
-const S={nA:0,nM:0,caso:"586",org:"red",dst:"k15",F:{},man:{act:true,p291:false,rato:false,mover:false},obs:{trip:{},p291:"",fog:false},res:null,ana:null,anim:0};
-function caso586(){S.caso="586";S.org="red";S.dst="k15";S.F={};S.man={act:true,p291:false,rato:false,mover:false};
+const S={nA:0,nM:0,caso:"586",org:"red",dst:"auto",F:{},man:{act:true,p291:false,rato:false,mover:false},obs:{trip:{},p291:"",fog:false},res:null,ana:null,anim:0};
+function caso586(){S.caso="586";S.org="red";S.dst="auto";S.F={};S.man={act:true,p291:false,rato:false,mover:false};
  S.obs={trip:{q15:2,q151:2},p291:"",fog:true};S.res=null;S.ana=null}
 function ot586(){try{let L=[];try{if(window.parent!==window){const x=window.parent.eval("typeof inc!='undefined'?inc:null");if(Array.isArray(x))L=x}}catch(_){}
  if(!L.length)L=JSON.parse(localStorage.getItem("pbb_inc")||"[]");return L.find(o=>o&&String(o.orden)==="611200")||L.find(o=>o&&String(o.pos)==="586"&&o.estado==="abierta")||null}catch(e){return null}}
-const ruta=()=>{const a=anc(S.dst).reverse().filter(x=>sub(S.org).includes(x));return [...a,S.dst]};
-const vista=()=>{const r=ruta();const s=sub(S.dst).slice(1);return {r,s}};
-const protsVista=()=>{const {r,s}=vista();return [...r,...s].filter(id=>N[id].tipo==="prot")};
+/* v974: DESTINO AUTOMÁTICO · en una avería no se sabe dónde está: el recorrido llega hasta la protección MÁS ALTA que salta
+   (la más cercana al origen) y se analiza todo lo que cuelga de ella. Solo se elige un destino si se sabe qué elemento no funciona. */
+const dstEf=()=>{if(S.dst!=="auto")return S.dst;const so=sub(S.org);const ks=Object.keys(S.obs.trip).filter(k=>so.includes(k));
+ return ks.length?ks.sort((a,b)=>anc(a).length-anc(b).length)[0]:null};
+const ruta=d=>{const a=anc(d).reverse().filter(x=>sub(S.org).includes(x));return [...a,d]};
+const vista=()=>{const d=dstEf();if(!d)return {r:[],s:[],d:null};return {r:ruta(d),s:sub(d).slice(1),d}};
+const protsVista=()=>{if(S.dst==="auto")return sub(S.org).filter(id=>N[id].tipo==="prot");const {r,s}=vista();return [...r,...s].filter(id=>N[id].tipo==="prot")};
 
 /* ---------- pintado ---------- */
 const st=document.createElement("style");st.textContent=`
@@ -126,39 +130,43 @@ const st=document.createElement("style");st.textContent=`
 document.head.appendChild(st);
 
 const UL={"400":"400 V","230":"230 V","24ac":"24 V~","24dc":"24 V="};
-function nodo(id,cls){const n=N[id],f=S.F[id],m=modos(n),r=S.res,a=S.ana;
+function nodo(id,cls,ml){const n=N[id],f=S.F[id],m=modos(n),r=S.res,a=S.ana;
  let est="";if(r&&n.tipo!=="ctrl"){if(r.trip[id])est=`<span class="est t">DISPARADO ${E(MOM[r.trip[id]])}</span>`;else est=r.vivo[id]?`<span class="est v">CON TENSIÓN</span>`:`<span class="est m">SIN TENSIÓN</span>`}
  const sos=a&&a.top.includes(id);if(sos)est+=` <span class="est s">PUNTO SOSPECHOSO</span>`;
  const c=[cls||"",f?"fal":"",r&&n.tipo!=="ctrl"?(r.trip[id]?"trip":r.vivo[id]?"vivo":"muerto"):"",sos?"sos":""].join(" ");
- return `<div class="nod ${c}" data-n="${id}"><div class="ntop"><div><div class="nnm">${E(n.nm)} ${n.u?`<span class="nu">${UL[n.u]||""}</span>`:""}</div><div class="ntx">${E(n.t||"")}${n.d?" · "+E(n.d):""}${n.f?" · folio "+n.f:""}</div>${est}</div>
+ return `<div class="nod ${c}" data-n="${id}"${ml?` style="margin-left:${ml+14}px"`:""}><div class="ntop"><div><div class="nnm">${E(n.nm)} ${n.u?`<span class="nu">${UL[n.u]||""}</span>`:""}</div><div class="ntx">${E(n.t||"")}${n.d?" · "+E(n.d):""}${n.f?" · folio "+n.f:""}</div>${est}</div>
   ${Object.keys(m).length?`<label class="nck"><input type="checkbox" data-ok="${id}" ${f?"":"checked"}> funciona</label>`:""}</div>
   ${f?`<select data-mo="${id}">${Object.entries(m).map(([k,v])=>`<option value="${k}" ${k===f?"selected":""}>${E(v)}</option>`).join("")}</select>`:""}</div>`}
-function pinta(){const box=$("#sim");if(!box)return;const {r,s}=vista();const ot=ot586();
+function pinta(){const box=$("#sim");if(!box)return;const {r,s,d}=vista();const ot=ot586();
  const orgs=Object.values(N).filter(n=>n.tipo==="fuente");
  const dsts=Object.values(N).filter(n=>n.tipo!=="ctrl"&&n.tipo!=="fuente"&&sub(S.org).includes(n.id));
+ const obsH=protsVista().map(id=>{const pr=anc(id).filter(a=>N[a].tipo==="prot").length;return `<label style="padding-left:${Math.min(pr,4)*12}px"><input type="checkbox" data-ob="${id}" ${S.obs.trip[id]?"checked":""}> <b>${E(N[id].nm)}</b>&nbsp;salta <span class="ntx">${E((N[id].t||"").replace(/^\+\S+\s*/,"").slice(0,34))}</span> ${S.obs.trip[id]?`<select data-obm="${id}">${[1,2,3,4].map(k=>`<option value="${k}" ${+S.obs.trip[id]===k?"selected":""}>${MOM[k]}</option>`).join("")}</select>`:""}</label>`}).join("");
  let h=`<div class="sbx scaso"><div class="sh"><b>0</b>Caso<button class="gbt" id="s_gui">🧭 Guía paso a paso</button></div>
   <div class="srow"><select id="s_caso"><option value="586" ${S.caso==="586"?"selected":""}>PBB 586 · OT 611200 · E-Q15 y E-Q15.1 saltan al encender (real campo)</option><option value="lib" ${S.caso==="lib"?"selected":""}>Simulación libre</option></select></div>
   ${S.caso==="586"?`<q>${E(ot?ot.desc:"Pasarela no enciende. E-Q15 y E-Q15.1 saltan cuando se enciende la pasarela.")}${ot&&ot.sosAct&&ot.sosAct.ob&&/fogonazo/i.test(ot.sosAct.ob)?"<br>"+E(ot.sosAct.ob.split("\n").slice(1).join(" ")):"<br>· Rearmo los automáticos y cuando se enciende da un fogonazo el E-Q15 y cae."}</q>
-  <div class="nota">Cargado como «Observado en campo» (punto 4). Ya probado en campo: los focos y el trafo cuelgan de E-Q15; las luces flash van a 24 V y no influyen.</div>`:""}</div>
- <div class="sbx"><div class="sh"><b>1</b>Recorrido</div>
+  <div class="nota">Ya cargado en «1 · Observado en campo».</div>`:""}</div>
+ <div class="sbx obs"><div class="sh"><b>1</b>Observado en campo</div><div class="nota" style="margin:-2px 0 6px">Marca las protecciones que saltan y cuándo.</div>
+  ${obsH}
+  <label>Con el hilo 291 suelto (prueba del PDF): <select data-p291><option value="" ${!S.obs.p291?"selected":""}>sin hacer</option><option value="no" ${S.obs.p291==="no"?"selected":""}>no salta nada</option><option value="si" ${S.obs.p291==="si"?"selected":""}>sigue saltando</option></select></label>
+  <label><input type="checkbox" data-fog ${S.obs.fog?"checked":""}> Fogonazo en E-Q15</label></div>
+ <div class="sbx"><div class="sh"><b>2</b>Recorrido</div>
   <div class="srow"><label>Origen</label><select id="s_org">${orgs.map(n=>`<option value="${n.id}" ${n.id===S.org?"selected":""}>${E(n.t)}</option>`).join("")}</select></div>
-  <div class="srow"><label>Destino</label><select id="s_dst">${dsts.map(n=>`<option value="${n.id}" ${n.id===S.dst?"selected":""}>${E(n.nm)} · ${E((n.t||"").replace(/^\+\S+\s*/,"").slice(0,60))}</option>`).join("")}</select></div>
-  <div class="nota">Desmarca «funciona» en los elementos que quieras hacer fallar (puedes marcar varios) y elige cómo fallan.</div></div>
- <div class="sbx"><div class="sh"><b>2</b>Circuito · activos y averiados</div>`;
+  <div class="srow"><label>Hasta</label><select id="s_dst"><option value="auto" ${S.dst==="auto"?"selected":""}>🔎 Automático · según lo que salta (recomendado)</option>${dsts.map(n=>`<option value="${n.id}" ${n.id===S.dst?"selected":""}>${E(n.nm)} · ${E((n.t||"").replace(/^\+\S+\s*/,"").slice(0,60))}</option>`).join("")}</select></div>
+  <div class="nota">${S.dst==="auto"?(d?`Trazado solo hasta <b>${E(N[d].nm)}</b>, la protección más alta que salta: se analiza todo lo que cuelga de ella (${s.length} elementos).`:"Marca en el bloque 1 qué protección salta y el recorrido se traza solo."):"Destino elegido a mano: úsalo solo si sabes qué elemento no funciona."}</div></div>
+ <div class="sbx"><div class="sh"><b>3</b>Circuito · activos y averiados</div>`;
+ if(!d)h+=`<div class="nota">Sin recorrido todavía: marca en el bloque 1 qué salta (o elige «Hasta» en el bloque 2).</div>`;
  r.forEach((id,i)=>{h+=(i?`<div class="lnk"></div>`:"")+nodo(id);if(CTRL[id])h+=`<div class="ctl"><div class="ctlh">Mando de ${E(N[id].nm)}</div>${CTRL[id].map(c=>nodo(c.id)).join("")}</div>`});
- if(s.length){h+=`<div class="lnk"></div>`;s.forEach(id=>{const d=anc(id).indexOf(S.dst);h+=nodo(id,d<=0?"sub":"sub2");if(CTRL[id])h+=`<div class="ctl">${CTRL[id].map(c=>nodo(c.id)).join("")}</div>`})}
- h+=`</div><div class="sbx man"><div class="sh"><b>3</b>Maniobra</div>
+ if(s.length){h+=`<div class="lnk"></div>`;s.forEach(id=>{const k=anc(id).indexOf(d);h+=nodo(id,"",14+Math.min(k,4)*14);if(CTRL[id])h+=`<div class="ctl">${CTRL[id].map(c=>nodo(c.id)).join("")}</div>`})}
+ h+=`</div><div class="sbx ana"><div class="sh"><b>4</b>Analizar</div><div class="nota" style="margin:-2px 0 4px">Busca en el recorrido las averías que dan lo observado y marca el punto sospechoso.</div>
+  <div class="sbt"><button class="bana" id="s_ana">🔍 ANALIZAR</button></div>${S.ana?anaHTML():""}</div>
+ <div class="sbx man"><div class="sh"><b>5</b>Comprobar con MARCHA <small class="ntx">(opcional)</small></div>
+  <div class="nota" style="margin:-2px 0 4px">Haz fallar uno o varios elementos en el bloque 3 (quita «funciona») y simula la maniobra.</div>
   <label><input type="checkbox" data-man="act" ${S.man.act?"checked":""}> Activar la PBB (el PLC da la orden de iluminación exterior → E-K15)</label>
   <label><input type="checkbox" data-man="p291" ${S.man.p291?"checked":""}> Prueba: hilo 291 suelto en E-A0 2.4 (E-K15 sin orden)</label>
   <label><input type="checkbox" data-man="rato" ${S.man.rato?"checked":""}> Dejar en servicio un rato</label>
   <label><input type="checkbox" data-man="mover" ${S.man.mover?"checked":""}> Mover la pasarela (telescopar / girar cabina)</label>
   <div class="sbt"><button class="bmar" id="s_mar">▶ MARCHA</button><button class="bsec" id="s_lim">Todo funciona</button></div>
-  ${S.res?resHTML():""}</div>
- <div class="sbx obs"><div class="sh"><b>4</b>Observado en campo</div>
-  ${protsVista().map(id=>`<label><input type="checkbox" data-ob="${id}" ${S.obs.trip[id]?"checked":""}> ${E(N[id].nm)} salta ${S.obs.trip[id]?`<select data-obm="${id}">${[1,2,3,4].map(k=>`<option value="${k}" ${+S.obs.trip[id]===k?"selected":""}>${MOM[k]}</option>`).join("")}</select>`:""}</label>`).join("")}
-  <label>Con el hilo 291 suelto (prueba del PDF): <select data-p291><option value="" ${!S.obs.p291?"selected":""}>sin hacer</option><option value="no" ${S.obs.p291==="no"?"selected":""}>no salta nada</option><option value="si" ${S.obs.p291==="si"?"selected":""}>sigue saltando</option></select></label>
-  <label><input type="checkbox" data-fog ${S.obs.fog?"checked":""}> Fogonazo en E-Q15</label>
-  <div class="sbt"><button class="bana" id="s_ana">🔍 ANALIZAR</button></div>${S.ana?anaHTML():""}</div>`;
+  ${S.res?resHTML():""}</div>`;
  box.innerHTML=h;guiaMarca()}
 function resHTML(){const r=S.res;const o=S.obs.trip,ks=Object.keys(o);
  const coinc=ks.length?ks.every(k=>r.trip[k]&&(+r.trip[k]===+o[k]))&&Object.keys(r.trip).every(k=>o[k]):null;
@@ -172,7 +180,7 @@ function resHTML(){const r=S.res;const o=S.obs.trip,ks=Object.keys(o);
  if(S.man.p291){if(S.obs.p291)h+=`<div class="ver ${(S.obs.p291==="si")===salta?"ok":"no"}">${(S.obs.p291==="si")===salta?"✅ Coincide con tu prueba del hilo 291 en campo":"✖ No coincide con tu prueba del hilo 291 en campo"}</div>`;
   else h+=`<div class="ver" style="background:var(--deadBg)">🔎 Así debería quedar la prueba del hilo 291 con esta avería: ${salta?"seguiría saltando":"no salta nada"}. Cuando la hagas en campo, márcala en el bloque 4.</div>`}
  else if(S.man.act&&coinc!==null)h+=`<div class="ver ${coinc?"ok":"no"}">${coinc?"✅ Tu simulación da los mismos síntomas que lo observado en campo":"✖ Tu simulación NO da lo observado en campo"}</div>`;return h}
-function anaHTML(){const a=S.ana;if(!a.L.length)return `<div class="ver no">Ninguna avería del recorrido da exactamente esos síntomas. Revisa lo marcado en «Observado» o amplía el destino.</div>`;
+function anaHTML(){const a=S.ana;if(a.sin)return `<div class="ver no">Marca primero en el bloque 1 qué protección salta.</div>`;if(!a.L.length)return `<div class="ver no">Ninguna avería del recorrido da exactamente esos síntomas. Revisa lo marcado en «Observado» o amplía el destino.</div>`;
  const tot=a.L.reduce((s,x)=>s+x.w,0);
  let h=`<div class="ver ok">${a.L.length} avería${a.L.length>1?"s":""} posible${a.L.length>1?"s":""} con esos síntomas · marcadas en el recorrido</div>`;
  const vis={};a.G.slice(0,8).forEach((g,i)=>{const n=N[g.id],k=n.tipo+(n.foco?"f":"")+g.modos.join();const ya=vis[k];if(!ya)vis[k]=i+1;
@@ -194,7 +202,7 @@ function chk(id,m){const n=N[id],cons="Con E-Q15.1 abierto y el circuito consign
  return [`Mide ${UL[n.u]||""} en ${E(n.nm)} y compáralo con el valor esperado.`]}
 
 /* ---------- análisis por hipótesis ---------- */
-function analiza(){const O=S.obs,ks=Object.keys(O.trip);const {r,s}=vista();
+function analiza(){const O=S.obs,ks=Object.keys(O.trip);const {r,s,d}=vista();if(!d){S.ana={L:[],G:[],top:[],sig:"",sin:1};return}
  const cand=[...r,...s,...Object.values(CTRL).flat().map(c=>c.id).filter(c=>[...r,...s].includes(N[c].de))].filter(id=>N[id].tipo!=="fuente");
  const iguales=R=>{const T=R.trip;if(!ks.every(k=>T[k]&&+T[k]===+O.trip[k]))return false;if(Object.keys(T).some(k=>!O.trip[k]))return false;if(O.fog&&!R.fog)return false;return true};
  const man={act:true,p291:false,rato:ks.some(k=>+O.trip[k]===3),mover:ks.some(k=>+O.trip[k]===4)};
@@ -218,13 +226,13 @@ function marcha(){S.ana=null;S.res=null;pinta();const {r,s}=vista();const orden=
 
 /* ---------- eventos ---------- */
 document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#sim"))return;
- if(t.id==="s_caso"){if(t.value==="586")caso586();else{S.caso="lib";S.obs={trip:{},p291:"",fog:false};S.res=null;S.ana=null}pinta();return}
- if(t.id==="s_org"){S.org=t.value;if(!sub(S.org).includes(S.dst))S.dst=(HIJ[S.org]||[S.org])[0];S.res=S.ana=null;pinta();return}
+ if(t.id==="s_caso"){if(t.value==="586")caso586();else{S.caso="lib";S.dst="auto";S.F={};S.obs={trip:{},p291:"",fog:false};S.res=null;S.ana=null}pinta();return}
+ if(t.id==="s_org"){S.org=t.value;if(S.dst!=="auto"&&!sub(S.org).includes(S.dst))S.dst="auto";S.res=S.ana=null;pinta();return}
  if(t.id==="s_dst"){S.dst=t.value;S.res=S.ana=null;pinta();return}
  if(t.dataset.ok){const id=t.dataset.ok;if(t.checked)delete S.F[id];else S.F[id]=Object.keys(modos(N[id]))[N[id].foco||N[id].tipo==="cond"?1:0]||Object.keys(modos(N[id]))[0];S.res=null;pinta();return}
  if(t.dataset.mo){S.F[t.dataset.mo]=t.value;S.res=null;pinta();return}
  if(t.dataset.man){S.man[t.dataset.man]=t.checked;S.res=null;pinta();return}
- if(t.dataset.ob){if(t.checked)S.obs.trip[t.dataset.ob]=2;else delete S.obs.trip[t.dataset.ob];S.ana=null;pinta();return}
+ if(t.dataset.ob){if(t.checked)S.obs.trip[t.dataset.ob]=2;else delete S.obs.trip[t.dataset.ob];S.ana=null;S.res=null;pinta();return}
  if(t.dataset.obm){S.obs.trip[t.dataset.obm]=+t.value;S.ana=null;pinta();return}
  if(t.hasAttribute("data-p291")){S.obs.p291=t.value;S.ana=null;pinta();return}
  if(t.hasAttribute("data-fog")){S.obs.fog=t.checked;S.ana=null;pinta();return}});
@@ -239,15 +247,15 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
    Pasos 1-6: del caso hasta ANALIZAR y el resultado. Pasos 7-10 (opcional): comprobar la avería sospechosa con MARCHA. */
 const G={on:false,i:0,b:0};
 const PASOS=[
- {sel:"#s_caso",t:"Elige el caso",x:()=>"Toca el desplegable de arriba y elige <b>«PBB 586 · OT 611200…»</b> (avería real de campo). Si ya aparece, pulsa <b>Siguiente</b>.",ok:()=>!!S.caso},
- {sel:"#s_dst",t:"Comprueba el recorrido",x:()=>"<b>Origen</b>: «Acometida 400 V 50 Hz (red)» · <b>Destino</b>: «E-K15 · contactor de focos». Para la 586 no hay que cambiar nada: pulsa <b>Siguiente</b>.",ok:()=>!!S.dst},
- {sel:"#sim .obs",t:"Marca lo que viste en campo",x:()=>"En <b>4 · Observado en campo</b> marca las protecciones que saltan y elige <b>cuándo</b>. En la 586: <b>E-Q15</b> y <b>E-Q15.1</b> → «al activar la PBB», y <b>Fogonazo en E-Q15</b>.",ok:()=>Object.keys(S.obs.trip).length>0,falta:"Marca al menos una protección que salta."},
- {sel:"[data-p291]",t:"Prueba del hilo 291",x:()=>"Si ya soltaste el <b>hilo 291 en E-A0 2.4</b> y activaste la PBB, elige el resultado. Si todavía no la has hecho, deja <b>«sin hacer»</b> y pulsa <b>Siguiente</b>.",ok:()=>true},
+ {sel:"#s_caso",t:"Elige el caso",x:()=>"Toca el desplegable y elige <b>«PBB 586 · OT 611200…»</b> (avería real de campo) o <b>«Simulación libre»</b> para una avería nueva. Si ya aparece el que quieres, pulsa <b>Siguiente</b>.",ok:()=>!!S.caso},
+ {sel:"#sim .obs",t:"Marca lo que viste en campo",x:()=>"En <b>1 · Observado en campo</b> marca las protecciones que <b>saltan</b> y elige <b>cuándo</b>. En la 586: <b>E-Q15</b> y <b>E-Q15.1</b> → «al activar la PBB», y <b>Fogonazo en E-Q15</b>.",ok:()=>Object.keys(S.obs.trip).length>0,falta:"Marca al menos una protección que salta."},
+ {sel:"[data-p291]",t:"Prueba del hilo 291",x:()=>"Si ya soltaste el <b>hilo 291 en E-A0 2.4</b> y activaste la PBB, elige el resultado. Si no la has hecho, deja <b>«sin hacer»</b> y pulsa <b>Siguiente</b>.",ok:()=>true},
+ {sel:"#s_dst",t:"Recorrido automático",x:()=>{const d=dstEf();return `<b>No hace falta saber dónde está la avería.</b> Deja «Hasta» en <b>🔎 Automático</b>: el recorrido se traza solo hasta la protección más alta que salta${d?` (<b>${E(N[d].nm)}</b>)`:""} y se analiza todo lo que cuelga de ella. Pulsa <b>Siguiente</b>.`},ok:()=>!!dstEf(),falta:"Marca en el bloque 1 qué protección salta."},
  {sel:"#s_ana",t:"Pulsa ANALIZAR",x:()=>"Pulsa el botón naranja <b>🔍 ANALIZAR</b>: el simulador prueba todas las averías posibles y se queda con las que dan lo que has visto.",ok:()=>S.nA>G.b,auto:1},
- {sel:"#sim .hip.top, #sim .obs .ver",t:"Resultado del análisis",fin:1,x:()=>{const a=S.ana;if(!a||!a.L.length)return "Ninguna avería del recorrido encaja con lo marcado. Revisa el paso 3 (qué salta y cuándo).";
-  const tops=a.top.map(id=>N[id].nm);return `<b>Punto sospechoso</b> (en naranja en el circuito): <b>${E(tops.join(", "))}</b>. Abajo tienes las <b>comprobaciones de campo</b> de cada uno.${a.sig?"<br><b>Siguiente prueba:</b> "+a.sig:""}`}},
- {sel:"#sim .nod.sos",t:"Simula la avería sospechosa",x:()=>"Opcional, para comprobarla: en el circuito (bloque 2) quita <b>«funciona»</b> al elemento marcado en naranja (por ejemplo <b>C-E7</b>) y elige cómo falla: <b>«Corto franco»</b>.",ok:()=>Object.keys(S.F).length>0,auto:1,falta:"Quita «funciona» en un elemento."},
- {sel:"[data-man=act]",t:"Prepara la maniobra",x:()=>"En <b>3 · Maniobra</b> deja marcado <b>solo «Activar la PBB»</b>. Lo demás, sin marcar.",ok:()=>S.man.act&&!S.man.p291&&!S.man.rato&&!S.man.mover,falta:"Solo «Activar la PBB» marcado."},
+ {sel:"#sim .hip.top, #sim .ana .ver",t:"Resultado del análisis",fin:1,x:()=>{const a=S.ana;if(!a||!a.L.length)return "Ninguna avería del recorrido encaja con lo marcado. Revisa el paso 3 (qué salta y cuándo).";
+  const tops=a.top.map(id=>N[id].nm);return `<b>Punto sospechoso</b> (en naranja en el circuito, bloque 3): <b>${E(tops.join(", "))}</b>. Abajo tienes las <b>comprobaciones de campo</b> de cada uno.${a.sig?"<br><b>Siguiente prueba:</b> "+a.sig:""}`}},
+ {sel:"#sim .nod.sos",t:"Simula la avería sospechosa",x:()=>"Opcional, para comprobarla: en el circuito (bloque 3) quita <b>«funciona»</b> al elemento marcado en naranja (por ejemplo <b>C-E7</b>) y elige cómo falla: <b>«Corto franco»</b>.",ok:()=>Object.keys(S.F).length>0,auto:1,falta:"Quita «funciona» en un elemento."},
+ {sel:"[data-man=act]",t:"Prepara la maniobra",x:()=>"En <b>5 · Comprobar con MARCHA</b> deja marcado <b>solo «Activar la PBB»</b>. Lo demás, sin marcar.",ok:()=>S.man.act&&!S.man.p291&&!S.man.rato&&!S.man.mover,falta:"Solo «Activar la PBB» marcado."},
  {sel:"#s_mar",t:"Pulsa MARCHA",x:()=>"Pulsa <b>▶ MARCHA</b> y mira cómo llega la tensión elemento a elemento y qué protección dispara.",ok:()=>S.nM>G.b,auto:1},
  {sel:"#sim .man .ver, #sim .man .log",t:"Resultado de la simulación",fin:2,x:()=>{const r=S.res;const ok=r&&Object.keys(S.obs.trip).every(k=>r.trip[k]&&+r.trip[k]===+S.obs.trip[k])&&Object.keys(r.trip).every(k=>S.obs.trip[k]);
   return (ok?"✅ <b>La avería simulada da lo mismo que en campo.</b>":"✖ <b>La avería simulada no da lo mismo que en campo</b>: prueba con otro elemento o con otra forma de fallo.")+"<br>Para ver qué pasaría en la <b>prueba del hilo 291</b>, marca «hilo 291 suelto» y pulsa MARCHA otra vez."}}];

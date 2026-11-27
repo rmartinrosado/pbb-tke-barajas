@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <script>/* v394: versión de esta página + comprobación inmediata con version.json (sin caché) ANTES de mostrar nada.
  Si GitHub ya tiene una versión más nueva, se recarga al momento detrás de la pantalla de carga: nunca se ve una versión anterior. */
-window.__APPV=973;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
+window.__APPV=974;window.__vOK=new Promise(res=>{let hecho=false;const fin=v=>{if(!hecho){hecho=true;res(v)}};
  try{const sp=new URLSearchParams(location.search);const yaTry=+(sessionStorage.getItem("pbb_vtry")||0);
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{const v=j?parseInt(String(j.v).replace(/\D/g,""),10):0;
    if(v>window.__APPV&&yaTry!==v){try{sessionStorage.setItem("pbb_vtry",String(v))}catch(e){}
@@ -3908,7 +3908,7 @@ const POS_PROPIO=["504","507","508"];
 /* v394: aquí había una comprobación que descargaba el index.html completo (~800 kB) en cada arranque y recargaba la página; la sustituye la comprobación de version.json al inicio del <head>. */
 </script>
 <script src="docs-claude.js?v=7"></script>
-<script src="simulador.js?v=973"></script>
+<script src="simulador.js?v=974"></script>
 <script src="pbb507.js?v=491"></script>
 <script src="cableado507.js?v=325"></script>
 <script src="cab507.js?v=325"></script>
