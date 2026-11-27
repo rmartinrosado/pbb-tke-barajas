@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<style>/* v973: misma letra en vertical y en horizontal (el iPhone la agrandaba al girar) */html,body{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important;overflow-x:hidden}</style>
 <meta name="theme-color" content="#0b6e99">
 <title>Simulador CHECK</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -606,7 +607,7 @@ mods();list();det();
   const b=document.querySelector('#tabs button[data-v="pot"]');if(b){b.hidden=true}}})();</script>
 <script src="texto.js?v=314"></script>
 <script src="borneros-st.js?v=920"></script><script src="visor-zoom.js?v=548"></script><script src="borneros.js?v=920"></script>
-<script src="sim-averia.js?v=972"></script>
+<script src="sim-averia.js?v=972"></script><script src="giro.js?v=973"></script>
 
 <script>(function(){const d=document.getElementById("ins");if(!d)return;try{if(!localStorage.getItem("sim_ins"))d.open=true;d.addEventListener("toggle",()=>{if(!d.open)localStorage.setItem("sim_ins","1")})}catch(e){}
  document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>{d.open=false}))})();</script>

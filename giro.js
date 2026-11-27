@@ -15,5 +15,11 @@ const flot=(w0,h0)=>{const w=innerWidth,h=innerHeight,S=58,MG=10;FL.forEach(id=>
  const nx=Math.max(MG,Math.min(w-S-MG,Math.round(x*w/w0))),ny=Math.max(MG+40,Math.min(h-S-MG-70,Math.round(y*h/h0)));el.style.left=nx+"px";el.style.top=ny+"px"})};
 const gira=()=>{{const ae=document.activeElement;if(ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)&&Math.abs(innerWidth-W)<60)return}const w0=W,h0=H;const w=innerWidth,h=innerHeight;if(Math.abs(w-w0)<60&&Math.abs(h-h0)<120)return;W=w;H=h;
  setTimeout(()=>{flot(w0,h0)},60);[120,400,900].forEach(t=>setTimeout(()=>{cab();vista();try{dispatchEvent(new Event("scroll"))}catch(_){}},t))};
-addEventListener("resize",gira);addEventListener("orientationchange",()=>setTimeout(gira,250));
+/* v973: al volver a vertical el iPhone podía quedarse con zoom o desplazado a un lado (la PWA descentrada y la letra más grande):
+   se fuerza a releer el viewport (escala 1) y se quita cualquier desplazamiento horizontal */
+const recentra=()=>{try{const ae=document.activeElement;if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return;
+ if(Math.abs(innerWidth-(recentra.w||0))<60){recentra.w=innerWidth;return}recentra.w=innerWidth;const m=document.querySelector('meta[name="viewport"]');if(m){const c=m.content;m.content=c.replace(/initial-scale=[\d.]+/,"initial-scale=1.0001");setTimeout(()=>{m.content=c},60)}
+ if(window.scrollX)window.scrollTo(0,window.scrollY);document.documentElement.scrollLeft=0;document.body.scrollLeft=0;
+ document.querySelectorAll("#app,#scr,.wrap").forEach(e=>{if(e.scrollLeft)e.scrollLeft=0})}catch(_){}};
+recentra.w=innerWidth;addEventListener("resize",()=>{gira();clearTimeout(recentra.t);recentra.t=setTimeout(recentra,350)});addEventListener("orientationchange",()=>setTimeout(recentra,450));addEventListener("orientationchange",()=>setTimeout(gira,250));
 })();
