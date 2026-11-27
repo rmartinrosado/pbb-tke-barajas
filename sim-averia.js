@@ -164,7 +164,14 @@ function resHTML(){const r=S.res;const o=S.obs.trip,ks=Object.keys(o);
  const coinc=ks.length?ks.every(k=>r.trip[k]&&(+r.trip[k]===+o[k]))&&Object.keys(r.trip).every(k=>o[k]):null;
  let h=`<div class="log">`;r.ev.forEach(e=>{h+=e.cab?`<div class="lc">${E(MOM[e.f]?e.tx:e.tx)}</div>`:`<div class="lt ${/dispara|cae/.test(e.tx)?"r":""}">${E(e.tx)}</div>`});
  if(!Object.keys(r.trip).length)h+=`<div class="lt">No dispara ninguna protección.</div>`;h+=`</div>`;
- if(coinc!==null)h+=`<div class="ver ${coinc?"ok":"no"}">${coinc?"✅ Tu simulación da los mismos síntomas que lo observado en campo":"✖ Tu simulación NO da lo observado en campo"}</div>`;return h}
+ /* v971: avisos de configuración y comparación solo cuando la maniobra es la misma que en campo */
+ const nF=Object.keys(S.F).length;
+ if(!nF)h+=`<div class="nota">ℹ️ No has marcado ninguna avería en el bloque 2: el circuito está sano y por eso no salta nada. Quita «funciona» en el elemento que quieras probar.</div>`;
+ if(!S.man.act)h+=`<div class="nota">ℹ️ «Activar la PBB» está sin marcar: solo se ha simulado el rearme. En la 586 salta al activar.</div>`;
+ const salta=Object.keys(r.trip).length>0;
+ if(S.man.p291){if(S.obs.p291)h+=`<div class="ver ${(S.obs.p291==="si")===salta?"ok":"no"}">${(S.obs.p291==="si")===salta?"✅ Coincide con tu prueba del hilo 291 en campo":"✖ No coincide con tu prueba del hilo 291 en campo"}</div>`;
+  else h+=`<div class="ver" style="background:var(--deadBg)">🔎 Así debería quedar la prueba del hilo 291 con esta avería: ${salta?"seguiría saltando":"no salta nada"}. Cuando la hagas en campo, márcala en el bloque 4.</div>`}
+ else if(S.man.act&&coinc!==null)h+=`<div class="ver ${coinc?"ok":"no"}">${coinc?"✅ Tu simulación da los mismos síntomas que lo observado en campo":"✖ Tu simulación NO da lo observado en campo"}</div>`;return h}
 function anaHTML(){const a=S.ana;if(!a.L.length)return `<div class="ver no">Ninguna avería del recorrido da exactamente esos síntomas. Revisa lo marcado en «Observado» o amplía el destino.</div>`;
  const tot=a.L.reduce((s,x)=>s+x.w,0);
  let h=`<div class="ver ok">${a.L.length} avería${a.L.length>1?"s":""} posible${a.L.length>1?"s":""} con esos síntomas · marcadas en el recorrido</div>`;
